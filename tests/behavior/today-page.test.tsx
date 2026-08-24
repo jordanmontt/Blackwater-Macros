@@ -2,14 +2,16 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import HoyPage from "@/app/page";
-import type { MealDTO } from "@/lib/types";
+import type { MealDTO, MealTemplateDTO } from "@/lib/types";
 
 /**
  * Requisitos visibles en la pantalla "Hoy":
  *  - el usuario ve el total acumulado de calorías y proteína del día,
  *    calculado con todas las comidas registradas,
  *  - puede avanzar/retroceder de día para revisar comidas pasadas,
- *  - si no hay comidas, la pantalla lo deja claro e invita a añadir.
+ *  - si no hay comidas, la pantalla lo deja claro e invita a añadir,
+ *  - al aplicar una plantilla hay feedback inmediato y no se puede
+ *    disparar dos veces sin querer.
  */
 
 vi.mock("@/lib/api", () => ({
@@ -19,8 +21,8 @@ vi.mock("@/lib/api", () => ({
       meal({ title: "Desayuno", kcal: 475, protein: 32.4 }),
       meal({ title: "Comida", kcal: 850, protein: 45 }),
     ]),
-    listTemplates: vi.fn(async () => []),
-    createMeal: vi.fn(),
+    listTemplates: vi.fn(async () => [] as MealTemplateDTO[]),
+    createMeal: vi.fn(async () => meal({ title: "nueva", kcal: 0, protein: 0 })),
   },
 }));
 
@@ -32,7 +34,8 @@ import { api } from "@/lib/api";
 
 describe("pantalla Hoy", () => {
   beforeEach(() => {
-    vi.mocked(api.listMeals).mockClear();
+    vi.clearAllMocks();
+    vi.mocked(api.listTemplates).mockResolvedValue([]);
   });
 
   it("muestra los totales diarios sumando todas las comidas del día", async () => {
@@ -64,6 +67,42 @@ describe("pantalla Hoy", () => {
     expect(api.listMeals).toHaveBeenLastCalledWith(expect.any(String), expect.any(String));
     expect(vi.mocked(api.listMeals).mock.calls.length).toBeGreaterThanOrEqual(2);
   });
+
+  it("aplicar una plantilla añade la comida, avisa al usuario y bloquea el botón mientras tanto", async () => {
+    const user = userEvent.setup();
+    let resolveCreate!: (value: MealDTO) => void;
+    vi.mocked(api.createMeal).mockImplementationOnce(
+      () => new Promise<MealDTO>((resolve) => (resolveCreate = resolve)),
+    );
+    vi.mocked(api.listTemplates).mockResolvedValue([
+      template({ name: "Desayuno salvaje" }),
+    ]);
+    render(<HoyPage />);
+
+    const chip = await screen.findByRole("button", { name: "Desayuno salvaje" });
+    expect(vi.mocked(api.createMeal)).not.toHaveBeenCalled();
+
+    await user.click(chip);
+
+    expect(vi.mocked(api.createMeal)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(api.createMeal)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Desayuno salvaje",
+        entryMode: "per_ingredient",
+        logDate: expect.any(String),
+      }),
+    );
+
+    // Mientras la petición vuela, el chip muestra "Añadiendo…" y no se puede re-disparar.
+    const pendingChip = screen.getByRole("button", { name: "Añadiendo…" });
+    expect(pendingChip).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Desayuno salvaje" })).toBeNull();
+
+    resolveCreate(meal({ title: "Desayuno salvaje", kcal: 300, protein: 20 }));
+    // Termina la petición: el chip vuelve a su estado normal y la lista se refresca.
+    expect(await screen.findByRole("button", { name: "Desayuno salvaje" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Añadiendo…" })).toBeNull();
+  });
 });
 
 function meal(partial: { title: string; kcal: number; protein: number }): MealDTO {
@@ -78,5 +117,15 @@ function meal(partial: { title: string; kcal: number; protein: number }): MealDT
     totalProtein: null,
     resolvedCalories: partial.kcal,
     resolvedProtein: partial.protein,
+  };
+}
+
+function template(partial: { name: string }): MealTemplateDTO {
+  return {
+    id: `tpl-${partial.name}`,
+    name: partial.name,
+    title: partial.name,
+    notes: null,
+    ingredients: [{ name: "avena", calories: 150, protein: 5 }],
   };
 }

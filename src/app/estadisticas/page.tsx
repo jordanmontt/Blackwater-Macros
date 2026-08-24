@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { InfoIcon } from "lucide-react";
 import {
-  Bar,
   CartesianGrid,
   ComposedChart,
   Line,
+  ReferenceDot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api, ApiError } from "@/lib/api";
@@ -53,7 +56,17 @@ export default function EstadisticasPage() {
     <main className="mx-auto w-full max-w-2xl px-4 pt-4 md:pt-6">
       <header className="flex items-center justify-between gap-2">
         <h1 className="text-lg font-semibold">{t.stats.title}</h1>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            nativeButton={false}
+            render={<Link href="/metodologia" aria-label={t.metodologia.title} />}
+          >
+            <InfoIcon />
+          </Button>
+          <ThemeToggle />
+        </div>
       </header>
 
       <div
@@ -126,6 +139,12 @@ function NutritionSection({ summary }: { summary: StatsSummary }) {
             value: point.calories,
           }))}
           color="var(--chart-1)"
+          peak={
+            summary.caloriesMaxDay
+              ? { date: summary.caloriesMaxDay.date, value: summary.caloriesMaxDay.calories }
+              : null
+          }
+          unit=" kcal"
         />
       </ChartCard>
 
@@ -133,6 +152,12 @@ function NutritionSection({ summary }: { summary: StatsSummary }) {
         <CalorieProteinChart
           data={summary.protein.map((point) => ({ date: point.date, value: point.protein }))}
           color="var(--chart-2)"
+          peak={
+            summary.proteinMaxDay
+              ? { date: summary.proteinMaxDay.date, value: summary.proteinMaxDay.protein }
+              : null
+          }
+          unit=" g"
         />
       </ChartCard>
     </>
@@ -269,8 +294,18 @@ interface SeriesPoint {
   value: number;
 }
 
-/** Daily bars plus a trailing 7-day moving-average line to reveal patterns. */
-function CalorieProteinChart({ data, color }: { data: SeriesPoint[]; color: string }) {
+/** Daily line plus a trailing 7-day moving-average trend, with the range peak marked. */
+function CalorieProteinChart({
+  data,
+  color,
+  peak,
+  unit,
+}: {
+  data: SeriesPoint[];
+  color: string;
+  peak: SeriesPoint | null;
+  unit: string;
+}) {
   const movingAverage = useMemo(
     () => movingAverageByDays(data, 7),
     [data],
@@ -283,7 +318,7 @@ function CalorieProteinChart({ data, color }: { data: SeriesPoint[]; color: stri
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={rows} margin={{ top: 12, right: 8, bottom: 0, left: -18 }}>
+      <ComposedChart data={rows} margin={{ top: 16, right: 12, bottom: 0, left: -18 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis
           dataKey="date"
@@ -294,7 +329,13 @@ function CalorieProteinChart({ data, color }: { data: SeriesPoint[]; color: stri
           tickLine={false}
           axisLine={false}
         />
-        <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} />
+        <YAxis
+          domain={[0, "auto"]}
+          tick={{ fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          width={44}
+        />
         <Tooltip
           contentStyle={{
             background: "var(--popover)",
@@ -305,16 +346,40 @@ function CalorieProteinChart({ data, color }: { data: SeriesPoint[]; color: stri
           }}
           labelFormatter={(value) => formatDateKeyShort(String(value))}
         />
-        <Bar dataKey="value" fill={color} radius={[3, 3, 0, 0]} maxBarSize={18} />
+        <Line
+          type="monotone"
+          dataKey="value"
+          name={t.stats.dailyIntake}
+          stroke={color}
+          strokeWidth={1.5}
+          dot={{ r: 2 }}
+        />
         <Line
           type="monotone"
           dataKey="tendencia"
+          name={t.stats.trendLine}
           stroke="currentColor"
           className="text-muted-foreground"
-          strokeWidth={2}
+          strokeWidth={2.5}
           dot={false}
           connectNulls
         />
+        {peak ? (
+          <ReferenceDot
+            x={peak.date}
+            y={peak.value}
+            r={5}
+            fill={color}
+            stroke="var(--background)"
+            strokeWidth={2}
+            label={{
+              value: `${formatNumberEs(peak.value)}${unit}`,
+              position: "top",
+              fontSize: 10,
+              fill: "var(--foreground)",
+            }}
+          />
+        ) : null}
       </ComposedChart>
     </ResponsiveContainer>
   );

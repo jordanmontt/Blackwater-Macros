@@ -24,7 +24,7 @@ import { api, ApiError } from "@/lib/api";
 import { todayKey } from "@/lib/dates";
 import { formatNumberEs } from "@/lib/dates";
 import type { MealDTO, MealTemplateDTO } from "@/lib/types";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 
 export default function HoyPage() {
   const [selectedDay, setSelectedDay] = useState<string>(() => todayKey());
@@ -34,6 +34,7 @@ export default function HoyPage() {
   const [editingMeal, setEditingMeal] = useState<MealDTO | null>(null);
   const [deletingMeal, setDeletingMeal] = useState<MealDTO | null>(null);
   const [templateSourceMeal, setTemplateSourceMeal] = useState<MealDTO | null>(null);
+  const [applyingTemplateId, setApplyingTemplateId] = useState<string | null>(null);
 
   // Mientras el día pedido aún no tiene datos cargados, la lista muestra "cargando".
   const meals = loaded && loaded.day === selectedDay ? loaded.meals : null;
@@ -103,6 +104,7 @@ export default function HoyPage() {
   }
 
   async function handleApplyTemplate(template: MealTemplateDTO) {
+    setApplyingTemplateId(template.id);
     try {
       await api.createMeal({
         logDate: selectedDay,
@@ -111,9 +113,12 @@ export default function HoyPage() {
         entryMode: "per_ingredient",
         ingredients: template.ingredients,
       });
+      toast.success(formatTemplate(t.hoy.templateApplied, { name: template.name }));
       await refreshMeals(selectedDay);
     } catch {
       toast.error(t.common.errorGeneric);
+    } finally {
+      setApplyingTemplateId(null);
     }
   }
 
@@ -166,9 +171,10 @@ export default function HoyPage() {
                 variant="outline"
                 size="sm"
                 className="shrink-0 rounded-full"
+                disabled={applyingTemplateId !== null}
                 onClick={() => void handleApplyTemplate(template)}
               >
-                {template.name}
+                {applyingTemplateId === template.id ? t.hoy.applyingTemplate : template.name}
               </Button>
             ))}
           </div>

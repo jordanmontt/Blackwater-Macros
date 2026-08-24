@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { DownloadIcon, LogOutIcon, Trash2Icon } from "lucide-react";
+import { DownloadIcon, InfoIcon, LogOutIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,6 +89,22 @@ export default function AjustesPage() {
               </button>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.metodologia.title}</CardTitle>
+          <CardDescription>{t.ajustes.methodologyLink}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/metodologia" />}
+          >
+            <InfoIcon /> {t.metodologia.title}
+          </Button>
         </CardContent>
       </Card>
 

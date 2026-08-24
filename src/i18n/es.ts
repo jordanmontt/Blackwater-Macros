@@ -26,6 +26,8 @@ export const t = {
     kcalUnit: "kcal",
     proteinUnit: "g",
     applyTemplate: "Aplicar plantilla",
+    applyingTemplate: "Añadiendo…",
+    templateApplied: "«{name}» añadido a este día",
     noTemplates: "Aún no tienes plantillas guardadas.",
     templates: "Plantillas",
   },
@@ -83,6 +85,7 @@ export const t = {
     rangeAll: "Todo",
     caloriesChartTitle: "Calorías diarias",
     proteinChartTitle: "Proteína diaria",
+    dailyIntake: "Registro diario",
     weightChartTitle: "Evolución del peso",
     weightWeeklyAvgTitle: "Media semanal del peso",
     trendLine: "Tendencia (media 7 días)",
@@ -101,6 +104,29 @@ export const t = {
     noData: "Sin datos todavía en este periodo.",
     weekStart: "Semana del",
   },
+  metodologia: {
+    title: "Metodología",
+    intro:
+      "Cómo se calculan cada una de las métricas que aparecen en Estadísticas, con las fórmulas exactas y las referencias en las que se basan.",
+    scaleVsTrendTitle: "Peso en báscula vs tendencia",
+    scaleVsTrendBody:
+      "El «peso actual» es tu última entrada registrada. La «tendencia actual» es el valor más reciente de la media móvil de 7 días. El «cambio total» compara la primera y la última entrada del rango seleccionado. El «mínimo» y el «máximo» son los valores extremos de tus entradas dentro del rango.",
+    movingAvgTitle: "Media móvil de 7 días (tendencia)",
+    movingAvgFormulaLabel: "Para cada día d:",
+    movingAvgBody:
+      "Se promedian todas tus entradas cuya fecha cae dentro de la ventana de 7 días que termina en d. Los días sin registro no cuentan ni se rellenan con ceros: si solo pesaste 3 veces esa semana, la media es de esas 3 entradas. Esto atenúa el ruido diario (agua, sal, contenido intestinal) manteniendo la señal real de grasa, que cambia despacio. Es la práctica habitual recomendada en la literatura de auto-pesaje y la base del concepto de «peso de tendencia» popularizado por The Hacker's Diet.",
+    rateTitle: "Ritmo semanal (kg/semana)",
+    rateFormulaLabel: "Pendiente por mínimos cuadrados ordinarios:",
+    rateBody:
+      "x son los días transcurridos desde la primera entrada del rango e y el peso registrado. La pendiente β se multiplica por 7 para expresarla por semana. La regresión usa tus entradas crudas del rango visible: captura mejor la dirección a largo plazo que comparar solo dos puntos concretos.",
+    weeklyAvgTitle: "Media semanal del peso",
+    weeklyAvgBody:
+      "Las semanas empiezan el lunes. Se hace la media aritmética de todas las entradas de cada semana; las semanas sin ninguna entrada no aparecen.",
+    nutritionTitle: "Calorías y proteína diarias",
+    nutritionBody:
+      "El total de cada día es la suma de tus comidas de ese día (las calorías y proteína se calculan al guardar, ya sea sumando ingredientes o tomando tu total manual). Los días sin comidas cuentan como 0: así los huecos reflejan honestamente la adherencia en lugar de desaparecer. La «media» es la media aritmética del rango, el «día pico» el valor máximo, y la línea de tendencia aplica exactamente la misma media móvil de 7 días descrita arriba.",
+    referencesTitle: "Referencias",
+  },
   ajustes: {
     title: "Ajustes",
     appearance: "Apariencia",
@@ -111,6 +137,7 @@ export const t = {
     exportMeals: "Exportar comidas (CSV)",
     exportWeights: "Exportar peso (CSV)",
     exportHint: "Descarga todos tus datos en formato CSV.",
+    methodologyLink: "Cómo se calculan las métricas",
     session: "Sesión",
     loggedInAs: "Sesión iniciada como",
   },
