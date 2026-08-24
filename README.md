@@ -3,6 +3,9 @@
 Aplicación personal de seguimiento de **calorías, proteína y peso**.
 Minimalista, mobile-first, con modo claro/oscuro y datos en la nube.
 
+> ¿Vas a modificar el código? Lee [TECHNICAL.md](./TECHNICAL.md): arquitectura,
+> modelo de datos, flujo de autenticación, API, tests y convenciones.
+
 ## Funcionalidades
 
 - **Comidas por día**: título, ingredientes con cantidad y notas. Dos modos de
@@ -10,9 +13,11 @@ Minimalista, mobile-first, con modo claro/oscuro y datos en la nube.
   *solo total* (introduces únicamente el total de la comida).
 - **Plantillas**: guarda comidas repetitivas ("Desayuno") y aplícalas en un toque.
 - **Peso**: varios registros al día con fecha y hora autocompletadas.
-- **Estadísticas**: series diarias de kcal y proteína con media móvil de 7 días,
-  evolución del peso con línea de tendencia, ritmo semanal (kg/semana),
-  cambio total, medias semanales y mínimos/máximos.
+- **Estadísticas**: series diarias de kcal y proteína con línea de tendencia
+  (media móvil de 7 días) y día pico marcado, evolución del peso con tendencia,
+  ritmo semanal (kg/semana), cambio total, medias semanales y mínimos/máximos.
+- **Página de metodología** (`/metodologia`): explica con fórmulas y referencias
+  cómo se calcula cada métrica.
 - **Exportación CSV** de comidas y pesos.
 - **Futuras métricas**: el esquema ya reserva `carbs`/`fat` en ingredientes y
   columnas totales; activarlas no requiere migrar nada más que añadir campos.
@@ -72,6 +77,19 @@ El script es idempotente: borra los datos previos del usuario demo y vuelve a ge
 
 > Requiere Node ≥ 20.19 (recomendado 22 LTS).
 
+### Reiniciar los datos demo en producción
+
+El despliegue y el desarrollo comparten la misma base de datos Neon, así que los
+scripts que ejecutas en local actúan directamente sobre el sitio en producción:
+
+1. Ejecuta `npm run seed` en tu máquina (usa el `DATABASE_URL` de `.env.local`).
+2. Recarga la web: el usuario `demo / demo1234` vuelve a tener ~45 días de datos
+   que terminan hoy. Tus demás cuentas no se tocan.
+
+Esto es útil para mostrar la app a otras personas con datos frescos: comparte las
+credenciales demo, y cuando quieras "reiniciar la demostración", vuelve a lanzar
+el comando.
+
 ## Scripts útiles
 
 | Comando | Descripción |
@@ -104,6 +122,10 @@ tests/
   behavior/            Pruebas de comportamiento: requisitos del usuario, caja negra
   unit/                Pruebas técnicas de piezas puras: casos límite y detalles
 ```
+
+El detalle completo de cada capa (flujo de una petición, esquema de base de datos,
+referencia de la API, patrones de React y de tests) está en
+[TECHNICAL.md](./TECHNICAL.md).
 
 ## Despliegue (gratis)
 

@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api, ApiError } from "@/lib/api";
 import { formatDateKeyShort, formatNumberEs, todayKey } from "@/lib/dates";
+import { round1 } from "@/lib/nutrition";
 import { movingAverageByDays } from "@/lib/stats";
 import type { StatsRange, StatsSummary } from "@/lib/types";
 import { t } from "@/i18n";
@@ -294,6 +295,12 @@ interface SeriesPoint {
   value: number;
 }
 
+/** Formatea los valores del tooltip al estilo es-ES con 1 decimal. */
+function tooltipFormatter(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  return formatNumberEs(Number(value), 1);
+}
+
 /** Daily line plus a trailing 7-day moving-average trend, with the range peak marked. */
 function CalorieProteinChart({
   data,
@@ -313,7 +320,8 @@ function CalorieProteinChart({
   const rows = data.map((point, i) => ({
     date: point.date,
     value: point.value,
-    tendencia: movingAverage[i],
+    // Redondeada a 1 decimal para que el tooltip coincida con las tarjetas.
+    tendencia: movingAverage[i] === null ? null : round1(movingAverage[i] as number),
   }));
 
   return (
@@ -344,6 +352,7 @@ function CalorieProteinChart({
             fontSize: 12,
             color: "var(--popover-foreground)",
           }}
+          formatter={tooltipFormatter}
           labelFormatter={(value) => formatDateKeyShort(String(value))}
         />
         <Line
@@ -419,6 +428,7 @@ function WeightChart({
             fontSize: 12,
             color: "var(--popover-foreground)",
           }}
+          formatter={tooltipFormatter}
           labelFormatter={(value) => formatDateKeyShort(String(value))}
         />
         <Line
