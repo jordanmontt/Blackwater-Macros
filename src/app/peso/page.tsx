@@ -34,6 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api, ApiError } from "@/lib/api";
 import { formatDateKeyLong, formatNumberEs, formatTimestamp, nowDateTimeLocalValue, parseLocalDateTime } from "@/lib/dates";
+import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { formatTemplate } from "@/i18n";
 import type { WeightDTO } from "@/lib/types";
 import { t } from "@/i18n";
@@ -98,7 +99,7 @@ export default function PesoPage() {
   function openEdit(entry: WeightDTO) {
     setForm({
       id: entry.id,
-      weight: String(entry.weightKg),
+      weight: toDecimalInput(entry.weightKg),
       datetime: toDateTimeLocal(entry.measuredAt),
       note: entry.note ?? "",
     });
@@ -240,7 +241,7 @@ export default function PesoPage() {
                   step="any"
                   autoFocus
                   value={form.weight}
-                  onChange={(event) => setForm({ ...form, weight: event.target.value })}
+                  onChange={(event) => setForm({ ...form, weight: normalizeDecimal(event.target.value) })}
                 />
               </div>
               <div className="space-y-2">

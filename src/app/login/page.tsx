@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,32 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  // Logged-in users never see this page: the proxy redirects on full loads,
+  // and this check covers client-side restores (e.g. back/forward cache) that
+  // bypass the server. Raw fetch instead of api.session() to avoid the global
+  // 401 handler forcing a reload of /login.
+  useEffect(() => {
+    let cancelled = false;
+    async function redirectToHomeIfAuthenticated() {
+      try {
+        const res = await fetch("/api/auth/session");
+        if (!cancelled && res.ok) router.replace("/");
+      } catch {
+        // Network error: stay on the login page.
+      }
+    }
+    void redirectToHomeIfAuthenticated();
+
+    function handlePageShow(event: PageTransitionEvent) {
+      if (event.persisted) void redirectToHomeIfAuthenticated();
+    }
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, [router]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();

@@ -16,6 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { api, ApiError, type MealPayload } from "@/lib/api";
 import type { IngredientInput, MealDTO, EntryMode } from "@/lib/types";
+import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { t } from "@/i18n";
 
 interface IngredientDraft {
@@ -36,14 +37,21 @@ interface MealFormProps {
 
 const emptyIngredient: IngredientDraft = { name: "", quantity: "", calories: "", protein: "" };
 
+/** Labels for the entry-mode select; lets <SelectValue> render text instead of the raw enum. */
+const modeItems = [
+  { value: "per_ingredient", label: t.meal.modePerIngredient },
+  { value: "total_only", label: t.meal.modeTotalOnly },
+];
+
 function draftFromMeal(meal: MealDTO | null): IngredientDraft[] {
   if (!meal) return [{ ...emptyIngredient }];
   if (meal.ingredients.length === 0) return [{ ...emptyIngredient }];
   return meal.ingredients.map((ingredient) => ({
     name: ingredient.name,
     quantity: ingredient.quantity ?? "",
-    calories: ingredient.calories !== undefined ? String(ingredient.calories) : "",
-    protein: ingredient.protein !== undefined ? String(ingredient.protein) : "",
+    calories:
+      ingredient.calories !== undefined ? toDecimalInput(ingredient.calories) : "",
+    protein: ingredient.protein !== undefined ? toDecimalInput(ingredient.protein) : "",
   }));
 }
 
@@ -93,16 +101,16 @@ interface MealFormFieldsProps {
 function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps) {
   const [title, setTitle] = useState(() => meal?.title ?? "");
   const [notes, setNotes] = useState(() => meal?.notes ?? "");
-  const [entryMode, setEntryMode] = useState<EntryMode>(() => meal?.entryMode ?? "per_ingredient");
+  const [entryMode, setEntryMode] = useState<EntryMode>(() => meal?.entryMode ?? "total_only");
   const [ingredients, setIngredients] = useState<IngredientDraft[]>(() => draftFromMeal(meal));
   const [totalCalories, setTotalCalories] = useState(() =>
     meal && meal.entryMode === "total_only" && meal.totalCalories !== null
-      ? String(meal.totalCalories)
+      ? toDecimalInput(meal.totalCalories)
       : "",
   );
   const [totalProtein, setTotalProtein] = useState(() =>
     meal && meal.entryMode === "total_only" && meal.totalProtein !== null
-      ? String(meal.totalProtein)
+      ? toDecimalInput(meal.totalProtein)
       : "",
   );
   const [pending, setPending] = useState(false);
@@ -189,7 +197,11 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
 
           <div className="space-y-2">
             <Label>{t.meal.modeLabel}</Label>
-            <Select value={entryMode} onValueChange={(value) => setEntryMode(value as EntryMode)}>
+            <Select
+              items={modeItems}
+              value={entryMode}
+              onValueChange={(value) => setEntryMode(value as EntryMode)}
+            >
               <SelectTrigger className="w-full" aria-label={t.meal.modeLabel}>
                 <SelectValue />
               </SelectTrigger>
@@ -245,7 +257,9 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                         className="w-24"
                         value={draft.calories}
                         onChange={(event) =>
-                          updateIngredient(index, { calories: event.target.value })
+                          updateIngredient(index, {
+                            calories: normalizeDecimal(event.target.value),
+                          })
                         }
                       />
                       <Input
@@ -254,7 +268,9 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                         className="w-24"
                         value={draft.protein}
                         onChange={(event) =>
-                          updateIngredient(index, { protein: event.target.value })
+                          updateIngredient(index, {
+                            protein: normalizeDecimal(event.target.value),
+                          })
                         }
                       />
                     </div>
@@ -279,7 +295,7 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                   required
                   inputMode="decimal"
                   value={totalCalories}
-                  onChange={(event) => setTotalCalories(event.target.value)}
+                  onChange={(event) => setTotalCalories(normalizeDecimal(event.target.value))}
                 />
               </div>
               <div className="space-y-2">
@@ -289,7 +305,7 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                   required
                   inputMode="decimal"
                   value={totalProtein}
-                  onChange={(event) => setTotalProtein(event.target.value)}
+                  onChange={(event) => setTotalProtein(normalizeDecimal(event.target.value))}
                 />
               </div>
             </div>

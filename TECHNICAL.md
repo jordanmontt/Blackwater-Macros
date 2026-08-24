@@ -93,6 +93,10 @@ weights      id, user_id → users(cascade), measured_at TIMESTAMPTZ,
 - **`total_only`**: user enters one kcal/protein pair; those land in
   `total_calories/total_protein`; resolved columns copy them.
 
+The MealForm defaults **new** meals to `total_only` ("Solo total"); editing keeps
+the stored mode. The DB column default (`per_ingredient`) is never relied upon —
+the service always writes an explicit value.
+
 **Why persisted `resolved_*` columns:** stats and CSV export become trivial
 `SUM(...)` queries over one column instead of re-parsing JSONB on every request.
 
@@ -191,6 +195,12 @@ URL contains `localhost`/`127.0.0.1`.
   (cheap edge check, protects pages); every API route independently verifies the
   session against the DB via `withUserId` (source of truth). Deleting a session row
   revokes access immediately even if the browser keeps the cookie.
+- **Login page hardening:** `/login` is served with `Cache-Control: no-store`
+  (`next.config.ts`) so the back/forward cache cannot resurrect it after login,
+  and the page re-checks `/api/auth/session` on mount and on `pageshow`
+  (`event.persisted` restores bypass the proxy entirely). That check uses raw
+  `fetch`, *not* `api.session()` — the global 401 handler would hard-reload /login
+  for logged-out visitors.
 - **No registration UI** — accounts exist only via `create-user` script or SQL.
 
 ---
@@ -228,7 +238,7 @@ Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchem
 | Peso | `app/peso/page.tsx` | Current-weight card, entries grouped by day, datetime-local form with "Ahora" button |
 | Estadísticas | `app/estadisticas/page.tsx` | Range tabs, MiniStat cards, 3 charts, weekly averages; ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Theme selector, CSV export buttons, template manager, session/logout, methodology link |
-| Login | `app/login/page.tsx` | Only reachable page when logged out (proxy redirects everything else) |
+| Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5) |
 | Metodología | `app/metodologia/page.tsx` | Static content page explaining metric formulas + citations |
 
 ### Client data layer (`lib/api.ts`)
@@ -237,6 +247,21 @@ Typed fetcher: JSON headers, network-failure → `ApiError(0)`, non-OK → `ApiE
 Any 401 outside the login call triggers a hard `window.location.href = "/login"`
 (intentional full reload so all cached client state resets). Components catch
 errors locally and show `sonner` toasts.
+
+### Numeric input convention
+
+Every numeric input uses **`,` as decimal separator** (Spanish convention).
+`lib/utils.ts` provides the two helpers:
+
+- `normalizeDecimal(value)` — converts typed `.` to `,` on every keystroke;
+  wired into `onChange` of all numeric fields (MealForm kcal/protein, meal
+  totals, peso weight).
+- `toDecimalInput(number)` — formats a stored number with `,` when a form is
+  hydrated for editing.
+
+Parsing accepts either separator: forms call `.replace(",", ".")` before
+`Number()` (`parseNumber` in MealForm, inline in the peso handler). The
+free-text quantity field is exempt — it holds strings like "30-40 g".
 
 ### Timezone strategy
 
@@ -299,8 +324,10 @@ Base UI gotchas (differs from Radix-era shadcn docs):
 
 - No `asChild` — use `render={...}`: `<Button render={<Link href=…/>}>label</Button>`.
 - Rendering an anchor inside `Button` requires `nativeButton={false}`.
-- Select uses `onValueChange`; `AlertDialogAction` accepts Button props
-  (`variant="destructive"` works directly).
+- Select uses `onValueChange`; `<SelectValue>` renders the **raw value** (e.g. the
+  enum string) unless `<Select>` receives an `items` array/record mapping values
+  to labels — see `modeItems` in `components/meals/meal-form.tsx`.
+- `AlertDialogAction` accepts Button props (`variant="destructive"` works directly).
 
 Next.js 16 specifics honored throughout: `params` in route handlers is a Promise
 (`await context.params`), `cookies()` is async, middleware lives in `src/proxy.ts`.
