@@ -17,15 +17,17 @@ describe("registro flexible de nutrición", () => {
     const totals = resolveMealTotals(
       "per_ingredient",
       [
-        { name: "4 huevos", calories: 280, protein: 24 },
-        { name: "2 cucharillas de aceite de oliva", calories: 80, protein: 0 },
-        { name: "30-40 gramos queso Gouda", quantity: "35 g", calories: 115, protein: 8.4 },
+        { name: "4 huevos", calories: 280, protein: 24, carbs: 2, fat: 20 },
+        { name: "2 cucharillas de aceite de oliva", calories: 80, protein: 0, carbs: 0, fat: 9 },
+        { name: "30-40 gramos queso Gouda", quantity: "35 g", calories: 115, protein: 8.4, carbs: 1, fat: 9 },
       ],
       null,
       null,
     );
     expect(totals.calories).toBeCloseTo(475);
     expect(totals.protein).toBeCloseTo(32.4);
+    expect(totals.carbs).toBeCloseTo(3);
+    expect(totals.fat).toBeCloseTo(38);
   });
 
   it("modo A: los ingredientes sin valores no rompen la suma (cuentan como 0)", () => {
@@ -33,13 +35,15 @@ describe("registro flexible de nutrición", () => {
       "per_ingredient",
       [
         { name: "café con leche" },
-        { name: "tostada", calories: 120, protein: 4 },
+        { name: "tostada", calories: 120, protein: 4, carbs: 20, fat: 3 },
       ],
       null,
       null,
     );
     expect(totals.calories).toBe(120);
     expect(totals.protein).toBe(4);
+    expect(totals.carbs).toBe(20);
+    expect(totals.fat).toBe(3);
   });
 
   it("modo B: usa el total manual aunque también haya ingredientes anotados", () => {
@@ -48,8 +52,10 @@ describe("registro flexible de nutrición", () => {
       [{ name: "menú del día (sin detallar)" }],
       850,
       45,
+      80,
+      35,
     );
-    expect(totals).toEqual({ calories: 850, protein: 45 });
+    expect(totals).toEqual({ calories: 850, protein: 45, carbs: 80, fat: 35 });
   });
 
   it("los decimales se conservan redondeados a dos cifras", () => {
@@ -58,6 +64,8 @@ describe("registro flexible de nutrición", () => {
       { name: "b", protein: 0.105 },
     ] satisfies IngredientInput[]);
     expect(summed.protein).toBeCloseTo(0.21, 10);
+    expect(summed.carbs).toBe(0);
+    expect(summed.fat).toBe(0);
   });
 });
 
@@ -69,7 +77,7 @@ describe("al guardar una comida ya queda calculado su total", () => {
         meals: {
           async create(_userId: string, data: unknown) {
             saved.push(data);
-            return { id: "meal-1", ...(data as object), ingredients: (data as MealInput["ingredients"]) };
+            return { id: "meal-1", ...(data as object) };
           },
           async listInRange() {
             return [];
@@ -97,8 +105,8 @@ describe("al guardar una comida ya queda calculado su total", () => {
       notes: null,
       entryMode: "per_ingredient",
       ingredients: [
-        { name: "4 huevos", calories: 280, protein: 24 },
-        { name: "pan", calories: 90, protein: 3 },
+        { name: "4 huevos", calories: 280, protein: 24, carbs: 2, fat: 20 },
+        { name: "pan", calories: 90, protein: 3, carbs: 16, fat: 1 },
       ],
       totalCalories: null,
       totalProtein: null,

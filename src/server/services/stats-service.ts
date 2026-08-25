@@ -41,16 +41,20 @@ export async function buildStatsSummary(
   const mealRows = await deps.meals.listInRange(userId, fromKey, toKey);
   const weightRows = await deps.weights.listForUser(userId);
 
-  // --- Daily calories / protein ---
+  // --- Daily calories / protein / carbs / fat ---
   const totalsByDate = new Map<string, DailyNutritionPoint>();
   for (const meal of mealRows) {
     const current = totalsByDate.get(meal.logDate) ?? {
       date: meal.logDate,
       calories: 0,
       protein: 0,
+      carbs: 0,
+      fat: 0,
     };
     current.calories += meal.resolvedCalories;
     current.protein += meal.resolvedProtein;
+    current.carbs += meal.ingredients.reduce((sum, i) => sum + (i.carbs ?? 0), 0);
+    current.fat += meal.ingredients.reduce((sum, i) => sum + (i.fat ?? 0), 0);
     totalsByDate.set(meal.logDate, current);
   }
 
@@ -63,6 +67,8 @@ export async function buildStatsSummary(
 
   const caloriesPoints = nutritionSeries.filter((point) => point.calories > 0);
   const proteinPoints = nutritionSeries.filter((point) => point.protein > 0);
+  const carbsPoints = nutritionSeries.filter((point) => point.carbs > 0);
+  const fatPoints = nutritionSeries.filter((point) => point.fat > 0);
 
   // --- Weight ---
   const fromTime = fromKey ? new Date(`${fromKey}T00:00:00Z`).getTime() : 0;
@@ -99,11 +105,17 @@ export async function buildStatsSummary(
   return {
     calories: nutritionSeries.map((p) => ({ ...p, calories: round1(p.calories) })),
     protein: nutritionSeries.map((p) => ({ ...p, protein: round1(p.protein) })),
+    carbs: nutritionSeries.map((p) => ({ ...p, carbs: round1(p.carbs) })),
+    fat: nutritionSeries.map((p) => ({ ...p, fat: round1(p.fat) })),
     weights: weightSeries,
     caloriesAvg: averageOf(caloriesPoints.map((p) => p.calories)),
     caloriesMaxDay: maxBy(caloriesPoints, (p) => p.calories),
     proteinAvg: averageOf(proteinPoints.map((p) => p.protein)),
     proteinMaxDay: maxBy(proteinPoints, (p) => p.protein),
+    carbsAvg: averageOf(carbsPoints.map((p) => p.carbs)),
+    carbsMaxDay: maxBy(carbsPoints, (p) => p.carbs),
+    fatAvg: averageOf(fatPoints.map((p) => p.fat)),
+    fatMaxDay: maxBy(fatPoints, (p) => p.fat),
     weight: weightSummary,
     weeklyWeightAvg: weeklyAverages(weightPoints).map((week) => ({
       weekStart: week.weekStart,

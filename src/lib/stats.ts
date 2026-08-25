@@ -99,7 +99,7 @@ export function buildDailyNutritionSeries(
   let cursor = fromKey;
   while (daysBetweenKeys(cursor, toKey) >= 0) {
     const entry = totalsByDate.get(cursor);
-    series.push(entry ?? { date: cursor, calories: 0, protein: 0 });
+    series.push(entry ?? { date: cursor, calories: 0, protein: 0, carbs: 0, fat: 0 });
     cursor = addDaysToKey(cursor, 1);
   }
   return series;

@@ -65,6 +65,8 @@ async function main() {
     quantity?: string;
     calories?: number;
     protein?: number;
+    carbs?: number;
+    fat?: number;
   }
   interface MealSeed {
     title: string;
@@ -72,6 +74,8 @@ async function main() {
     ingredients: IngredientSeed[];
     totalCalories?: number;
     totalProtein?: number;
+    totalCarbs?: number;
+    totalFat?: number;
     probability: number;
   }
 
@@ -83,9 +87,9 @@ async function main() {
       mode: "per_ingredient",
       probability: 0.95,
       ingredients: [
-        { name: "4 huevos", quantity: "240 g", calories: 280, protein: 24 },
-        { name: "2 cucharillas de aceite de oliva", calories: 80, protein: 0 },
-        { name: "30-40 gramos queso Gouda", quantity: "35 g", calories: 115, protein: 8.4 },
+        { name: "4 huevos", quantity: "240 g", calories: 280, protein: 24, carbs: 2, fat: 20 },
+        { name: "2 cucharillas de aceite de oliva", calories: 80, protein: 0, carbs: 0, fat: 9 },
+        { name: "30-40 gramos queso Gouda", quantity: "35 g", calories: 115, protein: 8.4, carbs: 1, fat: 9 },
       ],
     },
     {
@@ -93,9 +97,9 @@ async function main() {
       mode: "per_ingredient",
       probability: 1,
       ingredients: [
-        { name: "Tostada integral", quantity: "60 g", calories: 150, protein: 6 },
-        { name: "Aguacate", quantity: "½ unidad", calories: 120, protein: 1.5 },
-        { name: "Café con leche", calories: 40, protein: 2 },
+        { name: "Tostada integral", quantity: "60 g", calories: 150, protein: 6, carbs: 26, fat: 2 },
+        { name: "Aguacate", quantity: "½ unidad", calories: 120, protein: 1.5, carbs: 6, fat: 11 },
+        { name: "Café con leche", calories: 40, protein: 2, carbs: 4, fat: 2 },
       ],
     },
     {
@@ -103,9 +107,9 @@ async function main() {
       mode: "per_ingredient",
       probability: 1,
       ingredients: [
-        { name: "Yogur griego", quantity: "170 g", calories: 100, protein: 17 },
-        { name: "Copos de avena", quantity: "40 g", calories: 150, protein: 5 },
-        { name: "Plátano", calories: 90, protein: 1 },
+        { name: "Yogur griego", quantity: "170 g", calories: 100, protein: 17, carbs: 6, fat: 5 },
+        { name: "Copos de avena", quantity: "40 g", calories: 150, protein: 5, carbs: 25, fat: 3 },
+        { name: "Plátano", calories: 90, protein: 1, carbs: 22, fat: 0 },
       ],
     },
   ];
@@ -118,16 +122,18 @@ async function main() {
       ingredients: [{ name: "Menú del día (sin detallar)" }],
       totalCalories: 850,
       totalProtein: 45,
+      totalCarbs: 80,
+      totalFat: 35,
     },
     {
       title: "Comida",
       mode: "per_ingredient",
       probability: 1,
       ingredients: [
-        { name: "Pechuga de pollo a la plancha", quantity: "180 g", calories: 300, protein: 55 },
-        { name: "Arroz blanco cocido", quantity: "150 g", calories: 195, protein: 4 },
-        { name: "Ensalada verde", calories: 50, protein: 1 },
-        { name: "Aceite de oliva", quantity: "1 cucharada", calories: 90, protein: 0 },
+        { name: "Pechuga de pollo a la plancha", quantity: "180 g", calories: 300, protein: 55, carbs: 0, fat: 7 },
+        { name: "Arroz blanco cocido", quantity: "150 g", calories: 195, protein: 4, carbs: 42, fat: 0 },
+        { name: "Ensalada verde", calories: 50, protein: 1, carbs: 6, fat: 3 },
+        { name: "Aceite de oliva", quantity: "1 cucharada", calories: 90, protein: 0, carbs: 0, fat: 10 },
       ],
     },
     {
@@ -135,8 +141,8 @@ async function main() {
       mode: "per_ingredient",
       probability: 1,
       ingredients: [
-        { name: "Lentejas guisadas", quantity: "350 g", calories: 420, protein: 27 },
-        { name: "Pan", quantity: "60 g", calories: 160, protein: 5 },
+        { name: "Lentejas guisadas", quantity: "350 g", calories: 420, protein: 27, carbs: 55, fat: 8 },
+        { name: "Pan", quantity: "60 g", calories: 160, protein: 5, carbs: 30, fat: 2 },
       ],
     },
   ];
@@ -147,8 +153,8 @@ async function main() {
       mode: "per_ingredient",
       probability: 1,
       ingredients: [
-        { name: "Salmón al horno", quantity: "150 g", calories: 310, protein: 34 },
-        { name: "Verduras asadas", calories: 90, protein: 3 },
+        { name: "Salmón al horno", quantity: "150 g", calories: 310, protein: 34, carbs: 0, fat: 20 },
+        { name: "Verduras asadas", calories: 90, protein: 3, carbs: 10, fat: 5 },
       ],
     },
     {
@@ -156,9 +162,9 @@ async function main() {
       mode: "per_ingredient",
       probability: 1,
       ingredients: [
-        { name: "Tortilla francesa", quantity: "3 huevos", calories: 210, protein: 18 },
-        { name: "Ensalada de tomate", calories: 60, protein: 1 },
-        { name: "Queso fresco", quantity: "100 g", calories: 90, protein: 12 },
+        { name: "Tortilla francesa", quantity: "3 huevos", calories: 210, protein: 18, carbs: 2, fat: 15 },
+        { name: "Ensalada de tomate", calories: 60, protein: 1, carbs: 8, fat: 3 },
+        { name: "Queso fresco", quantity: "100 g", calories: 90, protein: 12, carbs: 3, fat: 4 },
       ],
     },
     {
@@ -168,6 +174,8 @@ async function main() {
       ingredients: [],
       totalCalories: 380,
       totalProtein: 30,
+      totalCarbs: 30,
+      totalFat: 15,
     },
   ];
 
@@ -179,14 +187,16 @@ async function main() {
       ingredients: [],
       totalCalories: 220,
       totalProtein: 14,
+      totalCarbs: 25,
+      totalFat: 8,
     },
     {
       title: "Merienda",
       mode: "per_ingredient",
       probability: 1,
       ingredients: [
-        { name: "Puñado de almendras", quantity: "25 g", calories: 145, protein: 5 },
-        { name: "Manzana", calories: 80, protein: 0 },
+        { name: "Puñado de almendras", quantity: "25 g", calories: 145, protein: 5, carbs: 5, fat: 12 },
+        { name: "Manzana", calories: 80, protein: 0, carbs: 18, fat: 0 },
       ],
     },
   ];
@@ -217,6 +227,12 @@ async function main() {
         ...(ingredient.protein !== undefined && ingredient.protein > 0
           ? { protein: jitter(ingredient.protein, ingredient.protein * 0.06) }
           : {}),
+        ...(ingredient.carbs !== undefined && ingredient.carbs > 0
+          ? { carbs: jitter(ingredient.carbs, ingredient.carbs * 0.06) }
+          : {}),
+        ...(ingredient.fat !== undefined && ingredient.fat > 0
+          ? { fat: jitter(ingredient.fat, ingredient.fat * 0.06) }
+          : {}),
       }));
       await createMeal(serviceDeps.meals, user.id, {
         logDate,
@@ -228,6 +244,10 @@ async function main() {
           seed.mode === "total_only" ? jitter(seed.totalCalories ?? 500, 120) : null,
         totalProtein:
           seed.mode === "total_only" ? jitter(seed.totalProtein ?? 30, 12) : null,
+        totalCarbs:
+          seed.mode === "total_only" ? jitter(seed.totalCarbs ?? 40, 10) : null,
+        totalFat:
+          seed.mode === "total_only" ? jitter(seed.totalFat ?? 20, 8) : null,
       });
       mealCount++;
     }

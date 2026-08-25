@@ -24,6 +24,8 @@ interface IngredientDraft {
   quantity: string;
   calories: string;
   protein: string;
+  carbs: string;
+  fat: string;
 }
 
 interface MealFormProps {
@@ -35,7 +37,7 @@ interface MealFormProps {
   onSaved: (meal: MealDTO) => void;
 }
 
-const emptyIngredient: IngredientDraft = { name: "", quantity: "", calories: "", protein: "" };
+const emptyIngredient: IngredientDraft = { name: "", quantity: "", calories: "", protein: "", carbs: "", fat: "" };
 
 /** Labels for the entry-mode select; lets <SelectValue> render text instead of the raw enum. */
 const modeItems = [
@@ -52,6 +54,8 @@ function draftFromMeal(meal: MealDTO | null): IngredientDraft[] {
     calories:
       ingredient.calories !== undefined ? toDecimalInput(ingredient.calories) : "",
     protein: ingredient.protein !== undefined ? toDecimalInput(ingredient.protein) : "",
+    carbs: ingredient.carbs !== undefined ? toDecimalInput(ingredient.carbs) : "",
+    fat: ingredient.fat !== undefined ? toDecimalInput(ingredient.fat) : "",
   }));
 }
 
@@ -113,6 +117,16 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
       ? toDecimalInput(meal.totalProtein)
       : "",
   );
+  const [totalCarbs, setTotalCarbs] = useState(() =>
+    meal && meal.entryMode === "total_only" && meal.totalCarbs !== null
+      ? toDecimalInput(meal.totalCarbs)
+      : "",
+  );
+  const [totalFat, setTotalFat] = useState(() =>
+    meal && meal.entryMode === "total_only" && meal.totalFat !== null
+      ? toDecimalInput(meal.totalFat)
+      : "",
+  );
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -141,7 +155,9 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
         if (name === "") continue;
         const calories = parseNumber(draft.calories);
         const protein = parseNumber(draft.protein);
-        if (Number.isNaN(calories) || Number.isNaN(protein)) {
+        const carbs = parseNumber(draft.carbs);
+        const fat = parseNumber(draft.fat);
+        if (Number.isNaN(calories) || Number.isNaN(protein) || Number.isNaN(carbs) || Number.isNaN(fat)) {
           setError(t.common.errorGeneric);
           return;
         }
@@ -150,6 +166,8 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
           quantity: draft.quantity.trim() || undefined,
           ...(calories !== undefined ? { calories } : {}),
           ...(protein !== undefined ? { protein } : {}),
+          ...(carbs !== undefined ? { carbs } : {}),
+          ...(fat !== undefined ? { fat } : {}),
         });
       }
       if (parsed.length === 0) {
@@ -160,12 +178,16 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
     } else {
       const kcal = parseNumber(totalCalories);
       const prot = parseNumber(totalProtein);
-      if (kcal === undefined || prot === undefined) {
+      const carb = parseNumber(totalCarbs);
+      const fatVal = parseNumber(totalFat);
+      if (kcal === undefined || prot === undefined || carb === undefined || fatVal === undefined) {
         setError(t.common.errorGeneric);
         return;
       }
       payload.totalCalories = kcal;
       payload.totalProtein = prot;
+      payload.totalCarbs = carb;
+      payload.totalFat = fatVal;
     }
 
     setPending(true);
@@ -273,6 +295,28 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                           })
                         }
                       />
+                      <Input
+                        inputMode="decimal"
+                        placeholder={t.meal.carbsPlaceholder}
+                        className="w-24"
+                        value={draft.carbs}
+                        onChange={(event) =>
+                          updateIngredient(index, {
+                            carbs: normalizeDecimal(event.target.value),
+                          })
+                        }
+                      />
+                      <Input
+                        inputMode="decimal"
+                        placeholder={t.meal.fatPlaceholder}
+                        className="w-24"
+                        value={draft.fat}
+                        onChange={(event) =>
+                          updateIngredient(index, {
+                            fat: normalizeDecimal(event.target.value),
+                          })
+                        }
+                      />
                     </div>
                   </div>
                 ))}
@@ -306,6 +350,26 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                   inputMode="decimal"
                   value={totalProtein}
                   onChange={(event) => setTotalProtein(normalizeDecimal(event.target.value))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="meal-total-carbs">{t.hoy.carbs} (g)</Label>
+                <Input
+                  id="meal-total-carbs"
+                  required
+                  inputMode="decimal"
+                  value={totalCarbs}
+                  onChange={(event) => setTotalCarbs(normalizeDecimal(event.target.value))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="meal-total-fat">{t.hoy.fat} (g)</Label>
+                <Input
+                  id="meal-total-fat"
+                  required
+                  inputMode="decimal"
+                  value={totalFat}
+                  onChange={(event) => setTotalFat(normalizeDecimal(event.target.value))}
                 />
               </div>
             </div>

@@ -3,6 +3,8 @@ import type { EntryMode, IngredientInput } from "./types";
 export interface NutritionTotals {
   calories: number;
   protein: number;
+  carbs: number;
+  fat: number;
 }
 
 /**
@@ -14,8 +16,10 @@ export function sumIngredientNutrition(ingredients: IngredientInput[]): Nutritio
     (acc, ingredient) => ({
       calories: acc.calories + (ingredient.calories ?? 0),
       protein: acc.protein + (ingredient.protein ?? 0),
+      carbs: acc.carbs + (ingredient.carbs ?? 0),
+      fat: acc.fat + (ingredient.fat ?? 0),
     }),
-    { calories: 0, protein: 0 },
+    { calories: 0, protein: 0, carbs: 0, fat: 0 },
   );
 }
 
@@ -29,15 +33,24 @@ export function resolveMealTotals(
   ingredients: IngredientInput[],
   manualTotalCalories?: number | null,
   manualTotalProtein?: number | null,
+  manualTotalCarbs?: number | null,
+  manualTotalFat?: number | null,
 ): NutritionTotals {
   if (entryMode === "total_only") {
     return {
       calories: round2(manualTotalCalories ?? 0),
       protein: round2(manualTotalProtein ?? 0),
+      carbs: round2(manualTotalCarbs ?? 0),
+      fat: round2(manualTotalFat ?? 0),
     };
   }
   const summed = sumIngredientNutrition(ingredients);
-  return { calories: round2(summed.calories), protein: round2(summed.protein) };
+  return {
+    calories: round2(summed.calories),
+    protein: round2(summed.protein),
+    carbs: round2(summed.carbs),
+    fat: round2(summed.fat),
+  };
 }
 
 export function round1(value: number): number {

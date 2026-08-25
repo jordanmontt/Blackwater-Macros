@@ -99,8 +99,8 @@ export default function EstadisticasPage() {
         </div>
       ) : summary === null ? null : (
         <div className="mt-5 space-y-6">
-          <NutritionSection summary={summary} />
           <WeightSection summary={summary} />
+          <NutritionSection summary={summary} />
         </div>
       )}
     </main>
@@ -108,7 +108,9 @@ export default function EstadisticasPage() {
 }
 
 function NutritionSection({ summary }: { summary: StatsSummary }) {
-  const hasNutrition = summary.calories.some((p) => p.calories > 0 || p.protein > 0);
+  const hasNutrition = summary.calories.some(
+    (p) => p.calories > 0 || p.protein > 0 || p.carbs > 0 || p.fat > 0,
+  );
 
   return (
     <>
@@ -128,6 +130,18 @@ function NutritionSection({ summary }: { summary: StatsSummary }) {
           <MiniStat
             label={`${t.stats.proteinMax}${summary.proteinMaxDay ? ` · ${formatDateKeyShort(summary.proteinMaxDay.date)}` : ""}`}
             value={summary.proteinMaxDay?.protein ?? null}
+            unit="g"
+          />
+          <MiniStat label={t.stats.carbsAvg} value={summary.carbsAvg} unit="g" decimals={0} />
+          <MiniStat
+            label={`${t.stats.carbsMax}${summary.carbsMaxDay ? ` · ${formatDateKeyShort(summary.carbsMaxDay.date)}` : ""}`}
+            value={summary.carbsMaxDay?.carbs ?? null}
+            unit="g"
+          />
+          <MiniStat label={t.stats.fatAvg} value={summary.fatAvg} unit="g" decimals={0} />
+          <MiniStat
+            label={`${t.stats.fatMax}${summary.fatMaxDay ? ` · ${formatDateKeyShort(summary.fatMaxDay.date)}` : ""}`}
+            value={summary.fatMaxDay?.fat ?? null}
             unit="g"
           />
         </div>
@@ -156,6 +170,32 @@ function NutritionSection({ summary }: { summary: StatsSummary }) {
           peak={
             summary.proteinMaxDay
               ? { date: summary.proteinMaxDay.date, value: summary.proteinMaxDay.protein }
+              : null
+          }
+          unit=" g"
+        />
+      </ChartCard>
+
+      <ChartCard title={t.stats.carbsChartTitle}>
+        <CalorieProteinChart
+          data={summary.carbs.map((point) => ({ date: point.date, value: point.carbs }))}
+          color="var(--chart-3)"
+          peak={
+            summary.carbsMaxDay
+              ? { date: summary.carbsMaxDay.date, value: summary.carbsMaxDay.carbs }
+              : null
+          }
+          unit=" g"
+        />
+      </ChartCard>
+
+      <ChartCard title={t.stats.fatChartTitle}>
+        <CalorieProteinChart
+          data={summary.fat.map((point) => ({ date: point.date, value: point.fat }))}
+          color="var(--chart-4)"
+          peak={
+            summary.fatMaxDay
+              ? { date: summary.fatMaxDay.date, value: summary.fatMaxDay.fat }
               : null
           }
           unit=" g"

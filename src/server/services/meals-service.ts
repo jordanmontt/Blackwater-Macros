@@ -1,6 +1,6 @@
 import type { MealIngredient } from "../db/schema";
 import { resolveMealTotals } from "@/lib/nutrition";
-import type { MealDTO } from "@/lib/types";
+import type { IngredientInput, MealDTO } from "@/lib/types";
 import type { MealsRepository, NewMealData } from "../repositories/meals-repo";
 import type { MealInput } from "../validation";
 
@@ -14,12 +14,16 @@ function toDomainData(input: MealInput): NewMealData {
     quantity: ingredient.quantity,
     calories: ingredient.calories,
     protein: ingredient.protein,
+    carbs: ingredient.carbs,
+    fat: ingredient.fat,
   }));
   const totals = resolveMealTotals(
     input.entryMode,
     ingredients,
     input.totalCalories ?? null,
     input.totalProtein ?? null,
+    input.totalCarbs ?? null,
+    input.totalFat ?? null,
   );
   return {
     logDate: input.logDate,
@@ -36,17 +40,22 @@ function toDomainData(input: MealInput): NewMealData {
 
 export function toMealDto(row: Awaited<ReturnType<MealsRepository["getById"]>>): MealDTO {
   if (!row) throw new Error("Comida no encontrada");
+  const ingredients: IngredientInput[] = row.ingredients;
   return {
     id: row.id,
     logDate: row.logDate,
     title: row.title,
     notes: row.notes,
     entryMode: row.entryMode,
-    ingredients: row.ingredients,
+    ingredients,
     totalCalories: row.totalCalories,
     totalProtein: row.totalProtein,
+    totalCarbs: null,
+    totalFat: null,
     resolvedCalories: row.resolvedCalories,
     resolvedProtein: row.resolvedProtein,
+    resolvedCarbs: ingredients.reduce((sum, i) => sum + (i.carbs ?? 0), 0),
+    resolvedFat: ingredients.reduce((sum, i) => sum + (i.fat ?? 0), 0),
   };
 }
 

@@ -115,8 +115,12 @@ function meal(partial: { title: string; kcal: number; protein: number }): MealDT
     ingredients: [{ name: "ingrediente", calories: partial.kcal, protein: partial.protein }],
     totalCalories: null,
     totalProtein: null,
+    totalCarbs: null,
+    totalFat: null,
     resolvedCalories: partial.kcal,
     resolvedProtein: partial.protein,
+    resolvedCarbs: 0,
+    resolvedFat: 0,
   };
 }
 

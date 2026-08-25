@@ -108,17 +108,19 @@ describe("medias semanales del peso", () => {
 describe("serie diaria de calorías y proteína", () => {
   it("rellena con ceros los días sin comidas para mostrar huecos honestos", () => {
     const totals = new Map([
-      ["2026-03-01", { date: "2026-03-01", calories: 2000, protein: 120 }],
-      ["2026-03-03", { date: "2026-03-03", calories: 1800, protein: 100 }],
+      ["2026-03-01", { date: "2026-03-01", calories: 2000, protein: 120, carbs: 250, fat: 70 }],
+      ["2026-03-03", { date: "2026-03-03", calories: 1800, protein: 100, carbs: 200, fat: 60 }],
     ]);
     const series = buildDailyNutritionSeries(totals, "2026-03-01", "2026-03-04");
     expect(series.map((point) => point.calories)).toEqual([2000, 0, 1800, 0]);
     expect(series.map((point) => point.protein)).toEqual([120, 0, 100, 0]);
+    expect(series.map((point) => point.carbs)).toEqual([250, 0, 200, 0]);
+    expect(series.map((point) => point.fat)).toEqual([70, 0, 60, 0]);
   });
 
   it("cubre rangos de un único día", () => {
     const series = buildDailyNutritionSeries(new Map(), "2026-03-01", "2026-03-01");
-    expect(series).toEqual([{ date: "2026-03-01", calories: 0, protein: 0 }]);
+    expect(series).toEqual([{ date: "2026-03-01", calories: 0, protein: 0, carbs: 0, fat: 0 }]);
   });
 });
 

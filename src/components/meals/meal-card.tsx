@@ -24,7 +24,11 @@ interface MealCardProps {
 
 export function MealCard({ meal, onEdit, onDelete, onSaveAsTemplate }: MealCardProps) {
   const hasIngredientNutrition = meal.ingredients.some(
-    (ingredient) => ingredient.calories !== undefined || ingredient.protein !== undefined,
+    (ingredient) =>
+      ingredient.calories !== undefined ||
+      ingredient.protein !== undefined ||
+      ingredient.carbs !== undefined ||
+      ingredient.fat !== undefined,
   );
 
   return (
@@ -80,6 +84,14 @@ export function MealCard({ meal, onEdit, onDelete, onSaveAsTemplate }: MealCardP
                     {ingredient.protein !== undefined
                       ? `${formatNumberEs(ingredient.protein)} ${t.hoy.proteinUnit}`
                       : "—"}
+                    {" · "}
+                    {ingredient.carbs !== undefined
+                      ? `${formatNumberEs(ingredient.carbs)} ${t.hoy.proteinUnit}`
+                      : "—"}
+                    {" · "}
+                    {ingredient.fat !== undefined
+                      ? `${formatNumberEs(ingredient.fat)} ${t.hoy.proteinUnit}`
+                      : "—"}
                   </span>
                 ) : null}
               </li>
@@ -102,6 +114,12 @@ export function MealCard({ meal, onEdit, onDelete, onSaveAsTemplate }: MealCardP
         </Badge>
         <Badge variant="outline" className="tabular-nums">
           {formatNumberEs(meal.resolvedProtein)} g · {t.hoy.protein}
+        </Badge>
+        <Badge variant="outline" className="tabular-nums">
+          {formatNumberEs(meal.resolvedCarbs)} g · {t.hoy.carbs}
+        </Badge>
+        <Badge variant="outline" className="tabular-nums">
+          {formatNumberEs(meal.resolvedFat)} g · {t.hoy.fat}
         </Badge>
       </CardFooter>
     </Card>

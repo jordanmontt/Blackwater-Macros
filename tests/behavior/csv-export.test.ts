@@ -13,7 +13,7 @@ describe("exportar comidas", () => {
       mealRow({
         title: "Desayuno",
         ingredients: [
-          { name: "4 huevos", quantity: "240 g", calories: 280, protein: 24 },
+          { name: "4 huevos", quantity: "240 g", calories: 280, protein: 24, carbs: 2, fat: 20 },
           { name: "café con leche" },
         ],
         resolvedCalories: 400,
@@ -22,7 +22,7 @@ describe("exportar comidas", () => {
     ]);
 
     expect(csv).toContain("fecha,comida,modo");
-    expect(csv).toContain("4 huevos,240 g,280,24");
+    expect(csv).toContain("4 huevos,240 g,280,24,2,20");
     expect(csv).toContain("café con leche");
     // Los totales aparecen en las filas de ingredientes de esa comida:
     const rows = csv.trim().split("\n");

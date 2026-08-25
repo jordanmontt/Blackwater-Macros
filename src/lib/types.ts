@@ -5,6 +5,8 @@ export interface IngredientInput {
   quantity?: string;
   calories?: number;
   protein?: number;
+  carbs?: number;
+  fat?: number;
 }
 
 export interface MealDTO {
@@ -16,8 +18,12 @@ export interface MealDTO {
   ingredients: IngredientInput[];
   totalCalories: number | null;
   totalProtein: number | null;
+  totalCarbs: number | null;
+  totalFat: number | null;
   resolvedCalories: number;
   resolvedProtein: number;
+  resolvedCarbs: number;
+  resolvedFat: number;
 }
 
 export interface MealTemplateDTO {
@@ -39,6 +45,8 @@ export interface DailyNutritionPoint {
   date: string;
   calories: number;
   protein: number;
+  carbs: number;
+  fat: number;
 }
 
 export type StatsRange = "7d" | "30d" | "90d" | "all";
@@ -55,11 +63,17 @@ export interface WeightStatsSummary {
 export interface StatsSummary {
   calories: DailyNutritionPoint[];
   protein: DailyNutritionPoint[];
+  carbs: DailyNutritionPoint[];
+  fat: DailyNutritionPoint[];
   weights: { date: string; weight: number; trend: number | null }[];
   caloriesAvg: number | null;
   caloriesMaxDay: DailyNutritionPoint | null;
   proteinAvg: number | null;
   proteinMaxDay: DailyNutritionPoint | null;
+  carbsAvg: number | null;
+  carbsMaxDay: DailyNutritionPoint | null;
+  fatAvg: number | null;
+  fatMaxDay: DailyNutritionPoint | null;
   weight: WeightStatsSummary;
   weeklyWeightAvg: { weekStart: string; avg: number }[];
 }

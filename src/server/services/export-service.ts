@@ -16,8 +16,12 @@ export function buildMealsCsv(meals: MealRow[]): string {
     "cantidad",
     "kcal_ingrediente",
     "proteina_ingrediente_g",
+    "carbohidratos_ingrediente_g",
+    "grasa_ingrediente_g",
     "total_kcal_comida",
     "total_proteina_comida_g",
+    "total_carbohidratos_comida_g",
+    "total_grasa_comida_g",
   ];
 
   const rows: (string | number | null)[][] = [header];
@@ -32,13 +36,17 @@ export function buildMealsCsv(meals: MealRow[]): string {
         null,
         null,
         null,
+        null,
+        null,
         meal.totalCalories,
         meal.totalProtein,
+        null,
+        null,
       ]);
       continue;
     }
     if (meal.ingredients.length === 0) {
-      rows.push([meal.logDate, meal.title, meal.entryMode, meal.notes, null, null, null, null, null, null]);
+      rows.push([meal.logDate, meal.title, meal.entryMode, meal.notes, null, null, null, null, null, null, null, null, null, null]);
       continue;
     }
     for (const ingredient of meal.ingredients) {
@@ -51,6 +59,10 @@ export function buildMealsCsv(meals: MealRow[]): string {
         ingredient.quantity ?? null,
         ingredient.calories ?? null,
         ingredient.protein ?? null,
+        ingredient.carbs ?? null,
+        ingredient.fat ?? null,
+        null,
+        null,
         null,
         null,
       ]);

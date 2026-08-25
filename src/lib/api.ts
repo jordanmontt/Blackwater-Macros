@@ -28,7 +28,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (response.status === 401 && !path.startsWith("/api/auth/login")) {
-    window.location.href = "/login";
+    const REDIRECT_KEY = "_authRedirect";
+    const lastRedirect = Number(sessionStorage.getItem(REDIRECT_KEY) ?? 0);
+    if (Date.now() - lastRedirect > 3000) {
+      sessionStorage.setItem(REDIRECT_KEY, String(Date.now()));
+      window.location.href = "/login";
+    }
     throw new ApiError(401, "No autenticado");
   }
 
@@ -56,6 +61,8 @@ export interface MealPayload {
   ingredients: IngredientInput[];
   totalCalories?: number | null;
   totalProtein?: number | null;
+  totalCarbs?: number | null;
+  totalFat?: number | null;
 }
 
 export interface WeightPayload {

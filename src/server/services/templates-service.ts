@@ -13,6 +13,8 @@ function toDomainData(input: TemplateInput): NewTemplateData {
     quantity: ingredient.quantity,
     calories: ingredient.calories,
     protein: ingredient.protein,
+    carbs: ingredient.carbs,
+    fat: ingredient.fat,
   }));
   return {
     name: input.name,

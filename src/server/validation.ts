@@ -6,6 +6,8 @@ export const ingredientInputSchema = z.object({
   quantity: z.string().trim().min(1).max(200).optional(),
   calories: z.number().min(0).max(100_000).optional(),
   protein: z.number().min(0).max(10_000).optional(),
+  carbs: z.number().min(0).max(10_000).optional(),
+  fat: z.number().min(0).max(10_000).optional(),
 });
 
 export const mealInputSchema = z.object({
@@ -18,6 +20,8 @@ export const mealInputSchema = z.object({
   ingredients: z.array(ingredientInputSchema).max(100),
   totalCalories: z.number().min(0).max(100_000).nullish(),
   totalProtein: z.number().min(0).max(10_000).nullish(),
+  totalCarbs: z.number().min(0).max(10_000).nullish(),
+  totalFat: z.number().min(0).max(10_000).nullish(),
 });
 
 export type MealInput = z.infer<typeof mealInputSchema>;

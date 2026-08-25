@@ -73,11 +73,13 @@ export default function HoyPage() {
   }, []);
 
   const totals = useMemo(() => {
-    const empty = { calories: 0, protein: 0 };
+    const empty = { calories: 0, protein: 0, carbs: 0, fat: 0 };
     return (meals ?? []).reduce(
       (acc, meal) => ({
         calories: acc.calories + meal.resolvedCalories,
         protein: acc.protein + meal.resolvedProtein,
+        carbs: acc.carbs + meal.resolvedCarbs,
+        fat: acc.fat + meal.resolvedFat,
       }),
       empty,
     );
@@ -155,6 +157,28 @@ export default function HoyPage() {
             </p>
             <p className="text-2xl font-semibold tabular-nums">
               {formatNumberEs(totals.protein, 1)}
+            </p>
+            <p className="text-xs text-muted-foreground">{t.hoy.proteinUnit}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="px-4 py-3 text-center">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t.hoy.carbs}
+            </p>
+            <p className="text-2xl font-semibold tabular-nums">
+              {formatNumberEs(totals.carbs, 1)}
+            </p>
+            <p className="text-xs text-muted-foreground">{t.hoy.proteinUnit}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="px-4 py-3 text-center">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t.hoy.fat}
+            </p>
+            <p className="text-2xl font-semibold tabular-nums">
+              {formatNumberEs(totals.fat, 1)}
             </p>
             <p className="text-xs text-muted-foreground">{t.hoy.proteinUnit}</p>
           </CardContent>
