@@ -73,10 +73,11 @@ export function buildMealsCsv(meals: MealRow[]): string {
 
 /** Builds the weight CSV: one row per weigh-in, newest-friendly ascending order. */
 export function buildWeightsCsv(weights: WeightRow[]): string {
-  const header = ["fecha_hora", "peso_kg", "nota"];
+  const header = ["fecha_hora", "peso_kg", "grasa_corporal_pct", "nota"];
   const rows: (string | number | null)[][] = weights.map((row) => [
     row.measuredAt.toISOString(),
     row.weightKg,
+    row.bodyFatPct,
     row.note,
   ]);
   return toCsv([header, ...rows]);

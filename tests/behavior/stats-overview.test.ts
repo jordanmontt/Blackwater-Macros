@@ -12,7 +12,7 @@ import { addDaysToKey, toDateKey } from "@/lib/dates";
 
 const TODAY = "2026-08-23";
 
-function makeDeps(meals: { logDate: string; kcal: number; protein: number }[], weights: { iso: string; kg: number }[]) {
+function makeDeps(meals: { logDate: string; kcal: number; protein: number }[], weights: { iso: string; kg: number; bodyFatPct?: number | null }[]) {
   return {
     meals: {
       async listInRange() {
@@ -40,6 +40,7 @@ function makeDeps(meals: { logDate: string; kcal: number; protein: number }[], w
           userId: "user-1",
           measuredAt: new Date(entry.iso),
           weightKg: entry.kg,
+          bodyFatPct: entry.bodyFatPct ?? null,
           note: null,
           createdAt: new Date(),
         }));
@@ -166,5 +167,63 @@ describe("evolución y métricas del peso", () => {
     expect(summary.weeklyWeightAvg).toHaveLength(2);
     expect(summary.weeklyWeightAvg[0].avg).toBeCloseTo(81.8, 6);
     expect(toDateKey(new Date("2026-08-19T12:00:00Z"))).toBeTypeOf("string");
+  });
+});
+
+describe("grasa corporal y masa libre", () => {
+  it("la serie de grasa corporal se llena cuando las entradas tienen bodyFatPct", async () => {
+    const deps = makeDeps([], [
+      { iso: `${addDaysToKey(TODAY, -6)}T12:00:00Z`, kg: 82, bodyFatPct: 18 },
+      { iso: `${addDaysToKey(TODAY, -3)}T12:00:00Z`, kg: 81.5, bodyFatPct: 17 },
+      { iso: `${TODAY}T12:00:00Z`, kg: 81.2, bodyFatPct: 16 },
+    ]);
+
+    const summary = await buildStatsSummary(deps as never, "user-1", "30d", TODAY);
+
+    expect(summary.bodyFat).toHaveLength(3);
+    expect(summary.bodyFat[0].bodyFatPct).toBe(18);
+    expect(summary.bodyFat[2].bodyFatPct).toBe(16);
+    expect(summary.weight.currentBodyFatPct).toBe(16);
+    expect(summary.weight.changeBodyFatPct).toBe(-2);
+  });
+
+  it("la serie de grasa corporal queda vacía cuando ninguna entrada tiene bodyFatPct", async () => {
+    const deps = makeDeps([], [
+      { iso: `${addDaysToKey(TODAY, -3)}T12:00:00Z`, kg: 82 },
+      { iso: `${TODAY}T12:00:00Z`, kg: 81.5 },
+    ]);
+
+    const summary = await buildStatsSummary(deps as never, "user-1", "30d", TODAY);
+
+    expect(summary.bodyFat).toHaveLength(0);
+    expect(summary.weight.currentBodyFatPct).toBeNull();
+  });
+
+  it("la masa libre se calcula correctamente a partir del peso y la grasa", async () => {
+    // 80 kg con 15% grasa → masa libre = 80 × 0.85 = 68 kg
+    const deps = makeDeps([], [
+      { iso: `${addDaysToKey(TODAY, -3)}T12:00:00Z`, kg: 80, bodyFatPct: 15 },
+    ]);
+
+    const summary = await buildStatsSummary(deps as never, "user-1", "30d", TODAY);
+
+    expect(summary.leanMass).toHaveLength(1);
+    expect(summary.leanMass[0].leanMassKg).toBe(68);
+    expect(summary.weight.currentLeanMassKg).toBe(68);
+  });
+
+  it("las métricas de grasa corporal (mínimo, máximo, cambio) se calculan correctamente", async () => {
+    const deps = makeDeps([], [
+      { iso: `${addDaysToKey(TODAY, -6)}T12:00:00Z`, kg: 85, bodyFatPct: 20 },
+      { iso: `${addDaysToKey(TODAY, -3)}T12:00:00Z`, kg: 83, bodyFatPct: 18 },
+      { iso: `${TODAY}T12:00:00Z`, kg: 82, bodyFatPct: 15 },
+    ]);
+
+    const summary = await buildStatsSummary(deps as never, "user-1", "30d", TODAY);
+
+    expect(summary.weight.minBodyFatPct).toBe(15);
+    expect(summary.weight.maxBodyFatPct).toBe(20);
+    expect(summary.weight.changeBodyFatPct).toBe(-5);
+    expect(summary.weight.currentLeanMassKg).toBeCloseTo(69.7, 1);
   });
 });

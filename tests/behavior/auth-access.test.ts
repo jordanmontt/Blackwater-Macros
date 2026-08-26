@@ -13,7 +13,7 @@ import { InvalidCredentialsError, login, logout, resolveSession } from "@/server
 function makeMemoryDeps() {
   const users = new Map<
     string,
-    { id: string; username: string; passwordHash: string; createdAt: Date }
+    { id: string; username: string; passwordHash: string; proteinGoal: "maintain" | "build" | "cut"; createdAt: Date }
   >();
   const sessions = new Map<string, { userId: string; expiresAt: Date }>();
   let nextId = 1;
@@ -30,6 +30,7 @@ function makeMemoryDeps() {
           id: `u-${nextId++}`,
           username: username.toLowerCase(),
           passwordHash,
+          proteinGoal: "build" as const,
           createdAt: new Date(),
         };
         users.set(user.id, user);

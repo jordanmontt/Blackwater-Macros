@@ -33,8 +33,12 @@ function toDomainData(input: MealInput): NewMealData {
     ingredients,
     totalCalories: input.entryMode === "total_only" ? (input.totalCalories ?? null) : null,
     totalProtein: input.entryMode === "total_only" ? (input.totalProtein ?? null) : null,
+    totalCarbs: input.entryMode === "total_only" ? (input.totalCarbs ?? null) : null,
+    totalFat: input.entryMode === "total_only" ? (input.totalFat ?? null) : null,
     resolvedCalories: totals.calories,
     resolvedProtein: totals.protein,
+    resolvedCarbs: totals.carbs,
+    resolvedFat: totals.fat,
   };
 }
 
@@ -50,12 +54,12 @@ export function toMealDto(row: Awaited<ReturnType<MealsRepository["getById"]>>):
     ingredients,
     totalCalories: row.totalCalories,
     totalProtein: row.totalProtein,
-    totalCarbs: null,
-    totalFat: null,
+    totalCarbs: row.totalCarbs,
+    totalFat: row.totalFat,
     resolvedCalories: row.resolvedCalories,
     resolvedProtein: row.resolvedProtein,
-    resolvedCarbs: ingredients.reduce((sum, i) => sum + (i.carbs ?? 0), 0),
-    resolvedFat: ingredients.reduce((sum, i) => sum + (i.fat ?? 0), 0),
+    resolvedCarbs: row.resolvedCarbs,
+    resolvedFat: row.resolvedFat,
   };
 }
 

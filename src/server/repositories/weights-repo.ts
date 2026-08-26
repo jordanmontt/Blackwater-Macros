@@ -5,6 +5,7 @@ import { weights, type WeightRow } from "../db/schema";
 export interface NewWeightData {
   measuredAt: Date;
   weightKg: number;
+  bodyFatPct: number | null;
   note: string | null;
 }
 

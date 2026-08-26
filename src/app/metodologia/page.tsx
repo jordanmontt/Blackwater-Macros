@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookOpenIcon, ScaleIcon, TrendingUpIcon, UtensilsCrossedIcon, CalendarDaysIcon, SigmaIcon } from "lucide-react";
+import { BookOpenIcon, DumbbellIcon, ScaleIcon, TrendingUpIcon, UtensilsCrossedIcon, CalendarDaysIcon, SigmaIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -55,6 +55,12 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.nutritionBody}</p>
       </MethodologyCard>
 
+      <MethodologyCard icon={<DumbbellIcon />} title={t.metodologia.proteinRecTitle}>
+        <p>{t.metodologia.proteinRecBody}</p>
+        <p>{t.metodologia.proteinRecRanges}</p>
+        <p>{t.metodologia.proteinRecFfm}</p>
+      </MethodologyCard>
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -75,6 +81,71 @@ export default function MetodologiaPage() {
             <li>
               Montgomery DC, Peck EA, Vining GG. <i>Introduction to Linear Regression Analysis</i>.
               6.ª ed. Hoboken (NJ): Wiley; 2021.
+            </li>
+            <li>
+              Morton RW et al. A systematic review, meta-analysis and meta-regression of the effect
+              of protein supplementation on resistance training-induced gains in muscle mass and
+              strength. <i>Br J Sports Med</i>. 2018;52:376–384.{" "}
+              <a
+                href="https://doi.org/10.1136/bjsports-2017-097608"
+                className="underline hover:text-foreground"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                doi:10.1136/bjsports-2017-097608
+              </a>
+            </li>
+            <li>
+              Nunes EA et al. Systematic review and meta-analysis of protein intake to support muscle
+              mass and function in healthy adults. <i>J Cachexia Sarcopenia Muscle</i>.
+              2022;13:795–810.{" "}
+              <a
+                href="https://doi.org/10.1002/jcsm.12924"
+                className="underline hover:text-foreground"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                doi:10.1002/jcsm.12924
+              </a>
+            </li>
+            <li>
+              Kokura Y et al. Enhanced protein intake on maintaining muscle mass, strength, and
+              physical function in adults with overweight/obesity. <i>Clin Nutr ESPEN</i>. 2024.{" "}
+              <a
+                href="https://doi.org/10.1016/j.clnesp.2024.01.003"
+                className="underline hover:text-foreground"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                doi:10.1016/j.clnesp.2024.01.003
+              </a>
+            </li>
+            <li>
+              Helms ER et al. A systematic review of dietary protein during caloric restriction in
+              resistance trained lean athletes: a case for higher intakes. <i>
+                Int J Sport Nutr Exerc Metab
+              </i>
+              . 2014;24(2):127–138.{" "}
+              <a
+                href="https://doi.org/10.1123/ijsnem.2013-0054"
+                className="underline hover:text-foreground"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                doi:10.1123/ijsnem.2013-0054
+              </a>
+            </li>
+            <li>
+              Jäger R et al. International Society of Sports Nutrition Position Stand: protein and
+              exercise. <i>J Int Soc Sports Nutr</i>. 2017;14:20.{" "}
+              <a
+                href="https://doi.org/10.1186/s12970-017-0177-8"
+                className="underline hover:text-foreground"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                doi:10.1186/s12970-017-0177-8
+              </a>
             </li>
           </ol>
         </CardContent>

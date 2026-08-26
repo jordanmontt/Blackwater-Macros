@@ -61,13 +61,14 @@ describe("exportar peso", () => {
         userId: "u1",
         measuredAt: new Date("2026-08-23T07:30:00Z"),
         weightKg: 81.2,
+        bodyFatPct: 15.5,
         note: "en ayunas",
         createdAt: new Date(),
       },
     ]);
 
-    expect(csv).toContain("fecha_hora,peso_kg,nota");
-    expect(csv).toContain("2026-08-23T07:30:00.000Z,81.2,en ayunas");
+    expect(csv).toContain("fecha_hora,peso_kg,grasa_corporal_pct,nota");
+    expect(csv).toContain("2026-08-23T07:30:00.000Z,81.2,15.5,en ayunas");
   });
 });
 
@@ -78,8 +79,12 @@ function mealRow(overrides: {
   ingredients?: MealIngredient[];
   resolvedCalories?: number;
   resolvedProtein?: number;
+  resolvedCarbs?: number;
+  resolvedFat?: number;
   totalCalories?: number | null;
   totalProtein?: number | null;
+  totalCarbs?: number | null;
+  totalFat?: number | null;
 }) {
   return {
     id: "m-1",
@@ -91,8 +96,12 @@ function mealRow(overrides: {
     ingredients: overrides.ingredients ?? [],
     totalCalories: overrides.totalCalories ?? null,
     totalProtein: overrides.totalProtein ?? null,
+    totalCarbs: overrides.totalCarbs ?? null,
+    totalFat: overrides.totalFat ?? null,
     resolvedCalories: overrides.resolvedCalories ?? 0,
     resolvedProtein: overrides.resolvedProtein ?? 0,
+    resolvedCarbs: overrides.resolvedCarbs ?? 0,
+    resolvedFat: overrides.resolvedFat ?? 0,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

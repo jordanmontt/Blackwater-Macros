@@ -17,7 +17,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { api, ApiError } from "@/lib/api";
 import { formatTemplate } from "@/i18n";
-import type { MealTemplateDTO } from "@/lib/types";
+import type { MealTemplateDTO, ProteinGoal } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/lib/use-mounted";
 import { t } from "@/i18n";
@@ -27,10 +27,14 @@ export default function AjustesPage() {
   const { theme, setTheme } = useTheme();
   const [username, setUsername] = useState("");
   const [templates, setTemplates] = useState<MealTemplateDTO[]>([]);
+  const [proteinGoal, setProteinGoal] = useState<ProteinGoal>("build");
   const mounted = useMounted();
 
   useEffect(() => {
-    void api.session().then((session) => setUsername(session.username));
+    void api.session().then((session) => {
+      setUsername(session.username);
+      setProteinGoal(session.proteinGoal);
+    });
     api
       .listTemplates()
       .then(setTemplates)
@@ -42,6 +46,21 @@ export default function AjustesPage() {
     { value: "dark", label: t.ajustes.themeDark },
     { value: "system", label: t.ajustes.themeSystem },
   ];
+
+  const goalOptions: { value: ProteinGoal; label: string }[] = [
+    { value: "maintain", label: t.protein.goalMaintain },
+    { value: "build", label: t.protein.goalBuild },
+    { value: "cut", label: t.protein.goalCut },
+  ];
+
+  async function handleGoalChange(goal: ProteinGoal) {
+    setProteinGoal(goal);
+    try {
+      await api.updateSettings({ proteinGoal: goal });
+    } catch {
+      toast.error(t.common.errorGeneric);
+    }
+  }
 
   async function handleLogout() {
     try {
@@ -83,6 +102,31 @@ export default function AjustesPage() {
                 className={cn(
                   "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
                   mounted && theme === option.value && "bg-primary text-primary-foreground",
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.ajustes.proteinGoalSection}</CardTitle>
+          <CardDescription>{t.ajustes.proteinGoalDescription}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-1 rounded-lg border p-1">
+            {goalOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={proteinGoal === option.value}
+                onClick={() => void handleGoalChange(option.value)}
+                className={cn(
+                  "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
+                  proteinGoal === option.value && "bg-primary text-primary-foreground",
                 )}
               >
                 {option.label}

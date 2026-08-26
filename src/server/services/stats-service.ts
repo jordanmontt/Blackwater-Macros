@@ -53,8 +53,8 @@ export async function buildStatsSummary(
     };
     current.calories += meal.resolvedCalories;
     current.protein += meal.resolvedProtein;
-    current.carbs += meal.ingredients.reduce((sum, i) => sum + (i.carbs ?? 0), 0);
-    current.fat += meal.ingredients.reduce((sum, i) => sum + (i.fat ?? 0), 0);
+    current.carbs += meal.resolvedCarbs;
+    current.fat += meal.resolvedFat;
     totalsByDate.set(meal.logDate, current);
   }
 
@@ -85,9 +85,42 @@ export async function buildStatsSummary(
     trend: trendValues[i] === null ? null : round1(trendValues[i] as number),
   }));
 
+  // --- Body fat % series (only entries with valid body fat data) ---
+  const bodyFatRows = inRange.filter(
+    (row) => row.bodyFatPct !== null && row.bodyFatPct > 0 && row.bodyFatPct < 100,
+  );
+  const bodyFatPoints: DataPoint[] = bodyFatRows.map((row) => ({
+    date: toDateKey(row.measuredAt),
+    value: row.bodyFatPct!,
+  }));
+  const bodyFatTrendValues = movingAverageByDays(bodyFatPoints, TREND_WINDOW_DAYS);
+  const bodyFatSeries = bodyFatPoints.map((point, i) => ({
+    date: point.date,
+    bodyFatPct: round1(point.value),
+    trend: bodyFatTrendValues[i] === null ? null : round1(bodyFatTrendValues[i] as number),
+  }));
+
+  // --- Lean mass series (derived from weight + body fat) ---
+  const leanMassPoints: DataPoint[] = bodyFatRows.map((row) => ({
+    date: toDateKey(row.measuredAt),
+    value: round2(row.weightKg * (1 - row.bodyFatPct! / 100)),
+  }));
+  const leanMassTrendValues = movingAverageByDays(leanMassPoints, TREND_WINDOW_DAYS);
+  const leanMassSeries = leanMassPoints.map((point, i) => ({
+    date: point.date,
+    leanMassKg: round2(point.value),
+    trend: leanMassTrendValues[i] === null ? null : round1(leanMassTrendValues[i] as number),
+  }));
+
   const lastValue = weightPoints.at(-1)?.value ?? null;
   const firstValue = weightPoints[0]?.value ?? null;
   const lastTrend = [...trendValues].reverse().find((v) => v !== null) ?? null;
+
+  // Body fat stats
+  const lastBodyFat = bodyFatPoints.at(-1)?.value ?? null;
+  const firstBodyFat = bodyFatPoints[0]?.value ?? null;
+  const lastLeanMass = leanMassPoints.at(-1)?.value ?? null;
+  const firstLeanMass = leanMassPoints[0]?.value ?? null;
 
   const weightSummary: StatsSummary["weight"] = {
     currentWeightKg: lastValue === null ? null : round2(lastValue),
@@ -100,6 +133,20 @@ export async function buildStatsSummary(
     })(),
     minKg: weightPoints.length ? round2(Math.min(...weightPoints.map((p) => p.value))) : null,
     maxKg: weightPoints.length ? round2(Math.max(...weightPoints.map((p) => p.value))) : null,
+    currentBodyFatPct: lastBodyFat === null ? null : round1(lastBodyFat),
+    changeBodyFatPct:
+      firstBodyFat !== null && lastBodyFat !== null ? round1(lastBodyFat - firstBodyFat) : null,
+    minBodyFatPct: bodyFatPoints.length
+      ? round1(Math.min(...bodyFatPoints.map((p) => p.value)))
+      : null,
+    maxBodyFatPct: bodyFatPoints.length
+      ? round1(Math.max(...bodyFatPoints.map((p) => p.value)))
+      : null,
+    currentLeanMassKg: lastLeanMass === null ? null : round2(lastLeanMass),
+    changeLeanMassKg:
+      firstLeanMass !== null && lastLeanMass !== null
+        ? round2(lastLeanMass - firstLeanMass)
+        : null,
   };
 
   return {
@@ -108,6 +155,8 @@ export async function buildStatsSummary(
     carbs: nutritionSeries.map((p) => ({ ...p, carbs: round1(p.carbs) })),
     fat: nutritionSeries.map((p) => ({ ...p, fat: round1(p.fat) })),
     weights: weightSeries,
+    bodyFat: bodyFatSeries,
+    leanMass: leanMassSeries,
     caloriesAvg: averageOf(caloriesPoints.map((p) => p.calories)),
     caloriesMaxDay: maxBy(caloriesPoints, (p) => p.calories),
     proteinAvg: averageOf(proteinPoints.map((p) => p.protein)),

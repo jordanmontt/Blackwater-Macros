@@ -40,10 +40,17 @@ export const weightInputSchema = z.object({
     message: "Fecha y hora no válidas",
   }),
   weightKg: z.number().min(20, "Peso fuera de rango").max(400, "Peso fuera de rango"),
+  bodyFatPct: z.number().min(3, "Grasa corporal fuera de rango").max(60, "Grasa corporal fuera de rango").nullish(),
   note: z.string().trim().max(500).nullish(),
 });
 
 export type WeightInput = z.infer<typeof weightInputSchema>;
+
+export const settingsInputSchema = z.object({
+  proteinGoal: z.enum(["maintain", "build", "cut"]),
+});
+
+export type SettingsInput = z.infer<typeof settingsInputSchema>;
 
 export const loginInputSchema = z.object({
   username: z.string().trim().min(1).max(80),

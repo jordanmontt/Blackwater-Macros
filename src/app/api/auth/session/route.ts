@@ -11,9 +11,13 @@ export async function GET() {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
   const rows = await db
-    .select({ username: users.username })
+    .select({ username: users.username, proteinGoal: users.proteinGoal })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
-  return NextResponse.json({ username: rows[0]?.username ?? "" });
+  const row = rows[0];
+  return NextResponse.json({
+    username: row?.username ?? "",
+    proteinGoal: row?.proteinGoal ?? "build",
+  });
 }

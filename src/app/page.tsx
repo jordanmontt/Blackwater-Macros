@@ -20,6 +20,7 @@ import { MealCard } from "@/components/meals/meal-card";
 import { MealForm } from "@/components/meals/meal-form";
 import { SaveTemplateDialog } from "@/components/meals/save-template-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ProteinRecommendationCard } from "@/components/protein-recommendation";
 import { api, ApiError } from "@/lib/api";
 import { todayKey } from "@/lib/dates";
 import { formatNumberEs } from "@/lib/dates";
@@ -183,6 +184,10 @@ export default function HoyPage() {
             <p className="text-xs text-muted-foreground">{t.hoy.proteinUnit}</p>
           </CardContent>
         </Card>
+      </section>
+
+      <section className="mt-4">
+        <ProteinRecommendationCard dailyProtein={totals.protein} />
       </section>
 
       {templates.length > 0 ? (

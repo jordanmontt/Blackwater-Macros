@@ -12,11 +12,13 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const entryModeEnum = pgEnum("entry_mode", ["per_ingredient", "total_only"]);
+export const proteinGoalEnum = pgEnum("protein_goal", ["maintain", "build", "cut"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  proteinGoal: proteinGoalEnum("protein_goal").notNull().default("build"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -62,8 +64,12 @@ export const meals = pgTable(
     ingredients: jsonb("ingredients").$type<MealIngredient[]>().notNull().default([]),
     totalCalories: doublePrecision("total_calories"),
     totalProtein: doublePrecision("total_protein"),
+    totalCarbs: doublePrecision("total_carbs"),
+    totalFat: doublePrecision("total_fat"),
     resolvedCalories: doublePrecision("resolved_calories").notNull().default(0),
     resolvedProtein: doublePrecision("resolved_protein").notNull().default(0),
+    resolvedCarbs: doublePrecision("resolved_carbs").notNull().default(0),
+    resolvedFat: doublePrecision("resolved_fat").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -95,6 +101,7 @@ export const weights = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     measuredAt: timestamp("measured_at", { withTimezone: true }).notNull(),
     weightKg: doublePrecision("weight_kg").notNull(),
+    bodyFatPct: doublePrecision("body_fat_pct"),
     note: text("note"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

@@ -2,6 +2,7 @@ import type {
   IngredientInput,
   MealDTO,
   MealTemplateDTO,
+  ProteinGoal,
   StatsRange,
   StatsSummary,
   WeightDTO,
@@ -68,6 +69,7 @@ export interface MealPayload {
 export interface WeightPayload {
   measuredAt: string;
   weightKg: number;
+  bodyFatPct?: number | null;
   note?: string | null;
 }
 
@@ -85,9 +87,9 @@ export const api = {
   logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST" }),
 
   session: () =>
-    request<{ username: string }>("/api/auth/session", { method: "GET" }).catch(() => ({
-      username: "",
-    })),
+    request<{ username: string; proteinGoal: ProteinGoal }>("/api/auth/session", {
+      method: "GET",
+    }).catch(() => ({ username: "", proteinGoal: "build" as ProteinGoal })),
 
   listMeals: async (from: string, to: string) => {
     const query = new URLSearchParams({ from, to });
@@ -146,5 +148,12 @@ export const api = {
   stats: async (range: StatsRange, today: string) => {
     const query = new URLSearchParams({ range, today });
     return request<StatsSummary>(`/api/stats?${query}`);
+  },
+
+  updateSettings: async (payload: { proteinGoal: ProteinGoal }) => {
+    return request<{ proteinGoal: ProteinGoal }>("/api/settings", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
   },
 };

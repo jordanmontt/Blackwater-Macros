@@ -256,10 +256,15 @@ async function main() {
     if (rand() < 0.9) {
       const baseWeight = 84 - ((DAYS - daysAgo) / DAYS) * 1.8; // ~-1.8 kg en 45 días
       const weightKg = Math.round((baseWeight + (rand() - 0.5) * 0.7) * 10) / 10;
+      const baseBfPct = 19 - ((DAYS - daysAgo) / DAYS) * 3; // ~19% → ~16%
+      const bodyFatPct = rand() < 0.75
+        ? Math.round((baseBfPct + (rand() - 0.5) * 1.6) * 10) / 10
+        : null;
       const measuredAt = new Date(`${logDate}T07:45:00`);
       await createWeight(serviceDeps.weights, user.id, {
         measuredAt: measuredAt.toISOString(),
         weightKg,
+        bodyFatPct,
         note: null,
       });
       if (rand() < 0.12) {
@@ -267,6 +272,7 @@ async function main() {
         await createWeight(serviceDeps.weights, user.id, {
           measuredAt: new Date(`${logDate}T21:30:00`).toISOString(),
           weightKg: eveningWeight,
+          bodyFatPct: null,
           note: "tras entrenar",
         });
       }

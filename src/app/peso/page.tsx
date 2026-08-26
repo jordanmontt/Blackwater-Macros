@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -35,19 +36,31 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { api, ApiError } from "@/lib/api";
 import { formatDateKeyLong, formatNumberEs, formatTimestamp, nowDateTimeLocalValue, parseLocalDateTime } from "@/lib/dates";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
+import { movingAverageByDays } from "@/lib/stats";
+import { round1 } from "@/lib/nutrition";
 import { formatTemplate } from "@/i18n";
 import type { WeightDTO } from "@/lib/types";
 import { t } from "@/i18n";
+import {
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 interface WeightFormState {
   id: string | null;
   weight: string;
+  bodyFat: string;
   datetime: string;
   note: string;
 }
 
 function freshForm(): WeightFormState {
-  return { id: null, weight: "", datetime: nowDateTimeLocalValue(), note: "" };
+  return { id: null, weight: "", bodyFat: "", datetime: nowDateTimeLocalValue(), note: "" };
 }
 
 export default function PesoPage() {
@@ -79,6 +92,18 @@ export default function PesoPage() {
   }, []);
 
   const currentWeight = weights?.at(-1)?.weightKg ?? null;
+  const currentBodyFat = weights?.at(-1)?.bodyFatPct ?? null;
+
+  const hasBodyFat = useMemo(
+    () => (weights ?? []).some((w) => w.bodyFatPct !== null),
+    [weights],
+  );
+
+  const bodyFatSeries = useMemo(() => {
+    return (weights ?? [])
+      .filter((w) => w.bodyFatPct !== null)
+      .map((w) => ({ date: w.measuredAt.slice(0, 10), value: w.bodyFatPct! }));
+  }, [weights]);
 
   const groupedByDay = useMemo(() => {
     const groups = new Map<string, WeightDTO[]>();
@@ -100,6 +125,7 @@ export default function PesoPage() {
     setForm({
       id: entry.id,
       weight: toDecimalInput(entry.weightKg),
+      bodyFat: entry.bodyFatPct !== null ? toDecimalInput(entry.bodyFatPct) : "",
       datetime: toDateTimeLocal(entry.measuredAt),
       note: entry.note ?? "",
     });
@@ -114,11 +140,15 @@ export default function PesoPage() {
       toast.error(t.common.errorGeneric);
       return;
     }
+    const bodyFatStr = form.bodyFat.trim().replace(",", ".");
+    const bodyFatPct =
+      bodyFatStr !== "" && !Number.isNaN(Number(bodyFatStr)) ? Number(bodyFatStr) : null;
     setPending(true);
     try {
       const payload = {
         measuredAt: measuredAt.toISOString(),
         weightKg,
+        bodyFatPct,
         note: form.note.trim() || null,
       };
       if (form.id) {
@@ -165,8 +195,13 @@ export default function PesoPage() {
             {currentWeight !== null ? `${formatNumberEs(currentWeight, 1)} kg` : "—"}
           </CardTitle>
         </CardHeader>
-        <CardFooter className="text-xs text-muted-foreground">
-          {weights ? t_entries(weights.length) : t.common.loading}
+        <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{weights ? t_entries(weights.length) : t.common.loading}</span>
+          {currentBodyFat !== null && (
+            <span>
+              {t.peso.currentBodyFat}: {formatNumberEs(currentBodyFat, 1)}{t.peso.bodyFatUnit}
+            </span>
+          )}
         </CardFooter>
       </Card>
 
@@ -194,6 +229,11 @@ export default function PesoPage() {
                   </span>
                   <span className="font-medium tabular-nums">
                     {formatNumberEs(entry.weightKg, 1)} kg
+                    {entry.bodyFatPct !== null && (
+                      <span className="text-muted-foreground">
+                        {" "}· {formatNumberEs(entry.bodyFatPct, 1)}% grasa
+                      </span>
+                    )}
                   </span>
                   {entry.note ? (
                     <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
@@ -224,6 +264,17 @@ export default function PesoPage() {
           </div>
         ))}
       </section>
+
+      {hasBodyFat && bodyFatSeries.length > 1 ? (
+        <Card className="mt-5">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-base">{t.peso.bodyFatChartTitle}</CardTitle>
+          </CardHeader>
+          <CardContent className="h-56 px-2 sm:h-64">
+            <BodyFatChart data={bodyFatSeries} />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-sm">
@@ -262,6 +313,17 @@ export default function PesoPage() {
                   {t.peso.nowButton}
                 </Button>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bodyfat-input">{t.peso.bodyFatLabel}</Label>
+              <Input
+                id="bodyfat-input"
+                inputMode="decimal"
+                step="any"
+                placeholder={t.peso.bodyFatPlaceholder}
+                value={form.bodyFat}
+                onChange={(event) => setForm({ ...form, bodyFat: normalizeDecimal(event.target.value) })}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="weight-note">{t.peso.noteLabel}</Label>
@@ -317,4 +379,71 @@ function toDateTimeLocal(iso: string): string {
 
 function t_entries(count: number) {
   return formatTemplate(t.peso.entriesCount, { n: count });
+}
+
+function BodyFatChart({ data }: { data: { date: string; value: number }[] }) {
+  const movingAverage = useMemo(() => movingAverageByDays(data, 7), [data]);
+  const rows = data.map((point, i) => ({
+    date: point.date,
+    value: point.value,
+    tendencia: movingAverage[i] === null ? null : round1(movingAverage[i] as number),
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <ComposedChart data={rows} margin={{ top: 16, right: 12, bottom: 0, left: -18 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+        <XAxis
+          dataKey="date"
+          tickFormatter={(value: string) => formatDateKeyLong(value).slice(0, 5)}
+          tick={{ fontSize: 10 }}
+          interval="preserveStartEnd"
+          minTickGap={28}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          domain={["auto", "auto"]}
+          tick={{ fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          width={44}
+          tickFormatter={(value: number) => `${String(Math.round(value * 10) / 10)}%`}
+        />
+        <Tooltip
+          contentStyle={{
+            background: "var(--popover)",
+            border: "1px solid var(--border)",
+            borderRadius: 10,
+            fontSize: 12,
+            color: "var(--popover-foreground)",
+          }}
+          formatter={(value: unknown) =>
+            value === null || value === undefined
+              ? "—"
+              : `${formatNumberEs(Number(value), 1)}%`
+          }
+          labelFormatter={(value) => formatDateKeyLong(String(value))}
+        />
+        <Line
+          type="monotone"
+          dataKey="value"
+          name={t.peso.bodyFatChartTitle}
+          stroke="var(--chart-2)"
+          strokeWidth={1.5}
+          dot={{ r: 2 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="tendencia"
+          name={t.stats.trendLine}
+          stroke="currentColor"
+          className="text-muted-foreground"
+          strokeWidth={2.5}
+          dot={false}
+          connectNulls
+        />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
 }

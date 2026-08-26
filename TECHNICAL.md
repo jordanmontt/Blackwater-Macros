@@ -28,10 +28,10 @@ src/
     peso/ estadisticas/ ajustes/ login/ metodologia/
     api/                    # Route handlers; every folder = one endpoint family
       auth/login|logout|session/
-      meals/[id]/ templates/[id]/ weights/[id]/ stats/ export/[kind]/
+      meals/[id]/ templates/[id]/ weights/[id]/ stats/ settings/ export/[kind]/
   proxy.ts                  # Edge gate: redirects to /login without session cookie
   server/                   # Backend-only code (never imported by client)
-    db/schema.ts            # Drizzle tables + MealIngredient JSONB type
+    db/schema.ts            # Drizzle tables + MealIngredient JSONB type + protein_goal enum
     db/client.ts            # Lazy postgres pool + drizzle instance (see §4.4)
     repositories/           # Injectable data-access factories (one per table)
     services/               # Pure business logic; no HTTP knowledge
@@ -44,9 +44,10 @@ src/
   components/
     ui/*                    # shadcn/ui primitives (Base UI based)
     meals/*                 # DayNavigator, MealCard, MealForm, SaveTemplateDialog
+    protein-recommendation.tsx  # Protein intake recommendation card (Hoy page)
     app-nav.tsx theme-provider.tsx theme-toggle.tsx
   lib/                      # Shared pure logic + types (importable from both sides)
-    types.ts dates.ts nutrition.ts stats.ts csv.ts api.ts utils.ts use-mounted.ts
+    types.ts dates.ts nutrition.ts stats.ts protein.ts csv.ts api.ts utils.ts use-mounted.ts
   i18n/es.ts                # ALL user-facing Spanish copy as a typed dictionary
 scripts/
   lib/env.ts                # .env/.env.local loader for scripts outside Next runtime
@@ -54,7 +55,7 @@ scripts/
 tests/
   behavior/                 # Black-box tests of USER requirements (Spanish comments)
   unit/                     # Technical edge-case tests of pure functions
-drizzle.config.ts           # drizzle-kit config; loads .env.local itself (§9)
+drizzle.config.ts           # drizzle-kit config; loads .env.local itself (§10)
 ```
 
 **Dependency rule:** `app/api → composition → services → repositories → client`.
@@ -65,11 +66,13 @@ drizzle.config.ts           # drizzle-kit config; loads .env.local itself (§9)
 
 ## 3. Data model (`src/server/db/schema.ts`)
 
-Five tables, all UUID-keyed via `gen_random_uuid()`, all user data cascade-deleted
+Six tables, all UUID-keyed via `gen_random_uuid()`, all user data cascade-deleted
 with its owner.
 
 ```
-users        id, username (unique), password_hash, created_at
+users        id, username (unique), password_hash,
+             protein_goal ENUM protein_goal (maintain|build|cut) NOT NULL DEFAULT 'build',
+             created_at
 sessions     token (PK), user_id → users(cascade), expires_at, created_at
              index: sessions_user_id_idx
 meals        id, user_id → users(cascade), log_date (DATE 'YYYY-MM-DD'),
@@ -81,7 +84,8 @@ meals        id, user_id → users(cascade), log_date (DATE 'YYYY-MM-DD'),
 meal_templates  id, user_id → users(cascade), name, title, notes,
              ingredients JSONB, created_at
 weights      id, user_id → users(cascade), measured_at TIMESTAMPTZ,
-             weight_kg DOUBLE PRECISION, note, created_at
+             weight_kg DOUBLE PRECISION, body_fat_pct DOUBLE PRECISION (nullable),
+             note, created_at
              index: weights_user_measured_idx(user_id, measured_at)
 ```
 
@@ -150,8 +154,9 @@ functions (`listInRange`, `getById`, `create`, `update`, `delete`). Two reasons:
 | `auth-service` | `login(deps, username, password)` → verify scrypt hash, issue session row + token; `logout` deletes session |
 | `meals-service` | create/update/delete/list meals; computes `resolved_*` on every write |
 | `templates-service` | CRUD over meal_templates |
-| `weights-service` | CRUD over weights (timestamps kept exact, UTC) |
-| `stats-service` | builds the whole `StatsSummary` DTO (see §7) |
+| `weights-service` | CRUD over weights (timestamps kept exact, UTC); DTOs include `bodyFatPct` |
+| `settings-service` | protein goal CRUD (read via session endpoint, updated via `PUT /api/settings`) |
+| `stats-service` | builds the whole `StatsSummary` DTO including body fat and lean mass series (see §7) |
 | `export-service` | CSV builders using `lib/csv.ts` (RFC-escaped, UTF-8 BOM for Excel) |
 
 Services receive their repos via a `deps` argument — production wiring lives only
@@ -163,6 +168,7 @@ export const serviceDeps = {
   meals:    { meals },
   templates:{ templates },
   weights:  { weights },
+  settings: { settings },
   stats:    { meals, weights },
 };
 ```
@@ -213,18 +219,20 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 |---|---|---|
 | POST `/api/auth/login` | – | `{username,password}` → sets cookie, `{ok:true}`; 401 on bad credentials |
 | POST `/api/auth/logout` | ✓ | Deletes current session row + clears cookie |
-| GET `/api/auth/session` | ✓ | `{username}` for display |
+| GET `/api/auth/session` | ✓ | `{username, proteinGoal}` for display and settings |
 | GET `/api/meals?from&to` | ✓ | Meals in date range (inclusive `YYYY-MM-DD` keys) |
 | POST `/api/meals` | ✓ | Create meal (`MealInput`) → `{meal}` |
 | PATCH `/api/meals/:id` | ✓ | Update meal (full payload replace) → `{meal}` or 404 |
 | DELETE `/api/meals/:id` | ✓ | Delete → `{ok:true}` or 404 |
 | GET/POST `/api/templates`, DELETE `/api/templates/:id` | ✓ | Template management |
-| GET/POST `/api/weights`, PATCH/DELETE `/api/weights/:id` | ✓ | Weight entries (`WeightInput`: ISO timestamp) |
-| GET `/api/stats?range=7d\|30d\|90d\|all&today=YYYY-MM-DD` | ✓ | Full `StatsSummary` DTO |
-| GET `/api/export/meals.csv` · `/api/export/weights.csv` | ✓ | CSV download (BOM, es-friendly) |
+| GET/POST `/api/weights`, PATCH/DELETE `/api/weights/:id` | ✓ | Weight entries (`WeightInput`: ISO timestamp + optional `bodyFatPct`) |
+| PUT `/api/settings` | ✓ | Update protein goal (`{proteinGoal}`) → `{proteinGoal}` |
+| GET `/api/stats?range=7d\|30d\|90d\|all&today=YYYY-MM-DD` | ✓ | Full `StatsSummary` DTO (weights, body fat, lean mass, nutrition) |
+| GET `/api/export/meals.csv` · `/api/export/weights.csv` | ✓ | CSV download (BOM, es-friendly; weights includes `grasa_corporal_pct`) |
 
 Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchema`,
-`weightInputSchema`, `loginInputSchema`, plus `ingredientInputSchema` reused inside.
+`weightInputSchema` (includes optional `bodyFatPct`), `settingsInputSchema`
+(proteinGoal enum), `loginInputSchema`, plus `ingredientInputSchema` reused inside.
 
 ---
 
@@ -234,12 +242,12 @@ Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchem
 
 | Page | File | Highlights |
 |---|---|---|
-| Hoy | `app/page.tsx` | Day navigation, totals cards, template chips, meal list, MealForm dialog, delete confirm |
-| Peso | `app/peso/page.tsx` | Current-weight card, entries grouped by day, datetime-local form with "Ahora" button |
-| Estadísticas | `app/estadisticas/page.tsx` | Range tabs, MiniStat cards, 3 charts, weekly averages; ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | Theme selector, CSV export buttons, template manager, session/logout, methodology link |
+| Hoy | `app/page.tsx` | Day navigation, totals cards, template chips, meal list, MealForm dialog, delete confirm, protein recommendation card |
+| Peso | `app/peso/page.tsx` | Current-weight card, body fat input field, entries grouped by day with body fat display, body fat history chart |
+| Estadísticas | `app/estadisticas/page.tsx` | Range tabs, MiniStat cards, weight/body fat/lean mass charts, weekly averages; ⓘ links to /metodologia |
+| Ajustes | `app/ajustes/page.tsx` | Protein goal selector, theme selector, CSV export buttons, template manager, session/logout |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5) |
-| Metodología | `app/metodologia/page.tsx` | Static content page explaining metric formulas + citations |
+| Metodología | `app/metodologia/page.tsx` | Static content page explaining metric formulas + protein recommendation science + citations |
 
 ### Client data layer (`lib/api.ts`)
 
@@ -284,9 +292,20 @@ the type system flags missing usage sites.
 
 ## 7. Stats pipeline (`server/services/stats-service.ts` + `lib/stats.ts`)
 
-Inputs: user's meals in range, weights in range, requested range, client `today`.
+Inputs: user's meals in range, all user weights, requested range, client `today`.
 Zero-fill: `buildDailyNutritionSeries()` inserts `{calories:0, protein:0}` for
 days without meals — gaps mean "did not log", not missing data.
+
+**Body fat and lean mass:** The weight repository returns full rows including the
+nullable `bodyFatPct`. The service filters to entries with valid body fat data
+(not null, > 0, < 100) and builds two additional series:
+
+- `bodyFat` — `{ date, bodyFatPct, trend }[]` with a 7-day moving average
+- `leanMass` — `{ date, leanMassKg, trend }[]` derived as `weight × (1 - bodyFatPct/100)`
+
+Both series are empty arrays when no entries in the range have body fat data.
+The `WeightStatsSummary` DTO includes body fat stats (current/change/min/max)
+and lean mass stats (current/change), all null when no body fat data exists.
 
 Pure helpers in `lib/stats.ts` (unit-tested):
 
@@ -300,13 +319,45 @@ Pure helpers in `lib/stats.ts` (unit-tested):
 - Rounding helpers live in `lib/nutrition.ts` (`round1`, `round2`).
 
 The service returns one `StatsSummary` DTO (`lib/types.ts`): dense calorie/protein
-series, weight series with pre-rounded trend, summary cards (avg/max/current/
-change/rate/min/max) and weekly averages. Display formatting happens only in
-components via `formatNumberEs(value, maxDecimals)` (es-ES locale).
+series, weight/body fat/lean mass series with pre-rounded trends, summary cards
+(avg/max/current/change/rate/min/max) and weekly averages. Display formatting
+happens only in components via `formatNumberEs(value, maxDecimals)` (es-ES locale).
 
 ---
 
-## 8. React conventions in this repo
+## 8. Protein recommendation (`lib/protein.ts` + `components/protein-recommendation.tsx`)
+
+Evidence-based protein intake ranges computed from the user's goal, body weight,
+and optionally body fat percentage:
+
+| Goal | BW range (g/kg/day) | Source |
+|---|---|---|
+| Maintain | 1.2–1.6 | ISSN position stand |
+| Build | 1.6–2.0 | Morton et al. 2018 |
+| Cut | 1.6–2.2 | Kokura et al. 2024 |
+
+When goal is "cut" **and** body fat % is available, an additional FFM range is
+shown: 2.3–3.1 g/kg lean mass (Helms et al.), relevant for lean athletes in
+a deficit.
+
+**Data flow:** The user's protein goal is stored as a `protein_goal` enum column
+on the `users` table (default `"build"`). The goal is read via the session
+endpoint and updated via `PUT /api/settings`. The `ProteinRecommendationCard`
+component on the Hoy page fetches the latest weight entry (for body weight and
+body fat %) and the session (for goal), then calls the pure `calculateProteinRecommendation()`
+function. No server-side computation — the card is entirely client-rendered.
+
+**Files:**
+- `lib/protein.ts` — pure calculation, no dependencies
+- `components/protein-recommendation.tsx` — Hoy page card with progress bar
+- `server/repositories/settings-repo.ts` — protein goal CRUD on users table
+- `server/services/settings-service.ts` — thin service wrapper
+- `app/api/settings/route.ts` — `PUT` endpoint
+- `app/ajustes/page.tsx` — goal selector (3-button toggle)
+
+---
+
+## 9. React conventions in this repo
 
 ESLint enforces `react-hooks/set-state-in-effect` — no synchronous setState inside
 effects. The codebase follows three sanctioned patterns; keep using them:
@@ -336,7 +387,7 @@ assuming an API shape.
 
 ---
 
-## 9. Ops scripts
+## 10. Ops scripts
 
 Both scripts load env files themselves (`scripts/lib/env.ts`) **before** importing
 server modules (dynamic imports keep ordering safe):
@@ -358,7 +409,7 @@ read `.env.local` on its own.
 
 ---
 
-## 10. Testing architecture (`vitest.config.mts`)
+## 11. Testing architecture (`vitest.config.mts`)
 
 Three projects, one run (`npm test`):
 
@@ -385,7 +436,7 @@ npx tsc --noEmit && npm run lint && npm test && npm run build
 
 ---
 
-## 11. Deployment topology
+## 12. Deployment topology
 
 ```
 Browser ── HTTPS ── Vercel (Hobby)
@@ -409,12 +460,13 @@ Gotchas learned the hard way:
 
 ---
 
-## 12. Extension recipes
+## 13. Extension recipes
 
 | Want to… | Touch |
 |---|---|
 | Add carbs/fat tracking | schema type comment already reserves fields → extend `validation.ts` + `resolveMealTotals` + `MealForm` fields + stats series |
 | New stats metric | pure helper in `lib/stats.ts` (+ unit test) → wire into `stats-service` DTO → card/chart in Estadísticas → explain in `/metodologia` + `i18n/es.ts` |
+| Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → toggle in Ajustes page → read via session endpoint |
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in `i18n/es.ts`; proxy already protects it |
 | Second language | copy `i18n/es.ts` → `en.ts`, export a dictionary selector (structure is ready, nothing else hardcodes Spanish) |
 | Real migrations | switch from `db:push` to `db:generate` + `db:migrate` (both scripted already) once schema changes risk data loss |

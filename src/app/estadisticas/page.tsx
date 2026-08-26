@@ -100,6 +100,8 @@ export default function EstadisticasPage() {
       ) : summary === null ? null : (
         <div className="mt-5 space-y-6">
           <WeightSection summary={summary} />
+          <BodyFatSection summary={summary} />
+          <LeanMassSection summary={summary} />
           <NutritionSection summary={summary} />
         </div>
       )}
@@ -277,6 +279,76 @@ function WeightSection({ summary }: { summary: StatsSummary }) {
           {formatNumberEs(w.maxKg ?? 0, 1)} kg
         </p>
       ) : null}
+    </>
+  );
+}
+
+function BodyFatSection({ summary }: { summary: StatsSummary }) {
+  if (summary.bodyFat.length === 0) return null;
+  const bf = summary.weight;
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <MiniStat
+          label={t.stats.currentBodyFat}
+          value={bf.currentBodyFatPct}
+          unit="%"
+          decimals={1}
+        />
+        <MiniStat
+          label={t.stats.changeBodyFat}
+          value={bf.changeBodyFatPct}
+          unit="pp"
+          decimals={1}
+          signed
+        />
+        <MiniStat
+          label={t.stats.minWeight}
+          value={bf.minBodyFatPct}
+          unit="%"
+          decimals={1}
+        />
+        <MiniStat
+          label={t.stats.maxWeight}
+          value={bf.maxBodyFatPct}
+          unit="%"
+          decimals={1}
+        />
+      </div>
+
+      <ChartCard title={t.stats.bodyFatChartTitle}>
+        <BodyFatStatsChart data={summary.bodyFat} />
+      </ChartCard>
+    </>
+  );
+}
+
+function LeanMassSection({ summary }: { summary: StatsSummary }) {
+  if (summary.leanMass.length === 0) return null;
+  const bf = summary.weight;
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-2">
+        <MiniStat
+          label={t.stats.currentLeanMass}
+          value={bf.currentLeanMassKg}
+          unit="kg"
+          decimals={1}
+        />
+        <MiniStat
+          label={t.stats.changeLeanMass}
+          value={bf.changeLeanMassKg}
+          unit="kg"
+          decimals={1}
+          signed
+        />
+      </div>
+
+      <ChartCard title={t.stats.leanMassChartTitle}>
+        <LeanMassStatsChart data={summary.leanMass} />
+      </ChartCard>
     </>
   );
 }
@@ -476,6 +548,130 @@ function WeightChart({
           dataKey="weight"
           name={t.stats.scaleWeight}
           stroke="var(--chart-3)"
+          strokeWidth={1.5}
+          dot={{ r: 2 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="trend"
+          name={t.stats.trendLine}
+          stroke="var(--chart-4)"
+          strokeWidth={2.5}
+          dot={false}
+          connectNulls
+        />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
+}
+
+function BodyFatStatsChart({
+  data,
+}: {
+  data: { date: string; bodyFatPct: number; trend: number | null }[];
+}) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: -18 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+        <XAxis
+          dataKey="date"
+          tickFormatter={(value: string) => formatDateKeyShort(value)}
+          tick={{ fontSize: 10 }}
+          interval="preserveStartEnd"
+          minTickGap={28}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          domain={["auto", "auto"]}
+          tick={{ fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          width={44}
+          tickFormatter={(value: number) => `${String(Math.round(value * 10) / 10)}%`}
+        />
+        <Tooltip
+          contentStyle={{
+            background: "var(--popover)",
+            border: "1px solid var(--border)",
+            borderRadius: 10,
+            fontSize: 12,
+            color: "var(--popover-foreground)",
+          }}
+          formatter={(value: unknown) =>
+            value === null || value === undefined ? "—" : `${formatNumberEs(Number(value), 1)}%`
+          }
+          labelFormatter={(value) => formatDateKeyShort(String(value))}
+        />
+        <Line
+          type="monotone"
+          dataKey="bodyFatPct"
+          name={t.stats.currentBodyFat}
+          stroke="var(--chart-2)"
+          strokeWidth={1.5}
+          dot={{ r: 2 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="trend"
+          name={t.stats.trendLine}
+          stroke="var(--chart-4)"
+          strokeWidth={2.5}
+          dot={false}
+          connectNulls
+        />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
+}
+
+function LeanMassStatsChart({
+  data,
+}: {
+  data: { date: string; leanMassKg: number; trend: number | null }[];
+}) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: -18 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+        <XAxis
+          dataKey="date"
+          tickFormatter={(value: string) => formatDateKeyShort(value)}
+          tick={{ fontSize: 10 }}
+          interval="preserveStartEnd"
+          minTickGap={28}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          domain={["auto", "auto"]}
+          tick={{ fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          width={44}
+          tickFormatter={(value: number) => `${String(Math.round(value * 10) / 10)} kg`}
+        />
+        <Tooltip
+          contentStyle={{
+            background: "var(--popover)",
+            border: "1px solid var(--border)",
+            borderRadius: 10,
+            fontSize: 12,
+            color: "var(--popover-foreground)",
+          }}
+          formatter={(value: unknown) =>
+            value === null || value === undefined
+              ? "—"
+              : `${formatNumberEs(Number(value), 1)} kg`
+          }
+          labelFormatter={(value) => formatDateKeyShort(String(value))}
+        />
+        <Line
+          type="monotone"
+          dataKey="leanMassKg"
+          name={t.stats.currentLeanMass}
+          stroke="var(--chart-1)"
           strokeWidth={1.5}
           dot={{ r: 2 }}
         />
