@@ -21,6 +21,7 @@ import { MealForm } from "@/components/meals/meal-form";
 import { SaveTemplateDialog } from "@/components/meals/save-template-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ProteinRecommendationCard } from "@/components/protein-recommendation";
+import { CalorieRecommendationCard } from "@/components/calorie-recommendation";
 import { api, ApiError } from "@/lib/api";
 import { todayKey } from "@/lib/dates";
 import { formatNumberEs } from "@/lib/dates";
@@ -188,6 +189,10 @@ export default function HoyPage() {
 
       <section className="mt-4">
         <ProteinRecommendationCard dailyProtein={totals.protein} />
+      </section>
+
+      <section className="mt-4">
+        <CalorieRecommendationCard dailyCalories={totals.calories} />
       </section>
 
       {templates.length > 0 ? (

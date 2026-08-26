@@ -1,4 +1,5 @@
 import type {
+  CalorieProfile,
   IngredientInput,
   MealDTO,
   MealTemplateDTO,
@@ -87,9 +88,25 @@ export const api = {
   logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST" }),
 
   session: () =>
-    request<{ username: string; proteinGoal: ProteinGoal }>("/api/auth/session", {
+    request<{
+      username: string;
+      proteinGoal: ProteinGoal;
+      calorieProfile: CalorieProfile;
+    }>("/api/auth/session", {
       method: "GET",
-    }).catch(() => ({ username: "", proteinGoal: "build" as ProteinGoal })),
+    }).catch(() => ({
+      username: "",
+      proteinGoal: "build" as ProteinGoal,
+      calorieProfile: {
+        gender: null,
+        birthYear: null,
+        heightCm: null,
+        gymDaysPerWeek: null,
+        gymSessionMinutes: null,
+        walkingMinutesPerDay: null,
+        calorieGoal: null,
+      } as CalorieProfile,
+    })),
 
   listMeals: async (from: string, to: string) => {
     const query = new URLSearchParams({ from, to });
@@ -150,8 +167,11 @@ export const api = {
     return request<StatsSummary>(`/api/stats?${query}`);
   },
 
-  updateSettings: async (payload: { proteinGoal: ProteinGoal }) => {
-    return request<{ proteinGoal: ProteinGoal }>("/api/settings", {
+  updateSettings: async (payload: { proteinGoal: ProteinGoal } | CalorieProfile) => {
+    return request<{
+      proteinGoal: ProteinGoal;
+      calorieProfile: CalorieProfile;
+    }>("/api/settings", {
       method: "PUT",
       body: JSON.stringify(payload),
     });

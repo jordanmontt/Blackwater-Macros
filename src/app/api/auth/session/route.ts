@@ -11,7 +11,17 @@ export async function GET() {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
   const rows = await db
-    .select({ username: users.username, proteinGoal: users.proteinGoal })
+    .select({
+      username: users.username,
+      proteinGoal: users.proteinGoal,
+      gender: users.gender,
+      birthYear: users.birthYear,
+      heightCm: users.heightCm,
+      gymDaysPerWeek: users.gymDaysPerWeek,
+      gymSessionMinutes: users.gymSessionMinutes,
+      walkingMinutesPerDay: users.walkingMinutesPerDay,
+      calorieGoal: users.calorieGoal,
+    })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
@@ -19,5 +29,14 @@ export async function GET() {
   return NextResponse.json({
     username: row?.username ?? "",
     proteinGoal: row?.proteinGoal ?? "build",
+    calorieProfile: {
+      gender: row?.gender ?? null,
+      birthYear: row?.birthYear ?? null,
+      heightCm: row?.heightCm ?? null,
+      gymDaysPerWeek: row?.gymDaysPerWeek ?? null,
+      gymSessionMinutes: row?.gymSessionMinutes ?? null,
+      walkingMinutesPerDay: row?.walkingMinutesPerDay ?? null,
+      calorieGoal: row?.calorieGoal ?? null,
+    },
   });
 }

@@ -58,6 +58,17 @@ async function main() {
   });
   console.log(`✔ Usuario demo creado (${user.id}). Contraseña: ${PASSWORD}`);
 
+  // Calorie profile for demo user: male, 1990, 178cm, 3x/week 60min, 30min walking, deficit
+  await repositories.settings.updateCalorieProfile(user.id, {
+    gender: "male",
+    birthYear: 1990,
+    heightCm: 178,
+    gymDaysPerWeek: 3,
+    gymSessionMinutes: 60,
+    walkingMinutesPerDay: 30,
+    calorieGoal: "deficit",
+  });
+
   const rand = mulberry32(20260823);
 
   interface IngredientSeed {

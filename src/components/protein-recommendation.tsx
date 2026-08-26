@@ -38,11 +38,7 @@ export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: numb
 
   const rec = useMemo<ProteinRecommendation | null>(() => {
     if (!latestWeight) return null;
-    return calculateProteinRecommendation(
-      latestWeight.weightKg,
-      latestWeight.bodyFatPct,
-      proteinGoal,
-    );
+    return calculateProteinRecommendation(latestWeight.weightKg, proteinGoal);
   }, [latestWeight, proteinGoal]);
 
   if (!latestWeight) {
@@ -83,7 +79,6 @@ export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: numb
       <CardContent className="space-y-3 px-4 pb-3">
         <p className="text-xs text-muted-foreground">
           {goalLabel} · {formatNumberEs(rec.bodyWeightKg, 1)} kg
-          {rec.bodyFatPct !== null ? ` · ${formatNumberEs(rec.bodyFatPct, 1)}% grasa` : ""}
         </p>
 
         <div className="space-y-1">
@@ -96,23 +91,6 @@ export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: numb
             })}
           </p>
         </div>
-
-        {rec.ffmRange && (
-          <div className="space-y-1">
-            <p className="text-sm font-medium">{t.protein.ffmRange}</p>
-            <p className="text-xs text-muted-foreground">
-              {rec.ffmRange.min} – {rec.ffmRange.max} g/día{" "}
-              {formatTemplate(t.protein.ffmPerKg, {
-                min: rec.ffmPerKg!.min,
-                max: rec.ffmPerKg!.max,
-              })}
-            </p>
-          </div>
-        )}
-
-        {rec.ffmRange === null && rec.goal === "cut" && (
-          <p className="text-xs text-muted-foreground">{t.protein.noBodyFat}</p>
-        )}
 
         <div className="space-y-1.5">
           <p className="text-xs text-muted-foreground">

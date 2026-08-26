@@ -3,6 +3,7 @@ import {
   date,
   doublePrecision,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -13,12 +14,21 @@ import {
 
 export const entryModeEnum = pgEnum("entry_mode", ["per_ingredient", "total_only"]);
 export const proteinGoalEnum = pgEnum("protein_goal", ["maintain", "build", "cut"]);
+export const genderEnum = pgEnum("gender", ["male", "female"]);
+export const calorieGoalEnum = pgEnum("calorie_goal", ["deficit", "maintain", "surplus"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   proteinGoal: proteinGoalEnum("protein_goal").notNull().default("build"),
+  gender: genderEnum("gender"),
+  birthYear: integer("birth_year"),
+  heightCm: doublePrecision("height_cm"),
+  gymDaysPerWeek: integer("gym_days_per_week"),
+  gymSessionMinutes: integer("gym_session_minutes"),
+  walkingMinutesPerDay: integer("walking_minutes_per_day"),
+  calorieGoal: calorieGoalEnum("calorie_goal"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

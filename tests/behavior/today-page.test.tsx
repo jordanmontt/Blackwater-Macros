@@ -24,7 +24,19 @@ vi.mock("@/lib/api", () => ({
     listTemplates: vi.fn(async () => [] as MealTemplateDTO[]),
     createMeal: vi.fn(async () => meal({ title: "nueva", kcal: 0, protein: 0 })),
     listWeights: vi.fn(async () => []),
-    session: vi.fn(async () => ({ username: "demo", proteinGoal: "build" })),
+    session: vi.fn(async () => ({
+      username: "demo",
+      proteinGoal: "build",
+      calorieProfile: {
+        gender: null,
+        birthYear: null,
+        heightCm: null,
+        gymDaysPerWeek: null,
+        gymSessionMinutes: null,
+        walkingMinutesPerDay: null,
+        calorieGoal: null,
+      },
+    })),
   },
 }));
 

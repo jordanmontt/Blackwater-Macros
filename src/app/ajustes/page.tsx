@@ -14,14 +14,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { api, ApiError } from "@/lib/api";
 import { formatTemplate } from "@/i18n";
-import type { MealTemplateDTO, ProteinGoal } from "@/lib/types";
+import type { CalorieGoal, CalorieProfile, MealTemplateDTO, ProteinGoal } from "@/lib/types";
 import { PROTEIN_GOAL_LABELS } from "@/components/protein-recommendation";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/lib/use-mounted";
+import { calculateCalorieRecommendation } from "@/lib/calories";
+import { formatNumberEs } from "@/lib/dates";
 import { t } from "@/i18n";
+
+const CALORIE_GOAL_LABELS: Record<CalorieGoal, string> = {
+  deficit: t.calorias.goalDeficit,
+  maintain: t.calorias.goalMaintain,
+  surplus: t.calorias.goalSurplus,
+};
 
 export default function AjustesPage() {
   const router = useRouter();
@@ -29,16 +39,34 @@ export default function AjustesPage() {
   const [username, setUsername] = useState("");
   const [templates, setTemplates] = useState<MealTemplateDTO[]>([]);
   const [proteinGoal, setProteinGoal] = useState<ProteinGoal>("build");
+  const [calorieProfile, setCalorieProfile] = useState<CalorieProfile>({
+    gender: null,
+    birthYear: null,
+    heightCm: null,
+    gymDaysPerWeek: null,
+    gymSessionMinutes: null,
+    walkingMinutesPerDay: null,
+    calorieGoal: null,
+  });
+  const [latestWeight, setLatestWeight] = useState<number | null>(null);
   const mounted = useMounted();
 
   useEffect(() => {
     void api.session().then((session) => {
       setUsername(session.username);
       setProteinGoal(session.proteinGoal);
+      setCalorieProfile(session.calorieProfile);
     });
     api
       .listTemplates()
       .then(setTemplates)
+      .catch(() => undefined);
+    api
+      .listWeights()
+      .then((weights) => {
+        const last = weights.at(-1);
+        if (last) setLatestWeight(last.weightKg);
+      })
       .catch(() => undefined);
   }, []);
 
@@ -52,10 +80,24 @@ export default function AjustesPage() {
     Object.entries(PROTEIN_GOAL_LABELS) as [ProteinGoal, string][]
   ).map(([value, label]) => ({ value, label }));
 
+  const calorieGoalOptions: { value: CalorieGoal; label: string }[] = (
+    Object.entries(CALORIE_GOAL_LABELS) as [CalorieGoal, string][]
+  ).map(([value, label]) => ({ value, label }));
+
   async function handleGoalChange(goal: ProteinGoal) {
     setProteinGoal(goal);
     try {
       await api.updateSettings({ proteinGoal: goal });
+    } catch {
+      toast.error(t.common.errorGeneric);
+    }
+  }
+
+  async function handleCalorieProfileChange(updates: Partial<CalorieProfile>) {
+    const newProfile = { ...calorieProfile, ...updates };
+    setCalorieProfile(newProfile);
+    try {
+      await api.updateSettings(newProfile);
     } catch {
       toast.error(t.common.errorGeneric);
     }
@@ -79,6 +121,10 @@ export default function AjustesPage() {
       toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
     }
   }
+
+  const calorieRec = latestWeight
+    ? calculateCalorieRecommendation(calorieProfile, latestWeight)
+    : null;
 
   return (
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 md:pt-6">
@@ -132,6 +178,160 @@ export default function AjustesPage() {
               </button>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.calorias.recommendationTitle}</CardTitle>
+          <CardDescription>{t.calorias.noProfile}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>{t.calorias.genderLabel}</Label>
+              <div className="grid grid-cols-2 gap-1 rounded-lg border p-1">
+                {([
+                  ["male", t.calorias.genderMale],
+                  ["female", t.calorias.genderFemale],
+                ] as const).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={calorieProfile.gender === value}
+                    onClick={() => void handleCalorieProfileChange({ gender: value })}
+                    className={cn(
+                      "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
+                      calorieProfile.gender === value && "bg-primary text-primary-foreground",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="birth-year">{t.calorias.birthYearLabel}</Label>
+              <Input
+                id="birth-year"
+                type="number"
+                inputMode="numeric"
+                min={1920}
+                max={2010}
+                placeholder="1990"
+                value={calorieProfile.birthYear ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  void handleCalorieProfileChange({ birthYear: v });
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="height-cm">{t.calorias.heightLabel}</Label>
+            <Input
+              id="height-cm"
+              type="number"
+              inputMode="decimal"
+              step="any"
+              min={100}
+              max={250}
+              placeholder="175"
+              value={calorieProfile.heightCm ?? ""}
+              onChange={(e) => {
+                const v = e.target.value === "" ? null : Number(e.target.value.replace(",", "."));
+                void handleCalorieProfileChange({ heightCm: v && Number.isFinite(v) ? v : null });
+              }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="gym-days">{t.calorias.gymDaysLabel}</Label>
+              <Input
+                id="gym-days"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={7}
+                placeholder="3"
+                value={calorieProfile.gymDaysPerWeek ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  void handleCalorieProfileChange({ gymDaysPerWeek: v });
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gym-minutes">{t.calorias.gymSessionLabel}</Label>
+              <Input
+                id="gym-minutes"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={300}
+                placeholder="60"
+                value={calorieProfile.gymSessionMinutes ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  void handleCalorieProfileChange({ gymSessionMinutes: v });
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="walking-minutes">{t.calorias.walkingLabel}</Label>
+            <Input
+              id="walking-minutes"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={480}
+              placeholder="30"
+              value={calorieProfile.walkingMinutesPerDay ?? ""}
+              onChange={(e) => {
+                const v = e.target.value === "" ? null : Number(e.target.value);
+                void handleCalorieProfileChange({ walkingMinutesPerDay: v });
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t.calorias.calorieGoalLabel}</Label>
+            <div className="grid grid-cols-3 gap-1 rounded-lg border p-1">
+              {calorieGoalOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={calorieProfile.calorieGoal === option.value}
+                  onClick={() => void handleCalorieProfileChange({ calorieGoal: option.value })}
+                  className={cn(
+                    "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
+                    calorieProfile.calorieGoal === option.value && "bg-primary text-primary-foreground",
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {calorieRec && (
+            <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
+              <p className="text-sm font-medium">{t.calorias.tdee}</p>
+              <p className="text-2xl font-semibold tabular-nums">
+                {formatNumberEs(calorieRec.target)} <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatNumberEs(calorieRec.targetMin)} – {formatNumberEs(calorieRec.targetMax)} {t.calorias.perDay}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)} · {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

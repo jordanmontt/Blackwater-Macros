@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { getSettings, updateSettings } from "@/server/services/settings-service";
 import type { SettingsRepository } from "@/server/repositories/settings-repo";
-import type { ProteinGoal } from "@/lib/types";
+import type { CalorieProfile, ProteinGoal } from "@/lib/types";
 
 function memorySettings(initial: ProteinGoal = "build"): SettingsRepository {
   const store = new Map<string, ProteinGoal>();
+  const calorieProfiles = new Map<string, CalorieProfile>();
+
+  const emptyProfile: CalorieProfile = {
+    gender: null,
+    birthYear: null,
+    heightCm: null,
+    gymDaysPerWeek: null,
+    gymSessionMinutes: null,
+    walkingMinutesPerDay: null,
+    calorieGoal: null,
+  };
 
   return {
     async getProteinGoal(userId) {
@@ -12,6 +23,12 @@ function memorySettings(initial: ProteinGoal = "build"): SettingsRepository {
     },
     async updateProteinGoal(userId, goal) {
       store.set(userId, goal);
+    },
+    async getCalorieProfile(userId) {
+      return calorieProfiles.get(userId) ?? emptyProfile;
+    },
+    async updateCalorieProfile(userId, profile) {
+      calorieProfiles.set(userId, profile);
     },
   };
 }
@@ -53,5 +70,12 @@ describe("gestión de ajustes", () => {
       await updateSettings(repo, "user-1", { proteinGoal: goal });
       expect((await getSettings(repo, "user-1")).proteinGoal).toBe(goal);
     }
+  });
+
+  it("getSettings incluye calorieProfile por defecto vacío", async () => {
+    const repo = memorySettings();
+    const settings = await getSettings(repo, "user-1");
+    expect(settings.calorieProfile.gender).toBeNull();
+    expect(settings.calorieProfile.calorieGoal).toBeNull();
   });
 });

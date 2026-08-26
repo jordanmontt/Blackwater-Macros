@@ -13,7 +13,20 @@ import { InvalidCredentialsError, login, logout, resolveSession } from "@/server
 function makeMemoryDeps() {
   const users = new Map<
     string,
-    { id: string; username: string; passwordHash: string; proteinGoal: "maintain" | "build" | "cut"; createdAt: Date }
+    {
+      id: string;
+      username: string;
+      passwordHash: string;
+      proteinGoal: "maintain" | "build" | "cut";
+      gender: "male" | "female" | null;
+      birthYear: number | null;
+      heightCm: number | null;
+      gymDaysPerWeek: number | null;
+      gymSessionMinutes: number | null;
+      walkingMinutesPerDay: number | null;
+      calorieGoal: "deficit" | "maintain" | "surplus" | null;
+      createdAt: Date;
+    }
   >();
   const sessions = new Map<string, { userId: string; expiresAt: Date }>();
   let nextId = 1;
@@ -31,6 +44,13 @@ function makeMemoryDeps() {
           username: username.toLowerCase(),
           passwordHash,
           proteinGoal: "build" as const,
+          gender: null,
+          birthYear: null,
+          heightCm: null,
+          gymDaysPerWeek: null,
+          gymSessionMinutes: null,
+          walkingMinutesPerDay: null,
+          calorieGoal: null,
           createdAt: new Date(),
         };
         users.set(user.id, user);

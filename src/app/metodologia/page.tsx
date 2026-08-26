@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookOpenIcon, DumbbellIcon, ScaleIcon, TrendingUpIcon, UtensilsCrossedIcon, CalendarDaysIcon, SigmaIcon } from "lucide-react";
+import { BookOpenIcon, DumbbellIcon, FlameIcon, ScaleIcon, TrendingUpIcon, UtensilsCrossedIcon, CalendarDaysIcon, SigmaIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -59,6 +59,20 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.proteinRecBody}</p>
         <p>{t.metodologia.proteinRecRanges}</p>
         <p>{t.metodologia.proteinRecFfm}</p>
+      </MethodologyCard>
+
+      <MethodologyCard icon={<FlameIcon />} title={t.metodologia.tdeeTitle}>
+        <p>{t.metodologia.tdeeBody}</p>
+        <FormulaBlock>
+          {t.metodologia.tdeeFormula.split("\n").map((line, i) => (
+            <span key={i}>
+              {line}
+              <br />
+            </span>
+          ))}
+        </FormulaBlock>
+        <p>{t.metodologia.tdeeActivity}</p>
+        <p>{t.metodologia.tdeeGoals}</p>
       </MethodologyCard>
 
       <Card>
@@ -145,6 +159,32 @@ export default function MetodologiaPage() {
                 rel="noopener noreferrer"
               >
                 doi:10.1186/s12970-017-0177-8
+              </a>
+            </li>
+            <li>
+              Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive
+              equation for resting energy expenditure in healthy individuals. <i>Am J Clin Nutr</i>.
+              1990;51(2):241–247.{" "}
+              <a
+                href="https://doi.org/10.1093/ajcn/51.2.241"
+                className="underline hover:text-foreground"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                doi:10.1093/ajcn/51.2.241
+              </a>
+            </li>
+            <li>
+              Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for
+              resting metabolic rate in healthy nonobese and obese adults: a systematic review.
+              <i>J Am Diet Assoc</i>. 2005;105(5):775–789.{" "}
+              <a
+                href="https://doi.org/10.1016/j.jada.2005.02.005"
+                className="underline hover:text-foreground"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                doi:10.1016/j.jada.2005.02.005
               </a>
             </li>
           </ol>

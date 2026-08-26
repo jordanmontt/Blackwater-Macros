@@ -52,6 +52,18 @@ export const settingsInputSchema = z.object({
 
 export type SettingsInput = z.infer<typeof settingsInputSchema>;
 
+export const calorieProfileInputSchema = z.object({
+  gender: z.enum(["male", "female"]).nullable(),
+  birthYear: z.number().min(1920).max(2010).nullable(),
+  heightCm: z.number().min(100).max(250).nullable(),
+  gymDaysPerWeek: z.number().min(0).max(7).nullable(),
+  gymSessionMinutes: z.number().min(0).max(300).nullable(),
+  walkingMinutesPerDay: z.number().min(0).max(480).nullable(),
+  calorieGoal: z.enum(["deficit", "maintain", "surplus"]).nullable(),
+});
+
+export type CalorieProfileInput = z.infer<typeof calorieProfileInputSchema>;
+
 export const loginInputSchema = z.object({
   username: z.string().trim().min(1).max(80),
   password: z.string().min(1).max(200),

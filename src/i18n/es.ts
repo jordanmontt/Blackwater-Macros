@@ -137,19 +137,40 @@ export const t = {
     goalBuildDesc: "Aumentar masa muscular con entrenamiento de fuerza",
     goalCutDesc: "Preservar músculo durante un déficit calórico",
     bwRange: "Por peso corporal",
-    ffmRange: "Por masa libre de grasa",
-    ffmNote: "Relevante en corte con % de grasa registrado",
     perKg: "({min} – {max} g/kg)",
-    ffmPerKg: "({min} – {max} g/kg LMG)",
     currentIntake: "Ingesta de hoy",
     inRange: "en rango",
     belowRange: "por debajo",
     aboveRange: "por encima",
     noWeight: "Registra tu peso para ver recomendaciones",
-    noBodyFat: "Registra tu % de grasa corporal para ver el rango por masa libre de grasa",
     settingsTitle: "Recomendaciones de proteína",
     settingsDescription:
       "Elige tu objetivo para calcular rangos de ingesta diaria basados en la evidencia científica.",
+  },
+  calorias: {
+    recommendationTitle: "Recomendación de calorías",
+    noProfile: "Introduce tus datos para conocer las calorías óptimas",
+    bmr: "Metabolismo basal (TMB)",
+    tdee: "Gasto calórico diario estimado (TDEE)",
+    target: "Consumo objetivo",
+    goalDeficit: "Déficit calórico",
+    goalMaintain: "Mantenimiento",
+    goalSurplus: "Superávit calórico",
+    genderLabel: "Género",
+    genderMale: "Hombre",
+    genderFemale: "Mujer",
+    birthYearLabel: "Año de nacimiento",
+    heightLabel: "Altura (cm)",
+    gymDaysLabel: "Días de gimnasio por semana",
+    gymSessionLabel: "Duración media de la sesión (min)",
+    walkingLabel: "Tiempo de caminata diario (min)",
+    calorieGoalLabel: "Objetivo calórico",
+    perDay: "kcal/día",
+    range: "{min} – {max} kcal",
+    currentIntake: "Ingesta de hoy",
+    inRange: "en rango",
+    belowRange: "por debajo",
+    aboveRange: "por encima",
   },
   metodologia: {
     title: "Metodología",
@@ -176,9 +197,18 @@ export const t = {
     proteinRecBody:
       "La cantidad de proteína que necesitas depende de tu objetivo, tu peso y tu composición corporal. La app calcula un rango diario multiplicando tu peso por un factor según tu objetivo.",
     proteinRecRanges:
-      "Mantener músculo (1.2–1.6 g/kg/día): suficiente para la mayoría de personas activas. Construir músculo (1.6–2.0 g/kg/día): por encima de 1.6 g/kg los beneficios adicionales empiezan a disminuir, pero hasta 2.0 cubre la variabilidad individual. Cortar / definir (1.6–2.2 g/kg de peso corporal o 2.3–3.1 g/kg de masa libre de grasa): durante un déficit calórico la proteína ayuda a preservar músculo. Para atletas con bajo % de grasa en déficit severo, se calcula sobre masa libre de grasa porque la grasa corporal no necesita proteína para mantenerse.",
+      "Mantener músculo (1.2–1.6 g/kg/día): suficiente para la mayoría de personas activas. Construir músculo (1.6–2.0 g/kg/día): por encima de 1.6 g/kg los beneficios adicionales empiezan a disminuir, pero hasta 2.0 cubre la variabilidad individual. Cortar / definir (1.6–2.2 g/kg de peso corporal): durante un déficit calórico la proteína ayuda a preservar músculo.",
     proteinRecFfm:
-      "Si tu objetivo es cortar y has registrado tu % de grasa corporal, la app muestra ambos rangos (por peso y por masa libre de grasa).",
+      "La recomendación se calcula exclusivamente sobre el peso corporal total.",
+    tdeeTitle: "Estimación del gasto calórico diario (TDEE)",
+    tdeeBody:
+      "El gasto calórico total se estima en dos pasos: primero se calcula el metabolismo basal (TMB) con la ecuación de Mifflin-St Jeor (1990), considerada la más precisa para personas no deportistas (Frankenfield et al. 2005, 82% de precisión dentro de ±10%). Luego se multiplica por un factor de actividad basado en la frecuencia del gimnasio, la duración de las sesiones y el tiempo de caminata diario.",
+    tdeeFormula:
+      "Hombres: TMB = (10 × peso_kg) + (6.25 × altura_cm) - (5 × edad) + 5\nMujeres: TMB = (10 × peso_kg) + (6.25 × altura_cm) - (5 × edad) - 161\nTDEE = TMB × factor de actividad",
+    tdeeActivity:
+      "Los factores de actividad van de 1.2 (sedentario) a 1.9 (muy activo). La investigación muestra que la gente tiende a sobreestimar su nivel de actividad, por lo que los umbrales se calibran de forma conservadora.",
+    tdeeGoals:
+      "Déficit: TDEE − 400 kcal (rango: −500 a −300). Mantenimiento: TDEE ± 100 kcal. Superávit: TDEE + 300 kcal (rango: +200 a +400).",
     referencesTitle: "Referencias",
   },
   ajustes: {

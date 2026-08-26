@@ -92,6 +92,29 @@ export interface StatsSummary {
 
 export interface UserSettings {
   proteinGoal: ProteinGoal;
+  calorieProfile: CalorieProfile;
+}
+
+export type Gender = "male" | "female";
+export type CalorieGoal = "deficit" | "maintain" | "surplus";
+
+export interface CalorieProfile {
+  gender: Gender | null;
+  birthYear: number | null;
+  heightCm: number | null;
+  gymDaysPerWeek: number | null;
+  gymSessionMinutes: number | null;
+  walkingMinutesPerDay: number | null;
+  calorieGoal: CalorieGoal | null;
+}
+
+export interface CalorieRecommendation {
+  bmr: number;
+  tdee: number;
+  target: number;
+  targetMin: number;
+  targetMax: number;
+  goal: CalorieGoal;
 }
 
 export interface ProteinRange {
@@ -102,9 +125,6 @@ export interface ProteinRange {
 export interface ProteinRecommendation {
   goal: ProteinGoal;
   bodyWeightKg: number;
-  bodyFatPct: number | null;
   bwRange: ProteinRange;
-  ffmRange: ProteinRange | null;
   bwPerKg: ProteinRange;
-  ffmPerKg: ProteinRange | null;
 }
