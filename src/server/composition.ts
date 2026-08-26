@@ -18,9 +18,5 @@ export const repositories = {
 
 export const serviceDeps = {
   auth: { users: repositories.users, sessions: repositories.sessions },
-  meals: { meals: repositories.meals },
-  templates: { templates: repositories.templates },
-  weights: { weights: repositories.weights },
   stats: { meals: repositories.meals, weights: repositories.weights },
-  settings: { settings: repositories.settings },
 };

@@ -116,7 +116,7 @@ const breakfast: MealInput = {
 
 describe("editar y borrar comidas", () => {
   it("los cambios al editar una comida se ven inmediatamente al volver a listar", async () => {
-    const deps = { meals: memoryMeals() };
+    const deps = memoryMeals();
     const created = await createMeal(deps, "user-1", breakfast);
 
     await updateMeal(deps, "user-1", created.id, {
@@ -131,7 +131,7 @@ describe("editar y borrar comidas", () => {
   });
 
   it("borrar una comida hace desaparecer el día como si no hubiera existido", async () => {
-    const deps = { meals: memoryMeals() };
+    const deps = memoryMeals();
     const created = await createMeal(deps, "user-1", breakfast);
 
     await deleteMeal(deps, "user-1", created.id);
@@ -141,7 +141,7 @@ describe("editar y borrar comidas", () => {
   });
 
   it("nadie puede editar ni borrar las comidas de otro usuario", async () => {
-    const deps = { meals: memoryMeals() };
+    const deps = memoryMeals();
     const created = await createMeal(deps, "user-1", breakfast);
 
     await expect(updateMeal(deps, "user-2", created.id, breakfast)).resolves.toBeNull();
@@ -154,7 +154,7 @@ describe("editar y borrar comidas", () => {
 
 describe("plantillas de comidas", () => {
   it("guardar 'Desayuno' como plantilla permite reutilizarlo cualquier día", async () => {
-    const deps = { templates: memoryTemplates() };
+    const deps = memoryTemplates();
 
     const template = await createTemplate(deps, "user-1", {
       name: "Desayuno",
@@ -188,7 +188,7 @@ describe("plantillas de comidas", () => {
   });
 
   it("cada usuario gestiona sus propias plantillas", async () => {
-    const deps = { templates: memoryTemplates() };
+    const deps = memoryTemplates();
 
     const template = await createTemplate(deps, "user-1", {
       name: "Desayuno",

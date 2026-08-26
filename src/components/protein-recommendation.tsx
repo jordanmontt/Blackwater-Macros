@@ -6,12 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { formatNumberEs } from "@/lib/dates";
 import { calculateProteinRecommendation } from "@/lib/protein";
-import type { ProteinRecommendation, WeightDTO } from "@/lib/types";
+import type { ProteinGoal, ProteinRecommendation, WeightDTO } from "@/lib/types";
 import { formatTemplate, t } from "@/i18n";
+
+export const PROTEIN_GOAL_LABELS: Record<ProteinGoal, string> = {
+  maintain: t.protein.goalMaintain,
+  build: t.protein.goalBuild,
+  cut: t.protein.goalCut,
+};
 
 export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: number }) {
   const [weights, setWeights] = useState<WeightDTO[] | null>(null);
-  const [proteinGoal, setProteinGoal] = useState<string>("build");
+  const [proteinGoal, setProteinGoal] = useState<ProteinGoal>("build");
 
   useEffect(() => {
     let cancelled = false;
@@ -35,7 +41,7 @@ export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: numb
     return calculateProteinRecommendation(
       latestWeight.weightKg,
       latestWeight.bodyFatPct,
-      proteinGoal as ProteinRecommendation["goal"],
+      proteinGoal,
     );
   }, [latestWeight, proteinGoal]);
 
@@ -51,12 +57,7 @@ export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: numb
 
   if (!rec) return null;
 
-  const goalLabel =
-    rec.goal === "maintain"
-      ? t.protein.goalMaintain
-      : rec.goal === "build"
-        ? t.protein.goalBuild
-        : t.protein.goalCut;
+  const goalLabel = PROTEIN_GOAL_LABELS[rec.goal];
 
   const bwPct = rec.bwRange.max > 0 ? dailyProtein / rec.bwRange.max : 0;
   const barPct = Math.min(Math.max(bwPct * 100, 0), 100);

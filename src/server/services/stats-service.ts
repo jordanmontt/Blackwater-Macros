@@ -115,6 +115,7 @@ export async function buildStatsSummary(
   const lastValue = weightPoints.at(-1)?.value ?? null;
   const firstValue = weightPoints[0]?.value ?? null;
   const lastTrend = [...trendValues].reverse().find((v) => v !== null) ?? null;
+  const ratePerWeekKg = linearRatePerWeek(weightPoints);
 
   // Body fat stats
   const lastBodyFat = bodyFatPoints.at(-1)?.value ?? null;
@@ -127,20 +128,21 @@ export async function buildStatsSummary(
     currentTrendKg: lastTrend === null ? null : round1(lastTrend),
     changeSinceStartKg:
       firstValue !== null && lastValue !== null ? round2(lastValue - firstValue) : null,
-    ratePerWeekKg: (() => {
-      const rate = linearRatePerWeek(weightPoints);
-      return rate === null ? null : round2(rate);
-    })(),
-    minKg: weightPoints.length ? round2(Math.min(...weightPoints.map((p) => p.value))) : null,
-    maxKg: weightPoints.length ? round2(Math.max(...weightPoints.map((p) => p.value))) : null,
+    ratePerWeekKg: ratePerWeekKg === null ? null : round2(ratePerWeekKg),
+    minKg: weightPoints.length
+      ? round2(weightPoints.reduce((min, p) => Math.min(min, p.value), Infinity))
+      : null,
+    maxKg: weightPoints.length
+      ? round2(weightPoints.reduce((max, p) => Math.max(max, p.value), -Infinity))
+      : null,
     currentBodyFatPct: lastBodyFat === null ? null : round1(lastBodyFat),
     changeBodyFatPct:
       firstBodyFat !== null && lastBodyFat !== null ? round1(lastBodyFat - firstBodyFat) : null,
     minBodyFatPct: bodyFatPoints.length
-      ? round1(Math.min(...bodyFatPoints.map((p) => p.value)))
+      ? round1(bodyFatPoints.reduce((min, p) => Math.min(min, p.value), Infinity))
       : null,
     maxBodyFatPct: bodyFatPoints.length
-      ? round1(Math.max(...bodyFatPoints.map((p) => p.value)))
+      ? round1(bodyFatPoints.reduce((max, p) => Math.max(max, p.value), -Infinity))
       : null,
     currentLeanMassKg: lastLeanMass === null ? null : round2(lastLeanMass),
     changeLeanMassKg:

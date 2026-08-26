@@ -3,10 +3,6 @@ import { round2 } from "@/lib/nutrition";
 import type { WeightsRepository, NewWeightData } from "../repositories/weights-repo";
 import type { WeightInput } from "../validation";
 
-export interface WeightsServiceDeps {
-  weights: WeightsRepository;
-}
-
 function toDomainData(input: WeightInput): NewWeightData {
   return {
     measuredAt: new Date(input.measuredAt),
@@ -34,26 +30,26 @@ interface WeightRowLike {
   note: string | null;
 }
 
-export async function createWeight(deps: WeightsServiceDeps, userId: string, input: WeightInput) {
-  const row = await deps.weights.create(userId, toDomainData(input));
+export async function createWeight(repo: WeightsRepository, userId: string, input: WeightInput) {
+  const row = await repo.create(userId, toDomainData(input));
   return toWeightDto(row);
 }
 
 export async function updateWeight(
-  deps: WeightsServiceDeps,
+  repo: WeightsRepository,
   userId: string,
   id: string,
   input: WeightInput,
 ) {
-  const row = await deps.weights.update(userId, id, toDomainData(input));
+  const row = await repo.update(userId, id, toDomainData(input));
   return row ? toWeightDto(row) : null;
 }
 
-export async function deleteWeight(deps: WeightsServiceDeps, userId: string, id: string) {
-  return deps.weights.delete(userId, id);
+export async function deleteWeight(repo: WeightsRepository, userId: string, id: string) {
+  return repo.delete(userId, id);
 }
 
-export async function listWeights(deps: WeightsServiceDeps, userId: string) {
-  const rows = await deps.weights.listForUser(userId);
+export async function listWeights(repo: WeightsRepository, userId: string) {
+  const rows = await repo.listForUser(userId);
   return rows.map(toWeightDto);
 }

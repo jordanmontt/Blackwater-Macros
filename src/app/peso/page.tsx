@@ -34,7 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api, ApiError } from "@/lib/api";
-import { formatDateKeyLong, formatNumberEs, formatTimestamp, nowDateTimeLocalValue, parseLocalDateTime } from "@/lib/dates";
+import { formatDateKeyLong, formatNumberEs, formatTimestamp, nowDateTimeLocalValue, toDateTimeLocalValue, parseLocalDateTime } from "@/lib/dates";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { movingAverageByDays } from "@/lib/stats";
 import { round1 } from "@/lib/nutrition";
@@ -94,11 +94,6 @@ export default function PesoPage() {
   const currentWeight = weights?.at(-1)?.weightKg ?? null;
   const currentBodyFat = weights?.at(-1)?.bodyFatPct ?? null;
 
-  const hasBodyFat = useMemo(
-    () => (weights ?? []).some((w) => w.bodyFatPct !== null),
-    [weights],
-  );
-
   const bodyFatSeries = useMemo(() => {
     return (weights ?? [])
       .filter((w) => w.bodyFatPct !== null)
@@ -126,7 +121,7 @@ export default function PesoPage() {
       id: entry.id,
       weight: toDecimalInput(entry.weightKg),
       bodyFat: entry.bodyFatPct !== null ? toDecimalInput(entry.bodyFatPct) : "",
-      datetime: toDateTimeLocal(entry.measuredAt),
+      datetime: toDateTimeLocalValue(new Date(entry.measuredAt)),
       note: entry.note ?? "",
     });
     setFormOpen(true);
@@ -196,7 +191,7 @@ export default function PesoPage() {
           </CardTitle>
         </CardHeader>
         <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{weights ? t_entries(weights.length) : t.common.loading}</span>
+          <span>{weights ? entriesCount(weights.length) : t.common.loading}</span>
           {currentBodyFat !== null && (
             <span>
               {t.peso.currentBodyFat}: {formatNumberEs(currentBodyFat, 1)}{t.peso.bodyFatUnit}
@@ -265,7 +260,7 @@ export default function PesoPage() {
         ))}
       </section>
 
-      {hasBodyFat && bodyFatSeries.length > 1 ? (
+      {bodyFatSeries.length > 1 ? (
         <Card className="mt-5">
           <CardHeader className="pb-0">
             <CardTitle className="text-base">{t.peso.bodyFatChartTitle}</CardTitle>
@@ -369,17 +364,17 @@ export default function PesoPage() {
   );
 }
 
-function toDateTimeLocal(iso: string): string {
-  const date = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours(),
-  )}:${pad(date.getMinutes())}`;
-}
-
-function t_entries(count: number) {
+function entriesCount(count: number) {
   return formatTemplate(t.peso.entriesCount, { n: count });
 }
+
+const TOOLTIP_STYLE = {
+  background: "var(--popover)",
+  border: "1px solid var(--border)",
+  borderRadius: 10,
+  fontSize: 12,
+  color: "var(--popover-foreground)",
+} as const;
 
 function BodyFatChart({ data }: { data: { date: string; value: number }[] }) {
   const movingAverage = useMemo(() => movingAverageByDays(data, 7), [data]);
@@ -411,13 +406,7 @@ function BodyFatChart({ data }: { data: { date: string; value: number }[] }) {
           tickFormatter={(value: number) => `${String(Math.round(value * 10) / 10)}%`}
         />
         <Tooltip
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            fontSize: 12,
-            color: "var(--popover-foreground)",
-          }}
+          contentStyle={TOOLTIP_STYLE}
           formatter={(value: unknown) =>
             value === null || value === undefined
               ? "—"

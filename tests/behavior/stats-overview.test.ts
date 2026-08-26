@@ -12,7 +12,7 @@ import { addDaysToKey, toDateKey } from "@/lib/dates";
 
 const TODAY = "2026-08-23";
 
-function makeDeps(meals: { logDate: string; kcal: number; protein: number }[], weights: { iso: string; kg: number; bodyFatPct?: number | null }[]) {
+function makeDeps(meals: { logDate: string; kcal: number; protein: number; carbs?: number; fat?: number }[], weights: { iso: string; kg: number; bodyFatPct?: number | null }[]) {
   return {
     meals: {
       async listInRange() {
@@ -26,8 +26,12 @@ function makeDeps(meals: { logDate: string; kcal: number; protein: number }[], w
           ingredients: [],
           totalCalories: null,
           totalProtein: null,
+          totalCarbs: null,
+          totalFat: null,
           resolvedCalories: meal.kcal,
           resolvedProtein: meal.protein,
+          resolvedCarbs: meal.carbs ?? 0,
+          resolvedFat: meal.fat ?? 0,
           createdAt: new Date(),
           updatedAt: new Date(),
         }));
@@ -225,5 +229,64 @@ describe("grasa corporal y masa libre", () => {
     expect(summary.weight.maxBodyFatPct).toBe(20);
     expect(summary.weight.changeBodyFatPct).toBe(-5);
     expect(summary.weight.currentLeanMassKg).toBeCloseTo(69.7, 1);
+  });
+});
+
+describe("datos vacíos y rango all", () => {
+  it("sin comidas ni pesos, todo devuelve ceros o null", async () => {
+    const deps = makeDeps([], []);
+    const summary = await buildStatsSummary(deps as never, "user-1", "30d", TODAY);
+
+    expect(summary.calories).toHaveLength(30);
+    expect(summary.caloriesAvg).toBeNull();
+    expect(summary.caloriesMaxDay).toBeNull();
+    expect(summary.proteinAvg).toBeNull();
+    expect(summary.carbsAvg).toBeNull();
+    expect(summary.fatAvg).toBeNull();
+    expect(summary.weight.currentWeightKg).toBeNull();
+    expect(summary.weight.currentTrendKg).toBeNull();
+    expect(summary.weight.changeSinceStartKg).toBeNull();
+    expect(summary.weight.ratePerWeekKg).toBeNull();
+    expect(summary.weight.minKg).toBeNull();
+    expect(summary.weight.maxKg).toBeNull();
+    expect(summary.bodyFat).toHaveLength(0);
+    expect(summary.leanMass).toHaveLength(0);
+    expect(summary.weeklyWeightAvg).toHaveLength(0);
+  });
+
+  it("rango 'all' incluye todas las comidas sin importar la fecha", async () => {
+    const deps = makeDeps(
+      [
+        { logDate: "2026-01-01", kcal: 2000, protein: 100 },
+        { logDate: TODAY, kcal: 1500, protein: 80 },
+      ],
+      [],
+    );
+
+    const summary = await buildStatsSummary(deps as never, "user-1", "all", TODAY);
+
+    expect(summary.caloriesAvg).toBe(1750);
+    expect(summary.proteinAvg).toBe(90);
+  });
+
+  it("las series de carbs y fat se calculan correctamente", async () => {
+    const deps = makeDeps(
+      [
+        { logDate: TODAY, kcal: 2000, protein: 100, carbs: 200, fat: 70 },
+      ],
+      [],
+    );
+
+    const summary = await buildStatsSummary(deps as never, "user-1", "7d", TODAY);
+
+    const todayCarbs = summary.carbs.find((p) => p.date === TODAY);
+    expect(todayCarbs?.carbs).toBe(200);
+    expect(summary.carbsAvg).toBe(200);
+    expect(summary.carbsMaxDay?.carbs).toBe(200);
+
+    const todayFat = summary.fat.find((p) => p.date === TODAY);
+    expect(todayFat?.fat).toBe(70);
+    expect(summary.fatAvg).toBe(70);
+    expect(summary.fatMaxDay?.fat).toBe(70);
   });
 });

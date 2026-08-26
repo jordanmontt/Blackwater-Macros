@@ -304,7 +304,7 @@ nullable `bodyFatPct`. The service filters to entries with valid body fat data
 - `leanMass` — `{ date, leanMassKg, trend }[]` derived as `weight × (1 - bodyFatPct/100)`
 
 Both series are empty arrays when no entries in the range have body fat data.
-The `WeightStatsSummary` DTO includes body fat stats (current/change/min/max)
+The `CompositionStats` DTO includes body fat stats (current/change/min/max)
 and lean mass stats (current/change), all null when no body fat data exists.
 
 Pure helpers in `lib/stats.ts` (unit-tested):

@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { api, ApiError } from "@/lib/api";
 import { formatTemplate } from "@/i18n";
 import type { MealTemplateDTO, ProteinGoal } from "@/lib/types";
+import { PROTEIN_GOAL_LABELS } from "@/components/protein-recommendation";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/lib/use-mounted";
 import { t } from "@/i18n";
@@ -47,11 +48,9 @@ export default function AjustesPage() {
     { value: "system", label: t.ajustes.themeSystem },
   ];
 
-  const goalOptions: { value: ProteinGoal; label: string }[] = [
-    { value: "maintain", label: t.protein.goalMaintain },
-    { value: "build", label: t.protein.goalBuild },
-    { value: "cut", label: t.protein.goalCut },
-  ];
+  const goalOptions: { value: ProteinGoal; label: string }[] = (
+    Object.entries(PROTEIN_GOAL_LABELS) as [ProteinGoal, string][]
+  ).map(([value, label]) => ({ value, label }));
 
   async function handleGoalChange(goal: ProteinGoal) {
     setProteinGoal(goal);

@@ -27,6 +27,7 @@ export const t = {
     fat: "Grasa",
     kcalUnit: "kcal",
     proteinUnit: "g",
+    gramUnit: "g",
     applyTemplate: "Aplicar plantilla",
     applyingTemplate: "Añadiendo…",
     templateApplied: "«{name}» añadido a este día",

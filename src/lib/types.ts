@@ -53,7 +53,7 @@ export interface DailyNutritionPoint {
 
 export type StatsRange = "7d" | "30d" | "90d" | "all";
 
-export interface WeightStatsSummary {
+export interface CompositionStats {
   currentWeightKg: number | null;
   currentTrendKg: number | null;
   changeSinceStartKg: number | null;
@@ -86,7 +86,7 @@ export interface StatsSummary {
   carbsMaxDay: DailyNutritionPoint | null;
   fatAvg: number | null;
   fatMaxDay: DailyNutritionPoint | null;
-  weight: WeightStatsSummary;
+  weight: CompositionStats;
   weeklyWeightAvg: { weekStart: string; avg: number }[];
 }
 

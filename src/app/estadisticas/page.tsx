@@ -150,57 +150,70 @@ function NutritionSection({ summary }: { summary: StatsSummary }) {
       )}
 
       <ChartCard title={t.stats.caloriesChartTitle}>
-        <CalorieProteinChart
-          data={summary.calories.map((point) => ({
-            date: point.date,
-            value: point.calories,
-          }))}
+        <TrendChart
+          data={summary.calories}
+          valueKey="calories"
           color="var(--chart-1)"
+          name={t.stats.dailyIntake}
+          unit=" kcal"
+          margin={{ top: 16, right: 12, bottom: 0, left: -18 }}
+          domain={[0, "auto"]}
           peak={
             summary.caloriesMaxDay
               ? { date: summary.caloriesMaxDay.date, value: summary.caloriesMaxDay.calories }
               : null
           }
-          unit=" kcal"
         />
       </ChartCard>
 
       <ChartCard title={t.stats.proteinChartTitle}>
-        <CalorieProteinChart
-          data={summary.protein.map((point) => ({ date: point.date, value: point.protein }))}
+        <TrendChart
+          data={summary.protein}
+          valueKey="protein"
           color="var(--chart-2)"
+          name={t.stats.dailyIntake}
+          unit=" g"
+          margin={{ top: 16, right: 12, bottom: 0, left: -18 }}
+          domain={[0, "auto"]}
           peak={
             summary.proteinMaxDay
               ? { date: summary.proteinMaxDay.date, value: summary.proteinMaxDay.protein }
               : null
           }
-          unit=" g"
         />
       </ChartCard>
 
       <ChartCard title={t.stats.carbsChartTitle}>
-        <CalorieProteinChart
-          data={summary.carbs.map((point) => ({ date: point.date, value: point.carbs }))}
+        <TrendChart
+          data={summary.carbs}
+          valueKey="carbs"
           color="var(--chart-3)"
+          name={t.stats.dailyIntake}
+          unit=" g"
+          margin={{ top: 16, right: 12, bottom: 0, left: -18 }}
+          domain={[0, "auto"]}
           peak={
             summary.carbsMaxDay
               ? { date: summary.carbsMaxDay.date, value: summary.carbsMaxDay.carbs }
               : null
           }
-          unit=" g"
         />
       </ChartCard>
 
       <ChartCard title={t.stats.fatChartTitle}>
-        <CalorieProteinChart
-          data={summary.fat.map((point) => ({ date: point.date, value: point.fat }))}
+        <TrendChart
+          data={summary.fat}
+          valueKey="fat"
           color="var(--chart-4)"
+          name={t.stats.dailyIntake}
+          unit=" g"
+          margin={{ top: 16, right: 12, bottom: 0, left: -18 }}
+          domain={[0, "auto"]}
           peak={
             summary.fatMaxDay
               ? { date: summary.fatMaxDay.date, value: summary.fatMaxDay.fat }
               : null
           }
-          unit=" g"
         />
       </ChartCard>
     </>
@@ -245,7 +258,13 @@ function WeightSection({ summary }: { summary: StatsSummary }) {
 
       <ChartCard title={t.stats.weightChartTitle}>
         {hasWeights ? (
-          <WeightChart data={summary.weights} />
+          <TrendChart
+            data={summary.weights}
+            valueKey="weight"
+            color="var(--chart-3)"
+            name={t.stats.scaleWeight}
+            yAxisFormatter={(v) => String(Math.round(v * 10) / 10)}
+          />
         ) : (
           <EmptyChartMessage />
         )}
@@ -318,7 +337,14 @@ function BodyFatSection({ summary }: { summary: StatsSummary }) {
       </div>
 
       <ChartCard title={t.stats.bodyFatChartTitle}>
-        <BodyFatStatsChart data={summary.bodyFat} />
+        <TrendChart
+          data={summary.bodyFat}
+          valueKey="bodyFatPct"
+          color="var(--chart-2)"
+          name={t.stats.currentBodyFat}
+          yAxisFormatter={(v) => `${String(Math.round(v * 10) / 10)}%`}
+          tooltipSuffix="%"
+        />
       </ChartCard>
     </>
   );
@@ -347,7 +373,14 @@ function LeanMassSection({ summary }: { summary: StatsSummary }) {
       </div>
 
       <ChartCard title={t.stats.leanMassChartTitle}>
-        <LeanMassStatsChart data={summary.leanMass} />
+        <TrendChart
+          data={summary.leanMass}
+          valueKey="leanMassKg"
+          color="var(--chart-1)"
+          name={t.stats.currentLeanMass}
+          yAxisFormatter={(v) => `${String(Math.round(v * 10) / 10)} kg`}
+          tooltipSuffix=" kg"
+        />
       </ChartCard>
     </>
   );
@@ -407,70 +440,95 @@ interface SeriesPoint {
   value: number;
 }
 
-/** Formatea los valores del tooltip al estilo es-ES con 1 decimal. */
+const TOOLTIP_STYLE = {
+  background: "var(--popover)",
+  border: "1px solid var(--border)",
+  borderRadius: 10,
+  fontSize: 12,
+  color: "var(--popover-foreground)",
+} as const;
+
+const DATE_AXIS_PROPS = {
+  dataKey: "date" as const,
+  tickFormatter: (value: string) => formatDateKeyShort(value),
+  tick: { fontSize: 10 },
+  interval: "preserveStartEnd" as const,
+  minTickGap: 28,
+  tickLine: false,
+  axisLine: false,
+};
+
 function tooltipFormatter(value: unknown): string {
   if (value === null || value === undefined) return "—";
   return formatNumberEs(Number(value), 1);
 }
 
-/** Daily line plus a trailing 7-day moving-average trend, with the range peak marked. */
-function CalorieProteinChart({
+function TrendChart<T extends { date: string }>({
   data,
+  valueKey,
   color,
+  name,
+  unit = "",
+  trendColor = "var(--chart-4)",
+  yAxisFormatter,
+  tooltipSuffix = "",
   peak,
-  unit,
+  domain = ["auto", "auto"],
+  margin = { top: 12, right: 8, bottom: 0, left: -18 },
 }: {
-  data: SeriesPoint[];
+  data: T[];
+  valueKey: keyof T & string;
   color: string;
-  peak: SeriesPoint | null;
-  unit: string;
+  name: string;
+  unit?: string;
+  trendColor?: string;
+  yAxisFormatter?: (value: number) => string;
+  tooltipSuffix?: string;
+  peak?: SeriesPoint | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  domain?: any[];
+  margin?: { top: number; right: number; bottom: number; left: number };
 }) {
-  const movingAverage = useMemo(
-    () => movingAverageByDays(data, 7),
-    [data],
-  );
+  const movingAverage = useMemo(() => {
+    const points = data.map((row) => ({
+      date: String(row.date),
+      value: Number((row as Record<string, unknown>)[valueKey]) || 0,
+    }));
+    return movingAverageByDays(points, 7);
+  }, [data, valueKey]);
+
   const rows = data.map((point, i) => ({
-    date: point.date,
-    value: point.value,
-    // Redondeada a 1 decimal para que el tooltip coincida con las tarjetas.
+    ...point,
     tendencia: movingAverage[i] === null ? null : round1(movingAverage[i] as number),
   }));
 
+  const defaultTooltipFormatter = (value: unknown) => {
+    if (value === null || value === undefined) return "—";
+    return `${formatNumberEs(Number(value), 1)}${tooltipSuffix}`;
+  };
+
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={rows} margin={{ top: 16, right: 12, bottom: 0, left: -18 }}>
+      <ComposedChart data={rows} margin={margin}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-        <XAxis
-          dataKey="date"
-          tickFormatter={(value: string) => formatDateKeyShort(value)}
-          tick={{ fontSize: 10 }}
-          interval="preserveStartEnd"
-          minTickGap={28}
-          tickLine={false}
-          axisLine={false}
-        />
+        <XAxis {...DATE_AXIS_PROPS} />
         <YAxis
-          domain={[0, "auto"]}
+          domain={domain}
           tick={{ fontSize: 10 }}
           tickLine={false}
           axisLine={false}
           width={44}
+          {...(yAxisFormatter ? { tickFormatter: yAxisFormatter } : {})}
         />
         <Tooltip
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            fontSize: 12,
-            color: "var(--popover-foreground)",
-          }}
-          formatter={tooltipFormatter}
+          contentStyle={TOOLTIP_STYLE}
+          formatter={tooltipSuffix ? defaultTooltipFormatter : tooltipFormatter}
           labelFormatter={(value) => formatDateKeyShort(String(value))}
         />
         <Line
           type="monotone"
-          dataKey="value"
-          name={t.stats.dailyIntake}
+          dataKey={valueKey}
+          name={name}
           stroke={color}
           strokeWidth={1.5}
           dot={{ r: 2 }}
@@ -479,9 +537,9 @@ function CalorieProteinChart({
           type="monotone"
           dataKey="tendencia"
           name={t.stats.trendLine}
-          stroke="currentColor"
-          className="text-muted-foreground"
+          stroke={trendColor}
           strokeWidth={2.5}
+          className={trendColor === "currentColor" ? "text-muted-foreground" : undefined}
           dot={false}
           connectNulls
         />
@@ -501,189 +559,6 @@ function CalorieProteinChart({
             }}
           />
         ) : null}
-      </ComposedChart>
-    </ResponsiveContainer>
-  );
-}
-
-function WeightChart({
-  data,
-}: {
-  data: { date: string; weight: number; trend: number | null }[];
-}) {
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: -18 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-        <XAxis
-          dataKey="date"
-          tickFormatter={(value: string) => formatDateKeyShort(value)}
-          tick={{ fontSize: 10 }}
-          interval="preserveStartEnd"
-          minTickGap={28}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          domain={["auto", "auto"]}
-          tick={{ fontSize: 10 }}
-          tickLine={false}
-          axisLine={false}
-          width={44}
-          tickFormatter={(value: number) => String(Math.round(value * 10) / 10)}
-        />
-        <Tooltip
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            fontSize: 12,
-            color: "var(--popover-foreground)",
-          }}
-          formatter={tooltipFormatter}
-          labelFormatter={(value) => formatDateKeyShort(String(value))}
-        />
-        <Line
-          type="monotone"
-          dataKey="weight"
-          name={t.stats.scaleWeight}
-          stroke="var(--chart-3)"
-          strokeWidth={1.5}
-          dot={{ r: 2 }}
-        />
-        <Line
-          type="monotone"
-          dataKey="trend"
-          name={t.stats.trendLine}
-          stroke="var(--chart-4)"
-          strokeWidth={2.5}
-          dot={false}
-          connectNulls
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
-  );
-}
-
-function BodyFatStatsChart({
-  data,
-}: {
-  data: { date: string; bodyFatPct: number; trend: number | null }[];
-}) {
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: -18 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-        <XAxis
-          dataKey="date"
-          tickFormatter={(value: string) => formatDateKeyShort(value)}
-          tick={{ fontSize: 10 }}
-          interval="preserveStartEnd"
-          minTickGap={28}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          domain={["auto", "auto"]}
-          tick={{ fontSize: 10 }}
-          tickLine={false}
-          axisLine={false}
-          width={44}
-          tickFormatter={(value: number) => `${String(Math.round(value * 10) / 10)}%`}
-        />
-        <Tooltip
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            fontSize: 12,
-            color: "var(--popover-foreground)",
-          }}
-          formatter={(value: unknown) =>
-            value === null || value === undefined ? "—" : `${formatNumberEs(Number(value), 1)}%`
-          }
-          labelFormatter={(value) => formatDateKeyShort(String(value))}
-        />
-        <Line
-          type="monotone"
-          dataKey="bodyFatPct"
-          name={t.stats.currentBodyFat}
-          stroke="var(--chart-2)"
-          strokeWidth={1.5}
-          dot={{ r: 2 }}
-        />
-        <Line
-          type="monotone"
-          dataKey="trend"
-          name={t.stats.trendLine}
-          stroke="var(--chart-4)"
-          strokeWidth={2.5}
-          dot={false}
-          connectNulls
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
-  );
-}
-
-function LeanMassStatsChart({
-  data,
-}: {
-  data: { date: string; leanMassKg: number; trend: number | null }[];
-}) {
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: -18 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-        <XAxis
-          dataKey="date"
-          tickFormatter={(value: string) => formatDateKeyShort(value)}
-          tick={{ fontSize: 10 }}
-          interval="preserveStartEnd"
-          minTickGap={28}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          domain={["auto", "auto"]}
-          tick={{ fontSize: 10 }}
-          tickLine={false}
-          axisLine={false}
-          width={44}
-          tickFormatter={(value: number) => `${String(Math.round(value * 10) / 10)} kg`}
-        />
-        <Tooltip
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            fontSize: 12,
-            color: "var(--popover-foreground)",
-          }}
-          formatter={(value: unknown) =>
-            value === null || value === undefined
-              ? "—"
-              : `${formatNumberEs(Number(value), 1)} kg`
-          }
-          labelFormatter={(value) => formatDateKeyShort(String(value))}
-        />
-        <Line
-          type="monotone"
-          dataKey="leanMassKg"
-          name={t.stats.currentLeanMass}
-          stroke="var(--chart-1)"
-          strokeWidth={1.5}
-          dot={{ r: 2 }}
-        />
-        <Line
-          type="monotone"
-          dataKey="trend"
-          name={t.stats.trendLine}
-          stroke="var(--chart-4)"
-          strokeWidth={2.5}
-          dot={false}
-          connectNulls
-        />
       </ComposedChart>
     </ResponsiveContainer>
   );

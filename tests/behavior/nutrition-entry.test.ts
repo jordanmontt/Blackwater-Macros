@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createMeal } from "@/server/services/meals-service";
 import type { MealInput } from "@/server/validation";
-import { resolveMealTotals, sumIngredientNutrition } from "@/lib/nutrition";
+import { resolveMealTotals, round1, round2, sumIngredientNutrition } from "@/lib/nutrition";
 import type { IngredientInput } from "@/lib/types";
 
 /**
@@ -112,10 +112,63 @@ describe("al guardar una comida ya queda calculado su total", () => {
       totalProtein: null,
     };
 
-    const dto = await createMeal(deps as never, "user-1", input);
+    const dto = await createMeal(deps.meals as never, "user-1", input);
 
     expect(dto.resolvedCalories).toBe(370);
     expect(dto.resolvedProtein).toBe(27);
     expect(saved[0]).toMatchObject({ logDate: "2026-08-23", title: "Desayuno" });
+  });
+
+  it("una comida total_only guarda los totales manuales en resolved y en total", async () => {
+    const { deps, saved } = makeDeps();
+    const input: MealInput = {
+      logDate: "2026-08-24",
+      title: "Menú del día",
+      notes: null,
+      entryMode: "total_only",
+      ingredients: [],
+      totalCalories: 850,
+      totalProtein: 45,
+      totalCarbs: 80,
+      totalFat: 35,
+    };
+
+    const dto = await createMeal(deps.meals as never, "user-1", input);
+
+    expect(dto.resolvedCalories).toBe(850);
+    expect(dto.resolvedProtein).toBe(45);
+    expect(dto.resolvedCarbs).toBe(80);
+    expect(dto.resolvedFat).toBe(35);
+    expect(dto.totalCalories).toBe(850);
+    expect(dto.totalProtein).toBe(45);
+    expect(dto.totalCarbs).toBe(80);
+    expect(dto.totalFat).toBe(35);
+    expect(saved[0]).toMatchObject({
+      entryMode: "total_only",
+      totalCalories: 850,
+      totalProtein: 45,
+    });
+  });
+});
+
+describe("redondeo de valores nutricionales", () => {
+  it("round1 redondea a 1 decimal", () => {
+    expect(round1(1.25)).toBe(1.3);
+    expect(round1(1.24)).toBe(1.2);
+    expect(round1(1.0)).toBe(1);
+    expect(round1(0.05)).toBe(0.1);
+    expect(round1(-1.26)).toBe(-1.3);
+  });
+
+  it("round2 redondea a 2 decimales", () => {
+    expect(round2(1.256)).toBe(1.26);
+    expect(round2(1.254)).toBe(1.25);
+    expect(round2(0.015)).toBe(0.02);
+    expect(round2(-1.256)).toBe(-1.26);
+  });
+
+  it("round1 y round2 preservan enteros", () => {
+    expect(round1(5)).toBe(5);
+    expect(round2(5)).toBe(5);
   });
 });

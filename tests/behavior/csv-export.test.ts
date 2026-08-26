@@ -51,6 +51,40 @@ describe("exportar comidas", () => {
     ]);
     expect(csv).toContain('"Arroz ""a la cubana"", con tomate"');
   });
+
+  it("lista vacía genera solo la cabecera", () => {
+    const csv = buildMealsCsv([]);
+    const rows = csv.trim().split("\n");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toContain("fecha");
+  });
+
+  it("comida per_ingredient sin ingredientes genera una fila con ceros", () => {
+    const csv = buildMealsCsv([
+      mealRow({ entryMode: "per_ingredient", title: "Vacía", ingredients: [] }),
+    ]);
+    const rows = csv.trim().split("\n");
+    expect(rows).toHaveLength(2);
+    expect(rows[1]).toContain("Vacía");
+  });
+
+  it("total_only con totales nulos muestra campos vacíos", () => {
+    const csv = buildMealsCsv([
+      mealRow({
+        entryMode: "total_only",
+        title: "Sin datos",
+        totalCalories: null,
+        totalProtein: null,
+        totalCarbs: null,
+        totalFat: null,
+      }),
+    ]);
+    expect(csv).toContain("Sin datos");
+    const rows = csv.trim().split("\n");
+    expect(rows).toHaveLength(2);
+    const dataRow = rows[1];
+    expect(dataRow).toContain("Sin datos,total_only");
+  });
 });
 
 describe("exportar peso", () => {
@@ -69,6 +103,28 @@ describe("exportar peso", () => {
 
     expect(csv).toContain("fecha_hora,peso_kg,grasa_corporal_pct,nota");
     expect(csv).toContain("2026-08-23T07:30:00.000Z,81.2,15.5,en ayunas");
+  });
+
+  it("lista vacía genera solo la cabecera", () => {
+    const csv = buildWeightsCsv([]);
+    const rows = csv.trim().split("\n");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toContain("fecha_hora");
+  });
+
+  it("peso sin grasa corporal ni nota muestra vacíos", () => {
+    const csv = buildWeightsCsv([
+      {
+        id: "w2",
+        userId: "u1",
+        measuredAt: new Date("2026-08-30T08:00:00Z"),
+        weightKg: 90,
+        bodyFatPct: null,
+        note: null,
+        createdAt: new Date(),
+      },
+    ]);
+    expect(csv).toContain("90,,");
   });
 });
 

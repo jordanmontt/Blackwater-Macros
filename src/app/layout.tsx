@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     default: t.appName,
     template: `%s · ${t.appName}`,
   },
-  description: "Registro de calorías, proteína y peso.",
+  description: "Registro de calorías, macros y peso.",
 };
 
 export const viewport: Viewport = {

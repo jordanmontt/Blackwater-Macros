@@ -170,7 +170,7 @@ export default function HoyPage() {
             <p className="text-2xl font-semibold tabular-nums">
               {formatNumberEs(totals.carbs, 1)}
             </p>
-            <p className="text-xs text-muted-foreground">{t.hoy.proteinUnit}</p>
+            <p className="text-xs text-muted-foreground">{t.hoy.gramUnit}</p>
           </CardContent>
         </Card>
         <Card>
@@ -181,7 +181,7 @@ export default function HoyPage() {
             <p className="text-2xl font-semibold tabular-nums">
               {formatNumberEs(totals.fat, 1)}
             </p>
-            <p className="text-xs text-muted-foreground">{t.hoy.proteinUnit}</p>
+            <p className="text-xs text-muted-foreground">{t.hoy.gramUnit}</p>
           </CardContent>
         </Card>
       </section>

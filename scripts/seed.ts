@@ -34,7 +34,7 @@ function dateKeyOffset(daysAgo: number): string {
 }
 
 async function main() {
-  const [{ hashPassword }, { repositories, serviceDeps }, { createMeal }, { createWeight }] =
+  const [{ hashPassword }, { repositories }, { createMeal }, { createWeight }] =
     await Promise.all([
       import("../src/server/auth/password"),
       import("../src/server/composition"),
@@ -234,7 +234,7 @@ async function main() {
           ? { fat: jitter(ingredient.fat, ingredient.fat * 0.06) }
           : {}),
       }));
-      await createMeal(serviceDeps.meals, user.id, {
+      await createMeal(repositories.meals, user.id, {
         logDate,
         title: seed.title,
         notes: null,
@@ -261,7 +261,7 @@ async function main() {
         ? Math.round((baseBfPct + (rand() - 0.5) * 1.6) * 10) / 10
         : null;
       const measuredAt = new Date(`${logDate}T07:45:00`);
-      await createWeight(serviceDeps.weights, user.id, {
+      await createWeight(repositories.weights, user.id, {
         measuredAt: measuredAt.toISOString(),
         weightKg,
         bodyFatPct,
@@ -269,7 +269,7 @@ async function main() {
       });
       if (rand() < 0.12) {
         const eveningWeight = Math.round((weightKg + 0.4 + rand() * 0.3) * 10) / 10;
-        await createWeight(serviceDeps.weights, user.id, {
+        await createWeight(repositories.weights, user.id, {
           measuredAt: new Date(`${logDate}T21:30:00`).toISOString(),
           weightKg: eveningWeight,
           bodyFatPct: null,
@@ -282,7 +282,7 @@ async function main() {
   // Plantillas listas para aplicar desde "Hoy".
   const { createTemplate } = await import("../src/server/services/templates-service");
   await createTemplate(
-    serviceDeps.templates,
+    repositories.templates,
     user.id,
     {
       name: "Desayuno",
@@ -291,7 +291,7 @@ async function main() {
       ingredients: breakfasts[0].ingredients,
     },
   );
-  await createTemplate(serviceDeps.templates, user.id, {
+  await createTemplate(repositories.templates, user.id, {
     name: "Cena ligera",
     title: "Cena ligera",
     notes: null,

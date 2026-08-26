@@ -40,8 +40,8 @@ export function buildMealsCsv(meals: MealRow[]): string {
         null,
         meal.totalCalories,
         meal.totalProtein,
-        null,
-        null,
+        meal.totalCarbs,
+        meal.totalFat,
       ]);
       continue;
     }

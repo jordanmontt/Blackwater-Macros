@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { templateInputSchema } from "@/server/validation";
 import { createTemplate, listTemplates } from "@/server/services/templates-service";
-import { serviceDeps } from "@/server/composition";
+import { repositories } from "@/server/composition";
 import { parseJsonBody, withUserId } from "@/server/route-utils";
 
 export async function GET() {
   return withUserId(async (userId) => {
-    const templates = await listTemplates(serviceDeps.templates, userId);
+    const templates = await listTemplates(repositories.templates, userId);
     return NextResponse.json({ templates });
   });
 }
@@ -14,7 +14,7 @@ export async function GET() {
 export async function POST(request: Request) {
   return withUserId(async (userId) => {
     const input = templateInputSchema.parse(await parseJsonBody(request));
-    const template = await createTemplate(serviceDeps.templates, userId, input);
+    const template = await createTemplate(repositories.templates, userId, input);
     return NextResponse.json({ template }, { status: 201 });
   });
 }
