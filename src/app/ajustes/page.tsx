@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -50,6 +50,7 @@ export default function AjustesPage() {
   });
   const [latestWeight, setLatestWeight] = useState<number | null>(null);
   const mounted = useMounted();
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     void api.session().then((session) => {
@@ -68,6 +69,12 @@ export default function AjustesPage() {
         if (last) setLatestWeight(last.weightKg);
       })
       .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
   }, []);
 
   const themeOptions = [
@@ -93,14 +100,41 @@ export default function AjustesPage() {
     }
   }
 
+  function validateProfile(profile: CalorieProfile) {
+    const errors: Record<string, string> = {};
+    if (profile.birthYear !== null && (profile.birthYear < 1920 || profile.birthYear > 2010)) {
+      errors.birthYear = "El año debe estar entre 1920 y 2010";
+    }
+    if (profile.heightCm !== null && (profile.heightCm < 100 || profile.heightCm > 250)) {
+      errors.heightCm = "La altura debe estar entre 100 y 250 cm";
+    }
+    if (profile.gymDaysPerWeek !== null && (profile.gymDaysPerWeek < 0 || profile.gymDaysPerWeek > 7)) {
+      errors.gymDaysPerWeek = "Los días deben ser entre 0 y 7";
+    }
+    if (profile.gymSessionMinutes !== null && (profile.gymSessionMinutes < 0 || profile.gymSessionMinutes > 300)) {
+      errors.gymSessionMinutes = "La duración debe ser entre 0 y 300 min";
+    }
+    if (profile.walkingMinutesPerDay !== null && (profile.walkingMinutesPerDay < 0 || profile.walkingMinutesPerDay > 480)) {
+      errors.walkingMinutesPerDay = "El tiempo debe ser entre 0 y 480 min";
+    }
+    return errors;
+  }
+
+  const profileErrors = useMemo(() => validateProfile(calorieProfile), [calorieProfile]);
+
   async function handleCalorieProfileChange(updates: Partial<CalorieProfile>) {
     const newProfile = { ...calorieProfile, ...updates };
     setCalorieProfile(newProfile);
-    try {
-      await api.updateSettings(newProfile);
-    } catch {
-      toast.error(t.common.errorGeneric);
-    }
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    const hasErrors = Object.values(validateProfile(newProfile)).some(Boolean);
+    if (hasErrors) return;
+    saveTimer.current = setTimeout(async () => {
+      try {
+        await api.updateSettings(newProfile);
+      } catch (error) {
+        toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
+      }
+    }, 500);
   }
 
   async function handleLogout() {
@@ -225,6 +259,9 @@ export default function AjustesPage() {
                   void handleCalorieProfileChange({ birthYear: v });
                 }}
               />
+              {profileErrors.birthYear && (
+                <p className="text-xs text-destructive">{profileErrors.birthYear}</p>
+              )}
             </div>
           </div>
 
@@ -239,11 +276,14 @@ export default function AjustesPage() {
               max={250}
               placeholder="175"
               value={calorieProfile.heightCm ?? ""}
-              onChange={(e) => {
-                const v = e.target.value === "" ? null : Number(e.target.value.replace(",", "."));
-                void handleCalorieProfileChange({ heightCm: v && Number.isFinite(v) ? v : null });
-              }}
-            />
+                onChange={(e) => {
+                  const v = e.target.value === "" ? null : Number(e.target.value.replace(",", "."));
+                  void handleCalorieProfileChange({ heightCm: v && Number.isFinite(v) ? v : null });
+                }}
+              />
+              {profileErrors.heightCm && (
+                <p className="text-xs text-destructive">{profileErrors.heightCm}</p>
+              )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -262,6 +302,9 @@ export default function AjustesPage() {
                   void handleCalorieProfileChange({ gymDaysPerWeek: v });
                 }}
               />
+              {profileErrors.gymDaysPerWeek && (
+                <p className="text-xs text-destructive">{profileErrors.gymDaysPerWeek}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="gym-minutes">{t.calorias.gymSessionLabel}</Label>
@@ -278,6 +321,9 @@ export default function AjustesPage() {
                   void handleCalorieProfileChange({ gymSessionMinutes: v });
                 }}
               />
+              {profileErrors.gymSessionMinutes && (
+                <p className="text-xs text-destructive">{profileErrors.gymSessionMinutes}</p>
+              )}
             </div>
           </div>
 
@@ -291,11 +337,14 @@ export default function AjustesPage() {
               max={480}
               placeholder="30"
               value={calorieProfile.walkingMinutesPerDay ?? ""}
-              onChange={(e) => {
-                const v = e.target.value === "" ? null : Number(e.target.value);
-                void handleCalorieProfileChange({ walkingMinutesPerDay: v });
-              }}
-            />
+                onChange={(e) => {
+                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  void handleCalorieProfileChange({ walkingMinutesPerDay: v });
+                }}
+              />
+              {profileErrors.walkingMinutesPerDay && (
+                <p className="text-xs text-destructive">{profileErrors.walkingMinutesPerDay}</p>
+              )}
           </div>
 
           <div className="space-y-2">

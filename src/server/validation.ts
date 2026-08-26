@@ -54,11 +54,31 @@ export type SettingsInput = z.infer<typeof settingsInputSchema>;
 
 export const calorieProfileInputSchema = z.object({
   gender: z.enum(["male", "female"]).nullable(),
-  birthYear: z.number().min(1920).max(2010).nullable(),
-  heightCm: z.number().min(100).max(250).nullable(),
-  gymDaysPerWeek: z.number().min(0).max(7).nullable(),
-  gymSessionMinutes: z.number().min(0).max(300).nullable(),
-  walkingMinutesPerDay: z.number().min(0).max(480).nullable(),
+  birthYear: z
+    .number()
+    .min(1920, "El año de nacimiento debe ser entre 1920 y 2010")
+    .max(2010, "El año de nacimiento debe ser entre 1920 y 2010")
+    .nullable(),
+  heightCm: z
+    .number()
+    .min(100, "La altura debe estar entre 100 y 250 cm")
+    .max(250, "La altura debe estar entre 100 y 250 cm")
+    .nullable(),
+  gymDaysPerWeek: z
+    .number()
+    .min(0, "Los días de gimnasio deben ser entre 0 y 7")
+    .max(7, "Los días de gimnasio deben ser entre 0 y 7")
+    .nullable(),
+  gymSessionMinutes: z
+    .number()
+    .min(0, "La duración debe ser entre 0 y 300 minutos")
+    .max(300, "La duración debe ser entre 0 y 300 minutos")
+    .nullable(),
+  walkingMinutesPerDay: z
+    .number()
+    .min(0, "El tiempo de caminata debe ser entre 0 y 480 minutos")
+    .max(480, "El tiempo de caminata debe ser entre 0 y 480 minutos")
+    .nullable(),
   calorieGoal: z.enum(["deficit", "maintain", "surplus"]).nullable(),
 });
 
