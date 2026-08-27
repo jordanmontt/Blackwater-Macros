@@ -158,6 +158,7 @@ function mealRow(overrides: {
     resolvedProtein: overrides.resolvedProtein ?? 0,
     resolvedCarbs: overrides.resolvedCarbs ?? 0,
     resolvedFat: overrides.resolvedFat ?? 0,
+    sortOrder: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

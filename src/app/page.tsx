@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Logo } from "@/components/logo";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -39,8 +41,16 @@ export default function HoyPage() {
   const [templateSourceMeal, setTemplateSourceMeal] = useState<MealDTO | null>(null);
   const [applyingTemplateId, setApplyingTemplateId] = useState<string | null>(null);
 
-  // Mientras el día pedido aún no tiene datos cargados, la lista muestra "cargando".
   const meals = loaded && loaded.day === selectedDay ? loaded.meals : null;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const refreshMeals = useCallback(async (day: string) => {
     try {
@@ -125,6 +135,23 @@ export default function HoyPage() {
     } finally {
       setApplyingTemplateId(null);
     }
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !meals) return;
+
+    const oldIndex = meals.findIndex((m) => m.id === active.id);
+    const newIndex = meals.findIndex((m) => m.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(meals, oldIndex, newIndex);
+    setLoaded({ day: selectedDay, meals: reordered });
+
+    api.reorderMeals(reordered.map((m) => m.id)).catch(() => {
+      toast.error(t.common.errorGeneric);
+      refreshMeals(selectedDay);
+    });
   }
 
   return (
@@ -231,18 +258,22 @@ export default function HoyPage() {
             {t.hoy.emptyDay}
           </button>
         ) : (
-          meals.map((meal) => (
-            <MealCard
-              key={meal.id}
-              meal={meal}
-              onEdit={(target) => {
-                setEditingMeal(target);
-                setFormOpen(true);
-              }}
-              onDelete={(target) => setDeletingMeal(target)}
-              onSaveAsTemplate={(target) => setTemplateSourceMeal(target)}
-            />
-          ))
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={meals.map((m) => m.id)} strategy={verticalListSortingStrategy}>
+              {meals.map((meal) => (
+                <MealCard
+                  key={meal.id}
+                  meal={meal}
+                  onEdit={(target) => {
+                    setEditingMeal(target);
+                    setFormOpen(true);
+                  }}
+                  onDelete={(target) => setDeletingMeal(target)}
+                  onSaveAsTemplate={(target) => setTemplateSourceMeal(target)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </section>
 

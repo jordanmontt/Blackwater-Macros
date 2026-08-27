@@ -126,6 +126,13 @@ export const api = {
 
   deleteMeal: (id: string) => request<{ ok: true }>(`/api/meals/${id}`, { method: "DELETE" }),
 
+  reorderMeals: async (orderedIds: string[]) => {
+    return request<{ ok: true }>("/api/meals/reorder", {
+      method: "PATCH",
+      body: JSON.stringify({ orderedIds }),
+    });
+  },
+
   listTemplates: async () => {
     const data = await request<{ templates: MealTemplateDTO[] }>("/api/templates");
     return data.templates;

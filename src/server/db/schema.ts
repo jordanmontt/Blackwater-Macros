@@ -78,6 +78,7 @@ export const meals = pgTable(
     resolvedProtein: doublePrecision("resolved_protein").notNull().default(0),
     resolvedCarbs: doublePrecision("resolved_carbs").notNull().default(0),
     resolvedFat: doublePrecision("resolved_fat").notNull().default(0),
+    sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

@@ -60,6 +60,7 @@ export const t = {
     templateNameLabel: "Nombre de la plantilla",
     delete: "Eliminar",
     edit: "Editar",
+    reorder: "Reordenar comida",
     deleteConfirmTitle: "¿Eliminar comida?",
     deleteConfirmBody: "Se borrará esta comida y sus ingredientes. Esta acción no se puede deshacer.",
     perIngredientSummary: "{n} ingredientes",

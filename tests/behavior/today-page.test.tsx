@@ -23,6 +23,7 @@ vi.mock("@/lib/api", () => ({
     ]),
     listTemplates: vi.fn(async () => [] as MealTemplateDTO[]),
     createMeal: vi.fn(async () => meal({ title: "nueva", kcal: 0, protein: 0 })),
+    reorderMeals: vi.fn(async () => ({ ok: true as const })),
     listWeights: vi.fn(async () => []),
     session: vi.fn(async () => ({
       username: "demo",

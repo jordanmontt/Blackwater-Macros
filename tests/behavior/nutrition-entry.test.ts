@@ -77,7 +77,7 @@ describe("al guardar una comida ya queda calculado su total", () => {
         meals: {
           async create(_userId: string, data: unknown) {
             saved.push(data);
-            return { id: "meal-1", ...(data as object) };
+            return { id: "meal-1", sortOrder: 0, ...(data as object) };
           },
           async listInRange() {
             return [];
@@ -91,6 +91,7 @@ describe("al guardar una comida ya queda calculado su total", () => {
           async delete() {
             return true;
           },
+          async reorder() {},
         },
       },
       saved,

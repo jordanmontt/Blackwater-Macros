@@ -3,6 +3,7 @@ import {
   createMeal,
   deleteMeal,
   listMealsInRange,
+  reorderMeals,
   updateMeal,
 } from "@/server/services/meals-service";
 import { createTemplate, deleteTemplate, listTemplates } from "@/server/services/templates-service";
@@ -35,7 +36,7 @@ function memoryMeals(): MealsRepository {
             (from === null || row.logDate >= from) &&
             (to === null || row.logDate <= to),
         )
-        .sort((a, b) => a.logDate.localeCompare(b.logDate));
+        .sort((a, b) => a.logDate.localeCompare(b.logDate) || a.sortOrder - b.sortOrder);
     },
     async getById(userId, id) {
       const found = rows.get(id);
@@ -44,7 +45,14 @@ function memoryMeals(): MealsRepository {
     async create(userId, data: NewMealData) {
       const id = `meal-${nextId++}`;
       const now = new Date();
-      const row: MealRow = { id, userId, createdAt: now, updatedAt: now, ...data };
+      const existingForDay = [...rows.values()].filter(
+        (r) => r.userId === userId && r.logDate === data.logDate,
+      );
+      const sortOrder =
+        existingForDay.length > 0
+          ? Math.max(...existingForDay.map((r) => r.sortOrder)) + 1
+          : 0;
+      const row: MealRow = { id, userId, createdAt: now, updatedAt: now, sortOrder, ...data };
       rows.set(id, row);
       return row;
     },
@@ -60,6 +68,14 @@ function memoryMeals(): MealsRepository {
       if (!existing || existing.userId !== userId) return false;
       rows.delete(id);
       return true;
+    },
+    async reorder(userId, orderedIds) {
+      for (let i = 0; i < orderedIds.length; i++) {
+        const row = rows.get(orderedIds[i]);
+        if (row && row.userId === userId) {
+          rows.set(orderedIds[i], { ...row, sortOrder: i });
+        }
+      }
     },
   };
 }
@@ -149,6 +165,69 @@ describe("editar y borrar comidas", () => {
     // la comida sigue intacta para su dueño
     const own = await listMealsInRange(deps, "user-1", null, null);
     expect(own).toHaveLength(1);
+  });
+});
+
+describe("reordenar comidas", () => {
+  it("una nueva comida se añade al final del día", async () => {
+    const deps = memoryMeals();
+    await createMeal(deps, "user-1", breakfast);
+    await createMeal(deps, "user-1", {
+      ...breakfast,
+      title: "Almuerzo",
+      logDate: "2026-08-23",
+    });
+
+    const listed = await listMealsInRange(deps, "user-1", "2026-08-23", "2026-08-23");
+    expect(listed.map((m) => m.title)).toEqual(["Desayuno", "Almuerzo"]);
+  });
+
+  it("comidas en días distintos empiezan al final de su día", async () => {
+    const deps = memoryMeals();
+    await createMeal(deps, "user-1", breakfast);
+    await createMeal(deps, "user-1", {
+      ...breakfast,
+      title: "Comida otro día",
+      logDate: "2026-08-24",
+    });
+
+    const day1 = await listMealsInRange(deps, "user-1", "2026-08-23", "2026-08-23");
+    const day2 = await listMealsInRange(deps, "user-1", "2026-08-24", "2026-08-24");
+    expect(day1).toHaveLength(1);
+    expect(day2).toHaveLength(1);
+    expect(day1[0].title).toBe("Desayuno");
+    expect(day2[0].title).toBe("Comida otro día");
+  });
+
+  it("reorder cambia el orden según el orden dado", async () => {
+    const deps = memoryMeals();
+    const meal1 = await createMeal(deps, "user-1", breakfast);
+    const meal2 = await createMeal(deps, "user-1", {
+      ...breakfast,
+      title: "Almuerzo",
+    });
+    const meal3 = await createMeal(deps, "user-1", {
+      ...breakfast,
+      title: "Snack",
+    });
+
+    await reorderMeals(deps, "user-1", [meal3.id, meal1.id, meal2.id]);
+
+    const listed = await listMealsInRange(deps, "user-1", "2026-08-23", "2026-08-23");
+    expect(listed.map((m) => m.id)).toEqual([meal3.id, meal1.id, meal2.id]);
+  });
+
+  it("reorder no afecta comidas de otros usuarios", async () => {
+    const deps = memoryMeals();
+    const user1Meal = await createMeal(deps, "user-1", breakfast);
+    await createMeal(deps, "user-2", {
+      ...breakfast,
+      title: "Comida user-2",
+    });
+
+    await reorderMeals(deps, "user-1", [user1Meal.id]);
+    const user2Listed = await listMealsInRange(deps, "user-2", "2026-08-23", "2026-08-23");
+    expect(user2Listed).toHaveLength(1);
   });
 });
 

@@ -32,6 +32,7 @@ function makeDeps(meals: { logDate: string; kcal: number; protein: number; carbs
           resolvedProtein: meal.protein,
           resolvedCarbs: meal.carbs ?? 0,
           resolvedFat: meal.fat ?? 0,
+          sortOrder: index,
           createdAt: new Date(),
           updatedAt: new Date(),
         }));

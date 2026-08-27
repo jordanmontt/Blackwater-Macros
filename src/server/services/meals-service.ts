@@ -76,3 +76,11 @@ export async function listMealsInRange(
   const rows = await repo.listInRange(userId, fromKey, toKey);
   return rows.map((row) => toMealDto(row));
 }
+
+export async function reorderMeals(
+  repo: MealsRepository,
+  userId: string,
+  orderedIds: string[],
+) {
+  await repo.reorder(userId, orderedIds);
+}
