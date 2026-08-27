@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&amp;display=swap');
+      .plate-text { font-family: 'Cinzel', serif; font-weight: 900; fill: #f5f5f0; text-anchor: middle; letter-spacing: 3px; }
+    </style>
+  </defs>
+
+  <!-- Transparent background (remove if you want solid) -->
+  
+  <!-- Plate outer rim (raised lip) -->
+  <circle cx="256" cy="256" r="245" fill="#0f2318"/>
+  <circle cx="256" cy="256" r="240" fill="#1a3a2a"/>
+  
+  <!-- Outer rim highlight -->
+  <circle cx="256" cy="256" r="235" fill="none" stroke="#0f2318" stroke-width="5"/>
+  
+  <!-- Main plate body -->
+  <circle cx="256" cy="256" r="228" fill="#1a3a2a"/>
+  
+  <!-- Inner step ring (depth effect) -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#0f2318" stroke-width="6"/>
+  
+  <!-- Raised center area -->
+  <circle cx="256" cy="256" r="175" fill="#1d3d2d"/>
+  
+  <!-- Center Olympic hole -->
+  <circle cx="256" cy="256" r="42" fill="#0f2318"/>
+  <circle cx="256" cy="256" r="34" fill="#f5f5f0"/>
+  <circle cx="256" cy="256" r="26" fill="#0f2318"/>
+  
+  <!-- 20 KG text at top (curved) -->
+  <path id="topArc" d="M110,256 A146,146 0 0,1 402,256" fill="none"/>
+  <text class="plate-text" font-size="32">
+    <textPath href="#topArc" startOffset="50%">20 KG</textPath>
+  </text>
+  
+  <!-- BW text at bottom (curved, larger) -->
+  <path id="bottomArc" d="M110,256 A146,146 0 0,0 402,256" fill="none"/>
+  <text class="plate-text" font-size="56">
+    <textPath href="#bottomArc" startOffset="50%">BW</textPath>
+  </text>
+  
+  <!-- Subtle texture lines for realism -->
+  <line x1="120" y1="256" x2="392" y2="256" stroke="#0f2318" stroke-width="1" opacity="0.2"/>
+  <line x1="256" y1="120" x2="256" y2="392" stroke="#0f2318" stroke-width="1" opacity="0.2"/>
+  
+  <!-- Diagonal texture lines -->
+  <line x1="150" y1="150" x2="362" y2="362" stroke="#0f2318" stroke-width="0.5" opacity="0.15"/>
+  <line x1="362" y1="150" x2="150" y2="362" stroke="#0f2318" stroke-width="0.5" opacity="0.15"/>
+</svg>

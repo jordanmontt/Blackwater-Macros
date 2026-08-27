@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { InfoIcon } from "lucide-react";
 import {
@@ -56,7 +57,10 @@ export default function EstadisticasPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 pt-4 md:pt-6">
       <header className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">{t.stats.title}</h1>
+        <div className="flex items-center gap-2">
+          <Logo size="header" priority />
+          <h1 className="text-lg font-semibold">{t.stats.title}</h1>
+        </div>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"

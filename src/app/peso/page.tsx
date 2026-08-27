@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Logo } from "@/components/logo";
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -174,7 +175,10 @@ export default function PesoPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 pt-4 md:pt-6">
       <header className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">{t.peso.title}</h1>
+        <div className="flex items-center gap-2">
+          <Logo size="header" priority />
+          <h1 className="text-lg font-semibold">{t.peso.title}</h1>
+        </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <Button size="sm" onClick={openCreate}>

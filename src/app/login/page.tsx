@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -70,9 +71,12 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">{t.appName}</h1>
-          <ThemeToggle />
+        <div className="flex flex-col items-center gap-3">
+          <Logo size="login" priority />
+          <div className="flex w-full items-center justify-between">
+            <h1 className="text-xl font-semibold">{t.appName}</h1>
+            <ThemeToggle />
+          </div>
         </div>
         <Card>
           <CardHeader>

@@ -17,6 +17,18 @@ export const metadata: Metadata = {
     template: `%s · ${t.appName}`,
   },
   description: "Registro de calorías, macros y peso.",
+  openGraph: {
+    title: t.appName,
+    description: "Registro de calorías, macros y peso.",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1024,
+        height: 1024,
+        alt: "Blackwater Macros",
+      },
+    ],
+  },
 };
 
 export const viewport: Viewport = {
