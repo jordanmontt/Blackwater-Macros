@@ -217,7 +217,7 @@ export const t = {
     goalSection: "Objetivo deportivo",
     goalDescription:
       "Define tu objetivo deportivo para calcular los rangos de proteína y calorías recomendadas.",
-    goalCut: "Cortar / definir",
+    goalCut: "Definir",
     goalMaintain: "Mantenimiento",
     goalSurplus: "Abultar / superávit",
     proteinRecLabel: "Proteína recomendada",
