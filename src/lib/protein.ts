@@ -1,15 +1,15 @@
-import type { ProteinGoal, ProteinRange, ProteinRecommendation } from "./types";
+import type { Goal, ProteinRange, ProteinRecommendation } from "./types";
 
 /**
  * Evidence-based protein intake ranges (g/kg/day).
  *
  * Maintain: ISSN position stand — 1.2–1.6 g/kg BW
- * Build:    Morton et al. 2018 — plateau ~1.6, practical ceiling 2.0 g/kg BW
- * Cut:      Kokura et al. 2024 — 1.6–2.2 g/kg BW
+ * Surplus:  Morton et al. 2018 — plateau ~1.6, practical ceiling 2.0 g/kg BW
+ * Cut:     Kokura et al. 2024 — 1.6–2.2 g/kg BW
  */
-const RANGES: Record<ProteinGoal, { bwMin: number; bwMax: number }> = {
+const RANGES: Record<Goal, { bwMin: number; bwMax: number }> = {
   maintain: { bwMin: 1.2, bwMax: 1.6 },
-  build: { bwMin: 1.6, bwMax: 2.0 },
+  surplus: { bwMin: 1.6, bwMax: 2.0 },
   cut: { bwMin: 1.6, bwMax: 2.2 },
 };
 
@@ -27,7 +27,7 @@ function perKgRange(min: number, max: number): ProteinRange {
 
 export function calculateProteinRecommendation(
   weightKg: number,
-  goal: ProteinGoal,
+  goal: Goal,
 ): ProteinRecommendation {
   const { bwMin, bwMax } = RANGES[goal];
 

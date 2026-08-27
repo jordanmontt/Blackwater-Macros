@@ -17,14 +17,13 @@ function makeMemoryDeps() {
       id: string;
       username: string;
       passwordHash: string;
-      proteinGoal: "maintain" | "build" | "cut";
       gender: "male" | "female" | null;
       birthYear: number | null;
       heightCm: number | null;
       gymDaysPerWeek: number | null;
       gymSessionMinutes: number | null;
       walkingMinutesPerDay: number | null;
-      calorieGoal: "deficit" | "maintain" | "surplus" | null;
+      calorieGoal: "cut" | "maintain" | "surplus" | null;
       createdAt: Date;
     }
   >();
@@ -43,7 +42,6 @@ function makeMemoryDeps() {
           id: `u-${nextId++}`,
           username: username.toLowerCase(),
           passwordHash,
-          proteinGoal: "build" as const,
           gender: null,
           birthYear: null,
           heightCm: null,

@@ -6,18 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { formatNumberEs } from "@/lib/dates";
 import { calculateProteinRecommendation } from "@/lib/protein";
-import type { ProteinGoal, ProteinRecommendation, WeightDTO } from "@/lib/types";
+import type { CalorieProfile, ProteinRecommendation, WeightDTO } from "@/lib/types";
 import { formatTemplate, t } from "@/i18n";
-
-export const PROTEIN_GOAL_LABELS: Record<ProteinGoal, string> = {
-  maintain: t.protein.goalMaintain,
-  build: t.protein.goalBuild,
-  cut: t.protein.goalCut,
-};
 
 export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: number }) {
   const [weights, setWeights] = useState<WeightDTO[] | null>(null);
-  const [proteinGoal, setProteinGoal] = useState<ProteinGoal>("build");
+  const [calorieProfile, setCalorieProfile] = useState<CalorieProfile>({
+    gender: null,
+    birthYear: null,
+    heightCm: null,
+    gymDaysPerWeek: null,
+    gymSessionMinutes: null,
+    walkingMinutesPerDay: null,
+    calorieGoal: null,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -25,7 +27,7 @@ export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: numb
       .then(([w, session]) => {
         if (!cancelled) {
           setWeights(w);
-          setProteinGoal(session.proteinGoal);
+          setCalorieProfile(session.calorieProfile);
         }
       })
       .catch(() => undefined);
@@ -37,9 +39,9 @@ export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: numb
   const latestWeight = weights?.at(-1) ?? null;
 
   const rec = useMemo<ProteinRecommendation | null>(() => {
-    if (!latestWeight) return null;
-    return calculateProteinRecommendation(latestWeight.weightKg, proteinGoal);
-  }, [latestWeight, proteinGoal]);
+    if (!latestWeight || !calorieProfile.calorieGoal) return null;
+    return calculateProteinRecommendation(latestWeight.weightKg, calorieProfile.calorieGoal);
+  }, [latestWeight, calorieProfile.calorieGoal]);
 
   if (!latestWeight) {
     return (
@@ -53,7 +55,7 @@ export function ProteinRecommendationCard({ dailyProtein }: { dailyProtein: numb
 
   if (!rec) return null;
 
-  const goalLabel = PROTEIN_GOAL_LABELS[rec.goal];
+  const goalLabel = t.protein.goalLabel;
 
   const bwPct = rec.bwRange.max > 0 ? dailyProtein / rec.bwRange.max : 0;
   const barPct = Math.min(Math.max(bwPct * 100, 0), 100);

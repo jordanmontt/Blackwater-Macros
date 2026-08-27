@@ -13,15 +13,13 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const entryModeEnum = pgEnum("entry_mode", ["per_ingredient", "total_only"]);
-export const proteinGoalEnum = pgEnum("protein_goal", ["maintain", "build", "cut"]);
 export const genderEnum = pgEnum("gender", ["male", "female"]);
-export const calorieGoalEnum = pgEnum("calorie_goal", ["deficit", "maintain", "surplus"]);
+export const calorieGoalEnum = pgEnum("calorie_goal", ["cut", "maintain", "surplus"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  proteinGoal: proteinGoalEnum("protein_goal").notNull().default("build"),
   gender: genderEnum("gender"),
   birthYear: integer("birth_year"),
   heightCm: doublePrecision("height_cm"),

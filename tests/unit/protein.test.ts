@@ -10,8 +10,8 @@ describe("calculateProteinRecommendation", () => {
     expect(rec.bwPerKg).toEqual({ min: 1.2, max: 1.6 });
   });
 
-  it("build: 1.6–2.0 g/kg BW", () => {
-    const rec = calculateProteinRecommendation(WEIGHT, "build");
+  it("surplus: 1.6–2.0 g/kg BW", () => {
+    const rec = calculateProteinRecommendation(WEIGHT, "surplus");
     expect(rec.bwRange).toEqual({ min: 128, max: 160 });
     expect(rec.bwPerKg).toEqual({ min: 1.6, max: 2.0 });
   });
@@ -28,8 +28,8 @@ describe("calculateProteinRecommendation", () => {
   });
 
   it("returns metadata correctly", () => {
-    const rec = calculateProteinRecommendation(82.5, "build");
-    expect(rec.goal).toBe("build");
+    const rec = calculateProteinRecommendation(82.5, "surplus");
+    expect(rec.goal).toBe("surplus");
     expect(rec.bodyWeightKg).toBe(82.5);
   });
 });

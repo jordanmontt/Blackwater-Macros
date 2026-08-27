@@ -46,12 +46,6 @@ export const weightInputSchema = z.object({
 
 export type WeightInput = z.infer<typeof weightInputSchema>;
 
-export const settingsInputSchema = z.object({
-  proteinGoal: z.enum(["maintain", "build", "cut"]),
-});
-
-export type SettingsInput = z.infer<typeof settingsInputSchema>;
-
 export const calorieProfileInputSchema = z.object({
   gender: z.enum(["male", "female"]).nullable(),
   birthYear: z
@@ -79,7 +73,7 @@ export const calorieProfileInputSchema = z.object({
     .min(0, "El tiempo de caminata debe ser entre 0 y 480 minutos")
     .max(480, "El tiempo de caminata debe ser entre 0 y 480 minutos")
     .nullable(),
-  calorieGoal: z.enum(["deficit", "maintain", "surplus"]).nullable(),
+  calorieGoal: z.enum(["cut", "maintain", "surplus"]).nullable(),
 });
 
 export type CalorieProfileInput = z.infer<typeof calorieProfileInputSchema>;

@@ -13,7 +13,6 @@ export async function GET() {
   const rows = await db
     .select({
       username: users.username,
-      proteinGoal: users.proteinGoal,
       gender: users.gender,
       birthYear: users.birthYear,
       heightCm: users.heightCm,
@@ -28,7 +27,6 @@ export async function GET() {
   const row = rows[0];
   return NextResponse.json({
     username: row?.username ?? "",
-    proteinGoal: row?.proteinGoal ?? "build",
     calorieProfile: {
       gender: row?.gender ?? null,
       birthYear: row?.birthYear ?? null,

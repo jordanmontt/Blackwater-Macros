@@ -66,7 +66,7 @@ async function main() {
     gymDaysPerWeek: 3,
     gymSessionMinutes: 60,
     walkingMinutesPerDay: 30,
-    calorieGoal: "deficit",
+    calorieGoal: "cut",
   });
 
   const rand = mulberry32(20260823);

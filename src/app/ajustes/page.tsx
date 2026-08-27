@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { DownloadIcon, InfoIcon, LogOutIcon, Trash2Icon } from "lucide-react";
+import { DumbbellIcon, DownloadIcon, FlameIcon, InfoIcon, LogOutIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,18 +19,18 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { api, ApiError } from "@/lib/api";
 import { formatTemplate } from "@/i18n";
-import type { CalorieGoal, CalorieProfile, MealTemplateDTO, ProteinGoal } from "@/lib/types";
-import { PROTEIN_GOAL_LABELS } from "@/components/protein-recommendation";
+import type { CalorieProfile, Goal, MealTemplateDTO } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/lib/use-mounted";
 import { calculateCalorieRecommendation } from "@/lib/calories";
+import { calculateProteinRecommendation } from "@/lib/protein";
 import { formatNumberEs } from "@/lib/dates";
 import { t } from "@/i18n";
 
-const CALORIE_GOAL_LABELS: Record<CalorieGoal, string> = {
-  deficit: t.calorias.goalDeficit,
-  maintain: t.calorias.goalMaintain,
-  surplus: t.calorias.goalSurplus,
+const GOAL_LABELS: Record<Goal, string> = {
+  cut: t.ajustes.goalCut,
+  maintain: t.ajustes.goalMaintain,
+  surplus: t.ajustes.goalSurplus,
 };
 
 export default function AjustesPage() {
@@ -38,7 +38,6 @@ export default function AjustesPage() {
   const { theme, setTheme } = useTheme();
   const [username, setUsername] = useState("");
   const [templates, setTemplates] = useState<MealTemplateDTO[]>([]);
-  const [proteinGoal, setProteinGoal] = useState<ProteinGoal>("build");
   const [calorieProfile, setCalorieProfile] = useState<CalorieProfile>({
     gender: null,
     birthYear: null,
@@ -55,7 +54,6 @@ export default function AjustesPage() {
   useEffect(() => {
     void api.session().then((session) => {
       setUsername(session.username);
-      setProteinGoal(session.proteinGoal);
       setCalorieProfile(session.calorieProfile);
     });
     api
@@ -83,22 +81,9 @@ export default function AjustesPage() {
     { value: "system", label: t.ajustes.themeSystem },
   ];
 
-  const goalOptions: { value: ProteinGoal; label: string }[] = (
-    Object.entries(PROTEIN_GOAL_LABELS) as [ProteinGoal, string][]
+  const goalOptions: { value: Goal; label: string }[] = (
+    Object.entries(GOAL_LABELS) as [Goal, string][]
   ).map(([value, label]) => ({ value, label }));
-
-  const calorieGoalOptions: { value: CalorieGoal; label: string }[] = (
-    Object.entries(CALORIE_GOAL_LABELS) as [CalorieGoal, string][]
-  ).map(([value, label]) => ({ value, label }));
-
-  async function handleGoalChange(goal: ProteinGoal) {
-    setProteinGoal(goal);
-    try {
-      await api.updateSettings({ proteinGoal: goal });
-    } catch {
-      toast.error(t.common.errorGeneric);
-    }
-  }
 
   function validateProfile(profile: CalorieProfile) {
     const errors: Record<string, string> = {};
@@ -160,6 +145,10 @@ export default function AjustesPage() {
     ? calculateCalorieRecommendation(calorieProfile, latestWeight)
     : null;
 
+  const proteinRec = latestWeight && calorieProfile.calorieGoal
+    ? calculateProteinRecommendation(latestWeight, calorieProfile.calorieGoal)
+    : null;
+
   return (
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 md:pt-6">
       <header className="flex items-center justify-between gap-2">
@@ -192,8 +181,8 @@ export default function AjustesPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.ajustes.proteinGoalSection}</CardTitle>
-          <CardDescription>{t.ajustes.proteinGoalDescription}</CardDescription>
+          <CardTitle className="text-base">{t.ajustes.goalSection}</CardTitle>
+          <CardDescription>{t.ajustes.goalDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-1 rounded-lg border p-1">
@@ -201,11 +190,11 @@ export default function AjustesPage() {
               <button
                 key={option.value}
                 type="button"
-                aria-pressed={proteinGoal === option.value}
-                onClick={() => void handleGoalChange(option.value)}
+                aria-pressed={calorieProfile.calorieGoal === option.value}
+                onClick={() => void handleCalorieProfileChange({ calorieGoal: option.value })}
                 className={cn(
                   "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
-                  proteinGoal === option.value && "bg-primary text-primary-foreground",
+                  calorieProfile.calorieGoal === option.value && "bg-primary text-primary-foreground",
                 )}
               >
                 {option.label}
@@ -347,38 +336,35 @@ export default function AjustesPage() {
               )}
           </div>
 
-          <div className="space-y-2">
-            <Label>{t.calorias.calorieGoalLabel}</Label>
-            <div className="grid grid-cols-3 gap-1 rounded-lg border p-1">
-              {calorieGoalOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  aria-pressed={calorieProfile.calorieGoal === option.value}
-                  onClick={() => void handleCalorieProfileChange({ calorieGoal: option.value })}
-                  className={cn(
-                    "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
-                    calorieProfile.calorieGoal === option.value && "bg-primary text-primary-foreground",
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {calorieRec && (
-            <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
-              <p className="text-sm font-medium">{t.calorias.tdee}</p>
-              <p className="text-2xl font-semibold tabular-nums">
-                {formatNumberEs(calorieRec.target)} <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {formatNumberEs(calorieRec.targetMin)} – {formatNumberEs(calorieRec.targetMax)} {t.calorias.perDay}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)} · {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)}
-              </p>
+          {(calorieRec || proteinRec) && (
+            <div className="rounded-lg border bg-muted/40 p-3 space-y-3">
+              {calorieRec && (
+                <div className="space-y-1">
+                  <p className="flex items-center gap-1.5 text-sm font-medium">
+                    <FlameIcon className="size-3.5" /> {t.calorias.target}
+                  </p>
+                  <p className="text-2xl font-semibold tabular-nums">
+                    {formatNumberEs(calorieRec.target)} <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatNumberEs(calorieRec.targetMin)} – {formatNumberEs(calorieRec.targetMax)} {t.calorias.perDay}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)} · {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)}
+                  </p>
+                </div>
+              )}
+              {proteinRec && (
+                <div className="space-y-1 border-t border-border pt-3">
+                  <p className="flex items-center gap-1.5 text-sm font-medium">
+                    <DumbbellIcon className="size-3.5" /> {t.ajustes.proteinRecLabel}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {proteinRec.bwRange.min} – {proteinRec.bwRange.max} g/día{" "}
+                    ({proteinRec.bwPerKg.min} – {proteinRec.bwPerKg.max} g/kg)
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

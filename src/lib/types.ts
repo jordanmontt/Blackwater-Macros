@@ -1,5 +1,4 @@
 export type EntryMode = "per_ingredient" | "total_only";
-export type ProteinGoal = "maintain" | "build" | "cut";
 
 export interface IngredientInput {
   name: string;
@@ -91,12 +90,11 @@ export interface StatsSummary {
 }
 
 export interface UserSettings {
-  proteinGoal: ProteinGoal;
   calorieProfile: CalorieProfile;
 }
 
 export type Gender = "male" | "female";
-export type CalorieGoal = "deficit" | "maintain" | "surplus";
+export type Goal = "cut" | "maintain" | "surplus";
 
 export interface CalorieProfile {
   gender: Gender | null;
@@ -105,7 +103,7 @@ export interface CalorieProfile {
   gymDaysPerWeek: number | null;
   gymSessionMinutes: number | null;
   walkingMinutesPerDay: number | null;
-  calorieGoal: CalorieGoal | null;
+  calorieGoal: Goal | null;
 }
 
 export interface CalorieRecommendation {
@@ -114,7 +112,7 @@ export interface CalorieRecommendation {
   target: number;
   targetMin: number;
   targetMax: number;
-  goal: CalorieGoal;
+  goal: Goal;
 }
 
 export interface ProteinRange {
@@ -123,7 +121,7 @@ export interface ProteinRange {
 }
 
 export interface ProteinRecommendation {
-  goal: ProteinGoal;
+  goal: Goal;
   bodyWeightKg: number;
   bwRange: ProteinRange;
   bwPerKg: ProteinRange;

@@ -1,4 +1,4 @@
-import type { CalorieGoal, CalorieProfile, CalorieRecommendation, Gender } from "./types";
+import type { CalorieProfile, CalorieRecommendation, Gender, Goal } from "./types";
 
 /**
  * Mifflin-St Jeor equation (1990) — most accurate BMR formula for
@@ -41,8 +41,8 @@ export function getActivityMultiplier(
   return 1.9;
 }
 
-const CALORIE_OFFSETS: Record<CalorieGoal, { target: number; min: number; max: number }> = {
-  deficit: { target: -400, min: -500, max: -300 },
+const CALORIE_OFFSETS: Record<Goal, { target: number; min: number; max: number }> = {
+  cut: { target: -400, min: -500, max: -300 },
   maintain: { target: 0, min: -100, max: 100 },
   surplus: { target: 300, min: 200, max: 400 },
 };

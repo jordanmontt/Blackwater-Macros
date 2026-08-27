@@ -3,7 +3,6 @@ import type {
   IngredientInput,
   MealDTO,
   MealTemplateDTO,
-  ProteinGoal,
   StatsRange,
   StatsSummary,
   WeightDTO,
@@ -90,13 +89,11 @@ export const api = {
   session: () =>
     request<{
       username: string;
-      proteinGoal: ProteinGoal;
       calorieProfile: CalorieProfile;
     }>("/api/auth/session", {
       method: "GET",
     }).catch(() => ({
       username: "",
-      proteinGoal: "build" as ProteinGoal,
       calorieProfile: {
         gender: null,
         birthYear: null,
@@ -167,9 +164,8 @@ export const api = {
     return request<StatsSummary>(`/api/stats?${query}`);
   },
 
-  updateSettings: async (payload: { proteinGoal: ProteinGoal } | CalorieProfile) => {
+  updateSettings: async (payload: CalorieProfile) => {
     return request<{
-      proteinGoal: ProteinGoal;
       calorieProfile: CalorieProfile;
     }>("/api/settings", {
       method: "PUT",

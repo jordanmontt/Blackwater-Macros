@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getSettings, updateSettings } from "@/server/services/settings-service";
+import { getSettings, updateCalorieProfile } from "@/server/services/settings-service";
 import type { SettingsRepository } from "@/server/repositories/settings-repo";
-import type { CalorieProfile, ProteinGoal } from "@/lib/types";
+import type { CalorieProfile } from "@/lib/types";
 
-function memorySettings(initial: ProteinGoal = "build"): SettingsRepository {
-  const store = new Map<string, ProteinGoal>();
+function memorySettings(): SettingsRepository {
   const calorieProfiles = new Map<string, CalorieProfile>();
 
   const emptyProfile: CalorieProfile = {
@@ -18,12 +17,6 @@ function memorySettings(initial: ProteinGoal = "build"): SettingsRepository {
   };
 
   return {
-    async getProteinGoal(userId) {
-      return store.get(userId) ?? initial;
-    },
-    async updateProteinGoal(userId, goal) {
-      store.set(userId, goal);
-    },
     async getCalorieProfile(userId) {
       return calorieProfiles.get(userId) ?? emptyProfile;
     },
@@ -34,48 +27,84 @@ function memorySettings(initial: ProteinGoal = "build"): SettingsRepository {
 }
 
 describe("gestión de ajustes", () => {
-  it("getSettings devuelve el objetivo por defecto 'build' cuando no hay valor guardado", async () => {
+  it("getSettings devuelve calorieProfile vacío por defecto", async () => {
     const repo = memorySettings();
     const settings = await getSettings(repo, "user-1");
-    expect(settings.proteinGoal).toBe("build");
+    expect(settings.calorieProfile.calorieGoal).toBeNull();
+    expect(settings.calorieProfile.gender).toBeNull();
   });
 
-  it("updateSettings cambia el objetivo y getSettings lo refleja", async () => {
+  it("updateCalorieProfile cambia el objetivo y getSettings lo refleja", async () => {
     const repo = memorySettings();
-    await updateSettings(repo, "user-1", { proteinGoal: "cut" });
+    await updateCalorieProfile(repo, "user-1", {
+      gender: "male",
+      birthYear: 1990,
+      heightCm: 178,
+      gymDaysPerWeek: 3,
+      gymSessionMinutes: 60,
+      walkingMinutesPerDay: 30,
+      calorieGoal: "cut",
+    });
 
     const settings = await getSettings(repo, "user-1");
-    expect(settings.proteinGoal).toBe("cut");
+    expect(settings.calorieProfile.calorieGoal).toBe("cut");
+    expect(settings.calorieProfile.gender).toBe("male");
   });
 
-  it("cada usuario tiene su propio objetivo independiente", async () => {
+  it("cada usuario tiene su propio perfil independiente", async () => {
     const repo = memorySettings();
-    await updateSettings(repo, "user-1", { proteinGoal: "cut" });
-    await updateSettings(repo, "user-2", { proteinGoal: "maintain" });
+    await updateCalorieProfile(repo, "user-1", {
+      gender: "male",
+      birthYear: 1990,
+      heightCm: 178,
+      gymDaysPerWeek: 3,
+      gymSessionMinutes: 60,
+      walkingMinutesPerDay: 30,
+      calorieGoal: "cut",
+    });
+    await updateCalorieProfile(repo, "user-2", {
+      gender: "female",
+      birthYear: 1985,
+      heightCm: 165,
+      gymDaysPerWeek: 2,
+      gymSessionMinutes: 45,
+      walkingMinutesPerDay: 20,
+      calorieGoal: "maintain",
+    });
 
-    expect((await getSettings(repo, "user-1")).proteinGoal).toBe("cut");
-    expect((await getSettings(repo, "user-2")).proteinGoal).toBe("maintain");
+    expect((await getSettings(repo, "user-1")).calorieProfile.calorieGoal).toBe("cut");
+    expect((await getSettings(repo, "user-2")).calorieProfile.calorieGoal).toBe("maintain");
   });
 
-  it("updateSettings devuelve el objetivo actualizado", async () => {
+  it("updateCalorieProfile devuelve el perfil actualizado", async () => {
     const repo = memorySettings();
-    const result = await updateSettings(repo, "user-1", { proteinGoal: "build" });
-    expect(result.proteinGoal).toBe("build");
+    const result = await updateCalorieProfile(repo, "user-1", {
+      gender: "female",
+      birthYear: 1995,
+      heightCm: 160,
+      gymDaysPerWeek: 4,
+      gymSessionMinutes: 50,
+      walkingMinutesPerDay: 40,
+      calorieGoal: "surplus",
+    });
+    expect(result.calorieProfile.calorieGoal).toBe("surplus");
+    expect(result.calorieProfile.gender).toBe("female");
   });
 
-  it("todos los valores válidos de ProteinGoal son aceptados", async () => {
-    const goals: ProteinGoal[] = ["maintain", "build", "cut"];
+  it("todos los valores válidos de Goal son aceptados", async () => {
+    const goals: Array<"cut" | "maintain" | "surplus"> = ["cut", "maintain", "surplus"];
     for (const goal of goals) {
       const repo = memorySettings();
-      await updateSettings(repo, "user-1", { proteinGoal: goal });
-      expect((await getSettings(repo, "user-1")).proteinGoal).toBe(goal);
+      await updateCalorieProfile(repo, "user-1", {
+        gender: "male",
+        birthYear: 1990,
+        heightCm: 178,
+        gymDaysPerWeek: 3,
+        gymSessionMinutes: 60,
+        walkingMinutesPerDay: 30,
+        calorieGoal: goal,
+      });
+      expect((await getSettings(repo, "user-1")).calorieProfile.calorieGoal).toBe(goal);
     }
-  });
-
-  it("getSettings incluye calorieProfile por defecto vacío", async () => {
-    const repo = memorySettings();
-    const settings = await getSettings(repo, "user-1");
-    expect(settings.calorieProfile.gender).toBeNull();
-    expect(settings.calorieProfile.calorieGoal).toBeNull();
   });
 });

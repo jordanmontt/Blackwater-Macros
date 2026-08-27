@@ -31,7 +31,7 @@ src/
       meals/[id]/ templates/[id]/ weights/[id]/ stats/ settings/ export/[kind]/
   proxy.ts                  # Edge gate: redirects to /login without session cookie
   server/                   # Backend-only code (never imported by client)
-    db/schema.ts            # Drizzle tables + MealIngredient JSONB type + protein_goal enum
+    db/schema.ts            # Drizzle tables + MealIngredient JSONB type + calorie_goal enum
     db/client.ts            # Lazy postgres pool + drizzle instance (see §4.4)
     repositories/           # Injectable data-access factories (one per table)
     services/               # Pure business logic; no HTTP knowledge
@@ -71,7 +71,10 @@ with its owner.
 
 ```
 users        id, username (unique), password_hash,
-             protein_goal ENUM protein_goal (maintain|build|cut) NOT NULL DEFAULT 'build',
+             gender ENUM gender (male|female),
+             birth_year, height_cm, gym_days_per_week,
+             gym_session_minutes, walking_minutes_per_day,
+             calorie_goal ENUM calorie_goal (cut|maintain|surplus),
              created_at
 sessions     token (PK), user_id → users(cascade), expires_at, created_at
              index: sessions_user_id_idx
@@ -155,7 +158,7 @@ functions (`listInRange`, `getById`, `create`, `update`, `delete`). Two reasons:
 | `meals-service` | create/update/delete/list meals; computes `resolved_*` on every write |
 | `templates-service` | CRUD over meal_templates |
 | `weights-service` | CRUD over weights (timestamps kept exact, UTC); DTOs include `bodyFatPct` |
-| `settings-service` | protein goal CRUD (read via session endpoint, updated via `PUT /api/settings`) |
+| `settings-service` | calorie profile CRUD (read via session endpoint, updated via `PUT /api/settings`) |
 | `stats-service` | builds the whole `StatsSummary` DTO including body fat and lean mass series (see §7) |
 | `export-service` | CSV builders using `lib/csv.ts` (RFC-escaped, UTF-8 BOM for Excel) |
 
@@ -219,20 +222,21 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 |---|---|---|
 | POST `/api/auth/login` | – | `{username,password}` → sets cookie, `{ok:true}`; 401 on bad credentials |
 | POST `/api/auth/logout` | ✓ | Deletes current session row + clears cookie |
-| GET `/api/auth/session` | ✓ | `{username, proteinGoal}` for display and settings |
+| GET `/api/auth/session` | ✓ | `{username, calorieProfile}` for display and settings |
 | GET `/api/meals?from&to` | ✓ | Meals in date range (inclusive `YYYY-MM-DD` keys) |
 | POST `/api/meals` | ✓ | Create meal (`MealInput`) → `{meal}` |
 | PATCH `/api/meals/:id` | ✓ | Update meal (full payload replace) → `{meal}` or 404 |
 | DELETE `/api/meals/:id` | ✓ | Delete → `{ok:true}` or 404 |
 | GET/POST `/api/templates`, DELETE `/api/templates/:id` | ✓ | Template management |
 | GET/POST `/api/weights`, PATCH/DELETE `/api/weights/:id` | ✓ | Weight entries (`WeightInput`: ISO timestamp + optional `bodyFatPct`) |
-| PUT `/api/settings` | ✓ | Update protein goal (`{proteinGoal}`) → `{proteinGoal}` |
+| PUT `/api/settings` | ✓ | Update calorie profile (`CalorieProfile`) → `{calorieProfile}` |
 | GET `/api/stats?range=7d\|30d\|90d\|all&today=YYYY-MM-DD` | ✓ | Full `StatsSummary` DTO (weights, body fat, lean mass, nutrition) |
 | GET `/api/export/meals.csv` · `/api/export/weights.csv` | ✓ | CSV download (BOM, es-friendly; weights includes `grasa_corporal_pct`) |
 
 Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchema`,
-`weightInputSchema` (includes optional `bodyFatPct`), `settingsInputSchema`
-(proteinGoal enum), `loginInputSchema`, plus `ingredientInputSchema` reused inside.
+`weightInputSchema` (includes optional `bodyFatPct`), `calorieProfileInputSchema`
+(calorieGoal enum: cut|maintain|surplus), `loginInputSchema`, plus
+`ingredientInputSchema` reused inside.
 
 ---
 
@@ -242,10 +246,10 @@ Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchem
 
 | Page | File | Highlights |
 |---|---|---|
-| Hoy | `app/page.tsx` | Day navigation, totals cards, template chips, meal list, MealForm dialog, delete confirm, protein recommendation card |
+| Hoy | `app/page.tsx` | Day navigation, totals cards, template chips, meal list, MealForm dialog, delete confirm, protein + calorie recommendation cards |
 | Peso | `app/peso/page.tsx` | Current-weight card, body fat input field, entries grouped by day with body fat display, body fat history chart |
 | Estadísticas | `app/estadisticas/page.tsx` | Range tabs, MiniStat cards, weight/body fat/lean mass charts, weekly averages; ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | Protein goal selector, theme selector, CSV export buttons, template manager, session/logout |
+| Ajustes | `app/ajustes/page.tsx` | Unified goal selector (first card), calorie profile form, theme selector, CSV export buttons, template manager, session/logout |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5) |
 | Metodología | `app/metodologia/page.tsx` | Static content page explaining metric formulas + protein recommendation science + citations |
 
@@ -327,33 +331,30 @@ happens only in components via `formatNumberEs(value, maxDecimals)` (es-ES local
 
 ## 8. Protein recommendation (`lib/protein.ts` + `components/protein-recommendation.tsx`)
 
-Evidence-based protein intake ranges computed from the user's goal, body weight,
+Evidence-based protein intake ranges computed from the user's unified goal, body weight,
 and optionally body fat percentage:
 
 | Goal | BW range (g/kg/day) | Source |
 |---|---|---|
 | Maintain | 1.2–1.6 | ISSN position stand |
-| Build | 1.6–2.0 | Morton et al. 2018 |
+| Surplus | 1.6–2.0 | Morton et al. 2018 |
 | Cut | 1.6–2.2 | Kokura et al. 2024 |
 
-When goal is "cut" **and** body fat % is available, an additional FFM range is
-shown: 2.3–3.1 g/kg lean mass (Helms et al.), relevant for lean athletes in
-a deficit.
-
-**Data flow:** The user's protein goal is stored as a `protein_goal` enum column
-on the `users` table (default `"build"`). The goal is read via the session
-endpoint and updated via `PUT /api/settings`. The `ProteinRecommendationCard`
-component on the Hoy page fetches the latest weight entry (for body weight and
-body fat %) and the session (for goal), then calls the pure `calculateProteinRecommendation()`
-function. No server-side computation — the card is entirely client-rendered.
+The unified goal (`cut` | `maintain` | `surplus`) is stored as the `calorie_goal` enum
+column on the `users` table and drives both protein recommendations and calorie targets.
+The goal is read via the session endpoint and updated via `PUT /api/settings`.
+The `ProteinRecommendationCard` component on the Hoy page fetches the latest weight
+entry (for body weight and body fat %) and the session (for goal), then calls the pure
+`calculateProteinRecommendation()` function. No server-side computation — the card is
+entirely client-rendered.
 
 **Files:**
 - `lib/protein.ts` — pure calculation, no dependencies
 - `components/protein-recommendation.tsx` — Hoy page card with progress bar
-- `server/repositories/settings-repo.ts` — protein goal CRUD on users table
+- `server/repositories/settings-repo.ts` — calorie profile CRUD on users table
 - `server/services/settings-service.ts` — thin service wrapper
 - `app/api/settings/route.ts` — `PUT` endpoint
-- `app/ajustes/page.tsx` — goal selector (3-button toggle)
+- `app/ajustes/page.tsx` — goal selector (3-button toggle, first card)
 
 ---
 

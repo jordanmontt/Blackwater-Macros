@@ -6,11 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { formatNumberEs } from "@/lib/dates";
 import { calculateCalorieRecommendation } from "@/lib/calories";
-import type { CalorieProfile, CalorieRecommendation, WeightDTO } from "@/lib/types";
+import type { CalorieProfile, CalorieRecommendation, Goal, WeightDTO } from "@/lib/types";
 import { t } from "@/i18n";
 
-const GOAL_LABELS: Record<string, string> = {
-  deficit: t.calorias.goalDeficit,
+const GOAL_LABELS: Record<Goal, string> = {
+  cut: t.calorias.goalCut,
   maintain: t.calorias.goalMaintain,
   surplus: t.calorias.goalSurplus,
 };
