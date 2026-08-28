@@ -16,6 +16,7 @@ For general usage and setup, read [README.md](./README.md) first.
 | Auth | Custom: scrypt hashes + opaque DB sessions | No external auth service, no public registration |
 | Validation | zod v4 | Single source of truth for request payloads |
 | Tests | Vitest 4 (+ Testing Library, happy-dom) | Three-project setup, see §10 |
+| API backend (migration) | **Hono 4** on Vercel | New `backend/` package reuses `src/server/*` + `src/lib/*` via path alias — zero duplication (see §4.6) |
 
 ---
 
@@ -59,6 +60,15 @@ tests/
   behavior/                 # Black-box tests of USER requirements (Spanish comments)
   unit/                     # Technical edge-case tests of pure functions
 drizzle.config.ts           # drizzle-kit config; loads .env.local itself (§10)
+backend/                    # Standalone HTTP backend (Hono) — the migration target
+  src/app.ts                # createApp(deps): ALL routes + CORS, same contract as Next /api
+  src/helpers.ts            # Bearer/cookie token, withUserId guard, jsonError
+  src/deps.ts               # AppDeps interface + prodDeps (same services/repos as Next)
+  src/index.ts              # Local dev server (@hono/node-server, PORT default 8787)
+  src/vercel.ts             # Vercel adapter entry (hono/vercel, all HTTP methods)
+  tests/                    # fakes.ts (in-memory repos) + route tests (no DB, no network)
+backend/tsconfig.json       # paths "@/*" → "../src/*" → reuses src/server + src/lib
+backend/vitest.config.mts   # backend test project ("npm run backend:test")
 ```
 
 **Dependency rule:** `app/api → composition → services → repositories → client`.
@@ -219,16 +229,51 @@ URL contains `localhost`/`127.0.0.1`.
   `fetch`, *not* `api.session()` — the global 401 handler would hard-reload /login
   for logged-out visitors.
 - **No registration UI** — accounts exist only via `create-user` script or SQL.
+- **Bearer tokens for native apps** (`backend/`): `sessionTokenFromRequest`
+  reads `Authorization: Bearer <token>` first, then the `bw_session` cookie; the
+  login response additionally returns `{ ok, token, expiresAt }` in the body
+  (unchanged for existing web clients, which keep using the cookie).
+
+### 4.6 The standalone API backend (`backend/`)
+
+In preparation for the Flutter app, the entire API is re-exposed through
+`backend/`, a Hono app that imports the **same** `src/server/*` and `src/lib/*`
+modules via the tsconfig alias `"@/*": ["../src/*"]` — no code is duplicated and
+the Next.js app keeps working untouched (parallel rollout).
+
+- `backend/src/app.ts` — `createApp(deps)` wires every route with the same
+  validation, Spanish error messages, and status codes as the Next handlers. It
+  also fixes the legacy export bug (`/api/export/meals.csv` kind now matches by
+  stripping the `.csv` suffix) and adds CORS.
+- `backend/src/deps.ts` — `AppDeps` (same deps as `serviceDeps` plus a
+  `getSession(userId)` closure); `prodDeps` is the real wiring.
+- `backend/src/helpers.ts` — `sessionTokenFromRequest(c)`, `withUserId(deps, …)`,
+  `jsonError`, `sessionCookie`, `clearSessionCookie`.
+- `backend/src/vercel.ts` — Vercel entry point (`import { handle } from
+  "hono/vercel"`; the adapter is bundled in hono — there is **no** `@hono/vercel`
+  npm package). `backend/src/index.ts` is the local dev server
+  (`@hono/node-server`, default port 8787, loads `.env.local` itself).
+- CORS: middleware in `createApp`; allow-list from `CORS_ORIGIN`
+  (comma-separated; default `http://localhost:3000,http://localhost:8080`), plus
+  `Authorization`/`Content-Type` in the preflight.
+- Tests: `backend/tests/*.test.ts` run against in-memory repos from `fakes.ts` —
+  `npm run backend:test`; typecheck with `npm run backend:typecheck`; dev server
+  with `npm run backend:dev`.
+
+hono and `@hono/node-server` live in the root `package.json`; the backend reuses
+the root `node_modules` and shares the same `DATABASE_URL`.
 
 ---
 
 ## 5. API reference
 
-All bodies JSON unless noted. Errors: `{ "error": string }`.
+All bodies JSON unless noted. Errors: `{ "error": string }`. The Next.js route
+handlers and the Hono `backend/` app expose the **same contract**; `backend/` also
+accepts `Authorization: Bearer <token>` on every protected route.
 
 | Method & path | Auth | Purpose |
 |---|---|---|
-| POST `/api/auth/login` | – | `{username,password}` → sets cookie, `{ok:true}`; 401 on bad credentials |
+| POST `/api/auth/login` | – | `{username,password}` → `{ok, token, expiresAt}` + sets cookie; 401 on bad credentials |
 | POST `/api/auth/logout` | ✓ | Deletes current session row + clears cookie |
 | GET `/api/auth/session` | ✓ | `{username, calorieProfile}` for display and settings |
 | GET `/api/meals?from&to` | ✓ | Meals in date range (inclusive `YYYY-MM-DD` keys) |
@@ -485,7 +530,7 @@ Notes:
 Verification gate before pushing:
 
 ```bash
-npx tsc --noEmit && npm run lint && npm test && npm run build
+npx tsc --noEmit && npm run lint && npm test && npm run backend:test && npm run build
 ```
 
 ---
@@ -494,11 +539,19 @@ npx tsc --noEmit && npm run lint && npm test && npm run build
 
 ```
 Browser ── HTTPS ── Vercel (Hobby)
-                    ├─ static pages + proxy.ts (edge)
-                    ├─ serverless route handlers ── pooled connection ─┐
-                    └─ env var DATABASE_URL (Production)               ▼
-                                                    Neon Postgres (single project)
+                     ├─ static pages + proxy.ts (edge)          ─┐
+                     └─ serverless route handlers ── pooled ──  │
+                                                                 ▼
+                                             Neon Postgres (single project)
 ```
+
+**Migration in progress:** a second Vercel project hosts `backend/`
+(`api.blackwatermacros.com`) serving the API through `backend/src/vercel.ts`,
+pointed at the same Neon database with `CORS_ORIGIN=https://…web…`. The Flutter
+web build will eventually replace the React pages on the first project; until the
+cutover both implementations run in parallel (rollback window), sharing one DB.
+Auth works for both: native/mobile sends `Authorization: Bearer` with the body
+token from POST `/api/auth/login`; legacy web keeps using the cookie.
 
 Current setup intentionally shares **one Neon database between local dev and
 production** — simplest mental model, and `create-user` run locally takes
