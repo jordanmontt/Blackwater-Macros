@@ -40,10 +40,6 @@ vi.mock("@/lib/api", () => ({
   },
 }));
 
-vi.mock("@/components/theme-toggle", () => ({
-  ThemeToggle: () => <button aria-label="Cambiar tema" />,
-}));
-
 import { api } from "@/lib/api";
 
 describe("pantalla Hoy", () => {
@@ -66,8 +62,9 @@ describe("pantalla Hoy", () => {
   it("cada comida muestra sus propias calorías y proteína", async () => {
     render(<HoyPage />);
 
-    expect(await screen.findByText("475 kcal")).toBeInTheDocument();
-    expect(screen.getByText("850 kcal")).toBeInTheDocument();
+    // el valor aparece tanto en el resumen de ingredientes como en la insignia de la comida
+    expect((await screen.findAllByText("475 kcal")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("850 kcal").length).toBeGreaterThan(0);
     expect(screen.getByText("32 g · Proteína")).toBeInTheDocument(); // redondeo visible
   });
 

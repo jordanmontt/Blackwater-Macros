@@ -176,11 +176,11 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
       }
       payload.ingredients = parsed;
     } else {
-      const kcal = parseNumber(totalCalories);
-      const prot = parseNumber(totalProtein);
-      const carb = parseNumber(totalCarbs);
-      const fatVal = parseNumber(totalFat);
-      if (kcal === undefined || prot === undefined || carb === undefined || fatVal === undefined) {
+      const kcal = parseNumber(totalCalories) ?? 0;
+      const prot = parseNumber(totalProtein) ?? 0;
+      const carb = parseNumber(totalCarbs) ?? 0;
+      const fatVal = parseNumber(totalFat) ?? 0;
+      if (Number.isNaN(kcal) || Number.isNaN(prot) || Number.isNaN(carb) || Number.isNaN(fatVal)) {
         setError(t.common.errorGeneric);
         return;
       }
@@ -336,8 +336,8 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                 <Label htmlFor="meal-total-kcal">{t.hoy.calories}</Label>
                 <Input
                   id="meal-total-kcal"
-                  required
                   inputMode="decimal"
+                  placeholder="0"
                   value={totalCalories}
                   onChange={(event) => setTotalCalories(normalizeDecimal(event.target.value))}
                 />
@@ -346,8 +346,8 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                 <Label htmlFor="meal-total-protein">{t.hoy.protein} (g)</Label>
                 <Input
                   id="meal-total-protein"
-                  required
                   inputMode="decimal"
+                  placeholder="0"
                   value={totalProtein}
                   onChange={(event) => setTotalProtein(normalizeDecimal(event.target.value))}
                 />
@@ -356,8 +356,8 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                 <Label htmlFor="meal-total-carbs">{t.hoy.carbs} (g)</Label>
                 <Input
                   id="meal-total-carbs"
-                  required
                   inputMode="decimal"
+                  placeholder="0"
                   value={totalCarbs}
                   onChange={(event) => setTotalCarbs(normalizeDecimal(event.target.value))}
                 />
@@ -366,8 +366,8 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
                 <Label htmlFor="meal-total-fat">{t.hoy.fat} (g)</Label>
                 <Input
                   id="meal-total-fat"
-                  required
                   inputMode="decimal"
+                  placeholder="0"
                   value={totalFat}
                   onChange={(event) => setTotalFat(normalizeDecimal(event.target.value))}
                 />

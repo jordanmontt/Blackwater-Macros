@@ -5,7 +5,7 @@ import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { DumbbellIcon, DownloadIcon, FlameIcon, InfoIcon, LogOutIcon, Trash2Icon } from "lucide-react";
+import { DumbbellIcon, DownloadIcon, FlameIcon, InfoIcon, LogOutIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +15,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { api, ApiError } from "@/lib/api";
 import { exitDemoMode } from "@/lib/demo-store";
 import { useDemoMode } from "@/lib/use-demo-mode";
@@ -52,6 +60,10 @@ export default function AjustesPage() {
     calorieGoal: null,
   });
   const [latestWeight, setLatestWeight] = useState<number | null>(null);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateNotes, setTemplateNotes] = useState("");
+  const [templatePending, setTemplatePending] = useState(false);
   const mounted = useMounted();
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -148,6 +160,33 @@ export default function AjustesPage() {
       setTemplates((current) => current.filter((template) => template.id !== id));
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
+    }
+  }
+
+  async function handleCreateTemplate() {
+    const name = templateName.trim();
+    if (!name) {
+      toast.error(t.common.errorGeneric);
+      return;
+    }
+    setTemplatePending(true);
+    try {
+      const template = await api.createTemplate({
+        name,
+        title: name,
+        notes: templateNotes.trim() || null,
+        ingredients: [],
+      });
+      setTemplates((current) =>
+        [...current, template].sort((a, b) => a.name.localeCompare(b.name)),
+      );
+      setTemplateDialogOpen(false);
+      setTemplateName("");
+      setTemplateNotes("");
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
+    } finally {
+      setTemplatePending(false);
     }
   }
 
@@ -431,7 +470,20 @@ export default function AjustesPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.hoy.templates}</CardTitle>
+          <CardTitle className="flex items-center justify-between gap-2 text-base">
+            {t.hoy.templates}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setTemplateName("");
+                setTemplateNotes("");
+                setTemplateDialogOpen(true);
+              }}
+            >
+              <PlusIcon /> {t.ajustes.newTemplate}
+            </Button>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {templates.length === 0 ? (
@@ -458,6 +510,43 @@ export default function AjustesPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t.ajustes.newTemplate}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">{t.meal.templateNameLabel}</Label>
+              <Input
+                id="template-name"
+                required
+                autoFocus
+                value={templateName}
+                onChange={(event) => setTemplateName(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="template-notes">{t.meal.notesLabel}</Label>
+              <Textarea
+                id="template-notes"
+                rows={2}
+                value={templateNotes}
+                onChange={(event) => setTemplateNotes(event.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setTemplateDialogOpen(false)}>
+                {t.meal.cancel}
+              </Button>
+              <Button type="button" disabled={templatePending} onClick={() => void handleCreateTemplate()}>
+                {templatePending ? t.common.loading : t.meal.save}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader className="pb-3">

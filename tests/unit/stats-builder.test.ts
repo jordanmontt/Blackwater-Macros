@@ -92,7 +92,7 @@ describe("buildStatsFromData", () => {
     expect(summary.weight.ratePerWeekKg).toBeCloseTo(-0.5, 1);
   });
 
-  it("construye series de grasa corporal y masa magra solo con datos válidos de grasa", () => {
+  it("construye la serie de grasa corporal solo con datos válidos de grasa", () => {
     const summary = buildStatsFromData(
       [],
       weights([
@@ -106,9 +106,6 @@ describe("buildStatsFromData", () => {
 
     expect(summary.bodyFat.length).toBe(2);
     expect(summary.weight.currentBodyFatPct).toBe(18);
-    // masa magra = peso × (1 - grasa/100)
-    expect(summary.weight.currentLeanMassKg).toBeCloseTo(84 * 0.82, 2);
-    expect(summary.leanMass.length).toBe(2);
   });
 
   it("devuelve nulos cuando no hay comidas ni pesos en el rango", () => {

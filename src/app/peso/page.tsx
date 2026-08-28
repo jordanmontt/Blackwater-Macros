@@ -19,7 +19,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -33,24 +32,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { WeightFatChart, type WeightFatRow } from "@/components/weight-fat-chart";
 import { api, ApiError } from "@/lib/api";
-import { formatDateKeyLong, formatNumberEs, formatTimestamp, nowDateTimeLocalValue, toDateTimeLocalValue, parseLocalDateTime } from "@/lib/dates";
+import {
+  addDaysToKey,
+  formatDateKeyLong,
+  formatNumberEs,
+  nowDateTimeLocalValue,
+  toDateTimeLocalValue,
+  parseLocalDateTime,
+} from "@/lib/dates";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { movingAverageByDays } from "@/lib/stats";
 import { round1 } from "@/lib/nutrition";
-import { formatTemplate } from "@/i18n";
 import type { WeightDTO } from "@/lib/types";
 import { t } from "@/i18n";
-import {
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 interface WeightFormState {
   id: string | null;
@@ -93,12 +89,43 @@ export default function PesoPage() {
   }, []);
 
   const currentWeight = weights?.at(-1)?.weightKg ?? null;
-  const currentBodyFat = weights?.at(-1)?.bodyFatPct ?? null;
+  const currentBodyFat = useMemo(() => {
+    if (!weights) return null;
+    for (let i = weights.length - 1; i >= 0; i--) {
+      const entry = weights[i];
+      if (entry.bodyFatPct !== null) return entry.bodyFatPct;
+    }
+    return null;
+  }, [weights]);
 
-  const bodyFatSeries = useMemo(() => {
-    return (weights ?? [])
-      .filter((w) => w.bodyFatPct !== null)
-      .map((w) => ({ date: w.measuredAt.slice(0, 10), value: w.bodyFatPct! }));
+  const changeFat7d = useMemo(() => {
+    if (!weights) return null;
+    const fatEntries = weights.filter((entry) => entry.bodyFatPct !== null);
+    const latest = fatEntries.at(-1);
+    if (!latest) return null;
+    const latestDay = latest.measuredAt.slice(0, 10);
+    const cutoff = addDaysToKey(latestDay, -7);
+    const prior = [...fatEntries].reverse().find((entry) => entry.measuredAt.slice(0, 10) <= cutoff);
+    if (!prior) return null;
+    return round1((latest.bodyFatPct as number) - (prior.bodyFatPct as number));
+  }, [weights]);
+
+  const chartRows = useMemo<WeightFatRow[]>(() => {
+    const points = (weights ?? []).map((entry) => ({
+      date: entry.measuredAt.slice(0, 10),
+      value: entry.weightKg,
+    }));
+    const trend = movingAverageByDays(points, 7);
+    const fatByDay = new Map<string, number>();
+    for (const entry of weights ?? []) {
+      if (entry.bodyFatPct !== null) fatByDay.set(entry.measuredAt.slice(0, 10), entry.bodyFatPct);
+    }
+    return points.map((point, i) => ({
+      date: point.date,
+      weight: point.value,
+      weightTrend: trend[i] === null ? null : round1(trend[i] as number),
+      bodyFatPct: fatByDay.get(point.date) ?? null,
+    }));
   }, [weights]);
 
   const groupedByDay = useMemo(() => {
@@ -174,34 +201,40 @@ export default function PesoPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 pt-4 md:pt-6">
-      <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div className="flex items-center justify-self-start gap-2">
           <Logo size="header" priority />
-          <h1 className="text-lg font-semibold">{t.peso.title}</h1>
         </div>
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-          <Button size="sm" onClick={openCreate}>
-            <PlusIcon /> {t.peso.addTitle}
-          </Button>
-        </div>
+        <h1 className="text-lg font-semibold text-center">{t.peso.title}</h1>
       </header>
 
       <Card className="mt-4">
-        <CardHeader className="pb-3">
-          <CardDescription>{t.stats.currentWeight}</CardDescription>
+        <CardHeader className="pb-2">
+          <CardDescription>{t.peso.currentWeight}</CardDescription>
           <CardTitle className="text-4xl tabular-nums">
             {currentWeight !== null ? `${formatNumberEs(currentWeight, 1)} kg` : "—"}
           </CardTitle>
         </CardHeader>
-        <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{weights ? entriesCount(weights.length) : t.common.loading}</span>
-          {currentBodyFat !== null && (
-            <span>
-              {t.peso.currentBodyFat}: {formatNumberEs(currentBodyFat, 1)}{t.peso.bodyFatUnit}
-            </span>
-          )}
-        </CardFooter>
+        <CardContent className="grid grid-cols-2 gap-2 px-4 pb-4">
+          <div className="rounded-lg border px-3 py-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t.peso.currentBodyFat}
+            </p>
+            <p className="text-lg font-semibold tabular-nums">
+              {currentBodyFat !== null ? `${formatNumberEs(currentBodyFat, 1)}%` : "—"}
+            </p>
+          </div>
+          <div className="rounded-lg border px-3 py-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t.peso.changeFat7d}
+            </p>
+            <p className="text-lg font-semibold tabular-nums">
+              {changeFat7d === null
+                ? "—"
+                : `${changeFat7d > 0 ? "+" : ""}${formatNumberEs(changeFat7d, 1)}%`}
+            </p>
+          </div>
+        </CardContent>
       </Card>
 
       {weights !== null && weights.length === 0 ? (
@@ -214,6 +247,17 @@ export default function PesoPage() {
         </button>
       ) : null}
 
+      {weights !== null && weights.length > 1 ? (
+        <Card className="mt-4">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-base">{t.stats.weightFatChartTitle}</CardTitle>
+          </CardHeader>
+          <CardContent className="h-56 px-2 sm:h-64">
+            <WeightFatChart data={chartRows} />
+          </CardContent>
+        </Card>
+      ) : null}
+
       <section className="mt-5 space-y-4">
         {groupedByDay.map(([day, entries]) => (
           <div key={day}>
@@ -223,13 +267,10 @@ export default function PesoPage() {
             <ul className="mt-1.5 divide-y overflow-hidden rounded-xl border">
               {[...entries].reverse().map((entry) => (
                 <li key={entry.id} className="flex items-center gap-3 bg-card px-3 py-2.5">
-                  <span className="w-12 shrink-0 text-sm text-muted-foreground tabular-nums">
-                    {formatTimestamp(entry.measuredAt)}
-                  </span>
                   <span className="font-medium tabular-nums">
                     {formatNumberEs(entry.weightKg, 1)} kg
                     {entry.bodyFatPct !== null && (
-                      <span className="text-muted-foreground">
+                      <span className="hidden text-muted-foreground min-[400px]:inline">
                         {" "}· {formatNumberEs(entry.bodyFatPct, 1)}% grasa
                       </span>
                     )}
@@ -263,17 +304,6 @@ export default function PesoPage() {
           </div>
         ))}
       </section>
-
-      {bodyFatSeries.length > 1 ? (
-        <Card className="mt-5">
-          <CardHeader className="pb-0">
-            <CardTitle className="text-base">{t.peso.bodyFatChartTitle}</CardTitle>
-          </CardHeader>
-          <CardContent className="h-56 px-2 sm:h-64">
-            <BodyFatChart data={bodyFatSeries} />
-          </CardContent>
-        </Card>
-      ) : null}
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-sm">
@@ -364,79 +394,15 @@ export default function PesoPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Button
+        onClick={openCreate}
+        aria-label={t.peso.addTitle}
+        size="icon"
+        className="fixed right-4 bottom-20 z-50 size-14 rounded-full shadow-lg md:bottom-6"
+      >
+        <PlusIcon className="size-6" />
+      </Button>
     </main>
-  );
-}
-
-function entriesCount(count: number) {
-  return formatTemplate(t.peso.entriesCount, { n: count });
-}
-
-const TOOLTIP_STYLE = {
-  background: "var(--popover)",
-  border: "1px solid var(--border)",
-  borderRadius: 10,
-  fontSize: 12,
-  color: "var(--popover-foreground)",
-} as const;
-
-function BodyFatChart({ data }: { data: { date: string; value: number }[] }) {
-  const movingAverage = useMemo(() => movingAverageByDays(data, 7), [data]);
-  const rows = data.map((point, i) => ({
-    date: point.date,
-    value: point.value,
-    tendencia: movingAverage[i] === null ? null : round1(movingAverage[i] as number),
-  }));
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={rows} margin={{ top: 16, right: 12, bottom: 0, left: -18 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-        <XAxis
-          dataKey="date"
-          tickFormatter={(value: string) => formatDateKeyLong(value).slice(0, 5)}
-          tick={{ fontSize: 10 }}
-          interval="preserveStartEnd"
-          minTickGap={28}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          domain={["auto", "auto"]}
-          tick={{ fontSize: 10 }}
-          tickLine={false}
-          axisLine={false}
-          width={44}
-          tickFormatter={(value: number) => `${String(Math.round(value * 10) / 10)}%`}
-        />
-        <Tooltip
-          contentStyle={TOOLTIP_STYLE}
-          formatter={(value: unknown) =>
-            value === null || value === undefined
-              ? "—"
-              : `${formatNumberEs(Number(value), 1)}%`
-          }
-          labelFormatter={(value) => formatDateKeyLong(String(value))}
-        />
-        <Line
-          type="monotone"
-          dataKey="value"
-          name={t.peso.bodyFatChartTitle}
-          stroke="var(--chart-2)"
-          strokeWidth={1.5}
-          dot={{ r: 2 }}
-        />
-        <Line
-          type="monotone"
-          dataKey="tendencia"
-          name={t.stats.trendLine}
-          stroke="currentColor"
-          className="text-muted-foreground"
-          strokeWidth={2.5}
-          dot={false}
-          connectNulls
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
   );
 }

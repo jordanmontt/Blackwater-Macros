@@ -17,14 +17,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DayNavigator } from "@/components/meals/day-navigator";
 import { MealCard } from "@/components/meals/meal-card";
 import { MealForm } from "@/components/meals/meal-form";
-import { SaveTemplateDialog } from "@/components/meals/save-template-dialog";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { ProteinRecommendationCard } from "@/components/protein-recommendation";
-import { CalorieRecommendationCard } from "@/components/calorie-recommendation";
+import { NutritionRecommendationsCard } from "@/components/nutrition-recommendations";
 import { api, ApiError } from "@/lib/api";
 import { todayKey } from "@/lib/dates";
 import { formatNumberEs } from "@/lib/dates";
@@ -38,7 +35,6 @@ export default function HoyPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<MealDTO | null>(null);
   const [deletingMeal, setDeletingMeal] = useState<MealDTO | null>(null);
-  const [templateSourceMeal, setTemplateSourceMeal] = useState<MealDTO | null>(null);
   const [applyingTemplateId, setApplyingTemplateId] = useState<string | null>(null);
 
   const meals = loaded && loaded.day === selectedDay ? loaded.meals : null;
@@ -156,74 +152,68 @@ export default function HoyPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 pt-4 md:pt-6">
-      <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div className="flex items-center justify-self-start gap-2">
           <Logo size="header" priority />
-          <h1 className="text-lg font-semibold">{t.hoy.title}</h1>
         </div>
-        <ThemeToggle />
+        <h1 className="text-lg font-semibold text-center">{t.hoy.title}</h1>
       </header>
 
-      <div className="mt-3 flex items-center justify-between gap-2">
+      <div className="mt-3 flex items-center justify-center">
         <DayNavigator value={selectedDay} onChange={setSelectedDay} />
-        <Button onClick={openCreate} size="sm">
-          <PlusIcon /> <span className="hidden sm:inline">{t.hoy.addMeal}</span>
-        </Button>
       </div>
 
-      <section aria-label={t.hoy.dailyTotals} className="mt-4 grid grid-cols-2 gap-2">
+      <section aria-label={t.hoy.dailyTotals} className="mt-4">
         <Card>
-          <CardContent className="px-4 py-3 text-center">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {t.hoy.calories}
-            </p>
-            <p className="text-2xl font-semibold tabular-nums">
-              {formatNumberEs(totals.calories)}
-            </p>
-            <p className="text-xs text-muted-foreground">{t.hoy.kcalUnit}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="px-4 py-3 text-center">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {t.hoy.protein}
-            </p>
-            <p className="text-2xl font-semibold tabular-nums">
-              {formatNumberEs(totals.protein, 1)}
-            </p>
-            <p className="text-xs text-muted-foreground">{t.hoy.proteinUnit}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="px-4 py-3 text-center">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {t.hoy.carbs}
-            </p>
-            <p className="text-2xl font-semibold tabular-nums">
-              {formatNumberEs(totals.carbs, 1)}
-            </p>
-            <p className="text-xs text-muted-foreground">{t.hoy.gramUnit}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="px-4 py-3 text-center">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {t.hoy.fat}
-            </p>
-            <p className="text-2xl font-semibold tabular-nums">
-              {formatNumberEs(totals.fat, 1)}
-            </p>
-            <p className="text-xs text-muted-foreground">{t.hoy.gramUnit}</p>
+          <CardHeader className="pb-0 pt-3">
+            <CardTitle className="text-base">{t.hoy.dailyTotals}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-x-3 gap-y-2.5 px-4 pb-3 sm:grid-cols-4">
+            <div className="text-center">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.hoy.calories}
+              </p>
+              <p className="text-lg font-semibold tabular-nums sm:text-xl">
+                {formatNumberEs(totals.calories)}
+                <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.kcalUnit}</span>
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.hoy.protein}
+              </p>
+              <p className="text-lg font-semibold tabular-nums sm:text-xl">
+                {formatNumberEs(totals.protein, 1)}
+                <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.proteinUnit}</span>
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.hoy.carbs}
+              </p>
+              <p className="text-lg font-semibold tabular-nums sm:text-xl">
+                {formatNumberEs(totals.carbs, 1)}
+                <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.gramUnit}</span>
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.hoy.fat}
+              </p>
+              <p className="text-lg font-semibold tabular-nums sm:text-xl">
+                {formatNumberEs(totals.fat, 1)}
+                <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.gramUnit}</span>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </section>
 
       <section className="mt-4">
-        <ProteinRecommendationCard dailyProtein={totals.protein} />
-      </section>
-
-      <section className="mt-4">
-        <CalorieRecommendationCard dailyCalories={totals.calories} />
+        <NutritionRecommendationsCard
+          dailyCalories={totals.calories}
+          dailyProtein={totals.protein}
+        />
       </section>
 
       {templates.length > 0 ? (
@@ -269,7 +259,6 @@ export default function HoyPage() {
                     setFormOpen(true);
                   }}
                   onDelete={(target) => setDeletingMeal(target)}
-                  onSaveAsTemplate={(target) => setTemplateSourceMeal(target)}
                 />
               ))}
             </SortableContext>
@@ -283,20 +272,6 @@ export default function HoyPage() {
         logDate={selectedDay}
         meal={editingMeal}
         onSaved={handleSaved}
-      />
-
-      <SaveTemplateDialog
-        open={templateSourceMeal !== null}
-        onOpenChange={(open) => {
-          if (!open) setTemplateSourceMeal(null);
-        }}
-        meal={templateSourceMeal}
-        onSaved={(template) => {
-          setTemplates((current) =>
-            [...current, template].sort((a, b) => a.name.localeCompare(b.name)),
-          );
-          toast.success(t.meal.saveAsTemplate);
-        }}
       />
 
       <AlertDialog
@@ -318,6 +293,15 @@ export default function HoyPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Button
+        onClick={openCreate}
+        aria-label={t.hoy.addMeal}
+        size="icon"
+        className="fixed right-4 bottom-20 z-50 size-14 rounded-full shadow-lg md:bottom-6"
+      >
+        <PlusIcon className="size-6" />
+      </Button>
     </main>
   );
 }

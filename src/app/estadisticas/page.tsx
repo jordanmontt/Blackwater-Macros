@@ -17,7 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { WeightFatChart, type WeightFatRow } from "@/components/weight-fat-chart";
 import { api, ApiError } from "@/lib/api";
 import { formatDateKeyShort, formatNumberEs, todayKey } from "@/lib/dates";
 import { round1 } from "@/lib/nutrition";
@@ -56,22 +56,20 @@ export default function EstadisticasPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 pt-4 md:pt-6">
-      <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div className="flex items-center justify-self-start gap-2">
           <Logo size="header" priority />
-          <h1 className="text-lg font-semibold">{t.stats.title}</h1>
         </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            nativeButton={false}
-            render={<Link href="/metodologia" aria-label={t.metodologia.title} />}
-          >
-            <InfoIcon />
-          </Button>
-          <ThemeToggle />
-        </div>
+        <h1 className="text-lg font-semibold text-center">{t.stats.title}</h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          nativeButton={false}
+          render={<Link href="/metodologia" aria-label={t.metodologia.title} />}
+          className="justify-self-end"
+        >
+          <InfoIcon />
+        </Button>
       </header>
 
       <div
@@ -103,9 +101,7 @@ export default function EstadisticasPage() {
         </div>
       ) : summary === null ? null : (
         <div className="mt-5 space-y-6">
-          <WeightSection summary={summary} />
-          <BodyFatSection summary={summary} />
-          <LeanMassSection summary={summary} />
+          <CompositionSection summary={summary} />
           <NutritionSection summary={summary} />
         </div>
       )}
@@ -125,32 +121,81 @@ function NutritionSection({ summary }: { summary: StatsSummary }) {
           {t.stats.noData}
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <MiniStat label={t.stats.caloriesAvg} value={summary.caloriesAvg} unit="" />
-          <MiniStat
-            label={`${t.stats.caloriesMax}${summary.caloriesMaxDay ? ` · ${formatDateKeyShort(summary.caloriesMaxDay.date)}` : ""}`}
-            value={summary.caloriesMaxDay?.calories ?? null}
-            unit=""
-          />
-          <MiniStat label={t.stats.proteinAvg} value={summary.proteinAvg} unit="g" decimals={0} />
-          <MiniStat
-            label={`${t.stats.proteinMax}${summary.proteinMaxDay ? ` · ${formatDateKeyShort(summary.proteinMaxDay.date)}` : ""}`}
-            value={summary.proteinMaxDay?.protein ?? null}
-            unit="g"
-          />
-          <MiniStat label={t.stats.carbsAvg} value={summary.carbsAvg} unit="g" decimals={0} />
-          <MiniStat
-            label={`${t.stats.carbsMax}${summary.carbsMaxDay ? ` · ${formatDateKeyShort(summary.carbsMaxDay.date)}` : ""}`}
-            value={summary.carbsMaxDay?.carbs ?? null}
-            unit="g"
-          />
-          <MiniStat label={t.stats.fatAvg} value={summary.fatAvg} unit="g" decimals={0} />
-          <MiniStat
-            label={`${t.stats.fatMax}${summary.fatMaxDay ? ` · ${formatDateKeyShort(summary.fatMaxDay.date)}` : ""}`}
-            value={summary.fatMaxDay?.fat ?? null}
-            unit="g"
-          />
-        </div>
+        <Card>
+          <CardHeader className="pb-0">
+            <CardTitle className="text-base">{t.stats.nutritionSummaryTitle}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-3 sm:grid-cols-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.stats.caloriesAvg}
+              </p>
+              <p className="text-lg font-semibold tabular-nums">
+                {summary.caloriesAvg === null ? "—" : formatNumberEs(summary.caloriesAvg)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.stats.caloriesMax}
+                {summary.caloriesMaxDay ? ` · ${formatDateKeyShort(summary.caloriesMaxDay.date)}` : ""}
+              </p>
+              <p className="text-lg font-semibold tabular-nums">
+                {summary.caloriesMaxDay === null ? "—" : formatNumberEs(summary.caloriesMaxDay.calories)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.stats.proteinAvg}
+              </p>
+              <p className="text-lg font-semibold tabular-nums">
+                {summary.proteinAvg === null ? "—" : `${formatNumberEs(summary.proteinAvg)} g`}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.stats.proteinMax}
+                {summary.proteinMaxDay ? ` · ${formatDateKeyShort(summary.proteinMaxDay.date)}` : ""}
+              </p>
+              <p className="text-lg font-semibold tabular-nums">
+                {summary.proteinMaxDay === null ? "—" : `${formatNumberEs(summary.proteinMaxDay.protein)} g`}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.stats.carbsAvg}
+              </p>
+              <p className="text-lg font-semibold tabular-nums">
+                {summary.carbsAvg === null ? "—" : `${formatNumberEs(summary.carbsAvg)} g`}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.stats.carbsMax}
+                {summary.carbsMaxDay ? ` · ${formatDateKeyShort(summary.carbsMaxDay.date)}` : ""}
+              </p>
+              <p className="text-lg font-semibold tabular-nums">
+                {summary.carbsMaxDay === null ? "—" : `${formatNumberEs(summary.carbsMaxDay.carbs)} g`}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.stats.fatAvg}
+              </p>
+              <p className="text-lg font-semibold tabular-nums">
+                {summary.fatAvg === null ? "—" : `${formatNumberEs(summary.fatAvg)} g`}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t.stats.fatMax}
+                {summary.fatMaxDay ? ` · ${formatDateKeyShort(summary.fatMaxDay.date)}` : ""}
+              </p>
+              <p className="text-lg font-semibold tabular-nums">
+                {summary.fatMaxDay === null ? "—" : `${formatNumberEs(summary.fatMaxDay.fat)} g`}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <ChartCard title={t.stats.caloriesChartTitle}>
@@ -224,9 +269,25 @@ function NutritionSection({ summary }: { summary: StatsSummary }) {
   );
 }
 
-function WeightSection({ summary }: { summary: StatsSummary }) {
+function CompositionSection({ summary }: { summary: StatsSummary }) {
   const hasWeights = summary.weights.length > 0;
   const w = summary.weight;
+
+  const chartRows = useMemo<WeightFatRow[]>(() => {
+    const map = new Map<string, WeightFatRow>();
+    for (const point of summary.weights) {
+      map.set(point.date, {
+        date: point.date,
+        weight: point.weight,
+        weightTrend: point.trend,
+      });
+    }
+    for (const point of summary.bodyFat) {
+      const row = map.get(point.date) ?? { date: point.date };
+      map.set(point.date, { ...row, bodyFatPct: point.bodyFatPct });
+    }
+    return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
+  }, [summary]);
 
   return (
     <>
@@ -235,157 +296,84 @@ function WeightSection({ summary }: { summary: StatsSummary }) {
           {t.stats.noData}
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <MiniStat
-            label={t.stats.currentWeight}
-            value={w.currentWeightKg}
-            unit="kg"
-            decimals={1}
-          />
-          <MiniStat label={t.stats.currentTrend} value={w.currentTrendKg} unit="kg" decimals={1} />
-          <MiniStat
-            label={t.stats.changeSinceStart}
-            value={w.changeSinceStartKg}
-            unit="kg"
-            decimals={1}
-            signed
-          />
-          <MiniStat
-            label={t.stats.ratePerWeek}
-            value={w.ratePerWeekKg}
-            unit={` ${t.stats.perWeek}`}
-            decimals={2}
-            signed
-          />
-        </div>
+        <>
+          <div className="grid grid-cols-3 gap-2">
+            <MiniStat label={t.stats.currentWeight} value={w.currentWeightKg} unit="kg" decimals={1} />
+            <MiniStat label={t.stats.currentTrend} value={w.currentTrendKg} unit="kg" decimals={1} />
+            <MiniStat
+              label={t.stats.currentBodyFat}
+              value={w.currentBodyFatPct}
+              unit="%"
+              decimals={1}
+            />
+            <MiniStat
+              label={t.stats.changeSinceStart}
+              value={w.changeSinceStartKg}
+              unit="kg"
+              decimals={1}
+              signed
+            />
+            <MiniStat
+              label={t.stats.ratePerWeek}
+              value={w.ratePerWeekKg}
+              unit={` ${t.stats.perWeek}`}
+              decimals={2}
+              signed
+            />
+            <MiniStat
+              label={t.stats.changeBodyFat}
+              value={w.changeBodyFatPct}
+              unit="%"
+              decimals={1}
+              signed
+            />
+          </div>
+
+          <ChartCard title={t.stats.weightFatChartTitle}>
+            {hasWeights ? (
+              <WeightFatChart data={chartRows} />
+            ) : (
+              <EmptyChartMessage />
+            )}
+          </ChartCard>
+
+          {summary.weeklyWeightAvg.length > 0 ? (
+            <Card size="sm">
+              <CardHeader className="pb-1">
+                <CardTitle className="text-base">{t.stats.weightWeeklyAvgTitle}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="grid gap-x-6 gap-y-0 text-sm sm:grid-cols-2">
+                  {summary.weeklyWeightAvg.map((week) => (
+                    <li key={week.weekStart} className="flex justify-between border-b py-0.5">
+                      <span className="text-muted-foreground">
+                        {formatDateKeyShort(week.weekStart)}
+                      </span>
+                      <span className="font-medium tabular-nums">
+                        {formatNumberEs(week.avg, 1)} kg
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <div className="flex items-center justify-center gap-6 pb-1 pt-0.5 text-xs text-muted-foreground">
+                <span>
+                  {t.stats.minWeight}:{" "}
+                  <span className="font-medium text-foreground tabular-nums">
+                    {formatNumberEs(w.minKg ?? 0, 1)} kg
+                  </span>
+                </span>
+                <span>
+                  {t.stats.maxWeight}:{" "}
+                  <span className="font-medium text-foreground tabular-nums">
+                    {formatNumberEs(w.maxKg ?? 0, 1)} kg
+                  </span>
+                </span>
+              </div>
+            </Card>
+          ) : null}
+        </>
       )}
-
-      <ChartCard title={t.stats.weightChartTitle}>
-        {hasWeights ? (
-          <TrendChart
-            data={summary.weights}
-            valueKey="weight"
-            color="var(--chart-3)"
-            name={t.stats.scaleWeight}
-            yAxisFormatter={(v) => String(Math.round(v * 10) / 10)}
-          />
-        ) : (
-          <EmptyChartMessage />
-        )}
-      </ChartCard>
-
-      {summary.weeklyWeightAvg.length > 0 ? (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{t.stats.weightWeeklyAvgTitle}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
-              {summary.weeklyWeightAvg.map((week) => (
-                <li key={week.weekStart} className="flex justify-between border-b py-1">
-                  <span className="text-muted-foreground">
-                    {formatDateKeyShort(week.weekStart)}
-                  </span>
-                  <span className="font-medium tabular-nums">
-                    {formatNumberEs(week.avg, 1)} kg
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {hasWeights ? (
-        <p className="text-center text-xs text-muted-foreground">
-          {t.stats.minWeight}: {formatNumberEs(w.minKg ?? 0, 1)} kg · {t.stats.maxWeight}:{" "}
-          {formatNumberEs(w.maxKg ?? 0, 1)} kg
-        </p>
-      ) : null}
-    </>
-  );
-}
-
-function BodyFatSection({ summary }: { summary: StatsSummary }) {
-  if (summary.bodyFat.length === 0) return null;
-  const bf = summary.weight;
-
-  return (
-    <>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <MiniStat
-          label={t.stats.currentBodyFat}
-          value={bf.currentBodyFatPct}
-          unit="%"
-          decimals={1}
-        />
-        <MiniStat
-          label={t.stats.changeBodyFat}
-          value={bf.changeBodyFatPct}
-          unit="pp"
-          decimals={1}
-          signed
-        />
-        <MiniStat
-          label={t.stats.minWeight}
-          value={bf.minBodyFatPct}
-          unit="%"
-          decimals={1}
-        />
-        <MiniStat
-          label={t.stats.maxWeight}
-          value={bf.maxBodyFatPct}
-          unit="%"
-          decimals={1}
-        />
-      </div>
-
-      <ChartCard title={t.stats.bodyFatChartTitle}>
-        <TrendChart
-          data={summary.bodyFat}
-          valueKey="bodyFatPct"
-          color="var(--chart-2)"
-          name={t.stats.currentBodyFat}
-          yAxisFormatter={(v) => `${String(Math.round(v * 10) / 10)}%`}
-          tooltipSuffix="%"
-        />
-      </ChartCard>
-    </>
-  );
-}
-
-function LeanMassSection({ summary }: { summary: StatsSummary }) {
-  if (summary.leanMass.length === 0) return null;
-  const bf = summary.weight;
-
-  return (
-    <>
-      <div className="grid grid-cols-2 gap-2">
-        <MiniStat
-          label={t.stats.currentLeanMass}
-          value={bf.currentLeanMassKg}
-          unit="kg"
-          decimals={1}
-        />
-        <MiniStat
-          label={t.stats.changeLeanMass}
-          value={bf.changeLeanMassKg}
-          unit="kg"
-          decimals={1}
-          signed
-        />
-      </div>
-
-      <ChartCard title={t.stats.leanMassChartTitle}>
-        <TrendChart
-          data={summary.leanMass}
-          valueKey="leanMassKg"
-          color="var(--chart-1)"
-          name={t.stats.currentLeanMass}
-          yAxisFormatter={(v) => `${String(Math.round(v * 10) / 10)} kg`}
-          tooltipSuffix=" kg"
-        />
-      </ChartCard>
     </>
   );
 }

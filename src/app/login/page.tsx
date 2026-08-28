@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { api, ApiError } from "@/lib/api";
 import { enterDemoMode } from "@/lib/demo-store";
 import { t } from "@/i18n";
@@ -80,9 +79,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-4">
         <div className="flex flex-col items-center gap-3">
           <Logo size="login" priority />
-          <div className="flex w-full items-center justify-between">
+          <div className="flex w-full items-center justify-center">
             <h1 className="text-xl font-semibold">{t.appName}</h1>
-            <ThemeToggle />
           </div>
         </div>
         <Card>

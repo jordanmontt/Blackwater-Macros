@@ -24,7 +24,7 @@ For general usage and setup, read [README.md](./README.md) first.
 ```
 src/
   app/                      # App Router: pages (static) + /api routes (serverless)
-    page.tsx                # "Hoy" — daily meal log (client component)
+    page.tsx                # "Comidas" — daily meal log (client component)
     peso/ estadisticas/ ajustes/ login/ metodologia/
     api/                    # Route handlers; every folder = one endpoint family
       auth/login|logout|session/
@@ -43,11 +43,11 @@ src/
     validation.ts           # zod schemas shared by all mutating endpoints
   components/
     ui/*                    # shadcn/ui primitives (Base UI based)
-    meals/*                 # DayNavigator, MealCard, MealForm, SaveTemplateDialog
-    protein-recommendation.tsx  # Protein intake recommendation card (Hoy page)
-    calorie-recommendation.tsx  # Calorie intake recommendation card (Hoy page)
+    meals/*                 # DayNavigator, MealCard, MealForm
+    nutrition-recommendations.tsx  # Merged calorie + protein recommendations card (Comidas page)
+    weight-fat-chart.tsx          # Combined weight (kg) + body fat (%) chart with trend line
     demo-banner.tsx         # Persistent "demo mode" banner + exit to login
-    app-nav.tsx theme-provider.tsx theme-toggle.tsx
+    app-nav.tsx theme-provider.tsx
   lib/                      # Shared pure logic + types (importable from both sides)
     types.ts dates.ts nutrition.ts stats.ts stats-builder.ts protein.ts csv.ts api.ts
     demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
@@ -162,7 +162,7 @@ functions (`listInRange`, `getById`, `create`, `update`, `delete`). Two reasons:
 | `templates-service` | CRUD over meal_templates |
 | `weights-service` | CRUD over weights (timestamps kept exact, UTC); DTOs include `bodyFatPct` |
 | `settings-service` | calorie profile CRUD (read via session endpoint, updated via `PUT /api/settings`) |
-| `stats-service` | builds the whole `StatsSummary` DTO including body fat and lean mass series (see §7) |
+| `stats-service` | builds the whole `StatsSummary` DTO including body fat series (see §7) |
 | `export-service` | CSV builders using `lib/csv.ts` (RFC-escaped, UTF-8 BOM for Excel) |
 
 Services receive their repos via a `deps` argument — production wiring lives only
@@ -238,7 +238,7 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 | GET/POST `/api/templates`, DELETE `/api/templates/:id` | ✓ | Template management |
 | GET/POST `/api/weights`, PATCH/DELETE `/api/weights/:id` | ✓ | Weight entries (`WeightInput`: ISO timestamp + optional `bodyFatPct`) |
 | PUT `/api/settings` | ✓ | Update calorie profile (`CalorieProfile`) → `{calorieProfile}` |
-| GET `/api/stats?range=7d\|30d\|90d\|all&today=YYYY-MM-DD` | ✓ | Full `StatsSummary` DTO (weights, body fat, lean mass, nutrition) |
+| GET `/api/stats?range=7d\|30d\|90d\|all&today=YYYY-MM-DD` | ✓ | Full `StatsSummary` DTO (weights, body fat, nutrition) |
 | GET `/api/export/meals.csv` · `/api/export/weights.csv` | ✓ | CSV download (BOM, es-friendly; weights includes `grasa_corporal_pct`) |
 
 Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchema`,
@@ -254,10 +254,10 @@ Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchem
 
 | Page | File | Highlights |
 |---|---|---|
-| Hoy | `app/page.tsx` | Day navigation, totals cards, template chips, meal list, MealForm dialog, delete confirm, protein + calorie recommendation cards |
-| Peso | `app/peso/page.tsx` | Current-weight card, body fat input field, entries grouped by day with body fat display, body fat history chart |
-| Estadísticas | `app/estadisticas/page.tsx` | Range tabs, MiniStat cards, weight/body fat/lean mass charts, weekly averages; ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | Unified goal selector (first card), calorie profile form, theme selector, CSV export buttons, template manager, session/logout |
+| Comidas | `app/page.tsx` | Day navigation, single daily-totals card, template chips, meal list, MealForm dialog, delete confirm, merged nutrition recommendations card, floating add-meal button |
+| Peso | `app/peso/page.tsx` | Current-weight summary (peso actual, grasa actual, cambio grasa 7 días), combined weight+fat chart, entries grouped by day, floating register button |
+| Estadísticas | `app/estadisticas/page.tsx` | Range tabs, 6 composition MiniStat cards, combined weight/body fat chart, weekly averages, macro summary + 4 macro trend charts; ⓘ links to /metodologia |
+| Ajustes | `app/ajustes/page.tsx` | Unified goal selector (first card), calorie profile form, theme selector (only place with theme switching), CSV export buttons, template manager (incl. new-template dialog), session/logout |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
 | Metodología | `app/metodologia/page.tsx` | Static content page explaining metric formulas + protein recommendation science + citations |
 
@@ -282,7 +282,7 @@ delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
   `/`. The dataset is generated once per tab with `buildDemoStore()` — a
   deterministic generator (mulberry32 PRNG, same meal pools,
   ~45 days, weight/body-fat trend) anchored to the **browser's local `todayKey()`**
-  so «Hoy» is never empty.
+  so the "Comidas" page is never empty.
 - **Isolation & persistence:** demo data lives in **sessionStorage** (`per-tab`,
   survives in-tab reloads) plus the `bw_demo` cookie. Each tab gets its own
   isolated copy; everything resets when the tab/browser closes or when site
@@ -350,16 +350,16 @@ Inputs: user's meals in range, all user weights, requested range, client `today`
 Zero-fill: `buildDailyNutritionSeries()` inserts `{calories:0, protein:0}` for
 days without meals — gaps mean "did not log", not missing data.
 
-**Body fat and lean mass:** The weight repository returns full rows including the
-nullable `bodyFatPct`. The service filters to entries with valid body fat data
-(not null, > 0, < 100) and builds two additional series:
+**Body fat:** The weight repository returns full rows including the nullable
+`bodyFatPct`. The service filters to entries with valid body fat data (not null,
+> 0, < 100) and builds one extra series:
 
 - `bodyFat` — `{ date, bodyFatPct, trend }[]` with a 7-day moving average
-- `leanMass` — `{ date, leanMassKg, trend }[]` derived as `weight × (1 - bodyFatPct/100)`
 
-Both series are empty arrays when no entries in the range have body fat data.
-The `CompositionStats` DTO includes body fat stats (current/change/min/max)
-and lean mass stats (current/change), all null when no body fat data exists.
+The series is an empty array when no entries in the range have body fat data.
+The `CompositionStats` DTO includes body fat stats (current/change/min/max),
+all null when no body fat data exists. The client renders weight, its trend and
+body fat in a single combined chart (`WeightFatChart`, dual Y axes kg / %).
 
 Pure helpers in `lib/stats.ts` (unit-tested):
 
@@ -373,13 +373,13 @@ Pure helpers in `lib/stats.ts` (unit-tested):
 - Rounding helpers live in `lib/nutrition.ts` (`round1`, `round2`).
 
 The service returns one `StatsSummary` DTO (`lib/types.ts`): dense calorie/protein
-series, weight/body fat/lean mass series with pre-rounded trends, summary cards
+series, weight/body fat series with pre-rounded trends, summary cards
 (avg/max/current/change/rate/min/max) and weekly averages. Display formatting
 happens only in components via `formatNumberEs(value, maxDecimals)` (es-ES locale).
 
 ---
 
-## 8. Protein recommendation (`lib/protein.ts` + `components/protein-recommendation.tsx`)
+## 8. Protein recommendation (`lib/protein.ts` + `components/nutrition-recommendations.tsx`)
 
 Evidence-based protein intake ranges computed from the user's unified goal, body weight,
 and optionally body fat percentage:
@@ -393,14 +393,15 @@ and optionally body fat percentage:
 The unified goal (`cut` | `maintain` | `surplus`) is stored as the `calorie_goal` enum
 column on the `users` table and drives both protein recommendations and calorie targets.
 The goal is read via the session endpoint and updated via `PUT /api/settings`.
-The `ProteinRecommendationCard` component on the Hoy page fetches the latest weight
-entry (for body weight and body fat %) and the session (for goal), then calls the pure
-`calculateProteinRecommendation()` function. No server-side computation — the card is
-entirely client-rendered.
+The merged `NutritionRecommendationsCard` component on the "Comidas" page fetches
+the latest weight entry (for body weight and body fat %) and the session (for goal),
+then calls the pure `calculateCalorieRecommendation()` and
+`calculateProteinRecommendation()` functions. No server-side computation — the card
+is entirely client-rendered.
 
 **Files:**
 - `lib/protein.ts` — pure calculation, no dependencies
-- `components/protein-recommendation.tsx` — Hoy page card with progress bar
+- `components/nutrition-recommendations.tsx` — merged calorie + protein card on "Comidas"
 - `server/repositories/settings-repo.ts` — calorie profile CRUD on users table
 - `server/services/settings-service.ts` — thin service wrapper
 - `app/api/settings/route.ts` — `PUT` endpoint

@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ClosePageButton } from "@/components/close-page-button";
 import { t } from "@/i18n";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function MetodologiaPage() {
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 pb-12 md:pt-6">
       <header className="flex items-center justify-between gap-2">
         <h1 className="text-lg font-semibold">{t.metodologia.title}</h1>
+        <ClosePageButton />
       </header>
 
       <p className="text-sm text-muted-foreground">{t.metodologia.intro}</p>

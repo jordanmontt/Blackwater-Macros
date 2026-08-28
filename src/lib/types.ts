@@ -64,9 +64,6 @@ export interface CompositionStats {
   changeBodyFatPct: number | null;
   minBodyFatPct: number | null;
   maxBodyFatPct: number | null;
-  // Lean mass = weight × (1 - bodyFatPct/100)
-  currentLeanMassKg: number | null;
-  changeLeanMassKg: number | null;
 }
 
 export interface StatsSummary {
@@ -76,7 +73,6 @@ export interface StatsSummary {
   fat: DailyNutritionPoint[];
   weights: { date: string; weight: number; trend: number | null }[];
   bodyFat: { date: string; bodyFatPct: number; trend: number | null }[];
-  leanMass: { date: string; leanMassKg: number; trend: number | null }[];
   caloriesAvg: number | null;
   caloriesMaxDay: DailyNutritionPoint | null;
   proteinAvg: number | null;
