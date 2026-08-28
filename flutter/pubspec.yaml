@@ -1,0 +1,38 @@
+name: blackwater_macros
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  fl_chart: ^1.2.0
+  flutter:
+    sdk: flutter
+  flutter_secure_storage: ^11.0.0
+  go_router: ^18.0.0
+  http: ^1.6.0
+  intl: ^0.20.3
+  share_plus: ^13.3.0
+  shared_preferences: ^2.5.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.14.1
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png
+    - assets/logo_square.png
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/logo_square.png
+  adaptive_icon_background: "#0f2318"
+  adaptive_icon_foreground: assets/logo_square.png
+  min_sdk_android: 21
