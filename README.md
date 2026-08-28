@@ -64,31 +64,14 @@ Los usuarios se crean manualmente (no hay registro público).
    npm run dev
    ```
 
-### Datos de ejemplo
-
-Para probar la app con datos realistas (~45 días de comidas, pesos y plantillas):
-
-```bash
-npm run seed            # crea usuario "demo" con contraseña "demo1234"
-npm run seed -- demo otraclave   # credenciales personalizadas
-```
-
-El script es idempotente: borra los datos previos del usuario demo y vuelve a generarlos.
-
 > Requiere Node ≥ 20.19 (recomendado 22 LTS).
 
-### Reiniciar los datos demo en producción
+### Probar sin crear cuenta: modo demo
 
-El despliegue y el desarrollo comparten la misma base de datos Neon, así que los
-scripts que ejecutas en local actúan directamente sobre el sitio en producción:
-
-1. Ejecuta `npm run seed` en tu máquina (usa el `DATABASE_URL` de `.env.local`).
-2. Recarga la web: el usuario `demo / demo1234` vuelve a tener ~45 días de datos
-   que terminan hoy. Tus demás cuentas no se tocan.
-
-Esto es útil para mostrar la app a otras personas con datos frescos: comparte las
-credenciales demo, y cuando quieras "reiniciar la demostración", vuelve a lanzar
-el comando.
+En la pantalla de **Iniciar sesión** pulsa **Explora datos de demo**. Se genera un
+dataset local (~45 días de comidas, pesos y plantillas) que se guarda solo en tu
+navegador (`sessionStorage`) y puedes editar libremente. Se reinicia al cerrar la
+pestaña o desde la barra demo ("Iniciar sesión").
 
 ## Scripts útiles
 
@@ -102,7 +85,6 @@ el comando.
 | `npm run lint` | ESLint |
 | `npm run db:push` | Sincroniza el esquema con la base de datos |
 | `npm run create-user -- u p` | Crea (o actualiza) un usuario |
-| `npm run seed` | Datos de ejemplo para el usuario demo |
 
 ## Estructura
 

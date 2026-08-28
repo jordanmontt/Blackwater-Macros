@@ -45,13 +45,16 @@ src/
     ui/*                    # shadcn/ui primitives (Base UI based)
     meals/*                 # DayNavigator, MealCard, MealForm, SaveTemplateDialog
     protein-recommendation.tsx  # Protein intake recommendation card (Hoy page)
+    calorie-recommendation.tsx  # Calorie intake recommendation card (Hoy page)
+    demo-banner.tsx         # Persistent "demo mode" banner + exit to login
     app-nav.tsx theme-provider.tsx theme-toggle.tsx
   lib/                      # Shared pure logic + types (importable from both sides)
-    types.ts dates.ts nutrition.ts stats.ts protein.ts csv.ts api.ts utils.ts use-mounted.ts
+    types.ts dates.ts nutrition.ts stats.ts stats-builder.ts protein.ts csv.ts api.ts
+    demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
   i18n/es.ts                # ALL user-facing Spanish copy as a typed dictionary
 scripts/
   lib/env.ts                # .env/.env.local loader for scripts outside Next runtime
-  create-user.ts seed.ts    # Ops scripts (tsx)
+  create-user.ts             # Ops script (tsx)
 tests/
   behavior/                 # Black-box tests of USER requirements (Spanish comments)
   unit/                     # Technical edge-case tests of pure functions
@@ -204,6 +207,11 @@ URL contains `localhost`/`127.0.0.1`.
   (cheap edge check, protects pages); every API route independently verifies the
   session against the DB via `withUserId` (source of truth). Deleting a session row
   revokes access immediately even if the browser keeps the cookie.
+- **Demo cookie:** the edge gate additionally allows pages through when the
+  `bw_demo=1` cookie is present (client-side demo mode, see §6.1). This cookie is
+  **not** a session — it grants no API access, and on `/login` only a real
+  `bw_session` bounces back to `/`, so the demo user can always reach the login
+  screen to exit their demo session.
 - **Login page hardening:** `/login` is served with `Cache-Control: no-store`
   (`next.config.ts`) so the back/forward cache cannot resurrect it after login,
   and the page re-checks `/api/auth/session` on mount and on `pageshow`
@@ -250,7 +258,7 @@ Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchem
 | Peso | `app/peso/page.tsx` | Current-weight card, body fat input field, entries grouped by day with body fat display, body fat history chart |
 | Estadísticas | `app/estadisticas/page.tsx` | Range tabs, MiniStat cards, weight/body fat/lean mass charts, weekly averages; ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Unified goal selector (first card), calorie profile form, theme selector, CSV export buttons, template manager, session/logout |
-| Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5) |
+| Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
 | Metodología | `app/metodologia/page.tsx` | Static content page explaining metric formulas + protein recommendation science + citations |
 
 ### Client data layer (`lib/api.ts`)
@@ -259,6 +267,41 @@ Typed fetcher: JSON headers, network-failure → `ApiError(0)`, non-OK → `ApiE
 Any 401 outside the login call triggers a hard `window.location.href = "/login"`
 (intentional full reload so all cached client state resets). Components catch
 errors locally and show `sonner` toasts.
+
+### 6.1 Client-side demo mode (`lib/api.ts` + `lib/demo-store.ts` + `lib/demo-api.ts`)
+
+A **demo mode** lets visitors explore a fully-populated dataset entirely in the
+browser, with **no credentials and no database**. Every page/component already
+routes data through the single `api` object, so demo mode is implemented as a
+drop-in switch inside `lib/api.ts`: when the demo cookie is active, each method
+delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
+`lib/demo-store.ts` instead of hitting `/api/*`.
+
+- **Entry:** the login screen shows an «Explora datos de demo» card. Clicking it
+  calls `enterDemoMode()` (sets the `bw_demo` cookie, see §4.5) and navigates to
+  `/`. The dataset is generated once per tab with `buildDemoStore()` — a
+  deterministic generator (mulberry32 PRNG, same meal pools,
+  ~45 days, weight/body-fat trend) anchored to the **browser's local `todayKey()`**
+  so «Hoy» is never empty.
+- **Isolation & persistence:** demo data lives in **sessionStorage** (`per-tab`,
+  survives in-tab reloads) plus the `bw_demo` cookie. Each tab gets its own
+  isolated copy; everything resets when the tab/browser closes or when site
+  cookies are cleared.
+- **Mutability:** users can add/edit/delete meals, weights, and templates, and
+  update the calorie profile freely. All writes go through `lib/demo-store.ts`,
+  which reuses `resolveMealTotals` (`lib/nutrition.ts`) so totals are computed
+  identically to the server. Nothing is ever sent to the network.
+- **Exit:** a persistent `DemoBanner` (rendered in `layout.tsx` on every app
+  page) shows «Estás en modo demo…» with a **«Iniciar sesión»** button that calls
+  `exitDemoMode()` (clears the cookie + storage) and returns to `/login`. The
+  Ajustes page also exposes the exit action and hides the CSV export card in demo
+  mode (those buttons target server endpoints that require a real session).
+- **Stats:** `api.stats()` in demo computes the `StatsSummary` via the shared
+  `lib/stats-builder.ts` (see §7) — the exact same code the server service uses.
+
+Demo mode intentionally grants **no** API access: the `bw_demo` cookie is only an
+edge allow-list marker (see §4.5); every API route still requires a real
+`bw_session`. Real authentication is completely unchanged.
 
 ### Numeric input convention
 
@@ -294,7 +337,14 @@ the type system flags missing usage sites.
 
 ---
 
-## 7. Stats pipeline (`server/services/stats-service.ts` + `lib/stats.ts`)
+## 7. Stats pipeline (`lib/stats-builder.ts` + `lib/stats.ts`)
+
+The core computation lives in **`lib/stats-builder.ts`** as the pure, client-safe
+`buildStatsFromData(meals, weights, range, today)` — **shared by both the server
+and demo mode** so their numbers never drift. `server/services/stats-service.ts`
+is now a thin adapter: it fetches rows through injected repos (preserving
+testability), maps them to `StatsMeal`/`StatsWeight`, and calls the shared
+builder. `lib/demo-api.ts` calls the same builder on the local demo store.
 
 Inputs: user's meals in range, all user weights, requested range, client `today`.
 Zero-fill: `buildDailyNutritionSeries()` inserts `{calories:0, protein:0}` for
@@ -390,21 +440,21 @@ assuming an API shape.
 
 ## 10. Ops scripts
 
-Both scripts load env files themselves (`scripts/lib/env.ts`) **before** importing
+The script loads env files itself (`scripts/lib/env.ts`) **before** importing
 server modules (dynamic imports keep ordering safe):
 
 ```bash
 npm run create-user -- <username> <password>   # idempotent: updates hash if exists
-npm run seed [-- <username> <password>]        # default demo/demo1234
 ```
 
-Seed details: deterministic PRNG (mulberry32) so output is reproducible; ~45 days
-of meals in both entry modes with realistic jitter; weights trending down with
-noise and occasional twice-a-day entries; 2 starter templates. Idempotency: it
-deletes only the target user (cascade removes their data) then recreates — other
-accounts are untouched, so running it against production refreshes the demo
-without touching personal accounts. Because the 45-day window is relative to
-*now*, re-running shifts the dataset forward ("fresh" demo any time).
+`create-user` creates a new account (or updates the password hash if it already
+exists). It hits the repo's env DB (currently the shared Neon production
+database) — permanent and cross-environment. Real accounts are created only via
+this script or direct SQL (there is no registration UI).
+
+Demo data for testers is now provided entirely by the browser-local demo mode
+(see §6.1), so the old `seed`/`delete-user` scripts were removed.
+
 `drizzle.config.ts` duplicates the env-file loader because drizzle-kit does not
 read `.env.local` on its own.
 
@@ -423,6 +473,9 @@ Three projects, one run (`npm test`):
 Notes:
 - **happy-dom, not jsdom**: Node ≥20.19 supports `require(esm)` but the pinned
   local Node (20.18) does not; happy-dom avoids that chain entirely.
+- Demo-mode store tests live in `tests/behavior/demo-mode.test.tsx` (happy-dom,
+  because `sessionStorage` + `document.cookie` are needed). The shared stats
+  builder is a pure, node-safe unit test in `tests/unit/stats-builder.test.ts`.
 - Config file must be `vitest.config.mts` (package has `"type": "module"`).
 - The `@/` alias must be declared **inside each project's** `resolve.alias`.
 - Behavior-test philosophy: assert user-visible outcomes ("los cambios al editar se
@@ -448,7 +501,7 @@ Browser ── HTTPS ── Vercel (Hobby)
 ```
 
 Current setup intentionally shares **one Neon database between local dev and
-production** — simplest mental model, and `seed`/`create-user` run locally take
+production** — simplest mental model, and `create-user` run locally takes
 effect immediately on the live site. To split environments later: create a second
 Neon project, point Vercel's `DATABASE_URL` at it, run `db:push` + `create-user`
 against that URL locally.
@@ -466,7 +519,7 @@ Gotchas learned the hard way:
 | Want to… | Touch |
 |---|---|
 | Add carbs/fat tracking | schema type comment already reserves fields → extend `validation.ts` + `resolveMealTotals` + `MealForm` fields + stats series |
-| New stats metric | pure helper in `lib/stats.ts` (+ unit test) → wire into `stats-service` DTO → card/chart in Estadísticas → explain in `/metodologia` + `i18n/es.ts` |
+| New stats metric | pure helper in `lib/stats.ts` (+ unit test) → wire into `lib/stats-builder.ts` (shared with server + demo) → card/chart in Estadísticas → explain in `/metodologia` + `i18n/es.ts` |
 | Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → toggle in Ajustes page → read via session endpoint |
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in `i18n/es.ts`; proxy already protects it |
 | Second language | copy `i18n/es.ts` → `en.ts`, export a dictionary selector (structure is ready, nothing else hardcodes Spanish) |

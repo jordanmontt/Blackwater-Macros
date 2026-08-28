@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { api, ApiError } from "@/lib/api";
+import { exitDemoMode } from "@/lib/demo-store";
+import { useDemoMode } from "@/lib/use-demo-mode";
 import { formatTemplate } from "@/i18n";
 import type { CalorieProfile, Goal, MealTemplateDTO } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -37,6 +39,7 @@ const GOAL_LABELS: Record<Goal, string> = {
 export default function AjustesPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const demoMode = useDemoMode();
   const [username, setUsername] = useState("");
   const [templates, setTemplates] = useState<MealTemplateDTO[]>([]);
   const [calorieProfile, setCalorieProfile] = useState<CalorieProfile>({
@@ -124,6 +127,12 @@ export default function AjustesPage() {
   }
 
   async function handleLogout() {
+    if (demoMode) {
+      exitDemoMode();
+      router.replace("/login");
+      router.refresh();
+      return;
+    }
     try {
       await api.logout();
       router.replace("/login");
@@ -398,6 +407,7 @@ export default function AjustesPage() {
         <CardContent className="flex flex-col gap-2 sm:flex-row">
           <Button
             variant="outline"
+            disabled={demoMode}
             nativeButton={false}
             render={<a href="/api/export/meals.csv" download />}
           >
@@ -405,12 +415,18 @@ export default function AjustesPage() {
           </Button>
           <Button
             variant="outline"
+            disabled={demoMode}
             nativeButton={false}
             render={<a href="/api/export/weights.csv" download />}
           >
             <DownloadIcon /> {t.ajustes.exportWeights}
           </Button>
         </CardContent>
+        {demoMode ? (
+          <CardContent className="pt-0">
+            <p className="text-xs text-muted-foreground">{t.ajustes.exportDemoDisabled}</p>
+          </CardContent>
+        ) : null}
       </Card>
 
       <Card>
@@ -447,7 +463,7 @@ export default function AjustesPage() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">{t.ajustes.session}</CardTitle>
           <CardDescription>
-            {t.ajustes.loggedInAs} {username || "…"}
+            {demoMode ? t.demo.banner : `${t.ajustes.loggedInAs} ${username || "…"}`}
           </CardDescription>
         </CardHeader>
         <CardContent>

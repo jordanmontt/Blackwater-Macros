@@ -12,8 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "create-user": "tsx scripts/create-user.ts",
-    "seed": "tsx scripts/seed.ts"
+    "create-user": "tsx scripts/create-user.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

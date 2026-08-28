@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api, ApiError } from "@/lib/api";
+import { enterDemoMode } from "@/lib/demo-store";
 import { t } from "@/i18n";
 
 export default function LoginPage() {
@@ -68,6 +69,12 @@ export default function LoginPage() {
     }
   }
 
+  function handleDemo() {
+    enterDemoMode();
+    router.replace("/");
+    router.refresh();
+  }
+
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-4">
@@ -118,6 +125,17 @@ export default function LoginPage() {
                 {pending ? t.common.loading : t.auth.submit}
               </Button>
             </form>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.demo.title}</CardTitle>
+            <CardDescription>{t.demo.description}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" className="w-full" onClick={handleDemo}>
+              {t.demo.enter}
+            </Button>
           </CardContent>
         </Card>
       </div>

@@ -16,6 +16,14 @@ export const t = {
     genericError: "No se pudo iniciar sesión. Inténtalo de nuevo.",
     logout: "Cerrar sesión",
   },
+  demo: {
+    title: "Explorar datos de demo",
+    description:
+      "Entra sin crear una cuenta y explora todos los datos de ejemplo: comidas, peso, estadísticas y plantillas. Puedes añadir, editar y borrar lo que quieras; todo se guarda solo en este navegador y se borra al cerrar la pestaña.",
+    enter: "Explorar datos de demo",
+    banner: "Estás en modo demo. Los cambios se guardan solo en este navegador y se reinician al cerrar la pestaña.",
+    exit: "Iniciar sesión",
+  },
   hoy: {
     title: "Hoy",
     addMeal: "Añadir comida",
@@ -214,6 +222,7 @@ export const t = {
     exportMeals: "Exportar comidas (CSV)",
     exportWeights: "Exportar peso (CSV)",
     exportHint: "Descarga todos tus datos en formato CSV.",
+    exportDemoDisabled: "La exportación está desactivada en el modo demo.",
     methodologyLink: "Cómo se calculan las métricas",
     goalSection: "Objetivo deportivo",
     goalDescription:

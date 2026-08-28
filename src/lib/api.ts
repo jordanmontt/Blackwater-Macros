@@ -7,6 +7,8 @@ import type {
   StatsSummary,
   WeightDTO,
 } from "./types";
+import { demoApi } from "./demo-api";
+import { isDemoMode } from "./demo-store";
 
 export class ApiError extends Error {
   constructor(
@@ -84,10 +86,17 @@ export const api = {
   login: (username: string, password: string) =>
     request<{ ok: true }>("/api/auth/login", jsonBody({ username, password })),
 
-  logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST" }),
+  logout: () => {
+    if (isDemoMode()) {
+      // Demo sessions have no server session to destroy.
+      return Promise.resolve({ ok: true as const });
+    }
+    return request<{ ok: true }>("/api/auth/logout", { method: "POST" });
+  },
 
-  session: () =>
-    request<{
+  session: () => {
+    if (isDemoMode()) return demoApi.session();
+    return request<{
       username: string;
       calorieProfile: CalorieProfile;
     }>("/api/auth/session", {
@@ -103,20 +112,24 @@ export const api = {
         walkingMinutesPerDay: null,
         calorieGoal: null,
       } as CalorieProfile,
-    })),
+    }));
+  },
 
   listMeals: async (from: string, to: string) => {
+    if (isDemoMode()) return demoApi.listMeals(from, to);
     const query = new URLSearchParams({ from, to });
     const data = await request<{ meals: MealDTO[] }>(`/api/meals?${query}`);
     return data.meals;
   },
 
   createMeal: async (payload: MealPayload) => {
+    if (isDemoMode()) return demoApi.createMeal(payload);
     const data = await request<{ meal: MealDTO }>("/api/meals", jsonBody(payload));
     return data.meal;
   },
 
   updateMeal: async (id: string, payload: MealPayload) => {
+    if (isDemoMode()) return demoApi.updateMeal(id, payload);
     const data = await request<{ meal: MealDTO }>(`/api/meals/${id}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
@@ -124,9 +137,13 @@ export const api = {
     return data.meal;
   },
 
-  deleteMeal: (id: string) => request<{ ok: true }>(`/api/meals/${id}`, { method: "DELETE" }),
+  deleteMeal: (id: string) => {
+    if (isDemoMode()) return demoApi.deleteMeal(id);
+    return request<{ ok: true }>(`/api/meals/${id}`, { method: "DELETE" });
+  },
 
-  reorderMeals: async (orderedIds: string[]) => {
+  reorderMeals: (orderedIds: string[]) => {
+    if (isDemoMode()) return demoApi.reorderMeals(orderedIds);
     return request<{ ok: true }>("/api/meals/reorder", {
       method: "PATCH",
       body: JSON.stringify({ orderedIds }),
@@ -134,29 +151,36 @@ export const api = {
   },
 
   listTemplates: async () => {
+    if (isDemoMode()) return demoApi.listTemplates();
     const data = await request<{ templates: MealTemplateDTO[] }>("/api/templates");
     return data.templates;
   },
 
   createTemplate: async (payload: TemplatePayload) => {
+    if (isDemoMode()) return demoApi.createTemplate(payload);
     const data = await request<{ template: MealTemplateDTO }>("/api/templates", jsonBody(payload));
     return data.template;
   },
 
-  deleteTemplate: (id: string) =>
-    request<{ ok: true }>(`/api/templates/${id}`, { method: "DELETE" }),
+  deleteTemplate: (id: string) => {
+    if (isDemoMode()) return demoApi.deleteTemplate(id);
+    return request<{ ok: true }>(`/api/templates/${id}`, { method: "DELETE" });
+  },
 
   listWeights: async () => {
+    if (isDemoMode()) return demoApi.listWeights();
     const data = await request<{ weights: WeightDTO[] }>("/api/weights");
     return data.weights;
   },
 
   createWeight: async (payload: WeightPayload) => {
+    if (isDemoMode()) return demoApi.createWeight(payload);
     const data = await request<{ weight: WeightDTO }>("/api/weights", jsonBody(payload));
     return data.weight;
   },
 
   updateWeight: async (id: string, payload: WeightPayload) => {
+    if (isDemoMode()) return demoApi.updateWeight(id, payload);
     const data = await request<{ weight: WeightDTO }>(`/api/weights/${id}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
@@ -164,14 +188,19 @@ export const api = {
     return data.weight;
   },
 
-  deleteWeight: (id: string) => request<{ ok: true }>(`/api/weights/${id}`, { method: "DELETE" }),
+  deleteWeight: (id: string) => {
+    if (isDemoMode()) return demoApi.deleteWeight(id);
+    return request<{ ok: true }>(`/api/weights/${id}`, { method: "DELETE" });
+  },
 
   stats: async (range: StatsRange, today: string) => {
+    if (isDemoMode()) return demoApi.stats(range, today);
     const query = new URLSearchParams({ range, today });
     return request<StatsSummary>(`/api/stats?${query}`);
   },
 
   updateSettings: async (payload: CalorieProfile) => {
+    if (isDemoMode()) return demoApi.updateSettings(payload);
     return request<{
       calorieProfile: CalorieProfile;
     }>("/api/settings", {
