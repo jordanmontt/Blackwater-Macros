@@ -228,7 +228,7 @@ export default function PesoPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-3 gap-2 px-4 pb-4">
           <div className="rounded-lg border px-3 py-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="line-clamp-2 min-h-[2lh] text-xs font-medium leading-snug text-muted-foreground">
               {t.peso.changeWeight7d}
             </p>
             <p className="text-lg font-semibold tabular-nums">
@@ -238,7 +238,7 @@ export default function PesoPage() {
             </p>
           </div>
           <div className="rounded-lg border px-3 py-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="line-clamp-2 min-h-[2lh] text-xs font-medium leading-snug text-muted-foreground">
               {t.peso.currentBodyFat}
             </p>
             <p className="text-lg font-semibold tabular-nums">
@@ -246,7 +246,7 @@ export default function PesoPage() {
             </p>
           </div>
           <div className="rounded-lg border px-3 py-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="line-clamp-2 min-h-[2lh] text-xs font-medium leading-snug text-muted-foreground">
               {t.peso.changeFat7d}
             </p>
             <p className="text-lg font-semibold tabular-nums">

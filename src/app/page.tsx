@@ -173,7 +173,7 @@ export default function HoyPage() {
             <CardTitle className="text-base">{t.hoy.dailyTotals}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-x-3 gap-y-2 px-4 pb-2.5 sm:grid-cols-4">
-            <div className="text-center">
+            <div>
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t.hoy.calories}
               </p>
@@ -182,7 +182,7 @@ export default function HoyPage() {
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.kcalUnit}</span>
               </p>
             </div>
-            <div className="text-center">
+            <div>
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t.hoy.protein}
               </p>
@@ -191,7 +191,7 @@ export default function HoyPage() {
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.proteinUnit}</span>
               </p>
             </div>
-            <div className="text-center">
+            <div>
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t.hoy.carbs}
               </p>
@@ -200,7 +200,7 @@ export default function HoyPage() {
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.gramUnit}</span>
               </p>
             </div>
-            <div className="text-center">
+            <div>
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t.hoy.fat}
               </p>
