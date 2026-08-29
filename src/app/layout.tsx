@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AppNav } from "@/components/app-nav";
 import { DemoBanner } from "@/components/demo-banner";
 import { PwaInstall } from "@/components/pwa-install";
+import { ThemeColorSync } from "@/components/theme-color-sync";
 import { AuthRedirect } from "@/components/auth-redirect";
 import { t } from "@/i18n";
 import "./globals.css";
@@ -32,10 +33,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f5f4ef" },
-    { media: "(prefers-color-scheme: dark)", color: "#151810" },
-  ],
+  themeColor: "#f5f4ef",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -46,7 +44,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var m=document.querySelector('meta[name="theme-color"]');if(m&&window.matchMedia('(prefers-color-scheme: dark)').matches){m.setAttribute('content','#151810');}})();`,
+          }}
+        />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ThemeColorSync />
           <DemoBanner />
           <PwaInstall />
           <AuthRedirect />
