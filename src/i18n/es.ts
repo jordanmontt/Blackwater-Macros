@@ -150,6 +150,8 @@ export const t = {
     inRange: "en rango",
     belowRange: "por debajo",
     aboveRange: "por encima",
+    missingProtein: "te faltan {n} g",
+    exceededProtein: "te pasaste de {n} g",
     noWeight: "Registra tu peso para ver recomendaciones",
   },
   calorias: {
@@ -176,6 +178,8 @@ export const t = {
     inRange: "en rango",
     belowRange: "por debajo",
     aboveRange: "por encima",
+    missingCalories: "te faltan {n} kcal",
+    exceededCalories: "te pasaste de {n} kcal",
   },
   metodologia: {
     title: "Metodología",

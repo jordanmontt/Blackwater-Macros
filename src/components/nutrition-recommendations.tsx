@@ -28,6 +28,36 @@ function emptyProfile(): CalorieProfile {
   };
 }
 
+/**
+ * Status text for an intake vs a recommended range: "en rango", or how much
+ * is missing to reach the lower edge ("te faltan X") / exceeded past the
+ * upper edge ("te pasaste de X").
+ */
+function intakeStatus(
+  current: number,
+  rangeMin: number,
+  rangeMax: number,
+  missingTemplate: string,
+  exceededTemplate: string,
+  inRangeLabel: string,
+): { statusLabel: string; statusColor: string } {
+  if (current >= rangeMin && current <= rangeMax) {
+    return { statusLabel: inRangeLabel, statusColor: "text-green-600 dark:text-green-400" };
+  }
+  if (current < rangeMin) {
+    const missing = formatNumberEs(Math.round(rangeMin - current), 0);
+    return {
+      statusLabel: formatTemplate(missingTemplate, { n: missing }),
+      statusColor: "text-yellow-600 dark:text-yellow-400",
+    };
+  }
+  const exceeded = formatNumberEs(Math.round(current - rangeMax), 0);
+  return {
+    statusLabel: formatTemplate(exceededTemplate, { n: exceeded }),
+    statusColor: "text-orange-600 dark:text-orange-400",
+  };
+}
+
 function IntakeBar({
   current,
   rangeMin,
@@ -45,11 +75,7 @@ function IntakeBar({
   const barPct = Math.min(Math.max(pct, 0), 100);
   return (
     <div className="space-y-1.5">
-      <p className="text-xs text-muted-foreground">
-        {t.calorias.currentIntake}:{" "}
-        <span className="font-medium text-foreground">{formatNumberEs(current, 1)}</span>{" "}
-        <span className={statusColor}>{statusLabel}</span>
-      </p>
+      <p className={`text-xs ${statusColor}`}>{statusLabel}</p>
       <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-primary transition-all"
@@ -143,20 +169,14 @@ export function NutritionRecommendationsCard({
               current={dailyCalories}
               rangeMin={calorieRec.targetMin}
               rangeMax={calorieRec.targetMax}
-              statusLabel={
-                dailyCalories >= calorieRec.targetMin && dailyCalories <= calorieRec.targetMax
-                  ? t.calorias.inRange
-                  : dailyCalories < calorieRec.targetMin
-                    ? t.calorias.belowRange
-                    : t.calorias.aboveRange
-              }
-              statusColor={
-                dailyCalories >= calorieRec.targetMin && dailyCalories <= calorieRec.targetMax
-                  ? "text-green-600 dark:text-green-400"
-                  : dailyCalories < calorieRec.targetMin
-                    ? "text-yellow-600 dark:text-yellow-400"
-                    : "text-orange-600 dark:text-orange-400"
-              }
+              {...intakeStatus(
+                dailyCalories,
+                calorieRec.targetMin,
+                calorieRec.targetMax,
+                t.calorias.missingCalories,
+                t.calorias.exceededCalories,
+                t.calorias.inRange,
+              )}
             />
           </section>
         ) : null}
@@ -183,20 +203,14 @@ export function NutritionRecommendationsCard({
               current={dailyProtein}
               rangeMin={proteinRec.bwRange.min}
               rangeMax={proteinRec.bwRange.max}
-              statusLabel={
-                dailyProtein >= proteinRec.bwRange.min && dailyProtein <= proteinRec.bwRange.max
-                  ? t.protein.inRange
-                  : dailyProtein < proteinRec.bwRange.min
-                    ? t.protein.belowRange
-                    : t.protein.aboveRange
-              }
-              statusColor={
-                dailyProtein >= proteinRec.bwRange.min && dailyProtein <= proteinRec.bwRange.max
-                  ? "text-green-600 dark:text-green-400"
-                  : dailyProtein < proteinRec.bwRange.min
-                    ? "text-yellow-600 dark:text-yellow-400"
-                    : "text-orange-600 dark:text-orange-400"
-              }
+              {...intakeStatus(
+                dailyProtein,
+                proteinRec.bwRange.min,
+                proteinRec.bwRange.max,
+                t.protein.missingProtein,
+                t.protein.exceededProtein,
+                t.protein.inRange,
+              )}
             />
           </section>
         ) : null}
