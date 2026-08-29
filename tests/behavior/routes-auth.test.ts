@@ -26,7 +26,6 @@ vi.mock("next/headers", () => ({
 }));
 
 import { POST as postLogin } from "@/app/api/auth/login/route";
-import { POST as postRegister } from "@/app/api/auth/register/route";
 import { POST as postLogout } from "@/app/api/auth/logout/route";
 import { GET as getSession } from "@/app/api/auth/session/route";
 
@@ -80,17 +79,6 @@ describe("rutas de autenticación", () => {
     });
   });
 
-  describe("POST /api/auth/register", () => {
-    it("devuelve 403 y no crea usuarios mientras el registro está deshabilitado", async () => {
-      const res = await postRegister(
-        loginRequest({ username: "ana", password: "clave-secreta-1" }),
-      );
-      expect(res.status).toBe(403);
-      expect(await res.json()).toEqual({ error: "Registro deshabilitado" });
-      expect(world!.data.users.size).toBe(0);
-    });
-  });
-
   describe("POST /api/auth/logout", () => {
     it("devuelve 200 y borra la sesión activa", async () => {
       const token = seedSession(world!, "u-1", "token-salida");
@@ -112,6 +100,35 @@ describe("rutas de autenticación", () => {
       const res = await getSession();
       expect(res.status).toBe(401);
       expect(await res.json()).toEqual({ error: "No autenticado" });
+    });
+
+    it("devuelve el usuario con perfil calórico y rol", async () => {
+      const user = await seedUser(world!, "ana", "pass", true);
+      holder.authCookie.value = seedSession(world!, user.id);
+      const res = await getSession();
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.username).toBe("ana");
+      expect(body.isAdmin).toBe(true);
+      expect(body.calorieProfile).toEqual({
+        gender: null,
+        birthYear: null,
+        heightCm: null,
+        gymDaysPerWeek: null,
+        gymSessionMinutes: null,
+        walkingMinutesPerDay: null,
+        calorieGoal: null,
+      });
+    });
+
+    it("marca isAdmin en falso para usuarios normales", async () => {
+      const user = await seedUser(world!, "ray", "pass");
+      holder.authCookie.value = seedSession(world!, user.id);
+      const res = await getSession();
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.username).toBe("ray");
+      expect(body.isAdmin).toBe(false);
     });
   });
 });

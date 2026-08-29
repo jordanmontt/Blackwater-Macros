@@ -17,6 +17,7 @@ function makeMemoryDeps() {
       id: string;
       username: string;
       passwordHash: string;
+      isAdmin: boolean;
       gender: "male" | "female" | null;
       birthYear: number | null;
       heightCm: number | null;
@@ -37,11 +38,18 @@ function makeMemoryDeps() {
           [...users.values()].find((user) => user.username === username.toLowerCase()) ?? null
         );
       },
+      async findById(id: string) {
+        return users.get(id) ?? null;
+      },
+      async list() {
+        return [...users.values()];
+      },
       async create({ username, passwordHash }: { username: string; passwordHash: string }) {
         const user = {
           id: `u-${nextId++}`,
           username: username.toLowerCase(),
           passwordHash,
+          isAdmin: false,
           gender: null,
           birthYear: null,
           heightCm: null,
@@ -53,6 +61,20 @@ function makeMemoryDeps() {
         };
         users.set(user.id, user);
         return user;
+      },
+      async update(
+        id: string,
+        data: { username?: string; passwordHash?: string; isAdmin?: boolean },
+      ) {
+        const existing = users.get(id);
+        if (!existing) return null;
+        const updated = { ...existing, ...data };
+        if (data.username !== undefined) updated.username = data.username.toLowerCase();
+        users.set(id, updated);
+        return updated;
+      },
+      async delete(id: string) {
+        return users.delete(id);
       },
     },
     sessions: {

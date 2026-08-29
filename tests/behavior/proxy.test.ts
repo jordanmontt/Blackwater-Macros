@@ -39,7 +39,7 @@ describe("proxy (guard de rutas)", () => {
   });
 
   it("redirige el resto de páginas a /login sin cookies", () => {
-    for (const path of ["/", "/peso", "/estadisticas", "/ajustes", "/metodologia"]) {
+    for (const path of ["/", "/peso", "/estadisticas", "/ajustes", "/admin", "/metodologia"]) {
       const res = proxy(buildRequest(path));
       expect(res.status, path).toBe(307);
       expect(res.headers.get("location"), path).toBe("http://localhost:3000/login");

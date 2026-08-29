@@ -1,40 +1,24 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { getSessionUserId } from "@/server/api-auth";
 import { serviceDeps } from "@/server/composition";
-import { db } from "@/server/db/client";
-import { users } from "@/server/db/schema";
 
 export async function GET() {
   const userId = await getSessionUserId(serviceDeps.auth);
   if (!userId) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
-  const rows = await db
-    .select({
-      username: users.username,
-      gender: users.gender,
-      birthYear: users.birthYear,
-      heightCm: users.heightCm,
-      gymDaysPerWeek: users.gymDaysPerWeek,
-      gymSessionMinutes: users.gymSessionMinutes,
-      walkingMinutesPerDay: users.walkingMinutesPerDay,
-      calorieGoal: users.calorieGoal,
-    })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  const row = rows[0];
+  const user = await serviceDeps.auth.users.findById(userId);
   return NextResponse.json({
-    username: row?.username ?? "",
+    username: user?.username ?? "",
+    isAdmin: user?.isAdmin ?? false,
     calorieProfile: {
-      gender: row?.gender ?? null,
-      birthYear: row?.birthYear ?? null,
-      heightCm: row?.heightCm ?? null,
-      gymDaysPerWeek: row?.gymDaysPerWeek ?? null,
-      gymSessionMinutes: row?.gymSessionMinutes ?? null,
-      walkingMinutesPerDay: row?.walkingMinutesPerDay ?? null,
-      calorieGoal: row?.calorieGoal ?? null,
+      gender: user?.gender ?? null,
+      birthYear: user?.birthYear ?? null,
+      heightCm: user?.heightCm ?? null,
+      gymDaysPerWeek: user?.gymDaysPerWeek ?? null,
+      gymSessionMinutes: user?.gymSessionMinutes ?? null,
+      walkingMinutesPerDay: user?.walkingMinutesPerDay ?? null,
+      calorieGoal: user?.calorieGoal ?? null,
     },
   });
 }

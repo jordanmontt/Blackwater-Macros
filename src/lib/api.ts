@@ -1,4 +1,5 @@
 import type {
+  AdminUserDTO,
   CalorieProfile,
   IngredientInput,
   MealDTO,
@@ -106,11 +107,13 @@ export const api = {
     if (isDemoMode()) return demoApi.session();
     return request<{
       username: string;
+      isAdmin: boolean;
       calorieProfile: CalorieProfile;
     }>("/api/auth/session", {
       method: "GET",
     }).catch(() => ({
       username: "",
+      isAdmin: false,
       calorieProfile: {
         gender: null,
         birthYear: null,
@@ -224,5 +227,28 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(payload),
     });
+  },
+
+  adminUsers: async () => {
+    const data = await request<{ users: AdminUserDTO[] }>("/api/admin/users");
+    return data.users;
+  },
+
+  adminCreateUser: async (payload: { username: string; password: string }) => {
+    await request<{ ok: true }>("/api/admin/users", jsonBody(payload));
+  },
+
+  adminUpdateUser: async (
+    id: string,
+    payload: { username?: string; password?: string; isAdmin?: boolean },
+  ) => {
+    await request<{ user: AdminUserDTO }>(`/api/admin/users/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  adminDeleteUser: async (id: string) => {
+    await request<{ ok: true }>(`/api/admin/users/${id}`, { method: "DELETE" });
   },
 };

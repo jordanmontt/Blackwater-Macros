@@ -45,6 +45,7 @@ vi.mock("@/lib/api", () => ({
   api: {
     session: vi.fn(async () => ({
       username: "ana",
+      isAdmin: false,
       calorieProfile: profile({ calorieGoal: "maintain" }),
     })),
     listTemplates: vi.fn(async () => [template()]),
@@ -193,5 +194,24 @@ describe("pantalla Ajustes", () => {
     await user.click(await screen.findByRole("button", { name: t.auth.logout }));
     expect(vi.mocked(api.logout)).toHaveBeenCalledTimes(1);
     expect(routerMock.replace).toHaveBeenCalledWith("/login");
+  });
+
+  it("oculta la sección de administración para usuarios normales", async () => {
+    render(<AjustesPage />);
+    await screen.findByText("Sesión iniciada como ana");
+    expect(screen.queryByText(t.ajustes.administration)).not.toBeInTheDocument();
+  });
+
+  it("muestra la sección de administración solo para administradores", async () => {
+    vi.mocked(api.session).mockResolvedValue({
+      username: "ana",
+      isAdmin: true,
+      calorieProfile: profile({ calorieGoal: "maintain" }),
+    });
+    render(<AjustesPage />);
+
+    const link = await screen.findByRole("button", { name: t.ajustes.openAdmin });
+    expect(link).toHaveAttribute("href", "/admin");
+    expect(screen.getAllByText(t.ajustes.administration).length).toBeGreaterThan(0);
   });
 });

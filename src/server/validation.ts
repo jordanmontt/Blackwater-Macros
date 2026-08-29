@@ -92,3 +92,26 @@ export const registerInputSchema = z.object({
   username: z.string().trim().min(3, "El usuario debe tener al menos 3 caracteres").max(80),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(200),
 });
+
+export const adminUpdateUserSchema = z
+  .object({
+    username: z
+      .string()
+      .trim()
+      .min(3, "El usuario debe tener al menos 3 caracteres")
+      .max(80)
+      .optional(),
+    password: z
+      .string()
+      .min(8, "La contraseña debe tener al menos 8 caracteres")
+      .max(200)
+      .optional(),
+    isAdmin: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.username === undefined && data.password === undefined && data.isAdmin === undefined) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "No hay cambios que aplicar" });
+    }
+  });
+
+export type AdminUpdateUserInput = z.infer<typeof adminUpdateUserSchema>;

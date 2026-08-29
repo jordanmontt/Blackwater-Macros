@@ -5,7 +5,7 @@ import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { DumbbellIcon, DownloadIcon, FlameIcon, InfoIcon, LogOutIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { DumbbellIcon, DownloadIcon, FlameIcon, InfoIcon, LogOutIcon, PencilIcon, PlusIcon, ShieldIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ export default function AjustesPage() {
   const { theme, setTheme } = useTheme();
   const demoMode = useDemoMode();
   const [username, setUsername] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [templates, setTemplates] = useState<MealTemplateDTO[]>([]);
   const [calorieProfile, setCalorieProfile] = useState<CalorieProfile>({
     gender: null,
@@ -62,6 +63,7 @@ export default function AjustesPage() {
   useEffect(() => {
     void api.session().then((session) => {
       setUsername(session.username);
+      setIsAdmin(session.isAdmin);
       setCalorieProfile(session.calorieProfile);
     });
     api
@@ -531,6 +533,26 @@ export default function AjustesPage() {
         template={editingTemplate}
         onSaved={handleSavedTemplate}
       />
+
+      {isAdmin && !demoMode ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ShieldIcon className="size-4" /> {t.ajustes.administration}
+            </CardTitle>
+            <CardDescription>{t.ajustes.administrationDescription}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/admin" />}
+            >
+              <ShieldIcon /> {t.ajustes.openAdmin}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader className="pb-3">

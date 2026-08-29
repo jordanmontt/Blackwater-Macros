@@ -25,9 +25,10 @@ For general usage and setup, read [README.md](./README.md) first.
 src/
   app/                      # App Router: pages (static) + /api routes (serverless)
     page.tsx                # "Comidas" — daily meal log (client component)
-    peso/ estadisticas/ ajustes/ login/ metodologia/
+    admin/ ajustes/ estadisticas/ login/ metodologia/ peso/
     api/                    # Route handlers; every folder = one endpoint family
       auth/login|logout|session/
+      admin/users/
       meals/[id]/ templates/[id]/ weights/[id]/ stats/ settings/ export/[kind]/
   proxy.ts                  # Edge gate: redirects to /login without session cookie
   server/                   # Backend-only code (never imported by client)
@@ -38,7 +39,7 @@ src/
     auth/password.ts        # scrypt hash/verify (pure, unit-tested)
     auth/session.ts         # Token generation, TTL, cookie options (pure)
     composition.ts          # Composition root: real repos wired into serviceDeps
-    route-utils.ts          # withUserId() guard + jsonError()
+    route-utils.ts          # withUserId()/withAdmin() guards + jsonError()
     api-auth.ts             # getSessionUserId(): cookie → sessions row → user
     validation.ts           # zod schemas shared by all mutating endpoints
   components/
@@ -54,7 +55,8 @@ src/
   i18n/es.ts                # ALL user-facing Spanish copy as a typed dictionary
 scripts/
   lib/env.ts                # .env/.env.local loader for scripts outside Next runtime
-  create-user.ts             # Ops script (tsx)
+  create-user.ts             # Ops script (tsx): create / reset password
+  set-admin.ts               # Ops script (tsx): promote to admin
 tests/
   behavior/                 # Black-box tests of USER requirements (Spanish comments)
   unit/                     # Technical edge-case tests of pure functions
@@ -73,7 +75,7 @@ Six tables, all UUID-keyed via `gen_random_uuid()`, all user data cascade-delete
 with its owner.
 
 ```
-users        id, username (unique), password_hash,
+users        id, username (unique), password_hash, is_admin (default false),
              gender ENUM gender (male|female),
              birth_year, height_cm, gym_days_per_week,
              gym_session_minutes, walking_minutes_per_day,
@@ -146,10 +148,18 @@ fetch /api/meals
 Errors: `ZodError` → 400 with the first issue message; anything else → logged +
 500 `{"error":"Error interno"}`. Handlers never try/catch manually.
 
+Admin endpoints (`/api/admin/*`) go through `withAdmin(...)` instead: the same
+cookie → session → user lookup, plus a DB role check of `actor.isAdmin`
+(non-admins get 403 and handlers receive the acting `UserRow`). The role is
+re-checked on every request, so a demotion takes effect immediately on sessions
+already open.
+
 ### 4.2 Repositories (injectable factories)
 
 Each file exports `createXRepository(db: AppDb): XRepository` returning plain
-functions (`listInRange`, `getById`, `create`, `update`, `delete`). Two reasons:
+functions (`listInRange`, `getById`, `create`, `update`, `delete`). The `users`
+repo also exposes `findById`, `list`, `update` and `delete` to back the admin UI.
+Two reasons:
 
 1. **Every query is forced through a userId parameter** — isolation is structural.
 2. **Tests swap them for in-memory Maps** (see `tests/behavior/*.test.ts`) — no DB
@@ -159,7 +169,8 @@ functions (`listInRange`, `getById`, `create`, `update`, `delete`). Two reasons:
 
 | Service | Responsibility |
 |---|---|
-| `auth-service` | `login(deps, username, password)` → verify scrypt hash, issue session row + token; `logout` deletes session |
+| `auth-service` | `login(deps, username, password)` → verify scrypt hash, issue session row + token; `logout` deletes session; `register` (create account, used by the admin UI) |
+| `admin-service` | user CRUD behind `/api/admin/*`: list (no secrets), update username/password/role, delete; guards: no self-demote/self-delete, never demote/delete the last admin |
 | `meals-service` | create/update/delete/list meals; computes `resolved_*` on every write |
 | `templates-service` | CRUD over meal_templates |
 | `weights-service` | CRUD over weights (timestamps kept exact, UTC); DTOs include `bodyFatPct` |
@@ -220,7 +231,9 @@ URL contains `localhost`/`127.0.0.1`.
   (`event.persisted` restores bypass the proxy entirely). That check uses raw
   `fetch`, *not* `api.session()` — the global 401 handler would hard-reload /login
   for logged-out visitors.
-- **No registration UI** — accounts exist only via `create-user` script or SQL.
+- **No self-service registration** — accounts are created by admins in the
+  `/admin` UI (`POST /api/admin/users`) or via the `create-user`/`set-admin`
+  scripts.
 
 ---
 
@@ -232,12 +245,16 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 |---|---|---|
 | POST `/api/auth/login` | – | `{username,password}` → sets cookie, `{ok:true}`; 401 on bad credentials |
 | POST `/api/auth/logout` | ✓ | Deletes current session row + clears cookie |
-| GET `/api/auth/session` | ✓ | `{username, calorieProfile}` for display and settings |
+| GET `/api/auth/session` | ✓ | `{username, isAdmin, calorieProfile}` for display and settings |
+| GET `/api/admin/users` | ✓ + admin | List all users as `{username,isAdmin,createdAt}` (no credentials) |
+| POST `/api/admin/users` | ✓ + admin | Create account → `{ok:true}` (201); 409 if username exists |
+| PATCH `/api/admin/users/:id` | ✓ + admin | Update username/password/role → `{user}`; guards: no self-demote, ≥1 admin |
+| DELETE `/api/admin/users/:id` | ✓ + admin | Delete account → `{ok:true}`; guards: no self-delete, ≥1 admin |
 | GET `/api/meals?from&to` | ✓ | Meals in date range (inclusive `YYYY-MM-DD` keys) |
 | POST `/api/meals` | ✓ | Create meal (`MealInput`) → `{meal}` |
 | PATCH `/api/meals/:id` | ✓ | Update meal (full payload replace) → `{meal}` or 404 |
 | DELETE `/api/meals/:id` | ✓ | Delete → `{ok:true}` or 404 |
-| GET/POST `/api/templates`, DELETE `/api/templates/:id` | ✓ | Template management |
+| GET/POST `/api/templates`, PATCH/DELETE `/api/templates/:id` | ✓ | Template management |
 | GET/POST `/api/weights`, PATCH/DELETE `/api/weights/:id` | ✓ | Weight entries (`WeightInput`: ISO timestamp + optional `bodyFatPct`) |
 | PUT `/api/settings` | ✓ | Update calorie profile (`CalorieProfile`) → `{calorieProfile}` |
 | GET `/api/stats?range=7d\|30d\|90d\|all&today=YYYY-MM-DD` | ✓ | Full `StatsSummary` DTO (weights, body fat, nutrition) |
@@ -245,8 +262,8 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 
 Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchema`,
 `weightInputSchema` (includes optional `bodyFatPct`), `calorieProfileInputSchema`
-(calorieGoal enum: cut|maintain|surplus), `loginInputSchema`, plus
-`ingredientInputSchema` reused inside.
+(calorieGoal enum: cut|maintain|surplus), `loginInputSchema`, `registerInputSchema`,
+`adminUpdateUserSchema`, plus `ingredientInputSchema` reused inside.
 
 ---
 
@@ -259,16 +276,19 @@ Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchem
 | Comidas | `app/page.tsx` | Day navigation, single daily-totals card, template chips, meal list, MealForm dialog, delete confirm, merged nutrition recommendations card, floating add-meal button |
 | Peso | `app/peso/page.tsx` | Current-weight summary (peso actual, grasa actual, cambio grasa 7 días), combined weight+fat chart, entries grouped by day, floating register button |
 | Estadísticas | `app/estadisticas/page.tsx` | Range tabs, 6 composition MiniStat cards, combined weight/body fat chart, weekly averages, macro summary + 4 macro trend charts; ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | Unified goal selector (first card), calorie profile form, theme selector (only place with theme switching), CSV export buttons, template manager (incl. new-template dialog), session/logout |
+| Ajustes | `app/ajustes/page.tsx` | Unified goal selector (first card), calorie profile form, theme selector (only place with theme switching), CSV export buttons, template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
+| Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
 | Metodología | `app/metodologia/page.tsx` | Static content page explaining metric formulas + protein recommendation science + citations |
 
 ### Client data layer (`lib/api.ts`)
 
 Typed fetcher: JSON headers, network-failure → `ApiError(0)`, non-OK → `ApiError(status, serverMessage)`.
-Any 401 outside the login call triggers a hard `window.location.href = "/login"`
-(intentional full reload so all cached client state resets). Components catch
-errors locally and show `sonner` toasts.
+A 401 outside the login call throws `ApiError(401)` and dispatches the
+`AUTH_EXPIRED_EVENT` custom event; `components/auth-redirect.tsx` listens and
+navigates to `/login` (a graceful SPA redirect instead of a hard reload).
+`api.session()` swallows failures and resolves to an empty profile. Components
+catch errors locally and show `sonner` toasts.
 
 ### 6.1 Client-side demo mode (`lib/api.ts` + `lib/demo-store.ts` + `lib/demo-api.ts`)
 
@@ -304,6 +324,9 @@ delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
 Demo mode intentionally grants **no** API access: the `bw_demo` cookie is only an
 edge allow-list marker (see §4.5); every API route still requires a real
 `bw_session`. Real authentication is completely unchanged.
+
+Demo sessions always report `isAdmin: false`, so the Ajustes «Administración»
+card (and therefore the `/admin` page) is unreachable in demo mode.
 
 ### Numeric input convention
 
@@ -447,13 +470,18 @@ The script loads env files itself (`scripts/lib/env.ts`) **before** importing
 server modules (dynamic imports keep ordering safe):
 
 ```bash
-npm run create-user -- <username> <password>   # idempotent: updates hash if exists
+npm run create-user -- <username> <password>   # idempotent: create / reset password
+npm run set-admin -- <username>                # promote existing account to admin
 ```
 
-`create-user` creates a new account (or updates the password hash if it already
-exists). It hits the repo's env DB (currently the shared Neon production
-database) — permanent and cross-environment. Real accounts are created only via
-this script or direct SQL (there is no registration UI).
+Both scripts hit the repo's env DB (currently the shared Neon production
+database) — permanent and cross-environment. `create-user` creates a new account
+or updates the password hash if it already exists (safe password reset, since the
+hashes are salted); `set-admin` flips `is_admin`.
+
+These scripts are the **bootstrap/emergency** path: the first admin account must
+exist before the `/admin` UI is reachable, and a lost password can be reset
+without logging in. Day-to-day account management happens in the `/admin` UI.
 
 Demo data for testers is now provided entirely by the browser-local demo mode
 (see §6.1), so the old `seed`/`delete-user` scripts were removed.
@@ -507,7 +535,7 @@ Current setup intentionally shares **one Neon database between local dev and
 production** — simplest mental model, and `create-user` run locally takes
 effect immediately on the live site. To split environments later: create a second
 Neon project, point Vercel's `DATABASE_URL` at it, run `db:push` + `create-user`
-against that URL locally.
+(and `set-admin` for the first admin) against that URL locally.
 
 Gotchas learned the hard way:
 - Vercel injects env vars only at deploy time → adding/changing `DATABASE_URL`

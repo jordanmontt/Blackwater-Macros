@@ -35,6 +35,7 @@ import type {
 export const demoApi = {
   session: async () => ({
     username: DEMO_USERNAME,
+    isAdmin: false,
     calorieProfile: { ...DEMO_CALORIE_PROFILE },
   }),
 

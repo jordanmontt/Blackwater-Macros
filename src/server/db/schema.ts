@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   date,
   doublePrecision,
   index,
@@ -20,6 +21,7 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  isAdmin: boolean("is_admin").notNull().default(false),
   gender: genderEnum("gender"),
   birthYear: integer("birth_year"),
   heightCm: doublePrecision("height_cm"),

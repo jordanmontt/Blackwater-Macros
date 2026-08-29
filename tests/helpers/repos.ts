@@ -190,12 +190,21 @@ export function createMemoryWorld(): MemoryWorld {
         [...usersData.values()].find((user) => user.username === username.toLowerCase()) ?? null
       );
     },
-    async create({ username, passwordHash }) {
+    async findById(id) {
+      return usersData.get(id) ?? null;
+    },
+    async list() {
+      return [...usersData.values()].sort(
+        (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+      );
+    },
+    async create({ username, passwordHash, isAdmin }) {
       const id = `u-${usersData.size + 1}`;
       const row: UserRow = {
         id,
         username: username.toLowerCase(),
         passwordHash,
+        isAdmin: isAdmin ?? false,
         gender: null,
         birthYear: null,
         heightCm: null,
@@ -207,6 +216,21 @@ export function createMemoryWorld(): MemoryWorld {
       };
       usersData.set(id, row);
       return row;
+    },
+    async update(id, data) {
+      const existing = usersData.get(id);
+      if (!existing) return null;
+      const updated: UserRow = {
+        ...existing,
+        ...(data.username !== undefined ? { username: data.username.toLowerCase() } : {}),
+        ...(data.passwordHash !== undefined ? { passwordHash: data.passwordHash } : {}),
+        ...(data.isAdmin !== undefined ? { isAdmin: data.isAdmin } : {}),
+      };
+      usersData.set(id, updated);
+      return updated;
+    },
+    async delete(id) {
+      return usersData.delete(id);
     },
   };
 
@@ -272,10 +296,11 @@ export async function seedUser(
   world: MemoryWorld,
   username: string,
   password: string,
+  isAdmin = false,
 ): Promise<UserRow> {
   const { hashPassword } = await import("@/server/auth/password");
   const passwordHash = await hashPassword(password);
-  return world.repositories.users.create({ username, passwordHash });
+  return world.repositories.users.create({ username, passwordHash, isAdmin });
 }
 
 /** Extrae el token de la cookie `bw_session` emitida por `POST /api/auth/login`. */

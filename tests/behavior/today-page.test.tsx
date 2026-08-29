@@ -34,6 +34,7 @@ vi.mock("@/lib/api", () => ({
     listWeights: vi.fn(async () => []),
     session: vi.fn(async () => ({
       username: "demo",
+      isAdmin: false,
       calorieProfile: {
         gender: null,
         birthYear: null,

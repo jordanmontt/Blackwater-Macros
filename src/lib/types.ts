@@ -98,6 +98,13 @@ export interface UserSettings {
   calorieProfile: CalorieProfile;
 }
 
+export interface AdminUserDTO {
+  id: string;
+  username: string;
+  isAdmin: boolean;
+  createdAt: string;
+}
+
 export type Gender = "male" | "female";
 export type Goal = "cut" | "maintain" | "surplus";
 
