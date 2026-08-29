@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppNav } from "@/components/app-nav";
 import { DemoBanner } from "@/components/demo-banner";
+import { PwaInstall } from "@/components/pwa-install";
 import { AuthRedirect } from "@/components/auth-redirect";
 import { t } from "@/i18n";
 import "./globals.css";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <DemoBanner />
+          <PwaInstall />
           <AuthRedirect />
           <div className="flex-1 pb-20">{children}</div>
           <AppNav />

@@ -278,6 +278,10 @@ export const t = {
     userDeleted: "Usuario eliminado",
     adminBadge: "admin",
   },
+  install: {
+    banner: "Instala la app en tu móvil para usarla como una aplicación.",
+    action: "Instalar",
+  },
   common: {
     today: "Hoy",
     loading: "Cargando…",
