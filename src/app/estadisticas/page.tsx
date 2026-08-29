@@ -349,32 +349,40 @@ function CompositionSection({ summary }: { summary: StatsSummary }) {
               </CardHeader>
               <CardContent>
                 <ul className="grid gap-x-6 gap-y-0 text-sm sm:grid-cols-2">
-                  {summary.weeklyWeightAvg.map((week) => (
-                    <li key={week.weekStart} className="flex justify-between border-b py-0.5">
-                      <span className="text-muted-foreground">
-                        {formatDateKeyShort(week.weekStart)}
-                      </span>
-                      <span className="font-medium tabular-nums">
-                        {formatNumberEs(week.avg, 1)} kg
-                      </span>
-                    </li>
-                  ))}
+                  {summary.weeklyWeightAvg.map((week, i) => {
+                    const spanBoth =
+                      i === summary.weeklyWeightAvg.length - 1 &&
+                      summary.weeklyWeightAvg.length % 2 === 1;
+                    return (
+                      <li
+                        key={week.weekStart}
+                        className={`flex justify-between border-b py-0.5 ${spanBoth ? "sm:col-span-2" : ""}`}
+                      >
+                        <span className="text-muted-foreground">
+                          {formatDateKeyShort(week.weekStart)}
+                        </span>
+                        <span className="font-medium tabular-nums">
+                          {formatNumberEs(week.avg, 1)} kg
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
+                <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
+                  <span>
+                    {t.stats.minWeight}:{" "}
+                    <span className="font-medium text-foreground tabular-nums">
+                      {formatNumberEs(w.minKg ?? 0, 1)} kg
+                    </span>
+                  </span>
+                  <span>
+                    {t.stats.maxWeight}:{" "}
+                    <span className="font-medium text-foreground tabular-nums">
+                      {formatNumberEs(w.maxKg ?? 0, 1)} kg
+                    </span>
+                  </span>
+                </div>
               </CardContent>
-              <div className="flex items-center justify-center gap-6 pb-1 pt-0.5 text-xs text-muted-foreground">
-                <span>
-                  {t.stats.minWeight}:{" "}
-                  <span className="font-medium text-foreground tabular-nums">
-                    {formatNumberEs(w.minKg ?? 0, 1)} kg
-                  </span>
-                </span>
-                <span>
-                  {t.stats.maxWeight}:{" "}
-                  <span className="font-medium text-foreground tabular-nums">
-                    {formatNumberEs(w.maxKg ?? 0, 1)} kg
-                  </span>
-                </span>
-              </div>
             </Card>
           ) : null}
         </>
