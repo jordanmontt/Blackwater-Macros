@@ -14,6 +14,7 @@ export const t = {
     submit: "Entrar",
     invalidCredentials: "Usuario o contraseña incorrectos.",
     genericError: "No se pudo iniciar sesión. Inténtalo de nuevo.",
+    requiredFields: "Introduce usuario y contraseña.",
     logout: "Cerrar sesión",
   },
   demo: {
@@ -48,6 +49,7 @@ export const t = {
     editTitle: "Editar comida",
     titleLabel: "Título",
     titlePlaceholder: "Desayuno",
+    titleRequired: "El título es obligatorio.",
     notesLabel: "Notas (opcional)",
     modeLabel: "¿Cómo quieres introducir la nutrición?",
     modePerIngredient: "Por ingrediente",
@@ -77,6 +79,7 @@ export const t = {
     title: "Peso",
     addTitle: "Registrar peso",
     weightLabel: "Peso (kg)",
+    weightRequired: "Introduce un peso válido.",
     bodyFatLabel: "Grasa corporal (%)",
     bodyFatPlaceholder: "Ej. 15",
     datetimeLabel: "Fecha y hora",

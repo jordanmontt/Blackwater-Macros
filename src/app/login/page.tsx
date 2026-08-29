@@ -52,8 +52,12 @@ export default function LoginPage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    setPending(true);
     setError(null);
+    if (username.trim() === "" || password === "") {
+      setError(t.auth.requiredFields);
+      return;
+    }
+    setPending(true);
     try {
       await api.login(username, password);
       router.replace("/");
@@ -89,7 +93,7 @@ export default function LoginPage() {
             <CardDescription>{t.auth.loginDescription}</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username">{t.auth.username}</Label>
                 <Input
@@ -97,7 +101,6 @@ export default function LoginPage() {
                   name="username"
                   autoComplete="username"
                   autoCapitalize="none"
-                  required
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                 />
@@ -109,7 +112,6 @@ export default function LoginPage() {
                   name="password"
                   type="password"
                   autoComplete="current-password"
-                  required
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                 />

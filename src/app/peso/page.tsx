@@ -171,7 +171,7 @@ export default function PesoPage() {
     const weightKg = Number(form.weight.trim().replace(",", "."));
     const measuredAt = parseLocalDateTime(form.datetime);
     if (!measuredAt || !Number.isFinite(weightKg) || weightKg <= 0) {
-      toast.error(t.common.errorGeneric);
+      toast.error(t.peso.weightRequired);
       return;
     }
     const bodyFatStr = form.bodyFat.trim().replace(",", ".");
@@ -331,13 +331,12 @@ export default function PesoPage() {
           <DialogHeader>
             <DialogTitle>{form.id ? t.peso.edit : t.peso.addTitle}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="weight-input">{t.peso.weightLabel}</Label>
                 <Input
                   id="weight-input"
-                  required
                   inputMode="decimal"
                   step="any"
                   autoFocus

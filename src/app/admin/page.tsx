@@ -266,6 +266,7 @@ export default function AdminPage() {
           </DialogHeader>
           <form
             className="space-y-4"
+            noValidate
             onSubmit={(event) => {
               event.preventDefault();
               void handleCreate();
@@ -275,10 +276,8 @@ export default function AdminPage() {
               <Label htmlFor="admin-username">{t.admin.usernameLabel}</Label>
               <Input
                 id="admin-username"
-                required
                 autoComplete="off"
                 autoFocus
-                minLength={3}
                 value={form.username}
                 onChange={(event) => setForm({ ...form, username: event.target.value })}
               />
@@ -287,10 +286,8 @@ export default function AdminPage() {
               <Label htmlFor="admin-password">{t.admin.passwordLabel}</Label>
               <Input
                 id="admin-password"
-                required
                 type="password"
                 autoComplete="new-password"
-                minLength={8}
                 placeholder={t.admin.passwordPlaceholder}
                 value={form.password}
                 onChange={(event) => setForm({ ...form, password: event.target.value })}
@@ -317,6 +314,7 @@ export default function AdminPage() {
           </DialogHeader>
           <form
             className="space-y-4"
+            noValidate
             onSubmit={(event) => {
               event.preventDefault();
               void handleUpdate();
@@ -326,9 +324,7 @@ export default function AdminPage() {
               <Label htmlFor="edit-username">{t.admin.usernameLabel}</Label>
               <Input
                 id="edit-username"
-                required
                 autoComplete="off"
-                minLength={3}
                 autoFocus
                 value={form.username}
                 onChange={(event) => setForm({ ...form, username: event.target.value })}
@@ -340,7 +336,6 @@ export default function AdminPage() {
                 id="edit-password"
                 type="password"
                 autoComplete="new-password"
-                minLength={8}
                 placeholder={t.admin.passwordPlaceholder}
                 value={form.password}
                 onChange={(event) => setForm({ ...form, password: event.target.value })}

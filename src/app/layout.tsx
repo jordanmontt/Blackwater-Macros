@@ -14,9 +14,6 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  icons: {
-    icon: "/logo.png",
-  },
   title: {
     default: t.appName,
     template: `%s · ${t.appName}`,

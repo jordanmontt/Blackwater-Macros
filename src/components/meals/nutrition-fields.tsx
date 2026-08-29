@@ -159,6 +159,11 @@ export function NutritionEntryFields({
     event.preventDefault();
     setError(null);
 
+    if (title.trim() === "") {
+      setError(t.meal.titleRequired);
+      return;
+    }
+
     const payload: NutritionPayload = {
       title: title.trim(),
       notes: notes.trim() || null,
@@ -216,12 +221,11 @@ export function NutritionEntryFields({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} noValidate className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="nutrition-title">{t.meal.titleLabel}</Label>
         <Input
           id="nutrition-title"
-          required
           placeholder={t.meal.titlePlaceholder}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
@@ -276,9 +280,10 @@ export function NutritionEntryFields({
                     <Trash2Icon className="text-muted-foreground" />
                   </Button>
                 </div>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <Input
                     placeholder={t.meal.quantityPlaceholder}
+                    className="col-span-2 sm:col-span-4"
                     value={item.quantity}
                     onChange={(event) =>
                       updateIngredient(index, { quantity: event.target.value })
@@ -287,7 +292,6 @@ export function NutritionEntryFields({
                   <Input
                     inputMode="decimal"
                     placeholder={t.meal.caloriesPlaceholder}
-                    className="w-24"
                     value={item.calories}
                     onChange={(event) =>
                       updateIngredient(index, {
@@ -298,7 +302,6 @@ export function NutritionEntryFields({
                   <Input
                     inputMode="decimal"
                     placeholder={t.meal.proteinPlaceholder}
-                    className="w-24"
                     value={item.protein}
                     onChange={(event) =>
                       updateIngredient(index, {
@@ -309,7 +312,6 @@ export function NutritionEntryFields({
                   <Input
                     inputMode="decimal"
                     placeholder={t.meal.carbsPlaceholder}
-                    className="w-24"
                     value={item.carbs}
                     onChange={(event) =>
                       updateIngredient(index, {
@@ -320,7 +322,6 @@ export function NutritionEntryFields({
                   <Input
                     inputMode="decimal"
                     placeholder={t.meal.fatPlaceholder}
-                    className="w-24"
                     value={item.fat}
                     onChange={(event) =>
                       updateIngredient(index, {
