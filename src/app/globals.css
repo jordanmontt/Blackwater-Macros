@@ -53,6 +53,7 @@
 }
 
 :root {
+  color-scheme: light;
   --background: oklch(0.96 0.012 95);
   --foreground: oklch(0.27 0.03 140);
   --card: oklch(0.985 0.006 95);
@@ -88,6 +89,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.165 0.018 155);
   --foreground: oklch(0.88 0.012 90);
   --card: oklch(0.215 0.022 155);
@@ -129,6 +131,6 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-sans overscroll-y-none;
   }
 }
