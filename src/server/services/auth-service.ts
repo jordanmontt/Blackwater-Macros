@@ -6,7 +6,8 @@ import {
 } from "../auth/session";
 import type { SessionsRepository } from "../repositories/sessions-repo";
 import type { UsersRepository } from "../repositories/users-repo";
-import { verifyPassword } from "../auth/password";
+import type { UserRow } from "../db/schema";
+import { hashPassword, verifyPassword } from "../auth/password";
 
 export interface AuthServiceDeps {
   users: UsersRepository;
@@ -17,6 +18,38 @@ export class InvalidCredentialsError extends Error {
   constructor() {
     super("Usuario o contraseña incorrectos");
     this.name = "InvalidCredentialsError";
+  }
+}
+
+export class UsernameExistsError extends Error {
+  constructor() {
+    super("El usuario ya existe");
+    this.name = "UsernameExistsError";
+  }
+}
+
+/**
+ * Creates a new account. The username is normalized to lowercase and must not
+ * already exist; otherwise the backend rejects it explicitly (not relying only
+ * on the database unique constraint). No session is started: account creation
+ * is a management operation, not a login.
+ */
+export async function register(
+  deps: AuthServiceDeps,
+  username: string,
+  password: string,
+): Promise<UserRow> {
+  const normalized = username.trim().toLowerCase();
+  if (await deps.users.findByUsername(normalized)) {
+    throw new UsernameExistsError();
+  }
+  const passwordHash = await hashPassword(password);
+  try {
+    return await deps.users.create({ username: normalized, passwordHash });
+  } catch (error) {
+    // Posible carrera: otro registro con el mismo nombre entró primero.
+    if ((error as { code?: string }).code === "23505") throw new UsernameExistsError();
+    throw error;
   }
 }
 

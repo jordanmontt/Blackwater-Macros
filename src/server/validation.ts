@@ -30,7 +30,12 @@ export const templateInputSchema = z.object({
   name: z.string().trim().min(1, "El nombre de la plantilla es obligatorio").max(120),
   title: z.string().trim().min(1, "El título es obligatorio").max(120),
   notes: z.string().trim().max(2_000).nullish(),
+  entryMode: z.enum(["per_ingredient", "total_only"]),
   ingredients: z.array(ingredientInputSchema).max(100),
+  totalCalories: z.number().min(0).max(100_000).nullish(),
+  totalProtein: z.number().min(0).max(10_000).nullish(),
+  totalCarbs: z.number().min(0).max(10_000).nullish(),
+  totalFat: z.number().min(0).max(10_000).nullish(),
 });
 
 export type TemplateInput = z.infer<typeof templateInputSchema>;
@@ -81,4 +86,9 @@ export type CalorieProfileInput = z.infer<typeof calorieProfileInputSchema>;
 export const loginInputSchema = z.object({
   username: z.string().trim().min(1).max(80),
   password: z.string().min(1).max(200),
+});
+
+export const registerInputSchema = z.object({
+  username: z.string().trim().min(3, "El usuario debe tener al menos 3 caracteres").max(80),
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(200),
 });

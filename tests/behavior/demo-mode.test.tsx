@@ -64,6 +64,22 @@ describe("modo demo local", () => {
     expect(store.meals.some((meal) => meal.logDate === TODAY)).toBe(true);
   });
 
+  it("las plantillas de ejemplo llevan sus macros resueltas", () => {
+    const store = buildDemoStore(TODAY);
+    const cenaLigera = store.templates.find((template) => template.name === "Cena ligera");
+    expect(cenaLigera).toBeDefined();
+    expect(cenaLigera!.entryMode).toBe("total_only");
+    expect(cenaLigera!.resolvedCalories).toBe(380);
+    expect(cenaLigera!.resolvedProtein).toBe(30);
+    expect(cenaLigera!.resolvedCarbs).toBe(30);
+    expect(cenaLigera!.resolvedFat).toBe(15);
+
+    const desayuno = store.templates.find((template) => template.name === "Desayuno");
+    expect(desayuno!.entryMode).toBe("per_ingredient");
+    expect(desayuno!.resolvedCalories).toBeGreaterThan(0);
+    expect(desayuno!.resolvedProtein).toBeGreaterThan(0);
+  });
+
   it("el dataset es reproducible con la misma semilla", () => {
     const a = buildDemoStore(TODAY);
     const b = buildDemoStore(TODAY);

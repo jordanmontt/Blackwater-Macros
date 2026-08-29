@@ -6,7 +6,12 @@ import {
   reorderMeals,
   updateMeal,
 } from "@/server/services/meals-service";
-import { createTemplate, deleteTemplate, listTemplates } from "@/server/services/templates-service";
+import {
+  createTemplate,
+  deleteTemplate,
+  listTemplates,
+  updateTemplate,
+} from "@/server/services/templates-service";
 import type { NewMealData, MealsRepository } from "@/server/repositories/meals-repo";
 import type {
   MealTemplatesRepository,
@@ -99,17 +104,18 @@ function memoryTemplates(): MealTemplatesRepository {
       const row: MealTemplateRow = {
         id,
         userId,
-        name: data.name,
-        title: data.title,
-        notes: data.notes,
-        ingredients: data.ingredients,
         createdAt: new Date(),
+        ...data,
       };
       rows.set(id, row);
       return row;
     },
-    async update() {
-      return null;
+    async update(userId, id, data: NewTemplateData) {
+      const existing = rows.get(id);
+      if (!existing || existing.userId !== userId) return null;
+      const updated: MealTemplateRow = { ...existing, ...data };
+      rows.set(id, updated);
+      return updated;
     },
     async delete(userId, id) {
       const existing = rows.get(id);
@@ -239,6 +245,7 @@ describe("plantillas de comidas", () => {
       name: "Desayuno",
       title: "Desayuno",
       notes: null,
+      entryMode: "per_ingredient",
       ingredients: breakfast.ingredients,
     } satisfies TemplateInput);
 
@@ -266,6 +273,74 @@ describe("plantillas de comidas", () => {
     expect(applied.ingredients[0].name).toBe("4 huevos");
   });
 
+  it("una plantilla 'solo total' guarda y recupera sus macros totales", async () => {
+    const deps = memoryTemplates();
+
+    await createTemplate(deps, "user-1", {
+      name: "Cena ligera",
+      title: "Cena ligera",
+      notes: "fuera de casa",
+      entryMode: "total_only",
+      ingredients: [],
+      totalCalories: 380,
+      totalProtein: 30,
+      totalCarbs: 30,
+      totalFat: 15,
+    });
+
+    const [available] = await listTemplates(deps, "user-1");
+    expect(available.entryMode).toBe("total_only");
+    expect(available.resolvedCalories).toBe(380);
+    expect(available.resolvedProtein).toBe(30);
+    expect(available.resolvedCarbs).toBe(30);
+    expect(available.resolvedFat).toBe(15);
+  });
+
+  it("una plantilla por ingredientes calcula sus totales resueltos", async () => {
+    const deps = memoryTemplates();
+
+    const template = await createTemplate(deps, "user-1", {
+      name: "Desayuno",
+      title: "Desayuno",
+      notes: null,
+      entryMode: "per_ingredient",
+      ingredients: [
+        { name: "4 huevos", calories: 280, protein: 24, carbs: 2, fat: 20 },
+        { name: "pan", calories: 90, protein: 3, carbs: 16, fat: 1 },
+      ],
+    });
+
+    expect(template.resolvedCalories).toBe(370);
+    expect(template.resolvedProtein).toBe(27);
+  });
+
+  it("editar una plantilla actualiza sus datos y totales", async () => {
+    const deps = memoryTemplates();
+    const template = await createTemplate(deps, "user-1", {
+      name: "Desayuno",
+      title: "Desayuno",
+      notes: null,
+      entryMode: "per_ingredient",
+      ingredients: breakfast.ingredients,
+    });
+
+    const updated = await updateTemplate(deps, "user-1", template.id, {
+      name: "Desayuno ampliado",
+      title: "Desayuno ampliado",
+      notes: null,
+      entryMode: "per_ingredient",
+      ingredients: [
+        ...breakfast.ingredients,
+        { name: "pan", calories: 90, protein: 3, carbs: 16, fat: 1 },
+      ],
+    });
+
+    expect(updated).not.toBeNull();
+    expect(updated!.title).toBe("Desayuno ampliado");
+    expect(updated!.resolvedCalories).toBe(370);
+    expect(updated!.resolvedProtein).toBe(27);
+  });
+
   it("cada usuario gestiona sus propias plantillas", async () => {
     const deps = memoryTemplates();
 
@@ -273,10 +348,19 @@ describe("plantillas de comidas", () => {
       name: "Desayuno",
       title: "Desayuno",
       notes: null,
+      entryMode: "per_ingredient",
       ingredients: [],
     });
 
     expect(await listTemplates(deps, "user-2")).toEqual([]);
+
+    await expect(updateTemplate(deps, "user-2", template.id, {
+      name: "X",
+      title: "X",
+      notes: null,
+      entryMode: "per_ingredient",
+      ingredients: [],
+    })).resolves.toBeNull();
 
     await deleteTemplate(deps, "user-2", template.id); // intento ajeno
     expect(await listTemplates(deps, "user-1")).toHaveLength(1);

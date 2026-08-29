@@ -9,35 +9,33 @@ import {
   resultToNutritionDraft,
   type NutritionPayload,
 } from "@/components/meals/nutrition-fields";
-import { api, ApiError, type MealPayload } from "@/lib/api";
-import type { MealDTO } from "@/lib/types";
+import { api, ApiError, type TemplatePayload } from "@/lib/api";
+import type { MealTemplateDTO } from "@/lib/types";
 import { t } from "@/i18n";
 
-interface MealFormProps {
+interface TemplateFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  logDate: string;
-  /** Meal being edited, or null to create a new one. */
-  meal: MealDTO | null;
-  onSaved: (meal: MealDTO) => void;
+  /** Template being edited, or null to create a new one. */
+  template: MealTemplateDTO | null;
+  onSaved: (template: MealTemplateDTO) => void;
 }
 
 /**
- * Create/edit form for meals. Supports the two entry modes:
- * per-ingredient nutrition or a single manual total for the whole meal.
+ * Create/edit form for meal templates. Reuses the same nutrition-entry fields
+ * as a meal: per-ingredient nutrition or a single manual total.
  */
-export function MealForm({ open, onOpenChange, logDate, meal, onSaved }: MealFormProps) {
+export function TemplateForm({ open, onOpenChange, template, onSaved }: TemplateFormProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{meal ? t.meal.editTitle : t.meal.newTitle}</DialogTitle>
+          <DialogTitle>{template ? t.ajustes.editTemplate : t.ajustes.newTemplate}</DialogTitle>
         </DialogHeader>
         {open ? (
-          <MealFormFields
-            key={`${meal?.id ?? "new"}-${logDate}`}
-            meal={meal}
-            logDate={logDate}
+          <TemplateFormFields
+            key={template?.id ?? "new"}
+            template={template}
             onClose={() => onOpenChange(false)}
             onSaved={onSaved}
           />
@@ -47,23 +45,22 @@ export function MealForm({ open, onOpenChange, logDate, meal, onSaved }: MealFor
   );
 }
 
-interface MealFormFieldsProps {
-  meal: MealDTO | null;
-  logDate: string;
+interface TemplateFormFieldsProps {
+  template: MealTemplateDTO | null;
   onClose: () => void;
-  onSaved: (meal: MealDTO) => void;
+  onSaved: (template: MealTemplateDTO) => void;
 }
 
 /**
  * Rendered only while the dialog is open, so its state initializes
- * directly from the meal being edited — no reset effects needed.
+ * directly from the template being edited — no reset effects needed.
  */
-function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps) {
+function TemplateFormFields({ template, onClose, onSaved }: TemplateFormFieldsProps) {
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(payload: NutritionPayload) {
-    const mealPayload: MealPayload = {
-      logDate,
+    const templatePayload: TemplatePayload = {
+      name: payload.title,
       title: payload.title,
       notes: payload.notes,
       entryMode: payload.entryMode,
@@ -75,9 +72,9 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
     };
     setPending(true);
     try {
-      const saved = meal
-        ? await api.updateMeal(meal.id, mealPayload)
-        : await api.createMeal(mealPayload);
+      const saved = template
+        ? await api.updateTemplate(template.id, templatePayload)
+        : await api.createTemplate(templatePayload);
       onClose();
       onSaved(saved);
     } catch (error) {
@@ -87,7 +84,7 @@ function MealFormFields({ meal, logDate, onClose, onSaved }: MealFormFieldsProps
     }
   }
 
-  const draft = meal ? resultToNutritionDraft(meal) : rawNutritionDraft();
+  const draft = template ? resultToNutritionDraft(template) : rawNutritionDraft();
 
   return (
     <NutritionEntryFields

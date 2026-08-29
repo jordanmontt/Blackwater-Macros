@@ -19,6 +19,9 @@ export class ApiError extends Error {
   }
 }
 
+/** Evento disparado cuando una respuesta 401 expira la sesión del cliente. */
+export const AUTH_EXPIRED_EVENT = "app:unauthorized";
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
@@ -35,7 +38,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const lastRedirect = Number(sessionStorage.getItem(REDIRECT_KEY) ?? 0);
     if (Date.now() - lastRedirect > 3000) {
       sessionStorage.setItem(REDIRECT_KEY, String(Date.now()));
-      window.location.href = "/login";
+      window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
     }
     throw new ApiError(401, "No autenticado");
   }
@@ -79,7 +82,12 @@ export interface TemplatePayload {
   name: string;
   title: string;
   notes?: string | null;
+  entryMode: "per_ingredient" | "total_only";
   ingredients: IngredientInput[];
+  totalCalories?: number | null;
+  totalProtein?: number | null;
+  totalCarbs?: number | null;
+  totalFat?: number | null;
 }
 
 export const api = {
@@ -159,6 +167,15 @@ export const api = {
   createTemplate: async (payload: TemplatePayload) => {
     if (isDemoMode()) return demoApi.createTemplate(payload);
     const data = await request<{ template: MealTemplateDTO }>("/api/templates", jsonBody(payload));
+    return data.template;
+  },
+
+  updateTemplate: async (id: string, payload: TemplatePayload) => {
+    if (isDemoMode()) return demoApi.updateTemplate(id, payload);
+    const data = await request<{ template: MealTemplateDTO }>(`/api/templates/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
     return data.template;
   },
 

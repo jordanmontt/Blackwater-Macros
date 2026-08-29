@@ -13,6 +13,7 @@ import {
   reorderDemoMeals,
   updateDemoMeal,
   updateDemoSettings,
+  updateDemoTemplate,
   updateDemoWeight,
   DEMO_CALORIE_PROFILE,
   DEMO_USERNAME,
@@ -64,6 +65,15 @@ export const demoApi = {
   createTemplate: async (
     payload: Parameters<typeof createDemoTemplate>[0],
   ): Promise<MealTemplateDTO> => createDemoTemplate(payload),
+
+  updateTemplate: async (
+    id: string,
+    payload: Parameters<typeof updateDemoTemplate>[1],
+  ): Promise<MealTemplateDTO> => {
+    const template = updateDemoTemplate(id, payload);
+    if (!template) throw new Error("Plantilla no encontrada");
+    return template;
+  },
 
   deleteTemplate: async (id: string): Promise<{ ok: true }> => {
     deleteDemoTemplate(id);

@@ -1,5 +1,6 @@
 import type { MealIngredient } from "../db/schema";
-import type { MealTemplateDTO } from "@/lib/types";
+import { resolveMealTotals } from "@/lib/nutrition";
+import type { IngredientInput, MealTemplateDTO } from "@/lib/types";
 import type { MealTemplatesRepository, NewTemplateData } from "../repositories/templates-repo";
 import type { TemplateInput } from "../validation";
 
@@ -12,17 +13,35 @@ function toDomainData(input: TemplateInput): NewTemplateData {
     carbs: ingredient.carbs,
     fat: ingredient.fat,
   }));
+  const totals = resolveMealTotals(
+    input.entryMode,
+    ingredients,
+    input.totalCalories ?? null,
+    input.totalProtein ?? null,
+    input.totalCarbs ?? null,
+    input.totalFat ?? null,
+  );
+  const isTotalOnly = input.entryMode === "total_only";
   return {
     name: input.name,
     title: input.title,
     notes: input.notes ?? null,
+    entryMode: input.entryMode,
     ingredients,
+    totalCalories: isTotalOnly ? (input.totalCalories ?? null) : null,
+    totalProtein: isTotalOnly ? (input.totalProtein ?? null) : null,
+    totalCarbs: isTotalOnly ? (input.totalCarbs ?? null) : null,
+    totalFat: isTotalOnly ? (input.totalFat ?? null) : null,
+    resolvedCalories: totals.calories,
+    resolvedProtein: totals.protein,
+    resolvedCarbs: totals.carbs,
+    resolvedFat: totals.fat,
   };
 }
 
 function toDto(row: Awaited<ReturnType<MealTemplatesRepository["getById"]>>): MealTemplateDTO {
   if (!row) throw new Error("Plantilla no encontrada");
-  return { ...row };
+  return { ...row, ingredients: row.ingredients as IngredientInput[] };
 }
 
 export async function listTemplates(repo: MealTemplatesRepository, userId: string) {
@@ -36,6 +55,17 @@ export async function createTemplate(
   input: TemplateInput,
 ) {
   return toDto(await repo.create(userId, toDomainData(input)));
+}
+
+export async function updateTemplate(
+  repo: MealTemplatesRepository,
+  userId: string,
+  id: string,
+  input: TemplateInput,
+) {
+  const row = await repo.update(userId, id, toDomainData(input));
+  if (!row) return null;
+  return toDto(row);
 }
 
 export async function deleteTemplate(

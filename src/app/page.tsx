@@ -121,8 +121,12 @@ export default function HoyPage() {
         logDate: selectedDay,
         title: template.title,
         notes: template.notes,
-        entryMode: "per_ingredient",
+        entryMode: template.entryMode,
         ingredients: template.ingredients,
+        totalCalories: template.entryMode === "total_only" ? template.totalCalories : null,
+        totalProtein: template.entryMode === "total_only" ? template.totalProtein : null,
+        totalCarbs: template.entryMode === "total_only" ? template.totalCarbs : null,
+        totalFat: template.entryMode === "total_only" ? template.totalFat : null,
       });
       toast.success(formatTemplate(t.hoy.templateApplied, { name: template.name }));
       await refreshMeals(selectedDay);
@@ -164,16 +168,16 @@ export default function HoyPage() {
       </div>
 
       <section aria-label={t.hoy.dailyTotals} className="mt-4">
-        <Card>
-          <CardHeader className="pb-0 pt-3">
+        <Card className="py-3">
+          <CardHeader className="pb-0 pt-2.5">
             <CardTitle className="text-base">{t.hoy.dailyTotals}</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-x-3 gap-y-2.5 px-4 pb-3 sm:grid-cols-4">
+          <CardContent className="grid grid-cols-2 gap-x-3 gap-y-2 px-4 pb-2.5 sm:grid-cols-4">
             <div className="text-center">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t.hoy.calories}
               </p>
-              <p className="text-lg font-semibold tabular-nums sm:text-xl">
+              <p className="text-base font-semibold tabular-nums sm:text-lg">
                 {formatNumberEs(totals.calories)}
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.kcalUnit}</span>
               </p>
@@ -182,7 +186,7 @@ export default function HoyPage() {
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t.hoy.protein}
               </p>
-              <p className="text-lg font-semibold tabular-nums sm:text-xl">
+              <p className="text-base font-semibold tabular-nums sm:text-lg">
                 {formatNumberEs(totals.protein, 1)}
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.proteinUnit}</span>
               </p>
@@ -191,7 +195,7 @@ export default function HoyPage() {
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t.hoy.carbs}
               </p>
-              <p className="text-lg font-semibold tabular-nums sm:text-xl">
+              <p className="text-base font-semibold tabular-nums sm:text-lg">
                 {formatNumberEs(totals.carbs, 1)}
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.gramUnit}</span>
               </p>
@@ -200,7 +204,7 @@ export default function HoyPage() {
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t.hoy.fat}
               </p>
-              <p className="text-lg font-semibold tabular-nums sm:text-xl">
+              <p className="text-base font-semibold tabular-nums sm:text-lg">
                 {formatNumberEs(totals.fat, 1)}
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.gramUnit}</span>
               </p>

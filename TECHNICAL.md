@@ -88,7 +88,9 @@ meals        id, user_id → users(cascade), log_date (DATE 'YYYY-MM-DD'),
              created_at, updated_at
              index: meals_user_date_idx(user_id, log_date)
 meal_templates  id, user_id → users(cascade), name, title, notes,
-             ingredients JSONB, created_at
+             entry_mode (ENUM per_ingredient|total_only), ingredients JSONB,
+             total_calories/protein/carbs/fat, resolved_calories/protein/carbs/fat,
+             created_at
 weights      id, user_id → users(cascade), measured_at TIMESTAMPTZ,
              weight_kg DOUBLE PRECISION, body_fat_pct DOUBLE PRECISION (nullable),
              note, created_at

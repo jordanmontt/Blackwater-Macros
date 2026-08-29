@@ -297,37 +297,42 @@ function CompositionSection({ summary }: { summary: StatsSummary }) {
         </p>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-2">
-            <MiniStat label={t.stats.currentWeight} value={w.currentWeightKg} unit="kg" decimals={1} />
-            <MiniStat label={t.stats.currentTrend} value={w.currentTrendKg} unit="kg" decimals={1} />
-            <MiniStat
-              label={t.stats.currentBodyFat}
-              value={w.currentBodyFatPct}
-              unit="%"
-              decimals={1}
-            />
-            <MiniStat
-              label={t.stats.changeSinceStart}
-              value={w.changeSinceStartKg}
-              unit="kg"
-              decimals={1}
-              signed
-            />
-            <MiniStat
-              label={t.stats.ratePerWeek}
-              value={w.ratePerWeekKg}
-              unit={` ${t.stats.perWeek}`}
-              decimals={2}
-              signed
-            />
-            <MiniStat
-              label={t.stats.changeBodyFat}
-              value={w.changeBodyFatPct}
-              unit="%"
-              decimals={1}
-              signed
-            />
-          </div>
+          <Card>
+            <CardHeader className="pb-0">
+              <CardTitle className="text-base">{t.stats.weightSummaryTitle}</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-3 sm:grid-cols-3">
+              <MiniStat label={t.stats.currentWeight} value={w.currentWeightKg} unit="kg" decimals={1} />
+              <MiniStat label={t.stats.currentTrend} value={w.currentTrendKg} unit="kg" decimals={1} />
+              <MiniStat
+                label={t.stats.currentBodyFat}
+                value={w.currentBodyFatPct}
+                unit="%"
+                decimals={1}
+              />
+              <MiniStat
+                label={t.stats.changeSinceStart}
+                value={w.changeSinceStartKg}
+                unit="kg"
+                decimals={1}
+                signed
+              />
+              <MiniStat
+                label={t.stats.ratePerWeek}
+                value={w.ratePerWeekKg}
+                unit={` ${t.stats.perWeek}`}
+                decimals={2}
+                signed
+              />
+              <MiniStat
+                label={t.stats.changeBodyFat}
+                value={w.changeBodyFatPct}
+                unit="%"
+                decimals={1}
+                signed
+              />
+            </CardContent>
+          </Card>
 
           <ChartCard title={t.stats.weightFatChartTitle}>
             {hasWeights ? (
@@ -394,17 +399,15 @@ function MiniStat({
   const display =
     value === null ? "—" : `${signed && value > 0 ? "+" : ""}${formatNumberEs(value, decimals)}`;
   return (
-    <Card>
-      <CardContent className="px-3 py-2.5">
-        <p className="truncate text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {label}
-        </p>
-        <p className="text-lg font-semibold tabular-nums">
-          {display}
-          <span className="ml-1 text-xs font-normal text-muted-foreground">{unit}</span>
-        </p>
-      </CardContent>
-    </Card>
+    <div>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-base font-semibold leading-snug tabular-nums">
+        {display}
+        <span className="ml-1 text-xs font-normal text-muted-foreground">{unit}</span>
+      </p>
+    </div>
   );
 }
 

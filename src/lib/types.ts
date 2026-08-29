@@ -31,7 +31,16 @@ export interface MealTemplateDTO {
   name: string;
   title: string;
   notes: string | null;
+  entryMode: EntryMode;
   ingredients: IngredientInput[];
+  totalCalories: number | null;
+  totalProtein: number | null;
+  totalCarbs: number | null;
+  totalFat: number | null;
+  resolvedCalories: number;
+  resolvedProtein: number;
+  resolvedCarbs: number;
+  resolvedFat: number;
 }
 
 export interface WeightDTO {

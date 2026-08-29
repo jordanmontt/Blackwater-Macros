@@ -5,8 +5,9 @@ import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { DumbbellIcon, DownloadIcon, FlameIcon, InfoIcon, LogOutIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { DumbbellIcon, DownloadIcon, FlameIcon, InfoIcon, LogOutIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,17 +16,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
+import { TemplateForm } from "@/components/meals/template-form";
 import { api, ApiError } from "@/lib/api";
 import { exitDemoMode } from "@/lib/demo-store";
 import { useDemoMode } from "@/lib/use-demo-mode";
@@ -61,9 +55,7 @@ export default function AjustesPage() {
   });
   const [latestWeight, setLatestWeight] = useState<number | null>(null);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
-  const [templateName, setTemplateName] = useState("");
-  const [templateNotes, setTemplateNotes] = useState("");
-  const [templatePending, setTemplatePending] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<MealTemplateDTO | null>(null);
   const mounted = useMounted();
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -163,31 +155,14 @@ export default function AjustesPage() {
     }
   }
 
-  async function handleCreateTemplate() {
-    const name = templateName.trim();
-    if (!name) {
-      toast.error(t.common.errorGeneric);
-      return;
-    }
-    setTemplatePending(true);
-    try {
-      const template = await api.createTemplate({
-        name,
-        title: name,
-        notes: templateNotes.trim() || null,
-        ingredients: [],
-      });
-      setTemplates((current) =>
-        [...current, template].sort((a, b) => a.name.localeCompare(b.name)),
-      );
-      setTemplateDialogOpen(false);
-      setTemplateName("");
-      setTemplateNotes("");
-    } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
-    } finally {
-      setTemplatePending(false);
-    }
+  function handleSavedTemplate(saved: MealTemplateDTO) {
+    setTemplates((current) =>
+      [...current.filter((template) => template.id !== saved.id), saved].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      ),
+    );
+    setTemplateDialogOpen(false);
+    setEditingTemplate(null);
   }
 
   const calorieRec = latestWeight
@@ -262,29 +237,30 @@ export default function AjustesPage() {
           <CardDescription>{t.calorias.noProfile}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>{t.calorias.genderLabel}</Label>
-              <div className="grid grid-cols-2 gap-1 rounded-lg border p-1">
-                {([
-                  ["male", t.calorias.genderMale],
-                  ["female", t.calorias.genderFemale],
-                ] as const).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={calorieProfile.gender === value}
-                    onClick={() => void handleCalorieProfileChange({ gender: value })}
-                    className={cn(
-                      "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
-                      calorieProfile.gender === value && "bg-primary text-primary-foreground",
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+          <div className="space-y-2">
+            <Label>{t.calorias.genderLabel}</Label>
+            <div className="grid grid-cols-2 gap-1 rounded-lg border p-1">
+              {([
+                ["male", t.calorias.genderMale],
+                ["female", t.calorias.genderFemale],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={calorieProfile.gender === value}
+                  onClick={() => void handleCalorieProfileChange({ gender: value })}
+                  className={cn(
+                    "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
+                    calorieProfile.gender === value && "bg-primary text-primary-foreground",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="birth-year">{t.calorias.birthYearLabel}</Label>
               <Input
@@ -304,19 +280,17 @@ export default function AjustesPage() {
                 <p className="text-xs text-destructive">{profileErrors.birthYear}</p>
               )}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="height-cm">{t.calorias.heightLabel}</Label>
-            <Input
-              id="height-cm"
-              type="number"
-              inputMode="decimal"
-              step="any"
-              min={100}
-              max={250}
-              placeholder="175"
-              value={calorieProfile.heightCm ?? ""}
+            <div className="space-y-2">
+              <Label htmlFor="height-cm">{t.calorias.heightLabel}</Label>
+              <Input
+                id="height-cm"
+                type="number"
+                inputMode="decimal"
+                step="any"
+                min={100}
+                max={250}
+                placeholder="175"
+                value={calorieProfile.heightCm ?? ""}
                 onChange={(e) => {
                   const v = e.target.value === "" ? null : Number(e.target.value.replace(",", "."));
                   void handleCalorieProfileChange({ heightCm: v && Number.isFinite(v) ? v : null });
@@ -325,11 +299,14 @@ export default function AjustesPage() {
               {profileErrors.heightCm && (
                 <p className="text-xs text-destructive">{profileErrors.heightCm}</p>
               )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="gym-days">{t.calorias.gymDaysLabel}</Label>
+              <Label htmlFor="gym-days" className="block min-h-10 leading-tight">
+                {t.calorias.gymDaysLabel}
+              </Label>
               <Input
                 id="gym-days"
                 type="number"
@@ -348,7 +325,9 @@ export default function AjustesPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="gym-minutes">{t.calorias.gymSessionLabel}</Label>
+              <Label htmlFor="gym-minutes" className="block min-h-10 leading-tight">
+                {t.calorias.gymSessionLabel}
+              </Label>
               <Input
                 id="gym-minutes"
                 type="number"
@@ -448,7 +427,7 @@ export default function AjustesPage() {
             variant="outline"
             disabled={demoMode}
             nativeButton={false}
-            render={<a href="/api/export/meals.csv" download />}
+            render={<a href="/api/export/meals" download />}
           >
             <DownloadIcon /> {t.ajustes.exportMeals}
           </Button>
@@ -456,7 +435,7 @@ export default function AjustesPage() {
             variant="outline"
             disabled={demoMode}
             nativeButton={false}
-            render={<a href="/api/export/weights.csv" download />}
+            render={<a href="/api/export/weights" download />}
           >
             <DownloadIcon /> {t.ajustes.exportWeights}
           </Button>
@@ -476,8 +455,7 @@ export default function AjustesPage() {
               variant="outline"
               size="sm"
               onClick={() => {
-                setTemplateName("");
-                setTemplateNotes("");
+                setEditingTemplate(null);
                 setTemplateDialogOpen(true);
               }}
             >
@@ -491,19 +469,52 @@ export default function AjustesPage() {
           ) : (
             <ul className="divide-y">
               {templates.map((template) => (
-                <li key={template.id} className="flex items-center gap-2 py-2">
-                  <span className="min-w-0 flex-1 truncate text-sm">{template.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatTemplate(t.meal.perIngredientSummary, { n: template.ingredients.length })}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={t.meal.delete}
-                    onClick={() => void handleDeleteTemplate(template.id)}
-                  >
-                    <Trash2Icon className="text-muted-foreground" />
-                  </Button>
+                <li key={template.id} className="py-2">
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{template.title}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {template.entryMode === "total_only"
+                          ? t.meal.totalOnlyBadge
+                          : formatTemplate(t.meal.perIngredientSummary, {
+                              n: template.ingredients.length,
+                            })}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t.meal.edit}
+                      onClick={() => {
+                        setEditingTemplate(template);
+                        setTemplateDialogOpen(true);
+                      }}
+                    >
+                      <PencilIcon className="text-muted-foreground" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t.meal.delete}
+                      onClick={() => void handleDeleteTemplate(template.id)}
+                    >
+                      <Trash2Icon className="text-muted-foreground" />
+                    </Button>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    <Badge variant="secondary" className="tabular-nums text-[11px]">
+                      {formatNumberEs(template.resolvedCalories)} {t.hoy.kcalUnit}
+                    </Badge>
+                    <Badge variant="outline" className="tabular-nums text-[11px]">
+                      {formatNumberEs(template.resolvedProtein)} g · {t.hoy.protein}
+                    </Badge>
+                    <Badge variant="outline" className="tabular-nums text-[11px]">
+                      {formatNumberEs(template.resolvedCarbs)} g · {t.hoy.carbs}
+                    </Badge>
+                    <Badge variant="outline" className="tabular-nums text-[11px]">
+                      {formatNumberEs(template.resolvedFat)} g · {t.hoy.fat}
+                    </Badge>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -511,42 +522,15 @@ export default function AjustesPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{t.ajustes.newTemplate}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="template-name">{t.meal.templateNameLabel}</Label>
-              <Input
-                id="template-name"
-                required
-                autoFocus
-                value={templateName}
-                onChange={(event) => setTemplateName(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="template-notes">{t.meal.notesLabel}</Label>
-              <Textarea
-                id="template-notes"
-                rows={2}
-                value={templateNotes}
-                onChange={(event) => setTemplateNotes(event.target.value)}
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setTemplateDialogOpen(false)}>
-                {t.meal.cancel}
-              </Button>
-              <Button type="button" disabled={templatePending} onClick={() => void handleCreateTemplate()}>
-                {templatePending ? t.common.loading : t.meal.save}
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <TemplateForm
+        open={templateDialogOpen}
+        onOpenChange={(open) => {
+          setTemplateDialogOpen(open);
+          if (!open) setEditingTemplate(null);
+        }}
+        template={editingTemplate}
+        onSaved={handleSavedTemplate}
+      />
 
       <Card>
         <CardHeader className="pb-3">

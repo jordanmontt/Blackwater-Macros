@@ -110,6 +110,17 @@ export default function PesoPage() {
     return round1((latest.bodyFatPct as number) - (prior.bodyFatPct as number));
   }, [weights]);
 
+  const changeWeight7d = useMemo(() => {
+    if (!weights) return null;
+    const latest = weights.at(-1);
+    if (!latest) return null;
+    const latestDay = latest.measuredAt.slice(0, 10);
+    const cutoff = addDaysToKey(latestDay, -7);
+    const prior = [...weights].reverse().find((entry) => entry.measuredAt.slice(0, 10) <= cutoff);
+    if (!prior) return null;
+    return round1(latest.weightKg - prior.weightKg);
+  }, [weights]);
+
   const chartRows = useMemo<WeightFatRow[]>(() => {
     const points = (weights ?? []).map((entry) => ({
       date: entry.measuredAt.slice(0, 10),
@@ -215,7 +226,17 @@ export default function PesoPage() {
             {currentWeight !== null ? `${formatNumberEs(currentWeight, 1)} kg` : "—"}
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-2 px-4 pb-4">
+        <CardContent className="grid grid-cols-3 gap-2 px-4 pb-4">
+          <div className="rounded-lg border px-3 py-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t.peso.changeWeight7d}
+            </p>
+            <p className="text-lg font-semibold tabular-nums">
+              {changeWeight7d === null
+                ? "—"
+                : `${changeWeight7d > 0 ? "+" : ""}${formatNumberEs(changeWeight7d, 1)} kg`}
+            </p>
+          </div>
           <div className="rounded-lg border px-3 py-2">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {t.peso.currentBodyFat}

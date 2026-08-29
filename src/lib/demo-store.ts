@@ -274,6 +274,37 @@ function buildMealDto(input: {
   };
 }
 
+function buildTemplateDto(input: {
+  id: string;
+  payload: TemplatePayload;
+}): MealTemplateDTO {
+  const totals = resolveMealTotals(
+    input.payload.entryMode,
+    input.payload.ingredients,
+    input.payload.totalCalories ?? null,
+    input.payload.totalProtein ?? null,
+    input.payload.totalCarbs ?? null,
+    input.payload.totalFat ?? null,
+  );
+  const isTotalOnly = input.payload.entryMode === "total_only";
+  return {
+    id: input.id,
+    name: input.payload.name,
+    title: input.payload.title,
+    notes: input.payload.notes ?? null,
+    entryMode: input.payload.entryMode,
+    ingredients: input.payload.ingredients,
+    totalCalories: isTotalOnly ? (input.payload.totalCalories ?? null) : null,
+    totalProtein: isTotalOnly ? (input.payload.totalProtein ?? null) : null,
+    totalCarbs: isTotalOnly ? (input.payload.totalCarbs ?? null) : null,
+    totalFat: isTotalOnly ? (input.payload.totalFat ?? null) : null,
+    resolvedCalories: totals.calories,
+    resolvedProtein: totals.protein,
+    resolvedCarbs: totals.carbs,
+    resolvedFat: totals.fat,
+  };
+}
+
 /** Generates the full demo dataset relative to the browser's local today. */
 export function buildDemoStore(today: string = todayKey()): DemoStore {
   const rand = mulberry32(SEED);
@@ -368,20 +399,30 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
   }
 
   const templates: MealTemplateDTO[] = [
-    {
+    buildTemplateDto({
       id: newId(),
-      name: "Desayuno",
-      title: "Desayuno",
-      notes: null,
-      ingredients: breakfasts[0].ingredients,
-    },
-    {
+      payload: {
+        name: "Desayuno",
+        title: "Desayuno",
+        notes: null,
+        entryMode: "per_ingredient",
+        ingredients: breakfasts[0].ingredients,
+      },
+    }),
+    buildTemplateDto({
       id: newId(),
-      name: "Cena ligera",
-      title: "Cena ligera",
-      notes: null,
-      ingredients: [],
-    },
+      payload: {
+        name: "Cena ligera",
+        title: "Cena ligera",
+        notes: null,
+        entryMode: "total_only",
+        ingredients: [],
+        totalCalories: 380,
+        totalProtein: 30,
+        totalCarbs: 30,
+        totalFat: 15,
+      },
+    }),
   ];
 
   return { meals, templates, weights };
@@ -541,15 +582,22 @@ export function reorderDemoMeals(orderedIds: string[]): void {
 }
 
 export function createDemoTemplate(payload: TemplatePayload): MealTemplateDTO {
-  const template: MealTemplateDTO = {
-    id: newId(),
-    name: payload.name,
-    title: payload.title,
-    notes: payload.notes ?? null,
-    ingredients: payload.ingredients,
-  };
+  const template = buildTemplateDto({ id: newId(), payload });
   write((store) => ({ ...store, templates: [...store.templates, template] }));
   return template;
+}
+
+export function updateDemoTemplate(id: string, payload: TemplatePayload): MealTemplateDTO | null {
+  let updated: MealTemplateDTO | null = null;
+  write((store) => ({
+    ...store,
+    templates: store.templates.map((template) => {
+      if (template.id !== id) return template;
+      updated = buildTemplateDto({ id, payload });
+      return updated;
+    }),
+  }));
+  return updated;
 }
 
 export function deleteDemoTemplate(id: string): boolean {

@@ -1,9 +1,20 @@
 import { NextResponse } from "next/server";
-import { deleteTemplate } from "@/server/services/templates-service";
+import { templateInputSchema } from "@/server/validation";
+import { deleteTemplate, updateTemplate } from "@/server/services/templates-service";
 import { repositories } from "@/server/composition";
-import { jsonError, withUserId } from "@/server/route-utils";
+import { jsonError, parseJsonBody, withUserId } from "@/server/route-utils";
 
 type RouteContext = { params: Promise<{ id: string }> };
+
+export async function PATCH(request: Request, context: RouteContext) {
+  const { id } = await context.params;
+  return withUserId(async (userId) => {
+    const input = templateInputSchema.parse(await parseJsonBody(request));
+    const template = await updateTemplate(repositories.templates, userId, id, input);
+    if (!template) return jsonError("Plantilla no encontrada", 404);
+    return NextResponse.json({ template });
+  });
+}
 
 export async function DELETE(_request: Request, context: RouteContext) {
   const { id } = await context.params;

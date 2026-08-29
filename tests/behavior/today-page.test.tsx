@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import HoyPage from "@/app/page";
+import { formatNumberEs } from "@/lib/dates";
 import type { MealDTO, MealTemplateDTO } from "@/lib/types";
 
 /**
@@ -15,7 +16,13 @@ import type { MealDTO, MealTemplateDTO } from "@/lib/types";
  */
 
 vi.mock("@/lib/api", () => ({
-  ApiError: class ApiError extends Error {},
+  ApiError: class ApiError extends Error {
+    status: number;
+    constructor(status: number, message: string) {
+      super(message);
+      this.status = status;
+    }
+  },
   api: {
     listMeals: vi.fn(async () => [
       meal({ title: "Desayuno", kcal: 475, protein: 32.4 }),
@@ -37,7 +44,10 @@ vi.mock("@/lib/api", () => ({
         calorieGoal: null,
       },
     })),
-  },
+  } satisfies Pick<
+    typeof import("@/lib/api").api,
+    "listMeals" | "listTemplates" | "createMeal" | "reorderMeals" | "listWeights" | "session"
+  >,
 }));
 
 import { api } from "@/lib/api";
@@ -52,9 +62,8 @@ describe("pantalla Hoy", () => {
     render(<HoyPage />);
 
     // 475 + 850 = 1325 kcal; 32.4 + 45 = 77.4 g
-    // (el separador de miles depende de la configuración regional del sistema)
-    expect(await screen.findByText(/1[.,]?325/)).toBeInTheDocument();
-    expect(screen.getByText("77,4")).toBeInTheDocument();
+    expect(await screen.findByText(formatNumberEs(1325))).toBeInTheDocument();
+    expect(screen.getByText(formatNumberEs(77.4, 1))).toBeInTheDocument();
     expect(screen.getByText("Desayuno")).toBeInTheDocument();
     expect(screen.getByText("Comida")).toBeInTheDocument();
   });
@@ -114,6 +123,42 @@ describe("pantalla Hoy", () => {
     expect(await screen.findByRole("button", { name: "Desayuno salvaje" })).toBeEnabled();
     expect(screen.queryByRole("button", { name: "Añadiendo…" })).toBeNull();
   });
+
+  it("aplicar una plantilla 'solo total' crea la comida con sus macros totales", async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.listTemplates).mockResolvedValue([
+      {
+        id: "tpl-cena",
+        name: "Cena ligera",
+        title: "Cena ligera",
+        notes: null,
+        entryMode: "total_only",
+        ingredients: [],
+        totalCalories: 380,
+        totalProtein: 30,
+        totalCarbs: 30,
+        totalFat: 15,
+        resolvedCalories: 380,
+        resolvedProtein: 30,
+        resolvedCarbs: 30,
+        resolvedFat: 15,
+      } satisfies MealTemplateDTO,
+    ]);
+    render(<HoyPage />);
+
+    await user.click(await screen.findByRole("button", { name: "Cena ligera" }));
+
+    expect(vi.mocked(api.createMeal)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Cena ligera",
+        entryMode: "total_only",
+        totalCalories: 380,
+        totalProtein: 30,
+        totalCarbs: 30,
+        totalFat: 15,
+      }),
+    );
+  });
 });
 
 function meal(partial: { title: string; kcal: number; protein: number }): MealDTO {
@@ -141,6 +186,15 @@ function template(partial: { name: string }): MealTemplateDTO {
     name: partial.name,
     title: partial.name,
     notes: null,
+    entryMode: "per_ingredient",
     ingredients: [{ name: "avena", calories: 150, protein: 5 }],
+    totalCalories: null,
+    totalProtein: null,
+    totalCarbs: null,
+    totalFat: null,
+    resolvedCalories: 150,
+    resolvedProtein: 5,
+    resolvedCarbs: 0,
+    resolvedFat: 0,
   };
 }
