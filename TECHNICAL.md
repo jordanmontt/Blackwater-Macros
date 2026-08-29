@@ -107,7 +107,7 @@ weights      id, user_id → users(cascade), measured_at TIMESTAMPTZ,
 - **`total_only`**: user enters one kcal/protein pair; those land in
   `total_calories/total_protein`; resolved columns copy them.
 
-The MealForm defaults **new** meals to `total_only` ("Solo total"); editing keeps
+The MealForm defaults **new** meals to `per_ingredient` ("Por ingrediente"); editing keeps
 the stored mode. The DB column default (`per_ingredient`) is never relied upon —
 the service always writes an explicit value.
 

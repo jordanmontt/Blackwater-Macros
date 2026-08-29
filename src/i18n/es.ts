@@ -58,7 +58,7 @@ export const t = {
     modeTotalOnlyHint: "Introduce únicamente el total de calorías, proteína, carbohidratos y grasa de la comida.",
     ingredientsLabel: "Ingredientes",
     ingredientNamePlaceholder: "4 huevos",
-    quantityPlaceholder: "Cantidad (ej. 30-40 g)",
+    quantityPlaceholder: "(ej. 30 g)",
     caloriesPlaceholder: "kcal",
     proteinPlaceholder: "g proteína",
     carbsPlaceholder: "g carbohidratos",

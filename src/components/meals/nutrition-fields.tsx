@@ -61,7 +61,7 @@ export function rawNutritionDraft(): NutritionDraft {
   return {
     title: "",
     notes: "",
-    entryMode: "total_only",
+    entryMode: "per_ingredient",
     ingredients: [{ ...emptyIngredient }],
     totalCalories: "",
     totalProtein: "",
@@ -260,35 +260,39 @@ export function NutritionEntryFields({
           <div className="space-y-3">
             {ingredients.map((item, index) => (
               <div key={index} className="rounded-lg border p-2.5 space-y-2">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder={t.meal.ingredientNamePlaceholder}
-                    aria-label={`${t.meal.ingredientsLabel} ${index + 1}`}
-                    value={item.name}
-                    onChange={(event) => updateIngredient(index, { name: event.target.value })}
-                  />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-1 gap-2">
+                    <Input
+                      placeholder={t.meal.ingredientNamePlaceholder}
+                      aria-label={`${t.meal.ingredientsLabel} ${index + 1}`}
+                      className="min-w-0 flex-1"
+                      value={item.name}
+                      onChange={(event) => updateIngredient(index, { name: event.target.value })}
+                    />
+                    <Input
+                      placeholder={t.meal.quantityPlaceholder}
+                      className="w-24 shrink-0"
+                      value={item.quantity}
+                      onChange={(event) =>
+                        updateIngredient(index, { quantity: event.target.value })
+                      }
+                    />
+                  </div>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
+                    className="size-7 shrink-0"
                     aria-label={t.meal.delete}
                     disabled={ingredients.length === 1}
                     onClick={() =>
                       setIngredients((current) => current.filter((_, i) => i !== index))
                     }
                   >
-                    <Trash2Icon className="text-muted-foreground" />
+                    <Trash2Icon className="size-4 text-muted-foreground" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <Input
-                    placeholder={t.meal.quantityPlaceholder}
-                    className="col-span-2 sm:col-span-4"
-                    value={item.quantity}
-                    onChange={(event) =>
-                      updateIngredient(index, { quantity: event.target.value })
-                    }
-                  />
+                <div className="grid grid-cols-2 gap-2">
                   <Input
                     inputMode="decimal"
                     placeholder={t.meal.caloriesPlaceholder}
