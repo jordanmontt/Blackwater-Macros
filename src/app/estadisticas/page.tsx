@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { InfoIcon } from "lucide-react";
@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WeightFatChart, type WeightFatRow } from "@/components/weight-fat-chart";
 import { api, ApiError } from "@/lib/api";
+import { useCachedResource } from "@/lib/use-cached-resource";
 import { formatDateKeyShort, formatNumberEs, todayKey } from "@/lib/dates";
 import { round1 } from "@/lib/nutrition";
 import { movingAverageByDays } from "@/lib/stats";
@@ -34,25 +35,19 @@ const ranges: { value: StatsRange; label: string }[] = [
 
 export default function EstadisticasPage() {
   const [range, setRange] = useState<StatsRange>("30d");
-  const [loaded, setLoaded] = useState<{ range: StatsRange; summary: StatsSummary } | null>(null);
-  // Mientras el rango pedido no coincide con lo cargado, mostramos el esqueleto.
-  const summary = loaded && loaded.range === range ? loaded.summary : null;
-  const loading = summary === null;
 
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .stats(range, todayKey())
-      .then((data) => {
-        if (!cancelled) setLoaded({ range, summary: data });
-      })
-      .catch((error) => {
+  const statsKey = `stats:${range}:${todayKey()}`;
+  const summaryRes = useCachedResource<StatsSummary>(
+    statsKey,
+    () => api.stats(range, todayKey()),
+    {
+      onError: (error) => {
         if (!(error instanceof ApiError && error.status === 401)) console.error(error);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [range]);
+      },
+    },
+  );
+  const summary = summaryRes.data ?? null;
+  const loading = summary === null;
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 pt-4 md:pt-6">

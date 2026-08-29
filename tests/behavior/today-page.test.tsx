@@ -52,10 +52,13 @@ vi.mock("@/lib/api", () => ({
 }));
 
 import { api } from "@/lib/api";
+import { clearCache } from "@/lib/client-cache";
 
 describe("pantalla Hoy", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearCache();
+    sessionStorage.clear();
     vi.mocked(api.listTemplates).mockResolvedValue([]);
   });
 

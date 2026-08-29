@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { DumbbellIcon, FlameIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { useCachedResource } from "@/lib/use-cached-resource";
 import { formatNumberEs } from "@/lib/dates";
 import { calculateCalorieRecommendation } from "@/lib/calories";
 import { calculateProteinRecommendation } from "@/lib/protein";
@@ -101,23 +102,13 @@ export function NutritionRecommendationsCard({
   dailyCalories: number;
   dailyProtein: number;
 }) {
-  const [weights, setWeights] = useState<WeightDTO[] | null>(null);
-  const [calorieProfile, setCalorieProfile] = useState<CalorieProfile>(emptyProfile);
+  const weightsRes = useCachedResource<WeightDTO[]>("weights", () => api.listWeights());
+  const sessionRes = useCachedResource<Awaited<ReturnType<typeof api.session>>>("session", () =>
+    api.session(),
+  );
 
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([api.listWeights(), api.session()])
-      .then(([w, session]) => {
-        if (!cancelled) {
-          setWeights(w);
-          setCalorieProfile(session.calorieProfile);
-        }
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const weights = weightsRes.data ?? null;
+  const calorieProfile = sessionRes.data?.calorieProfile ?? emptyProfile();
 
   const latestWeight = weights?.at(-1) ?? null;
 

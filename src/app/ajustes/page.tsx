@@ -23,8 +23,9 @@ import { TemplateForm } from "@/components/meals/template-form";
 import { api, ApiError } from "@/lib/api";
 import { exitDemoMode } from "@/lib/demo-store";
 import { useDemoMode } from "@/lib/use-demo-mode";
+import { useCachedResource } from "@/lib/use-cached-resource";
 import { formatTemplate } from "@/i18n";
-import type { CalorieProfile, Goal, MealTemplateDTO } from "@/lib/types";
+import type { CalorieProfile, Goal, MealTemplateDTO, WeightDTO } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/lib/use-mounted";
 import { calculateCalorieRecommendation } from "@/lib/calories";
@@ -42,9 +43,6 @@ export default function AjustesPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const demoMode = useDemoMode();
-  const [username, setUsername] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [templates, setTemplates] = useState<MealTemplateDTO[]>([]);
   const [calorieProfile, setCalorieProfile] = useState<CalorieProfile>({
     gender: null,
     birthYear: null,
@@ -54,30 +52,44 @@ export default function AjustesPage() {
     walkingMinutesPerDay: null,
     calorieGoal: null,
   });
-  const [latestWeight, setLatestWeight] = useState<number | null>(null);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MealTemplateDTO | null>(null);
   const mounted = useMounted();
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const sessionRes = useCachedResource<
+    Awaited<ReturnType<typeof api.session>>
+  >("session", () => api.session());
+  const templatesRes = useCachedResource<MealTemplateDTO[]>("templates", () =>
+    api.listTemplates(),
+  );
+  const weightsRes = useCachedResource<WeightDTO[]>("weights", () => api.listWeights());
+
+  const session = sessionRes.data;
+  const username = session?.username ?? "";
+  const isAdmin = session?.isAdmin ?? false;
+  const templates = templatesRes.data ?? [];
+  const latestWeight = weightsRes.data?.at(-1)?.weightKg ?? null;
+
+  // Siembra el perfil de calorías desde la sesión solo mientras el usuario no
+  // haya tocado el formulario (evita pisar ediciones a mitad de escritura).
   useEffect(() => {
-    void api.session().then((session) => {
-      setUsername(session.username);
-      setIsAdmin(session.isAdmin);
-      setCalorieProfile(session.calorieProfile);
+    const profile = session?.calorieProfile;
+    if (!profile) return;
+    void Promise.resolve(profile).then((seeded) => {
+      setCalorieProfile((current) =>
+        current.calorieGoal === null &&
+        current.gender === null &&
+        current.heightCm === null &&
+        current.birthYear === null &&
+        current.gymDaysPerWeek === null &&
+        current.gymSessionMinutes === null &&
+        current.walkingMinutesPerDay === null
+          ? seeded
+          : current,
+      );
     });
-    api
-      .listTemplates()
-      .then(setTemplates)
-      .catch(() => undefined);
-    api
-      .listWeights()
-      .then((weights) => {
-        const last = weights.at(-1);
-        if (last) setLatestWeight(last.weightKg);
-      })
-      .catch(() => undefined);
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     return () => {
@@ -151,20 +163,10 @@ export default function AjustesPage() {
   async function handleDeleteTemplate(id: string) {
     try {
       await api.deleteTemplate(id);
-      setTemplates((current) => current.filter((template) => template.id !== id));
+      await templatesRes.trigger();
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
     }
-  }
-
-  function handleSavedTemplate(saved: MealTemplateDTO) {
-    setTemplates((current) =>
-      [...current.filter((template) => template.id !== saved.id), saved].sort((a, b) =>
-        a.name.localeCompare(b.name),
-      ),
-    );
-    setTemplateDialogOpen(false);
-    setEditingTemplate(null);
   }
 
   const calorieRec = latestWeight
@@ -531,7 +533,11 @@ export default function AjustesPage() {
           if (!open) setEditingTemplate(null);
         }}
         template={editingTemplate}
-        onSaved={handleSavedTemplate}
+        onSaved={() => {
+          void templatesRes.trigger().catch(() => undefined);
+          setTemplateDialogOpen(false);
+          setEditingTemplate(null);
+        }}
       />
 
       {isAdmin && !demoMode ? (

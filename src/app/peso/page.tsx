@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Logo } from "@/components/logo";
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -34,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { WeightFatChart, type WeightFatRow } from "@/components/weight-fat-chart";
 import { api, ApiError } from "@/lib/api";
+import { useCachedResource } from "@/lib/use-cached-resource";
 import {
   addDaysToKey,
   formatDateKeyLong,
@@ -61,32 +62,15 @@ function freshForm(): WeightFormState {
 }
 
 export default function PesoPage() {
-  const [weights, setWeights] = useState<WeightDTO[] | null>(null);
   const [form, setForm] = useState<WeightFormState>(freshForm);
   const [formOpen, setFormOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [deleting, setDeleting] = useState<WeightDTO | null>(null);
 
-  const refresh = useCallback(async () => {
-    try {
-      setWeights(await api.listWeights());
-    } catch (error) {
-      if (!(error instanceof ApiError && error.status === 401)) toast.error(t.common.errorGeneric);
-    }
-  }, []);
+  const weightsRes = useCachedResource<WeightDTO[]>("weights", () => api.listWeights());
+  const weights = weightsRes.data ?? null;
 
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .listWeights()
-      .then((data) => {
-        if (!cancelled) setWeights(data);
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const refresh = useCallback(() => weightsRes.trigger(), [weightsRes]);
 
   const currentWeight = weights?.at(-1)?.weightKg ?? null;
   const currentBodyFat = useMemo(() => {

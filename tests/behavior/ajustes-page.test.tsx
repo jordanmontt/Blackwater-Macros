@@ -3,6 +3,7 @@ import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AjustesPage from "@/app/ajustes/page";
 import { t } from "@/i18n";
+import { clearCache } from "@/lib/client-cache";
 import type { CalorieProfile, MealTemplateDTO } from "@/lib/types";
 import { emptyCalorieProfile, templateDto } from "../helpers/repos";
 
@@ -112,6 +113,7 @@ import { api } from "@/lib/api";
 describe("pantalla Ajustes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearCache();
   });
 
   it("carga la sesión y muestra quién está conectado", async () => {
@@ -169,8 +171,13 @@ describe("pantalla Ajustes", () => {
   it("borra una plantilla y la quita de la lista", async () => {
     const user = userEvent.setup();
     render(<AjustesPage />);
+    await screen.findByRole("button", { name: t.meal.delete });
 
-    await user.click(await screen.findByRole("button", { name: t.meal.delete }));
+    // Tras borrar, el servidor ya no devuelve la plantilla: la lista se
+    // revalida desde la (mockeada) base de datos.
+    vi.mocked(api.listTemplates).mockResolvedValue([] as MealTemplateDTO[]);
+
+    await user.click(screen.getByRole("button", { name: t.meal.delete }));
     expect(vi.mocked(api.deleteTemplate)).toHaveBeenCalledWith("t-1");
     expect(await screen.findByText(t.hoy.noTemplates)).toBeInTheDocument();
   });
@@ -178,6 +185,28 @@ describe("pantalla Ajustes", () => {
   it("abre el formulario de nueva plantilla y al guardar la añade a la lista", async () => {
     const user = userEvent.setup();
     render(<AjustesPage />);
+
+    // El formulario apunta al widget real (mockeado). Al guardar, la lista se
+    // refresca desde la (mockeada) base de datos y aparece la nueva plantilla.
+    vi.mocked(api.listTemplates).mockResolvedValue([
+      template(),
+      {
+        id: "t-nueva",
+        name: "Recién creada",
+        title: "Plantilla recién creada",
+        notes: null,
+        entryMode: "total_only",
+        ingredients: [],
+        totalCalories: 400,
+        totalProtein: 0,
+        totalCarbs: 0,
+        totalFat: 0,
+        resolvedCalories: 400,
+        resolvedProtein: 0,
+        resolvedCarbs: 0,
+        resolvedFat: 0,
+      },
+    ]);
 
     await user.click(await screen.findByRole("button", { name: t.ajustes.newTemplate }));
     const stub = screen.getByTestId("template-form");

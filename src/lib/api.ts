@@ -10,6 +10,7 @@ import type {
 } from "./types";
 import { demoApi } from "./demo-api";
 import { isDemoMode } from "./demo-store";
+import { clearCache, invalidate } from "./client-cache";
 
 export class ApiError extends Error {
   constructor(
@@ -100,7 +101,10 @@ export const api = {
       // Demo sessions have no server session to destroy.
       return Promise.resolve({ ok: true as const });
     }
-    return request<{ ok: true }>("/api/auth/logout", { method: "POST" });
+    return request<{ ok: true }>("/api/auth/logout", { method: "POST" }).then((result) => {
+      clearCache();
+      return result;
+    });
   },
 
   session: () => {
@@ -136,6 +140,8 @@ export const api = {
   createMeal: async (payload: MealPayload) => {
     if (isDemoMode()) return demoApi.createMeal(payload);
     const data = await request<{ meal: MealDTO }>("/api/meals", jsonBody(payload));
+    invalidate("meals:");
+    invalidate("stats:");
     return data.meal;
   },
 
@@ -145,16 +151,25 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
+    invalidate("meals:");
+    invalidate("stats:");
     return data.meal;
   },
 
   deleteMeal: (id: string) => {
     if (isDemoMode()) return demoApi.deleteMeal(id);
-    return request<{ ok: true }>(`/api/meals/${id}`, { method: "DELETE" });
+    return request<{ ok: true }>(`/api/meals/${id}`, { method: "DELETE" }).then((result) => {
+      invalidate("meals:");
+      invalidate("stats:");
+      return result;
+    });
   },
 
   reorderMeals: (orderedIds: string[]) => {
     if (isDemoMode()) return demoApi.reorderMeals(orderedIds);
+    // No se invalida "meals:" aquí: la página ya escribió el orden optimista
+    // en la caché y reordenar no cambia los datos, solo su orden. Invalidar
+    // provocaría un parpadeo de carga tras cada arrastre.
     return request<{ ok: true }>("/api/meals/reorder", {
       method: "PATCH",
       body: JSON.stringify({ orderedIds }),
@@ -170,6 +185,7 @@ export const api = {
   createTemplate: async (payload: TemplatePayload) => {
     if (isDemoMode()) return demoApi.createTemplate(payload);
     const data = await request<{ template: MealTemplateDTO }>("/api/templates", jsonBody(payload));
+    invalidate("templates");
     return data.template;
   },
 
@@ -179,12 +195,16 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
+    invalidate("templates");
     return data.template;
   },
 
   deleteTemplate: (id: string) => {
     if (isDemoMode()) return demoApi.deleteTemplate(id);
-    return request<{ ok: true }>(`/api/templates/${id}`, { method: "DELETE" });
+    return request<{ ok: true }>(`/api/templates/${id}`, { method: "DELETE" }).then((result) => {
+      invalidate("templates");
+      return result;
+    });
   },
 
   listWeights: async () => {
@@ -196,6 +216,8 @@ export const api = {
   createWeight: async (payload: WeightPayload) => {
     if (isDemoMode()) return demoApi.createWeight(payload);
     const data = await request<{ weight: WeightDTO }>("/api/weights", jsonBody(payload));
+    invalidate("weights");
+    invalidate("stats:");
     return data.weight;
   },
 
@@ -205,12 +227,18 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
+    invalidate("weights");
+    invalidate("stats:");
     return data.weight;
   },
 
   deleteWeight: (id: string) => {
     if (isDemoMode()) return demoApi.deleteWeight(id);
-    return request<{ ok: true }>(`/api/weights/${id}`, { method: "DELETE" });
+    return request<{ ok: true }>(`/api/weights/${id}`, { method: "DELETE" }).then((result) => {
+      invalidate("weights");
+      invalidate("stats:");
+      return result;
+    });
   },
 
   stats: async (range: StatsRange, today: string) => {
@@ -221,12 +249,14 @@ export const api = {
 
   updateSettings: async (payload: CalorieProfile) => {
     if (isDemoMode()) return demoApi.updateSettings(payload);
-    return request<{
+    const data = await request<{
       calorieProfile: CalorieProfile;
     }>("/api/settings", {
       method: "PUT",
       body: JSON.stringify(payload),
     });
+    invalidate("session");
+    return data;
   },
 
   adminUsers: async () => {

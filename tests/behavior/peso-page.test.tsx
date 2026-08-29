@@ -51,10 +51,13 @@ vi.mock("@/components/weight-fat-chart", async () => {
 
 import { api } from "@/lib/api";
 import { weightDto } from "../helpers/repos";
+import { clearCache } from "@/lib/client-cache";
 
 describe("pantalla Peso", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearCache();
+    sessionStorage.clear();
   });
 
   it("sin registros invita a añadir el primer pesaje", async () => {

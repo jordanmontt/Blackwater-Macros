@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Logo } from "@/components/logo";
@@ -23,6 +23,8 @@ import { MealCard } from "@/components/meals/meal-card";
 import { MealForm } from "@/components/meals/meal-form";
 import { NutritionRecommendationsCard } from "@/components/nutrition-recommendations";
 import { api, ApiError } from "@/lib/api";
+import { writeCache } from "@/lib/client-cache";
+import { useCachedResource } from "@/lib/use-cached-resource";
 import { todayKey } from "@/lib/dates";
 import { formatNumberEs } from "@/lib/dates";
 import type { MealDTO, MealTemplateDTO } from "@/lib/types";
@@ -30,14 +32,39 @@ import { formatTemplate, t } from "@/i18n";
 
 export default function HoyPage() {
   const [selectedDay, setSelectedDay] = useState<string>(() => todayKey());
-  const [loaded, setLoaded] = useState<{ day: string; meals: MealDTO[] } | null>(null);
-  const [templates, setTemplates] = useState<MealTemplateDTO[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<MealDTO | null>(null);
   const [deletingMeal, setDeletingMeal] = useState<MealDTO | null>(null);
   const [applyingTemplateId, setApplyingTemplateId] = useState<string | null>(null);
 
-  const meals = loaded && loaded.day === selectedDay ? loaded.meals : null;
+  const mealsKey = `meals:${selectedDay}:${selectedDay}`;
+  const mealsRes = useCachedResource<MealDTO[]>(
+    mealsKey,
+    () => api.listMeals(selectedDay, selectedDay),
+    {
+      onError: (error) => {
+        if (!(error instanceof ApiError && error.status === 401)) {
+          toast.error(t.common.errorGeneric);
+        }
+      },
+    },
+  );
+  const templatesRes = useCachedResource<MealTemplateDTO[]>("templates", () =>
+    api.listTemplates(),
+  );
+
+  const meals = mealsRes.data ?? null;
+  const templates = templatesRes.data ?? [];
+
+  const refreshMeals = useCallback(
+    (day: string) => {
+      return api.listMeals(day, day).then((data) => {
+        writeCache(`meals:${day}:${day}`, data);
+        return data;
+      });
+    },
+    [],
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -47,39 +74,6 @@ export default function HoyPage() {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-
-  const refreshMeals = useCallback(async (day: string) => {
-    try {
-      const data = await api.listMeals(day, day);
-      setLoaded({ day, meals: data });
-    } catch (error) {
-      if (!(error instanceof ApiError && error.status === 401)) toast.error(t.common.errorGeneric);
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .listMeals(selectedDay, selectedDay)
-      .then((data) => {
-        if (!cancelled) setLoaded({ day: selectedDay, meals: data });
-      })
-      .catch((error) => {
-        if (!cancelled && !(error instanceof ApiError && error.status === 401)) {
-          toast.error(t.common.errorGeneric);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedDay]);
-
-  useEffect(() => {
-    api
-      .listTemplates()
-      .then(setTemplates)
-      .catch(() => undefined);
-  }, []);
 
   const totals = useMemo(() => {
     const empty = { calories: 0, protein: 0, carbs: 0, fat: 0 };
@@ -146,7 +140,7 @@ export default function HoyPage() {
     if (oldIndex === -1 || newIndex === -1) return;
 
     const reordered = arrayMove(meals, oldIndex, newIndex);
-    setLoaded({ day: selectedDay, meals: reordered });
+    writeCache(mealsKey, reordered);
 
     api.reorderMeals(reordered.map((m) => m.id)).catch(() => {
       toast.error(t.common.errorGeneric);
