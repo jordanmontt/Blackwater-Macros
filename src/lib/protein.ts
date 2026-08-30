@@ -39,5 +39,6 @@ export function calculateProteinRecommendation(
     bodyWeightKg: weightKg,
     bwRange,
     bwPerKg,
+    target: Math.round((bwRange.min + bwRange.max) / 2),
   };
 }

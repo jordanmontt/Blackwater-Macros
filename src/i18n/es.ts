@@ -150,19 +150,18 @@ export const t = {
     inRange: "en rango",
     belowRange: "por debajo",
     aboveRange: "por encima",
-    missingProtein: "te faltan {n} g",
-    exceededProtein: "te pasaste de {n} g",
-    noWeight: "Registra tu peso para ver recomendaciones",
-  },
+    missingProtein: "te faltan {min}–{max} g",
+    exceededProtein: "te pasaste de {min}–{max} g",
+    noWeight: "Registra tu peso para ver recomendaciones",  },
   calorias: {
     recommendationTitle: "Recomendación de calorías",
     noProfile: "Introduce tus datos para conocer las calorías óptimas",
     bmr: "Metabolismo basal (TMB)",
     tdee: "Gasto calórico diario estimado (TDEE)",
     target: "Consumo objetivo",
-    goalCut: "Definir",
+    goalCut: "Definición",
     goalMaintain: "Mantenimiento",
-    goalSurplus: "Abultar",
+    goalSurplus: "Volumen",
     genderLabel: "Género",
     genderMale: "Hombre",
     genderFemale: "Mujer",
@@ -174,12 +173,14 @@ export const t = {
     calorieGoalLabel: "Objetivo calórico",
     perDay: "kcal/día",
     range: "{min} – {max} kcal",
+    estimatedAverage: "promedio estimado",
+    estimatedAverageValue: "promedio estimado: {n}",
     currentIntake: "Ingesta de hoy",
     inRange: "en rango",
     belowRange: "por debajo",
     aboveRange: "por encima",
-    missingCalories: "te faltan {n} kcal",
-    exceededCalories: "te pasaste de {n} kcal",
+    missingCalories: "te faltan {min}–{max} kcal",
+    exceededCalories: "te pasaste de {min}–{max} kcal",
   },
   metodologia: {
     title: "Metodología",
@@ -206,7 +207,7 @@ export const t = {
     proteinRecBody:
       "La cantidad de proteína que necesitas depende de tu objetivo, tu peso y tu composición corporal. La app calcula un rango diario multiplicando tu peso por un factor según tu objetivo.",
     proteinRecRanges:
-      "Mantener músculo (1.2–1.6 g/kg/día): suficiente para la mayoría de personas activas. Abultar (1.6–2.0 g/kg/día): por encima de 1.6 g/kg los beneficios adicionales empiezan a disminuir, pero hasta 2.0 cubre la variabilidad individual. Definir (1.6–2.2 g/kg de peso corporal): durante un déficit calórico la proteína ayuda a preservar músculo.",
+      "Mantener músculo (1.2–1.6 g/kg/día): suficiente para la mayoría de personas activas. Volumen (1.6–2.0 g/kg/día): por encima de 1.6 g/kg los beneficios adicionales empiezan a disminuir, pero hasta 2.0 cubre la variabilidad individual. Definición (1.6–2.2 g/kg de peso corporal): durante un déficit calórico la proteína ayuda a preservar músculo.",
     proteinRecFfm:
       "La recomendación se calcula exclusivamente sobre el peso corporal total.",
     tdeeTitle: "Estimación del gasto calórico diario (TDEE)",
@@ -217,7 +218,7 @@ export const t = {
     tdeeActivity:
       "Los factores de actividad van de 1.2 (sedentario) a 1.9 (muy activo). La investigación muestra que la gente tiende a sobreestimar su nivel de actividad, por lo que los umbrales se calibran de forma conservadora.",
     tdeeGoals:
-      "Definir: TDEE − 400 kcal (rango: −500 a −300). Mantenimiento: TDEE ± 100 kcal. Abultar: TDEE + 300 kcal (rango: +200 a +400).",
+      "Definición: TDEE − 400 kcal (rango: −500 a −300). Mantenimiento: TDEE ± 100 kcal. Volumen: TDEE + 300 kcal (rango: +200 a +400).",
     referencesTitle: "Referencias",
   },
   ajustes: {
@@ -237,9 +238,9 @@ export const t = {
     goalSection: "Objetivo deportivo",
     goalDescription:
       "Define tu objetivo deportivo para calcular los rangos de proteína y calorías recomendadas.",
-    goalCut: "Definir",
+    goalCut: "Definición",
     goalMaintain: "Mantenimiento",
-    goalSurplus: "Abultar",
+    goalSurplus: "Volumen",
     proteinRecLabel: "Proteína recomendada",
     session: "Sesión",
     loggedInAs: "Sesión iniciada como",

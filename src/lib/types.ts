@@ -137,4 +137,5 @@ export interface ProteinRecommendation {
   bodyWeightKg: number;
   bwRange: ProteinRange;
   bwPerKg: ProteinRange;
+  target: number;
 }

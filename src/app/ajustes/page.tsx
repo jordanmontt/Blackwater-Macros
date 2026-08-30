@@ -385,7 +385,10 @@ export default function AjustesPage() {
                     {formatNumberEs(calorieRec.targetMin)} – {formatNumberEs(calorieRec.targetMax)} {t.calorias.perDay}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)} · {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)}
+                    {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)}
                   </p>
                 </div>
               )}

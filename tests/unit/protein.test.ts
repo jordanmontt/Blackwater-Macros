@@ -32,4 +32,10 @@ describe("calculateProteinRecommendation", () => {
     expect(rec.goal).toBe("surplus");
     expect(rec.bodyWeightKg).toBe(82.5);
   });
+
+  it("target is the midpoint of the range", () => {
+    expect(calculateProteinRecommendation(80, "maintain").target).toBe(112);
+    expect(calculateProteinRecommendation(80, "surplus").target).toBe(144);
+    expect(calculateProteinRecommendation(80, "cut").target).toBe(152);
+  });
 });

@@ -31,8 +31,8 @@ function emptyProfile(): CalorieProfile {
 
 /**
  * Status text for an intake vs a recommended range: "en rango", or how much
- * is missing to reach the lower edge ("te faltan X") / exceeded past the
- * upper edge ("te pasaste de X").
+ * is missing to reach the goal as a small range ("te faltan X–Y") / exceeded
+ * past the goal ("te pasaste de X–Y").
  */
 function intakeStatus(
   current: number,
@@ -46,15 +46,17 @@ function intakeStatus(
     return { statusLabel: inRangeLabel, statusColor: "text-green-600 dark:text-green-400" };
   }
   if (current < rangeMin) {
-    const missing = formatNumberEs(Math.round(rangeMin - current), 0);
+    const missingMin = formatNumberEs(Math.round(rangeMin - current), 0);
+    const missingMax = formatNumberEs(Math.round(rangeMax - current), 0);
     return {
-      statusLabel: formatTemplate(missingTemplate, { n: missing }),
+      statusLabel: formatTemplate(missingTemplate, { min: missingMin, max: missingMax }),
       statusColor: "text-yellow-600 dark:text-yellow-400",
     };
   }
-  const exceeded = formatNumberEs(Math.round(current - rangeMax), 0);
+  const exceededMin = formatNumberEs(Math.round(current - rangeMax), 0);
+  const exceededMax = formatNumberEs(Math.round(current - rangeMin), 0);
   return {
-    statusLabel: formatTemplate(exceededTemplate, { n: exceeded }),
+    statusLabel: formatTemplate(exceededTemplate, { min: exceededMin, max: exceededMax }),
     statusColor: "text-orange-600 dark:text-orange-400",
   };
 }
@@ -74,17 +76,27 @@ function IntakeBar({
 }) {
   const pct = rangeMax > 0 ? (current / rangeMax) * 100 : 0;
   const barPct = Math.min(Math.max(pct, 0), 100);
+  const zoneLeft = rangeMax > 0 ? (rangeMin / rangeMax) * 100 : 0;
+  const zoneWidth = rangeMax > 0 ? ((rangeMax - rangeMin) / rangeMax) * 100 : 0;
   return (
     <div className="space-y-1.5">
       <p className={`text-xs ${statusColor}`}>{statusLabel}</p>
       <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="absolute inset-y-0 bg-primary/15"
+          style={{ left: `${zoneLeft}%`, width: `${zoneWidth}%` }}
+        />
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-primary transition-all"
           style={{ width: `${barPct}%` }}
         />
         <div
           className="absolute inset-y-0 w-0.5 bg-muted-foreground/40"
-          style={{ left: `${(rangeMin / rangeMax) * 100}%` }}
+          style={{ left: `${zoneLeft}%` }}
+        />
+        <div
+          className="absolute inset-y-0 w-0.5 bg-muted-foreground/40"
+          style={{ left: `${Math.min(zoneLeft + zoneWidth, 100)}%` }}
         />
       </div>
     </div>
@@ -149,11 +161,13 @@ export function NutritionRecommendationsCard({
               </span>
             </div>
             <p className="text-2xl font-semibold tabular-nums">
-              {formatNumberEs(calorieRec.target)}{" "}
+              {formatNumberEs(calorieRec.targetMin)} – {formatNumberEs(calorieRec.targetMax)}{" "}
               <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
             </p>
             <p className="text-xs text-muted-foreground">
-              {formatNumberEs(calorieRec.targetMin)} – {formatNumberEs(calorieRec.targetMax)}{" "}
+              {formatTemplate(t.calorias.estimatedAverageValue, {
+                n: formatNumberEs(calorieRec.target),
+              })}{" "}
               {t.calorias.perDay}
             </p>
             <IntakeBar
@@ -180,15 +194,18 @@ export function NutritionRecommendationsCard({
                 · {GOAL_LABELS[proteinRec.goal]}
               </span>
             </div>
+            <p className="text-2xl font-semibold tabular-nums">
+              {proteinRec.bwRange.min} – {proteinRec.bwRange.max}{" "}
+              <span className="text-sm font-normal text-muted-foreground">g/día</span>
+            </p>
             <p className="text-xs text-muted-foreground">
               {formatTemplate(t.protein.perKg, {
                 min: proteinRec.bwPerKg.min,
                 max: proteinRec.bwPerKg.max,
               })}
             </p>
-            <p className="text-2xl font-semibold tabular-nums">
-              {proteinRec.bwRange.min} – {proteinRec.bwRange.max}{" "}
-              <span className="text-sm font-normal text-muted-foreground">g/día</span>
+            <p className="text-xs text-muted-foreground">
+              {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} g/día
             </p>
             <IntakeBar
               current={dailyProtein}
