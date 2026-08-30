@@ -83,11 +83,11 @@ describe("tarjetas de recomendación", () => {
     expect(await screen.findAllByText("en rango")).not.toHaveLength(0);
   });
 
-  it("indica cuánto se ha pasado como un rango", async () => {
+  it("indica cuánto se ha pasado como un único valor (diferencia con el máximo)", async () => {
     render(<NutritionRecommendationsCard dailyCalories={3000} dailyProtein={140} />);
 
-    const exceeded = await screen.findByText(/te pasaste de \d+–\d+ kcal/);
-    expect(exceeded.textContent).toMatch(/te pasaste de \d+–\d+ kcal/);
-    expect(exceeded.textContent).not.toMatch(/te pasaste de \d+ kcal/);
+    const exceeded = await screen.findByText(/te pasaste de \d+ kcal/);
+    expect(exceeded.textContent).toMatch(/te pasaste de \d+ kcal/);
+    expect(exceeded.textContent).not.toMatch(/te pasaste de \d+–\d+ kcal/);
   });
 });

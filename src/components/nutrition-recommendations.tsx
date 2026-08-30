@@ -53,10 +53,9 @@ function intakeStatus(
       statusColor: "text-yellow-600 dark:text-yellow-400",
     };
   }
-  const exceededMin = formatNumberEs(Math.round(current - rangeMax), 0);
-  const exceededMax = formatNumberEs(Math.round(current - rangeMin), 0);
+  const exceeded = formatNumberEs(Math.round(current - rangeMax), 0);
   return {
-    statusLabel: formatTemplate(exceededTemplate, { min: exceededMin, max: exceededMax }),
+    statusLabel: formatTemplate(exceededTemplate, { min: exceeded }),
     statusColor: "text-orange-600 dark:text-orange-400",
   };
 }
