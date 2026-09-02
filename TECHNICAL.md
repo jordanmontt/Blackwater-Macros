@@ -606,7 +606,7 @@ Full roadmap and maintenance contract: `docs/ANDROID-PLAN.md`; API contract:
 
 ```
 app/src/main/kotlin/com/blackwatermacros/app/
-  MainActivity.kt            # ComponentActivity + Material3 theme + NavHost(login → home)
+  MainActivity.kt            # ComponentActivity + Material3 theme + NavHost(login→home→hoy)
   data/                      # Networking / wire layer
     WireModels.kt            # kotlinx-serialization DTOs mirroring docs/api.md + @SerialName enums
     JsonConfig.kt            # ApiJson: '.' decimals, camelCase, ignoreUnknownKeys
@@ -614,10 +614,16 @@ app/src/main/kotlin/com/blackwatermacros/app/
     ApiClient.kt             # Retrofit + OkHttp factory; baseUrl from BuildConfig
     BearerAuthInterceptor.kt # adds Authorization: Bearer <token>
     ResponseErrorMapper.kt   # decodes { "error": "<Spanish>" } for user-facing messages
-    SessionManager.kt        # in-memory Bearer token shared by login/home
+    SessionManager.kt        # in-memory Bearer token shared across screens
   ui/
-    LoginViewModel/LoginScreen.kt   # login → token (SessionManager) → GET /api/auth/session
-    HomeViewModel/HomeScreen.kt     # shows session, "Cerrar sesión" → POST /api/auth/logout
+    LoginViewModel/LoginScreen.kt        # login → token (SessionManager) → GET /api/auth/session
+    HomeViewModel/HomeScreen.kt          # shows session; "Ver comidas de hoy" / "Cerrar sesión"
+    HoyViewModel/HoyScreen/MealCard      # Comidas: day navigator, totals, recommendations,
+                                         #   template row, reorderable list (GET /api/meals,
+                                         #   PATCH /api/meals/reorder), delete (DELETE /api/meals)
+    AddMealViewModel/AddMealScreen       # Nueva/Editar comida sheet: both modes (POST/PATCH /api/meals)
+    NutritionRecommendationsCard.kt      # Calorie + protein recs (weights + profile via :core)
+    RecommendationsViewModel.kt          # loads latest weight + calorieProfile → :core recs
 ```
 
 ### Configuration
@@ -639,8 +645,10 @@ app/src/main/kotlin/com/blackwatermacros/app/
 
 ### Current status & next steps
 
-Built: scaffold, `:core` port (green, 61 tests), and a minimal networking + Login
-screen proven against production. **Not yet built** (see `docs/ANDROID-PLAN.md`):
+Built: scaffold, `:core` port (green, 61 tests), networking + Login, **Home**, and the
+full **Comidas/Hoy** screen (create/edit/delete meals with both entry modes, true
+drag-and-drop reorder persisted via `/api/meals/reorder`, apply templates, and the
+calorie/protein recommendations card). **Not yet built** (see `docs/ANDROID-PLAN.md`):
 token/offline persistence (Room), the local-first/offline-only mode, sync engine
-(LWW via `updatedAt`), and the remaining screens (meals, peso, estadísticas,
-ajustes, admin).
+(LWW via `updatedAt`), and the remaining screens (peso, estadísticas, ajustes,
+admin).

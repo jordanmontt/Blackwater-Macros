@@ -1,5 +1,6 @@
 package com.blackwatermacros.app.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun HomeScreen(
+    onOpenHoy: () -> Unit,
     onLoggedOut: () -> Unit,
     viewModel: HomeViewModel = viewModel(),
 ) {
@@ -97,7 +100,7 @@ fun HomeScreen(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "Próximamente: comidas, peso y estadísticas.",
+                text = "Registra tus comidas del día.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -105,11 +108,28 @@ fun HomeScreen(
             Spacer(Modifier.height(20.dp))
 
             Button(
+                onClick = onOpenHoy,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Ver comidas de hoy")
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Button(
                 onClick = {
                     viewModel.logout()
                     onLoggedOut()
                 },
                 modifier = Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline,
+                ),
             ) {
                 Text("Cerrar sesión")
             }

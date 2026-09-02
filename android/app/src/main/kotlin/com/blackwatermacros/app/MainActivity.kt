@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.blackwatermacros.app.ui.HomeScreen
+import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
 
 /** Web palette (src/app/globals.css) mapped to Material3 roles. */
@@ -78,9 +79,19 @@ private fun AppNav() {
             LoginScreen(onLoggedIn = { navController.navigate("home") { popUpTo("login") { inclusive = true } } })
         }
         composable("home") {
-            HomeScreen(onLoggedOut = {
-                navController.navigate("login") { popUpTo("home") { inclusive = true } }
-            })
+            HomeScreen(
+                onOpenHoy = { navController.navigate("hoy") },
+                onLoggedOut = {
+                    navController.navigate("login") { popUpTo("home") { inclusive = true } }
+                },
+            )
+        }
+        composable("hoy") {
+            HoyScreen(
+                onLogout = {
+                    navController.navigate("login") { popUpTo(0) { inclusive = true } }
+                },
+            )
         }
     }
 }

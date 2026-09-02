@@ -88,13 +88,18 @@ La app nativa Android está en `android/`, estructurada en dos módulos:
 `core` (JVM puro, sin Android — lógica de cálculo portada y testada) y `app`
 (UI + red). Es el mismo backend desplegado; usa `Authorization: Bearer <token>`.
 
-**Estado actual:** primera versión mínima y funcional — pantalla de **Iniciar
-sesión** (`LoginViewModel` → `POST /api/auth/login` → `GET /api/auth/session`)
-que al entrar navega a una pantalla de **Inicio** con la sesión y un botón de
-**Cerrar sesión** (`POST /api/auth/logout`), todo contra el backend de producción.
-El token se guarda solo en memoria (se vuelve a pedir al reiniciar). El resto
-(comidas, peso, estadísticas…) y el modo offline/local están planificados pero no
-construidos (ver `docs/ANDROID-PLAN.md`).
+**Estado actual:** primera versión funcional — **Iniciar sesión** → **Inicio** →
+**Comidas/Hoy**. Login (`POST /api/auth/login` → `GET /api/auth/session`), una
+pantalla de **Inicio** con la sesión, y la pantalla **Comidas** (`GET /api/meals`
+por día) con navegador de fechas, tarjeta de totales diarios, tarjeta de
+**recomendaciones**, fila de **Aplicar plantilla**, lista de comidas reordenable
+arrastrando (persiste vía `PATCH /api/meals/reorder`), y un formulario **Nueva
+comida / Editar comida** (`POST`/`PATCH /api/meals`) compartido en una hoja
+inferior con los dos modos de entrada («Por ingrediente» y «Solo total»), más
+eliminar comidas con confirmación (`DELETE /api/meals`). Tema propio que
+reproduce la paleta de la web. El token se guarda solo en memoria (se vuelve a
+pedir al reiniciar). Pendiente: peso, estadísticas y el modo offline/local (ver
+`docs/ANDROID-PLAN.md`).
 
 ### Compilar
 
@@ -124,8 +129,8 @@ adb shell am start -n com.blackwatermacros.app/.MainActivity
 ```
 
 El emulador usa la red del ordenador, así que alcanza el backend de producción
-sin más configuración. Inicia sesión con tu usuario y pasarás a la pantalla de
-**Inicio** con tu sesión y un botón de **Cerrar sesión**.
+sin más configuración. Inicia sesión, entra en **Ver comidas de hoy** y añade una
+comida con el botón **+**.
 
 > El archivo `android/local.properties` (ruta del SDK) es específico de tu máquina
 > y **no se sube** (está en `.gitignore`).

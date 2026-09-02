@@ -165,16 +165,26 @@ tables in `docs/ANDROID-TEST-SPEC.md`.
   `:core` test paths.
 - **Step 3 (networking) done:** `:app` `data/` layer — wire DTOs, Retrofit
   `ApiService`, `BearerAuthInterceptor`, `JsonConfig` (`.` decimals), and
-  `ResponseErrorMapper`. **Step 6 partial:** a minimal **Login → Inicio** flow
+  `ResponseErrorMapper`. **Step 6 in progress:** a **Login → Inicio** flow
   (`LoginViewModel`, `LoginScreen`, `HomeScreen` + `SessionManager`, with
-  "Cerrar sesión"/logout) is built and proven against production at
-  `https://blackwater-macros.jordanmontt.fr/`. The 401 → re-login flow / token
-  persistence is deferred to Room (step 4).
+  "Cerrar sesión"/logout) plus a **Comidas/Hoy** screen (`HoyViewModel` +
+  `HoyScreen` + `MealCard` + `AddMealScreen`) are built and proven against
+  production at `https://blackwater-macros.jordanmontt.fr/`. Hoy currently does
+  the full web feature set: day navigator, daily-totals card, a **shared
+  create/edit bottom-sheet form** (`AddMealScreen`) with both entry modes
+  (dropdown «Por ingrediente» / «Solo total», 2-col macro grids, footer CTA),
+  **edit/delete** (with `AlertDialog` confirm), **true drag-and-drop reorder**
+  (`sh.calvin.reorderable`, persisted via `PATCH /api/meals/reorder`), the
+  **Aplicar plantilla** row (`GET/POST /api/meals`), and the **calorie/protein
+  recommendations card** (`NutritionRecommendationsCard` via `:core` from the
+  latest weight + calorie profile). The 401 → re-login flow / token persistence
+  is deferred to Room (step 4).
 - **Local emulator works:** the Homebrew Android SDK (`/opt/homebrew/
   share/android-commandlinetools`) is used via `android/local.properties`
   (gitignored); the emulator can run `:app` locally for manual testing.
   Base URL is injectable with `-Papp.baseUrl=<url>` (default production).
-- **Not yet built:** steps 4, 5, 7 (UI/Room tests), 8, and most of 6.
+- **Not yet built:** steps 4, 5, 7 (UI/Room tests), 8, and the rest of 6
+  (peso, estadísticas, ajustes, admin).
 - **Open design decision (user):** when logging in after local/offline use, what
   happens to locally-entered data (keep-separate vs upload/merge vs discard) —
   to be decided when designing the sync engine (step 5).
