@@ -38,6 +38,15 @@ Los usuarios se crean manualmente (no hay registro público).
 
 ## Puesta en marcha local
 
+> **En un clon nuevo hay **dos cosas que hacer una sola vez**:
+>
+> 1. **Crear `DATABASE_URL`** → `cp .env.example .env.local` y pega tu connection
+>    string de Neon. Sin esto la app cae en las peticiones a la API (no hay BD).
+> 2. **Instalar el hook de git** → `npm run hooks:install`. Crea un aviso local que
+>    te recuerda al hacer commit si tocas los tests del core TS/Kotlin y olvidas su
+>    espejo. El script está en el repo, pero el hook instalado es solo de tu
+>    máquina y hay que regenerarlo en cada clon.
+
 1. Crea una cuenta gratuita en Neon y un proyecto → copia la *connection string*.
 2. Instala dependencias y configura el entorno:
 
