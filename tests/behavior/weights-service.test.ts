@@ -26,14 +26,15 @@ function memoryWeights(): WeightsRepository {
     },
     async create(userId, data: NewWeightData) {
       const id = `wt-${nextId++}`;
-      const row: WeightRow = { id, userId, createdAt: new Date(), ...data };
+      const now = new Date();
+      const row: WeightRow = { id, userId, createdAt: now, updatedAt: now, ...data };
       rows.set(id, row);
       return row;
     },
     async update(userId, id, data: NewWeightData) {
       const existing = rows.get(id);
       if (!existing || existing.userId !== userId) return null;
-      const updated: WeightRow = { ...existing, ...data };
+      const updated: WeightRow = { ...existing, ...data, updatedAt: new Date() };
       rows.set(id, updated);
       return updated;
     },
@@ -157,6 +158,7 @@ describe("toWeightDto", () => {
       weightKg: 80.5,
       bodyFatPct: 18.2,
       note: "ayunas",
+      updatedAt: new Date("2026-08-23T08:00:00.000Z"),
     };
     const dto = toWeightDto(row);
     expect(dto.id).toBe("wt-1");
@@ -164,6 +166,7 @@ describe("toWeightDto", () => {
     expect(dto.weightKg).toBe(80.5);
     expect(dto.bodyFatPct).toBe(18.2);
     expect(dto.note).toBe("ayunas");
+    expect(dto.updatedAt).toBe("2026-08-23T08:00:00.000Z");
   });
 
   it("maneja bodyFatPct y note null", () => {
@@ -174,6 +177,7 @@ describe("toWeightDto", () => {
       weightKg: 90,
       bodyFatPct: null,
       note: null,
+      updatedAt: new Date("2026-08-30T08:00:00.000Z"),
     };
     const dto = toWeightDto(row);
     expect(dto.bodyFatPct).toBeNull();

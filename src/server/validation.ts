@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isValidDateKey } from "@/lib/dates";
+import { isValidDateKey } from "@/lib/core/dates";
 
 export const ingredientInputSchema = z.object({
   name: z.string().trim().min(1, "El nombre del ingrediente es obligatorio").max(200),

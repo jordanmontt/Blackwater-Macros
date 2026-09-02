@@ -42,11 +42,11 @@ import {
   nowDateTimeLocalValue,
   toDateTimeLocalValue,
   parseLocalDateTime,
-} from "@/lib/dates";
+} from "@/lib/core/dates";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
-import { movingAverageByDays } from "@/lib/stats";
-import { round1 } from "@/lib/nutrition";
-import type { WeightDTO } from "@/lib/types";
+import { movingAverageByDays } from "@/lib/core/stats";
+import { round1 } from "@/lib/core/nutrition";
+import type { WeightDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
 
 interface WeightFormState {

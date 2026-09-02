@@ -7,7 +7,7 @@ import {
   rangeToDays,
   weeklyAverages,
   type DataPoint,
-} from "@/lib/stats";
+} from "@/lib/core/stats";
 
 describe("tendencia de peso (media móvil de 7 días)", () => {
   it("suaviza el ruido diario mostrando la media de la última semana", () => {

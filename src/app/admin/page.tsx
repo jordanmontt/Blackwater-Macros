@@ -37,7 +37,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { api, ApiError } from "@/lib/api";
 import { t } from "@/i18n";
-import type { AdminUserDTO } from "@/lib/types";
+import type { AdminUserDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 
 const memberSinceFormatter = new Intl.DateTimeFormat("es-ES", {

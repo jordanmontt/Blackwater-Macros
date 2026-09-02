@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { getSessionUserId } from "./api-auth";
+import { getSessionUserIdFromRequest } from "./api-auth";
 import { serviceDeps } from "./composition";
 import type { UserRow } from "./db/schema";
 import { UsernameExistsError } from "./services/auth-service";
@@ -12,9 +12,10 @@ export function jsonError(message: string, status: number) {
 
 /** Wraps a handler so it only runs for authenticated users. */
 export async function withUserId(
+  request: Request,
   handler: (userId: string) => Promise<NextResponse | Response>,
 ): Promise<NextResponse | Response> {
-  const userId = await getSessionUserId(serviceDeps.auth);
+  const userId = await getSessionUserIdFromRequest(serviceDeps.auth, request);
   if (!userId) return jsonError("No autenticado", 401);
   try {
     return await handler(userId);
@@ -33,9 +34,10 @@ export async function withUserId(
  * effect immediately, even on devices with an already-open session.
  */
 export async function withAdmin(
+  request: Request,
   handler: (actor: UserRow) => Promise<NextResponse | Response>,
 ): Promise<NextResponse | Response> {
-  const userId = await getSessionUserId(serviceDeps.auth);
+  const userId = await getSessionUserIdFromRequest(serviceDeps.auth, request);
   if (!userId) return jsonError("No autenticado", 401);
   const actor = await serviceDeps.auth.users.findById(userId);
   if (!actor?.isAdmin) return jsonError("No autorizado", 403);

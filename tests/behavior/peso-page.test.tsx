@@ -2,9 +2,9 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PesoPage from "@/app/peso/page";
-import { formatNumberEs } from "@/lib/dates";
+import { formatNumberEs } from "@/lib/core/dates";
 import { t } from "@/i18n";
-import type { WeightDTO } from "@/lib/types";
+import type { WeightDTO } from "@/lib/core/types";
 
 /**
  * Requisitos visibles en la pantalla "Peso":

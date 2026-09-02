@@ -24,6 +24,7 @@ export interface MealDTO {
   resolvedProtein: number;
   resolvedCarbs: number;
   resolvedFat: number;
+  updatedAt: string;
 }
 
 export interface MealTemplateDTO {
@@ -41,6 +42,7 @@ export interface MealTemplateDTO {
   resolvedProtein: number;
   resolvedCarbs: number;
   resolvedFat: number;
+  updatedAt: string;
 }
 
 export interface WeightDTO {
@@ -49,6 +51,7 @@ export interface WeightDTO {
   weightKg: number;
   bodyFatPct: number | null;
   note: string | null;
+  updatedAt: string;
 }
 
 export interface DailyNutritionPoint {

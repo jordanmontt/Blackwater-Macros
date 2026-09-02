@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildStatsFromData, type StatsMeal, type StatsWeight } from "@/lib/stats-builder";
-import { addDaysToKey } from "@/lib/dates";
+import { buildStatsFromData, type StatsMeal, type StatsWeight } from "@/lib/core/stats-builder";
+import { addDaysToKey } from "@/lib/core/dates";
 
 /**
  * Pruebas técnicas del constructor de estadísticas compartido
- * (lib/stats-builder.ts) — la misma pieza pura que usan tanto el servidor
+ * (lib/core/stats-builder.ts) — la misma pieza pura que usan tanto el servidor
  * (stats-service) como el modo demo, para garantizar que no hay divergencia.
  */
 

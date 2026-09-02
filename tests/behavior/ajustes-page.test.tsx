@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import AjustesPage from "@/app/ajustes/page";
 import { t } from "@/i18n";
 import { clearCache } from "@/lib/client-cache";
-import type { CalorieProfile, MealTemplateDTO } from "@/lib/types";
+import type { CalorieProfile, MealTemplateDTO } from "@/lib/core/types";
 import { emptyCalorieProfile, templateDto } from "../helpers/repos";
 
 /**
@@ -50,7 +50,7 @@ vi.mock("@/lib/api", () => ({
       calorieProfile: profile({ calorieGoal: "maintain" }),
     })),
     listTemplates: vi.fn(async () => [template()]),
-    listWeights: vi.fn(async () => [{ id: "w-1", measuredAt: "2026-06-15T08:00:00.000Z", weightKg: 80, bodyFatPct: null, note: null }]),
+    listWeights: vi.fn(async () => [{ id: "w-1", measuredAt: "2026-06-15T08:00:00.000Z", weightKg: 80, bodyFatPct: null, note: null, updatedAt: "2026-06-15T08:00:00.000Z" }]),
     updateSettings: vi.fn(async (calorieProfile: CalorieProfile) => ({ calorieProfile })),
     deleteTemplate: vi.fn(async () => ({ ok: true as const })),
     createTemplate: vi.fn(),
@@ -87,6 +87,7 @@ vi.mock("@/components/meals/template-form", async () => {
     resolvedProtein: 0,
     resolvedCarbs: 0,
     resolvedFat: 0,
+    updatedAt: "2026-06-15T08:00:00.000Z",
   };
   return {
     TemplateForm: ({
@@ -205,6 +206,7 @@ describe("pantalla Ajustes", () => {
         resolvedProtein: 0,
         resolvedCarbs: 0,
         resolvedFat: 0,
+        updatedAt: "2026-06-15T08:00:00.000Z",
       },
     ]);
 

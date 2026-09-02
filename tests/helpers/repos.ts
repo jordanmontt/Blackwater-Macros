@@ -7,7 +7,7 @@ import type { SessionsRepository } from "@/server/repositories/sessions-repo";
 import type { AuthServiceDeps } from "@/server/services/auth-service";
 import type { StatsServiceDeps } from "@/server/services/stats-service";
 import type { MealRow, MealTemplateRow, WeightRow, UserRow } from "@/server/db/schema";
-import type { CalorieProfile, MealTemplateDTO, WeightDTO } from "@/lib/types";
+import type { CalorieProfile, MealTemplateDTO, WeightDTO } from "@/lib/core/types";
 
 /**
  * Infraestructura en memoria para probar rutas HTTP (handlers de la API) sin
@@ -125,14 +125,15 @@ export function createMemoryWorld(): MemoryWorld {
     },
     async create(userId, input) {
       const id = `tpl-${templatesData.size + 1}`;
-      const row: MealTemplateRow = { id, userId, createdAt: new Date(), ...input };
+      const now = new Date();
+      const row: MealTemplateRow = { id, userId, createdAt: now, updatedAt: now, ...input };
       templatesData.set(id, row);
       return row;
     },
     async update(userId, id, input) {
       const existing = templatesData.get(id);
       if (!existing || existing.userId !== userId) return null;
-      const updated: MealTemplateRow = { ...existing, ...input };
+      const updated: MealTemplateRow = { ...existing, ...input, updatedAt: new Date() };
       templatesData.set(id, updated);
       return updated;
     },
@@ -156,14 +157,15 @@ export function createMemoryWorld(): MemoryWorld {
     },
     async create(userId, input) {
       const id = `wt-${weightsData.size + 1}`;
-      const row: WeightRow = { id, userId, createdAt: new Date(), ...input };
+      const now = new Date();
+      const row: WeightRow = { id, userId, createdAt: now, updatedAt: now, ...input };
       weightsData.set(id, row);
       return row;
     },
     async update(userId, id, input) {
       const existing = weightsData.get(id);
       if (!existing || existing.userId !== userId) return null;
-      const updated: WeightRow = { ...existing, ...input };
+      const updated: WeightRow = { ...existing, ...input, updatedAt: new Date() };
       weightsData.set(id, updated);
       return updated;
     },
@@ -357,6 +359,7 @@ export function templateRow(overrides: Partial<MealTemplateRow> = {}): MealTempl
     resolvedCarbs: 0,
     resolvedFat: 0,
     createdAt: SAMPLE_DATE,
+    updatedAt: SAMPLE_DATE,
     ...overrides,
   };
 }
@@ -371,6 +374,7 @@ export function weightRow(overrides: Partial<WeightRow> = {}): WeightRow {
     bodyFatPct: null,
     note: null,
     createdAt: SAMPLE_DATE,
+    updatedAt: SAMPLE_DATE,
     ...overrides,
   };
 }
@@ -383,6 +387,7 @@ export function weightDto(overrides: Partial<WeightDTO> = {}): WeightDTO {
     weightKg: 80,
     bodyFatPct: null,
     note: null,
+    updatedAt: "2026-06-15T08:00:00.000Z",
     ...overrides,
   };
 }
@@ -404,6 +409,7 @@ export function templateDto(overrides: Partial<MealTemplateDTO> = {}): MealTempl
     resolvedProtein: 0,
     resolvedCarbs: 0,
     resolvedFat: 0,
+    updatedAt: "2026-06-15T08:00:00.000Z",
     ...overrides,
   };
 }

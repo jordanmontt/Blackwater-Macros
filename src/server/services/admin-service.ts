@@ -1,6 +1,6 @@
 import { hashPassword } from "../auth/password";
 import type { UserRow } from "../db/schema";
-import type { AdminUserDTO } from "@/lib/types";
+import type { AdminUserDTO } from "@/lib/core/types";
 import { UsernameExistsError, type AuthServiceDeps } from "./auth-service";
 
 export class NotFoundError extends Error {

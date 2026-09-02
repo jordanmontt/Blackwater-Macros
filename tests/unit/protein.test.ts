@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateProteinRecommendation } from "../../src/lib/protein";
+import { calculateProteinRecommendation } from "../../src/lib/core/protein";
 
 describe("calculateProteinRecommendation", () => {
   const WEIGHT = 80;

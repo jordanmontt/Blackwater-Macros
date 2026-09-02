@@ -67,22 +67,22 @@ describe("rutas de administración de usuarios", () => {
 
   describe("control de acceso", () => {
     it("sin sesión devuelve 401 en todas las operaciones", async () => {
-      expect((await getUsers()).status).toBe(401);
+      expect((await getUsers(new Request("http://test/api/admin/users"))).status).toBe(401);
       expect((await postUser(jsonRequest("/api/admin/users", {}))).status).toBe(401);
       expect((await patchUser(jsonRequest("/api/admin/users/u-2", {}), routeParams("u-2"))).status).toBe(401);
-      expect((await deleteUser(undefined as unknown as Request, routeParams("u-2"))).status).toBe(401);
+      expect((await deleteUser(new Request("http://test/api/admin/users/u-2"), routeParams("u-2"))).status).toBe(401);
     });
 
     it("un usuario normal devuelve 403 en todas las operaciones", async () => {
       await seedNormal();
-      expect((await getUsers()).status).toBe(403);
+      expect((await getUsers(new Request("http://test/api/admin/users"))).status).toBe(403);
       expect(
         (await postUser(jsonRequest("/api/admin/users", { username: "nuevo", password: OTHER_PASS }))).status,
       ).toBe(403);
       expect(
         (await patchUser(jsonRequest("/api/admin/users/u-2", { isAdmin: true }), routeParams("u-2"))).status,
       ).toBe(403);
-      expect((await deleteUser(undefined as unknown as Request, routeParams("u-2"))).status).toBe(403);
+      expect((await deleteUser(new Request("http://test/api/admin/users/u-2"), routeParams("u-2"))).status).toBe(403);
     });
   });
 
@@ -92,7 +92,7 @@ describe("rutas de administración de usuarios", () => {
       await seedUser(world!, "ana", OTHER_PASS, true);
       await seedUser(world!, "bea", OTHER_PASS);
 
-      const res = await getUsers();
+      const res = await getUsers(new Request("http://test/api/admin/users"));
       expect(res.status).toBe(200);
       const { users } = await res.json();
       const usernames = users.map((u: { username: string }) => u.username);

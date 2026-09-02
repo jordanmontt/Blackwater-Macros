@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getSettings, updateCalorieProfile } from "@/server/services/settings-service";
 import type { SettingsRepository } from "@/server/repositories/settings-repo";
-import type { CalorieProfile } from "@/lib/types";
+import type { CalorieProfile } from "@/lib/core/types";
 
 function memorySettings(): SettingsRepository {
   const calorieProfiles = new Map<string, CalorieProfile>();

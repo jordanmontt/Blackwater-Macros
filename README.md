@@ -95,6 +95,7 @@ src/
   components/          Componentes de UI (shadcn/ui + propios)
   i18n/es.ts           Textos en español centralizados (listo para más idiomas)
   lib/                 Lógica pura compartida (fechas, nutrición, estadísticas, CSV)
+    lib/core/          Algoritmos puros sin dependencias (se portan a Android/Kotlin)
   server/
     auth/              Hash de contraseñas (scrypt) y tokens de sesión
     db/                Esquema Drizzle y cliente Postgres

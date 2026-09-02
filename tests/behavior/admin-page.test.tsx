@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AdminPage from "@/app/admin/page";
 import { t } from "@/i18n";
-import type { CalorieProfile } from "@/lib/types";
+import type { CalorieProfile } from "@/lib/core/types";
 import { emptyCalorieProfile } from "../helpers/repos";
 
 /**

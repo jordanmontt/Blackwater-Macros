@@ -5,7 +5,7 @@ import { repositories } from "@/server/composition";
 import { parseJsonBody, withUserId } from "@/server/route-utils";
 
 export async function GET(request: Request) {
-  return withUserId(async (userId) => {
+  return withUserId(request, async (userId) => {
     const url = new URL(request.url);
     const from = url.searchParams.get("from");
     const to = url.searchParams.get("to");
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  return withUserId(async (userId) => {
+  return withUserId(request, async (userId) => {
     const input = mealInputSchema.parse(await parseJsonBody(request));
     const meal = await createMeal(repositories.meals, userId, input);
     return NextResponse.json({ meal }, { status: 201 });

@@ -20,10 +20,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WeightFatChart, type WeightFatRow } from "@/components/weight-fat-chart";
 import { api, ApiError } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
-import { formatDateKeyShort, formatNumberEs, todayKey } from "@/lib/dates";
-import { round1 } from "@/lib/nutrition";
-import { movingAverageByDays } from "@/lib/stats";
-import type { StatsRange, StatsSummary } from "@/lib/types";
+import { formatDateKeyShort, formatNumberEs, todayKey } from "@/lib/core/dates";
+import { round1 } from "@/lib/core/nutrition";
+import { movingAverageByDays } from "@/lib/core/stats";
+import type { StatsRange, StatsSummary } from "@/lib/core/types";
 import { t } from "@/i18n";
 
 const ranges: { value: StatsRange; label: string }[] = [

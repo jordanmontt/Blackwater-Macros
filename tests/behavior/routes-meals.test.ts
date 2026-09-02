@@ -5,6 +5,7 @@ import {
   mealRow,
   jsonRequest,
   routeParams,
+  seedSession,
 } from "../helpers/repos";
 import type { MemoryWorld } from "../helpers/repos";
 
@@ -55,6 +56,24 @@ describe("rutas de comidas", () => {
     it("GET y POST devuelven 401", async () => {
       expect((await getMeals(new Request("http://test/api/meals"))).status).toBe(401);
       expect((await postMeal(jsonRequest("/api/meals", {}))).status).toBe(401);
+    });
+  });
+
+  describe("autenticación con token Bearer", () => {
+    it("accede a GET /api/meals con token Bearer", async () => {
+      const token = seedSession(world!, USER);
+      const res = await getMeals(
+        new Request("http://test/api/meals", { headers: { authorization: `Bearer ${token}` } }),
+      );
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ meals: [] });
+    });
+
+    it("devuelve 401 con token Bearer inválido", async () => {
+      const res = await getMeals(
+        new Request("http://test/api/meals", { headers: { authorization: "Bearer invalido" } }),
+      );
+      expect(res.status).toBe(401);
     });
   });
 

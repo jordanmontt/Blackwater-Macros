@@ -8,7 +8,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  return withUserId(async (userId) => {
+  return withUserId(request, async (userId) => {
     const input = templateInputSchema.parse(await parseJsonBody(request));
     const template = await updateTemplate(repositories.templates, userId, id, input);
     if (!template) return jsonError("Plantilla no encontrada", 404);
@@ -16,9 +16,9 @@ export async function PATCH(request: Request, context: RouteContext) {
   });
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  return withUserId(async (userId) => {
+  return withUserId(request, async (userId) => {
     const deleted = await deleteTemplate(repositories.templates, userId, id);
     if (!deleted) return jsonError("Plantilla no encontrada", 404);
     return NextResponse.json({ ok: true });

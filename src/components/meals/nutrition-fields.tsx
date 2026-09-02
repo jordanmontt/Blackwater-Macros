@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { EntryMode, IngredientInput } from "@/lib/types";
+import type { EntryMode, IngredientInput } from "@/lib/core/types";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { t } from "@/i18n";
 

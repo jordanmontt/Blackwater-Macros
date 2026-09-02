@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { AppDb } from "../db/client";
 import { users } from "../db/schema";
-import type { CalorieProfile, Gender, Goal } from "@/lib/types";
+import type { CalorieProfile, Gender, Goal } from "@/lib/core/types";
 
 export interface SettingsRepository {
   getCalorieProfile(userId: string): Promise<CalorieProfile>;

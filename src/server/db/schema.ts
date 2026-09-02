@@ -108,6 +108,7 @@ export const mealTemplates = pgTable(
     resolvedCarbs: doublePrecision("resolved_carbs").notNull().default(0),
     resolvedFat: doublePrecision("resolved_fat").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("meal_templates_user_idx").on(table.userId)],
 );
@@ -124,6 +125,7 @@ export const weights = pgTable(
     bodyFatPct: doublePrecision("body_fat_pct"),
     note: text("note"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("weights_user_measured_idx").on(table.userId, table.measuredAt)],
 );

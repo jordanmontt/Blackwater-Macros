@@ -6,9 +6,9 @@ import { GripVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatNumberEs } from "@/lib/dates";
+import { formatNumberEs } from "@/lib/core/dates";
 import { formatTemplate } from "@/i18n";
-import type { MealDTO } from "@/lib/types";
+import type { MealDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
 
 interface MealCardProps {

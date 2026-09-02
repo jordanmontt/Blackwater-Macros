@@ -55,7 +55,7 @@ describe("rutas de peso", () => {
 
   describe("sin sesión", () => {
     it("GET y POST devuelven 401", async () => {
-      expect((await getWeights()).status).toBe(401);
+      expect((await getWeights(new Request("http://test/api/weights"))).status).toBe(401);
       expect((await postWeight(jsonRequest("/api/weights", {}))).status).toBe(401);
     });
   });
@@ -115,7 +115,7 @@ describe("rutas de peso", () => {
       "w-2",
       weightRow({ id: "w-2", userId: USER, measuredAt: new Date("2026-06-15T08:00:00Z"), weightKg: 79.5 }),
     );
-      const res = await getWeights();
+      const res = await getWeights(new Request("http://test/api/weights"));
       expect(res.status).toBe(200);
       const { weights } = await res.json();
       expect(weights.map((w: { weightKg: number }) => w.weightKg)).toEqual([80, 79.5]);

@@ -7,7 +7,7 @@ import type {
   StatsRange,
   StatsSummary,
   WeightDTO,
-} from "./types";
+} from "./core/types";
 import { demoApi } from "./demo-api";
 import { isDemoMode } from "./demo-store";
 import { clearCache, invalidate } from "./client-cache";

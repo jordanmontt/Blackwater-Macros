@@ -9,7 +9,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  return withAdmin(async (actor) => {
+  return withAdmin(request, async (actor) => {
     let body: unknown;
     try {
       body = await parseJsonBody(request);
@@ -32,9 +32,9 @@ export async function PATCH(
   });
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return withAdmin(async (actor) => {
+  return withAdmin(request, async (actor) => {
     await deleteUser(serviceDeps.auth, actor.id, id);
     return NextResponse.json({ ok: true });
   });

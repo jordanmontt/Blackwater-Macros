@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildStatsSummary } from "@/server/services/stats-service";
-import { addDaysToKey, toDateKey } from "@/lib/dates";
+import { addDaysToKey, toDateKey } from "@/lib/core/dates";
 
 /**
  * Requisitos de la sección de estadísticas:

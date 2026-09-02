@@ -25,12 +25,12 @@ import { exitDemoMode } from "@/lib/demo-store";
 import { useDemoMode } from "@/lib/use-demo-mode";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { formatTemplate } from "@/i18n";
-import type { CalorieProfile, Goal, MealTemplateDTO, WeightDTO } from "@/lib/types";
+import type { CalorieProfile, Goal, MealTemplateDTO, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/lib/use-mounted";
-import { calculateCalorieRecommendation } from "@/lib/calories";
-import { calculateProteinRecommendation } from "@/lib/protein";
-import { formatNumberEs } from "@/lib/dates";
+import { calculateCalorieRecommendation } from "@/lib/core/calories";
+import { calculateProteinRecommendation } from "@/lib/core/protein";
+import { formatNumberEs } from "@/lib/core/dates";
 import { t } from "@/i18n";
 
 const GOAL_LABELS: Record<Goal, string> = {
@@ -170,7 +170,7 @@ export default function AjustesPage() {
   }
 
   const calorieRec = latestWeight
-    ? calculateCalorieRecommendation(calorieProfile, latestWeight)
+    ? calculateCalorieRecommendation(calorieProfile, latestWeight, new Date().getFullYear())
     : null;
 
   const proteinRec = latestWeight && calorieProfile.calorieGoal

@@ -9,7 +9,7 @@ import {
   toDateKey,
   toDateTimeLocalValue,
   todayKey,
-} from "@/lib/dates";
+} from "@/lib/core/dates";
 
 describe("claves de fecha (YYYY-MM-DD en hora local)", () => {
   it("convierte fechas locales a clave sin desplazamientos de zona horaria", () => {

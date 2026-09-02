@@ -57,7 +57,7 @@ describe("rutas de plantillas", () => {
 
   describe("sin sesión", () => {
     it("GET y POST devuelven 401", async () => {
-      expect((await getTemplates()).status).toBe(401);
+      expect((await getTemplates(new Request("http://test/api/templates"))).status).toBe(401);
       expect((await postTemplate(jsonRequest("/api/templates", {}))).status).toBe(401);
     });
   });
@@ -136,7 +136,7 @@ describe("rutas de plantillas", () => {
           ingredients: [],
         }),
       );
-      const res = await getTemplates();
+      const res = await getTemplates(new Request("http://test/api/templates"));
       expect(res.status).toBe(200);
       const { templates } = await res.json();
       expect(templates.map((t: { name: string }) => t.name)).toEqual(["Alfa", "Zeta"]);

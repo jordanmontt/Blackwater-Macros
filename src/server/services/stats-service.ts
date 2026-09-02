@@ -1,7 +1,7 @@
-import { addDaysToKey, todayKey } from "@/lib/dates";
-import { rangeToDays } from "@/lib/stats";
-import { buildStatsFromData, type StatsMeal, type StatsWeight } from "@/lib/stats-builder";
-import type { StatsRange, StatsSummary } from "@/lib/types";
+import { addDaysToKey, todayKey } from "@/lib/core/dates";
+import { rangeToDays } from "@/lib/core/stats";
+import { buildStatsFromData, type StatsMeal, type StatsWeight } from "@/lib/core/stats-builder";
+import type { StatsRange, StatsSummary } from "@/lib/core/types";
 import type { MealsRepository } from "../repositories/meals-repo";
 import type { WeightsRepository } from "../repositories/weights-repo";
 
@@ -15,7 +15,7 @@ export interface StatsServiceDeps {
  *
  * This is a thin adapter: it fetches rows through the injected repositories
  * and delegates the actual computation to the pure, client-safe
- * `buildStatsFromData` in `lib/stats-builder.ts` — the same code the local
+ * `buildStatsFromData` in `lib/core/stats-builder.ts` — the same code the local
  * demo mode uses, so server and demo statistics never drift.
  *
  * `todayKeyParam` is the caller's local calendar day (YYYY-MM-DD). Passing it

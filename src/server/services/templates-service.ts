@@ -1,6 +1,6 @@
 import type { MealIngredient } from "../db/schema";
-import { resolveMealTotals } from "@/lib/nutrition";
-import type { IngredientInput, MealTemplateDTO } from "@/lib/types";
+import { resolveMealTotals } from "@/lib/core/nutrition";
+import type { IngredientInput, MealTemplateDTO } from "@/lib/core/types";
 import type { MealTemplatesRepository, NewTemplateData } from "../repositories/templates-repo";
 import type { TemplateInput } from "../validation";
 
@@ -41,7 +41,7 @@ function toDomainData(input: TemplateInput): NewTemplateData {
 
 function toDto(row: Awaited<ReturnType<MealTemplatesRepository["getById"]>>): MealTemplateDTO {
   if (!row) throw new Error("Plantilla no encontrada");
-  return { ...row, ingredients: row.ingredients as IngredientInput[] };
+  return { ...row, ingredients: row.ingredients as IngredientInput[], updatedAt: row.updatedAt.toISOString() };
 }
 
 export async function listTemplates(repo: MealTemplatesRepository, userId: string) {

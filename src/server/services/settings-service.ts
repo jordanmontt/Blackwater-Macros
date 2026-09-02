@@ -1,4 +1,4 @@
-import type { CalorieProfile, UserSettings } from "@/lib/types";
+import type { CalorieProfile, UserSettings } from "@/lib/core/types";
 import type { SettingsRepository } from "../repositories/settings-repo";
 
 export async function getSettings(repo: SettingsRepository, userId: string): Promise<UserSettings> {

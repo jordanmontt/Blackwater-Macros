@@ -1,6 +1,6 @@
 import type { MealIngredient } from "../db/schema";
-import { resolveMealTotals } from "@/lib/nutrition";
-import type { IngredientInput, MealDTO } from "@/lib/types";
+import { resolveMealTotals } from "@/lib/core/nutrition";
+import type { IngredientInput, MealDTO } from "@/lib/core/types";
 import type { MealsRepository, NewMealData } from "../repositories/meals-repo";
 import type { MealInput } from "../validation";
 
@@ -44,6 +44,7 @@ export function toMealDto(row: Awaited<ReturnType<MealsRepository["getById"]>>):
   return {
     ...row,
     ingredients: row.ingredients as IngredientInput[],
+    updatedAt: row.updatedAt.toISOString(),
   };
 }
 

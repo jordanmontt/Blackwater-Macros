@@ -1,5 +1,5 @@
-import type { WeightDTO } from "@/lib/types";
-import { round2 } from "@/lib/nutrition";
+import type { WeightDTO } from "@/lib/core/types";
+import { round2 } from "@/lib/core/nutrition";
 import type { WeightsRepository, NewWeightData } from "../repositories/weights-repo";
 import type { WeightInput } from "../validation";
 
@@ -19,6 +19,7 @@ export function toWeightDto(row: WeightRowLike): WeightDTO {
     weightKg: row.weightKg,
     bodyFatPct: row.bodyFatPct,
     note: row.note,
+    updatedAt: row.updatedAt.toISOString(),
   };
 }
 
@@ -28,6 +29,7 @@ interface WeightRowLike {
   weightKg: number;
   bodyFatPct: number | null;
   note: string | null;
+  updatedAt: Date;
 }
 
 export async function createWeight(repo: WeightsRepository, userId: string, input: WeightInput) {

@@ -25,9 +25,9 @@ import { NutritionRecommendationsCard } from "@/components/nutrition-recommendat
 import { api, ApiError } from "@/lib/api";
 import { writeCache } from "@/lib/client-cache";
 import { useCachedResource } from "@/lib/use-cached-resource";
-import { todayKey } from "@/lib/dates";
-import { formatNumberEs } from "@/lib/dates";
-import type { MealDTO, MealTemplateDTO } from "@/lib/types";
+import { todayKey } from "@/lib/core/dates";
+import { formatNumberEs } from "@/lib/core/dates";
+import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 
 export default function HoyPage() {

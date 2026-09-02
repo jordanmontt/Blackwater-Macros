@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatDateKeyShort, formatNumberEs } from "@/lib/dates";
+import { formatDateKeyShort, formatNumberEs } from "@/lib/core/dates";
 import { t } from "@/i18n";
 
 export interface WeightFatRow {

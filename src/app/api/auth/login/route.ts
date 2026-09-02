@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
   try {
     const issued = await login(serviceDeps.auth, parsed.data.username, parsed.data.password);
-    const response = NextResponse.json({ ok: true });
+    const response = NextResponse.json({ ok: true, token: issued.token, expiresAt: issued.expiresAt.toISOString() });
     response.cookies.set(SESSION_COOKIE_NAME, issued.token, {
       ...sessionCookieOptions,
       expires: issued.expiresAt,

@@ -2,8 +2,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import HoyPage from "@/app/page";
-import { formatNumberEs } from "@/lib/dates";
-import type { MealDTO, MealTemplateDTO } from "@/lib/types";
+import { formatNumberEs } from "@/lib/core/dates";
+import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
 
 /**
  * Requisitos visibles en la pantalla "Hoy":
@@ -146,6 +146,7 @@ describe("pantalla Hoy", () => {
         resolvedProtein: 30,
         resolvedCarbs: 30,
         resolvedFat: 15,
+        updatedAt: "2026-08-23T08:00:00.000Z",
       } satisfies MealTemplateDTO,
     ]);
     render(<HoyPage />);
@@ -181,6 +182,7 @@ function meal(partial: { title: string; kcal: number; protein: number }): MealDT
     resolvedProtein: partial.protein,
     resolvedCarbs: 0,
     resolvedFat: 0,
+    updatedAt: "2026-08-23T08:00:00.000Z",
   };
 }
 
@@ -200,5 +202,6 @@ function template(partial: { name: string }): MealTemplateDTO {
     resolvedProtein: 5,
     resolvedCarbs: 0,
     resolvedFat: 0,
+    updatedAt: "2026-08-23T08:00:00.000Z",
   };
 }

@@ -101,10 +101,12 @@ function memoryTemplates(): MealTemplatesRepository {
     },
     async create(userId, data: NewTemplateData) {
       const id = `tpl-${nextId++}`;
+      const now = new Date();
       const row: MealTemplateRow = {
         id,
         userId,
-        createdAt: new Date(),
+        createdAt: now,
+        updatedAt: now,
         ...data,
       };
       rows.set(id, row);
@@ -113,7 +115,7 @@ function memoryTemplates(): MealTemplatesRepository {
     async update(userId, id, data: NewTemplateData) {
       const existing = rows.get(id);
       if (!existing || existing.userId !== userId) return null;
-      const updated: MealTemplateRow = { ...existing, ...data };
+      const updated: MealTemplateRow = { ...existing, ...data, updatedAt: new Date() };
       rows.set(id, updated);
       return updated;
     },

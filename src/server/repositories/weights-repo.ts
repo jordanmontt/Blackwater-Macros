@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { AppDb } from "../db/client";
 import { weights, type WeightRow } from "../db/schema";
 
@@ -44,7 +44,7 @@ export function createWeightsRepository(db: AppDb): WeightsRepository {
     async update(userId, id, data) {
       const rows = await db
         .update(weights)
-        .set(data)
+        .set({ ...data, updatedAt: sql`now()` })
         .where(and(eq(weights.userId, userId), eq(weights.id, id)))
         .returning();
       return rows[0] ?? null;

@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { AppDb } from "../db/client";
 import { mealTemplates, type MealIngredient, type MealTemplateRow } from "../db/schema";
 
@@ -53,7 +53,7 @@ export function createMealTemplatesRepository(db: AppDb): MealTemplatesRepositor
     async update(userId, id, data) {
       const rows = await db
         .update(mealTemplates)
-        .set(data)
+        .set({ ...data, updatedAt: sql`now()` })
         .where(and(eq(mealTemplates.userId, userId), eq(mealTemplates.id, id)))
         .returning();
       return rows[0] ?? null;

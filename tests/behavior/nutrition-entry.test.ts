@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createMeal } from "@/server/services/meals-service";
 import type { MealInput } from "@/server/validation";
-import { resolveMealTotals, round1, round2, sumIngredientNutrition } from "@/lib/nutrition";
-import type { IngredientInput } from "@/lib/types";
+import { resolveMealTotals, round1, round2, sumIngredientNutrition } from "@/lib/core/nutrition";
+import type { IngredientInput } from "@/lib/core/types";
 
 /**
  * Requisito: el usuario puede calcular la nutrición de dos formas:
@@ -77,7 +77,7 @@ describe("al guardar una comida ya queda calculado su total", () => {
         meals: {
           async create(_userId: string, data: unknown) {
             saved.push(data);
-            return { id: "meal-1", sortOrder: 0, ...(data as object) };
+            return { id: "meal-1", sortOrder: 0, createdAt: new Date(), updatedAt: new Date(), ...(data as object) };
           },
           async listInRange() {
             return [];

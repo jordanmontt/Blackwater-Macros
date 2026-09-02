@@ -1,4 +1,4 @@
-import { buildStatsFromData } from "./stats-builder";
+import { buildStatsFromData } from "./core/stats-builder";
 import {
   createDemoMeal,
   createDemoTemplate,
@@ -25,7 +25,7 @@ import type {
   StatsRange,
   StatsSummary,
   WeightDTO,
-} from "./types";
+} from "./core/types";
 
 /**
  * Client-side implementation of the `api` interface backed by the local demo

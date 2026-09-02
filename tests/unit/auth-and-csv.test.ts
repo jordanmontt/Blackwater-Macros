@@ -8,7 +8,7 @@ import {
   isExpired,
   sessionExpiryFromNow,
 } from "@/server/auth/session";
-import { toCsv } from "@/lib/csv";
+import { toCsv } from "@/lib/core/csv";
 
 describe("almacenamiento de contraseñas", () => {
   it("guarda un hash con sal, nunca la contraseña en claro", async () => {

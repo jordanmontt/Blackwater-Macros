@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { addDaysToKey, formatDateKeyLong, todayKey } from "@/lib/dates";
+import { addDaysToKey, formatDateKeyLong, todayKey } from "@/lib/core/dates";
 import { t } from "@/i18n";
 
 interface DayNavigatorProps {

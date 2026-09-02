@@ -9,7 +9,7 @@ const reorderSchema = z.object({
 });
 
 export async function PATCH(request: Request) {
-  return withUserId(async (userId) => {
+  return withUserId(request, async (userId) => {
     const body = reorderSchema.parse(await parseJsonBody(request));
     await reorderMeals(repositories.meals, userId, body.orderedIds);
     return NextResponse.json({ ok: true });

@@ -10,7 +10,7 @@ import {
   type NutritionPayload,
 } from "@/components/meals/nutrition-fields";
 import { api, ApiError, type MealPayload } from "@/lib/api";
-import type { MealDTO } from "@/lib/types";
+import type { MealDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
 
 interface MealFormProps {

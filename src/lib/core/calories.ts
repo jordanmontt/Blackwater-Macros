@@ -47,9 +47,13 @@ const CALORIE_OFFSETS: Record<Goal, { target: number; min: number; max: number }
   surplus: { target: 300, min: 200, max: 400 },
 };
 
-function getCurrentAge(birthYear: number): number {
-  const now = new Date();
-  return now.getFullYear() - birthYear;
+/**
+ * Computes age as `currentYear - birthYear`. `currentYear` is passed in so the
+ * function stays pure/deterministic (the caller owns the clock read, e.g.
+ * `new Date().getFullYear()`).
+ */
+function getAge(currentYear: number, birthYear: number): number {
+  return currentYear - birthYear;
 }
 
 export function isCalorieProfileComplete(profile: CalorieProfile): boolean {
@@ -67,10 +71,11 @@ export function isCalorieProfileComplete(profile: CalorieProfile): boolean {
 export function calculateCalorieRecommendation(
   profile: CalorieProfile,
   weightKg: number,
+  currentYear: number,
 ): CalorieRecommendation | null {
   if (!isCalorieProfileComplete(profile)) return null;
 
-  const age = getCurrentAge(profile.birthYear!);
+  const age = getAge(currentYear, profile.birthYear!);
   const bmr = calculateBMR(profile.gender!, weightKg, profile.heightCm!, age);
   const multiplier = getActivityMultiplier(
     profile.gymDaysPerWeek!,

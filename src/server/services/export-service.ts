@@ -1,4 +1,4 @@
-import { toCsv } from "@/lib/csv";
+import { toCsv } from "@/lib/core/csv";
 import type { MealRow, WeightRow } from "../db/schema";
 
 /**

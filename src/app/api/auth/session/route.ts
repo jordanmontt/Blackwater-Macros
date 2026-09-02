@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getSessionUserId } from "@/server/api-auth";
+import { getSessionUserIdFromRequest } from "@/server/api-auth";
 import { serviceDeps } from "@/server/composition";
 
-export async function GET() {
-  const userId = await getSessionUserId(serviceDeps.auth);
+export async function GET(request: Request) {
+  const userId = await getSessionUserIdFromRequest(serviceDeps.auth, request);
   if (!userId) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }

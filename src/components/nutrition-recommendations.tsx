@@ -5,10 +5,10 @@ import { DumbbellIcon, FlameIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
-import { formatNumberEs } from "@/lib/dates";
-import { calculateCalorieRecommendation } from "@/lib/calories";
-import { calculateProteinRecommendation } from "@/lib/protein";
-import type { CalorieProfile, Goal, WeightDTO } from "@/lib/types";
+import { formatNumberEs } from "@/lib/core/dates";
+import { calculateCalorieRecommendation } from "@/lib/core/calories";
+import { calculateProteinRecommendation } from "@/lib/core/protein";
+import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 
 const GOAL_LABELS: Record<Goal, string> = {
@@ -124,7 +124,7 @@ export function NutritionRecommendationsCard({
   const latestWeight = weights?.at(-1) ?? null;
 
   const calorieRec = useMemo(
-    () => (latestWeight ? calculateCalorieRecommendation(calorieProfile, latestWeight.weightKg) : null),
+    () => (latestWeight ? calculateCalorieRecommendation(calorieProfile, latestWeight.weightKg, new Date().getFullYear()) : null),
     [latestWeight, calorieProfile],
   );
 

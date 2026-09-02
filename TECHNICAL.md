@@ -40,7 +40,7 @@ src/
     auth/session.ts         # Token generation, TTL, cookie options (pure)
     composition.ts          # Composition root: real repos wired into serviceDeps
     route-utils.ts          # withUserId()/withAdmin() guards + jsonError()
-    api-auth.ts             # getSessionUserId(): cookie → sessions row → user
+    api-auth.ts             # getSessionUserIdFromRequest(): cookie OR Bearer header → sessions row → user
     validation.ts           # zod schemas shared by all mutating endpoints
   components/
     ui/*                    # shadcn/ui primitives (Base UI based)
@@ -50,8 +50,9 @@ src/
     demo-banner.tsx         # Persistent "demo mode" banner + exit to login
     app-nav.tsx theme-provider.tsx
   lib/                      # Shared pure logic + types (importable from both sides)
-    types.ts dates.ts nutrition.ts stats.ts stats-builder.ts protein.ts csv.ts api.ts
-    demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
+    core/                   # PURE algorithms, zero deps — single source of truth, ported to Kotlin
+      types.ts dates.ts nutrition.ts stats.ts stats-builder.ts protein.ts calories.ts csv.ts
+    api.ts demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
   i18n/es.ts                # ALL user-facing Spanish copy as a typed dictionary
 scripts/
   lib/env.ts                # .env/.env.local loader for scripts outside Next runtime
@@ -66,6 +67,12 @@ drizzle.config.ts           # drizzle-kit config; loads .env.local itself (§10)
 **Dependency rule:** `app/api → composition → services → repositories → client`.
 `lib/` is importable by everyone. Client code must never import from `server/`
 (except type-only, e.g. tests reuse repo interfaces).
+
+**`lib/core/` stricter rule:** this subdirectory contains *pure algorithms* with
+zero side effects — it imports nothing from React, browser APIs, or server code,
+and is the single source of truth for business math. Both the web app (TypeScript)
+and the Android app (Kotlin port) implement these exact algorithms, with `tests/unit/`
+as the shared behavioral specification. See `src/lib/core/README.md`.
 
 ---
 
@@ -92,18 +99,24 @@ meals        id, user_id → users(cascade), log_date (DATE 'YYYY-MM-DD'),
 meal_templates  id, user_id → users(cascade), name, title, notes,
              entry_mode (ENUM per_ingredient|total_only), ingredients JSONB,
              total_calories/protein/carbs/fat, resolved_calories/protein/carbs/fat,
-             created_at
+             created_at, updated_at
 weights      id, user_id → users(cascade), measured_at TIMESTAMPTZ,
              weight_kg DOUBLE PRECISION, body_fat_pct DOUBLE PRECISION (nullable),
-             note, created_at
+             note, created_at, updated_at
              index: weights_user_measured_idx(user_id, measured_at)
 ```
+
+> **Sync clock (`updated_at`):** meals, templates, and weights all carry an
+> `updated_at` TIMESTAMPTZ, set on create and refreshed on every update/reorder.
+> It is exposed as `updatedAt` (ISO-8601 UTC) on every DTO and is the single
+> authoritative clock for last-write-wins sync between the web app and Android
+> (see [`docs/api.md`](./docs/api.md) § Android Integration Notes).
 
 ### The two meal entry modes
 
 - **`per_ingredient`**: user enters name/quantity/kcal/protein per ingredient;
   `total_*` columns stay NULL; `resolvedCalories/resolvedProtein` are computed at
-  write time (`lib/nutrition.ts#resolveMealTotals`) and stored.
+  write time (`lib/core/nutrition.ts#resolveMealTotals`) and stored.
 - **`total_only`**: user enters one kcal/protein pair; those land in
   `total_calories/total_protein`; resolved columns copy them.
 
@@ -133,9 +146,10 @@ Adding future macros requires: schema type already allows it → extend
 ```
 fetch /api/meals
   → src/app/api/meals/route.ts        (thin handler)
-    → withUserId(handler)             route-utils.ts
-       ├─ getSessionUserId()          api-auth.ts
-       │    reads bw_session cookie (async cookies(), Next 16)
+    → withUserId(request, handler)    route-utils.ts
+       ├─ getSessionUserIdFromRequest(request, deps)   api-auth.ts
+       │    reads bw_session cookie (async cookies(), Next 16) FIRST
+       │    falls back to `Authorization: Bearer <token>` header (Android/API)
        │    looks up sessions row, rejects expired, returns userId
        │    → null ⇒ 401 {"error":"No autenticado"}
        └─ handler(userId)
@@ -145,14 +159,17 @@ fetch /api/meals
             └─ NextResponse.json({ meal | meals | ok … })
 ```
 
+The session token is transport-agnostic: web sends it as the `bw_session` cookie,
+Android/API clients send it as a Bearer header. The same `sessions` row backs both.
+
 Errors: `ZodError` → 400 with the first issue message; anything else → logged +
 500 `{"error":"Error interno"}`. Handlers never try/catch manually.
 
-Admin endpoints (`/api/admin/*`) go through `withAdmin(...)` instead: the same
-cookie → session → user lookup, plus a DB role check of `actor.isAdmin`
-(non-admins get 403 and handlers receive the acting `UserRow`). The role is
-re-checked on every request, so a demotion takes effect immediately on sessions
-already open.
+Admin endpoints (`/api/admin/*`) go through `withAdmin(request, ...)` instead: the
+same cookie-or-Bearer → session → user lookup, plus a DB role check of
+`actor.isAdmin` (non-admins get 403 and handlers receive the acting `UserRow`).
+The role is re-checked on every request, so a demotion takes effect immediately
+on sessions already open.
 
 ### 4.2 Repositories (injectable factories)
 
@@ -176,7 +193,7 @@ Two reasons:
 | `weights-service` | CRUD over weights (timestamps kept exact, UTC); DTOs include `bodyFatPct` |
 | `settings-service` | calorie profile CRUD (read via session endpoint, updated via `PUT /api/settings`) |
 | `stats-service` | builds the whole `StatsSummary` DTO including body fat series (see §7) |
-| `export-service` | CSV builders using `lib/csv.ts` (RFC-escaped, UTF-8 BOM for Excel) |
+| `export-service` | CSV builders using `lib/core/csv.ts` (RFC-escaped, UTF-8 BOM for Excel) |
 
 Services receive their repos via a `deps` argument — production wiring lives only
 in `composition.ts`:
@@ -214,12 +231,14 @@ URL contains `localhost`/`127.0.0.1`.
   `timingSafeEqual`. `maxmem: 64 MB` is required because OpenSSL's default caps out
   below 128·N·r·p.
 - **Sessions:** 32-byte random token (base64url), stored raw in `sessions.token`,
-  TTL 90 days (`SESSION_TTL_DAYS`). Cookie `bw_session`:
-  httpOnly + secure (prod) + sameSite lax + path `/`.
+  TTL 90 days (`SESSION_TTL_DAYS`). Web clients receive it as cookie `bw_session`
+  (httpOnly + secure (prod) + sameSite lax + path `/`); API/Android clients receive
+  the same token in the login JSON body (`{ok, token, expiresAt}`) and send it as
+  `Authorization: Bearer <token>`.
 - **Two-layer check:** `proxy.ts` performs an optimistic cookie-*presence* redirect
   (cheap edge check, protects pages); every API route independently verifies the
-  session against the DB via `withUserId` (source of truth). Deleting a session row
-  revokes access immediately even if the browser keeps the cookie.
+  session against the DB via `withUserId`/`withAdmin` (source of truth). Deleting
+  a session row revokes access immediately even if the browser keeps the cookie.
 - **Demo cookie:** the edge gate additionally allows pages through when the
   `bw_demo=1` cookie is present (client-side demo mode, see §6.1). This cookie is
   **not** a session — it grants no API access, and on `/login` only a real
@@ -243,8 +262,8 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 
 | Method & path | Auth | Purpose |
 |---|---|---|
-| POST `/api/auth/login` | – | `{username,password}` → sets cookie, `{ok:true}`; 401 on bad credentials |
-| POST `/api/auth/logout` | ✓ | Deletes current session row + clears cookie |
+| POST `/api/auth/login` | – | `{username,password}` → sets cookie AND returns `{ok, token, expiresAt}` body; 401 on bad credentials |
+| POST `/api/auth/logout` | ✓ | Deletes current session row (cookie or Bearer header) + clears cookie |
 | GET `/api/auth/session` | ✓ | `{username, isAdmin, calorieProfile}` for display and settings |
 | GET `/api/admin/users` | ✓ + admin | List all users as `{username,isAdmin,createdAt}` (no credentials) |
 | POST `/api/admin/users` | ✓ + admin | Create account → `{ok:true}` (201); 409 if username exists |
@@ -264,6 +283,10 @@ Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchem
 `weightInputSchema` (includes optional `bodyFatPct`), `calorieProfileInputSchema`
 (calorieGoal enum: cut|maintain|surplus), `loginInputSchema`, `registerInputSchema`,
 `adminUpdateUserSchema`, plus `ingredientInputSchema` reused inside.
+
+> **Full wire contract** (request/response shapes, auth, error format, Android
+> integration notes) lives in [`docs/api.md`](./docs/api.md). The mapping of web
+> tests to Kotlin/Android tests lives in [`docs/ANDROID-TEST-SPEC.md`](./docs/ANDROID-TEST-SPEC.md).
 
 ---
 
@@ -311,7 +334,7 @@ delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
   cookies are cleared.
 - **Mutability:** users can add/edit/delete meals, weights, and templates, and
   update the calorie profile freely. All writes go through `lib/demo-store.ts`,
-  which reuses `resolveMealTotals` (`lib/nutrition.ts`) so totals are computed
+  which reuses `resolveMealTotals` (`lib/core/nutrition.ts`) so totals are computed
   identically to the server. Nothing is ever sent to the network.
 - **Exit:** a persistent `DemoBanner` (rendered in `layout.tsx` on every app
   page) shows «Estás en modo demo…» with a **«Iniciar sesión»** button that calls
@@ -319,7 +342,7 @@ delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
   Ajustes page also exposes the exit action and hides the CSV export card in demo
   mode (those buttons target server endpoints that require a real session).
 - **Stats:** `api.stats()` in demo computes the `StatsSummary` via the shared
-  `lib/stats-builder.ts` (see §7) — the exact same code the server service uses.
+  `lib/core/stats-builder.ts` (see §7) — the exact same code the server service uses.
 
 Demo mode intentionally grants **no** API access: the `bw_demo` cookie is only an
 edge allow-list marker (see §4.5); every API route still requires a real
@@ -350,7 +373,7 @@ free-text quantity field is exempt — it holds strings like "30-40 g".
   ranges correctly for each user.
 - Weights are **exact instants** (`TIMESTAMPTZ` ISO strings); the peso page groups
   them by local day via string slice and renders with es-ES formatters
-  (`lib/dates.ts`: `formatDateKeyLong`, `formatTimestamp`, `nowDateTimeLocalValue`,
+  (`lib/core/dates.ts`: `formatDateKeyLong`, `formatTimestamp`, `nowDateTimeLocalValue`,
   `parseLocalDateTime`).
 
 ### i18n
@@ -362,9 +385,9 @@ the type system flags missing usage sites.
 
 ---
 
-## 7. Stats pipeline (`lib/stats-builder.ts` + `lib/stats.ts`)
+## 7. Stats pipeline (`lib/core/stats-builder.ts` + `lib/core/stats.ts`)
 
-The core computation lives in **`lib/stats-builder.ts`** as the pure, client-safe
+The core computation lives in **`lib/core/stats-builder.ts`** as the pure, client-safe
 `buildStatsFromData(meals, weights, range, today)` — **shared by both the server
 and demo mode** so their numbers never drift. `server/services/stats-service.ts`
 is now a thin adapter: it fetches rows through injected repos (preserving
@@ -386,7 +409,7 @@ The `CompositionStats` DTO includes body fat stats (current/change/min/max),
 all null when no body fat data exists. The client renders weight, its trend and
 body fat in a single combined chart (`WeightFatChart`, dual Y axes kg / %).
 
-Pure helpers in `lib/stats.ts` (unit-tested):
+Pure helpers in `lib/core/stats.ts` (unit-tested):
 
 - `movingAverageByDays(points, 7)` — trailing calendar-window average; days without
   entries contribute nothing rather than counting as zero (weights) — used both for
@@ -395,16 +418,16 @@ Pure helpers in `lib/stats.ts` (unit-tested):
 - `linearRatePerWeek(points)` — ordinary least squares slope × 7
   (`β = Σ(xi−x̄)(yi−ȳ)/Σ(xi−x̄)²`).
 - `weeklyAverages(points)` — Monday-start buckets, arithmetic mean.
-- Rounding helpers live in `lib/nutrition.ts` (`round1`, `round2`).
+- Rounding helpers live in `lib/core/nutrition.ts` (`round1`, `round2`).
 
-The service returns one `StatsSummary` DTO (`lib/types.ts`): dense calorie/protein
+The service returns one `StatsSummary` DTO (`lib/core/types.ts`): dense calorie/protein
 series, weight/body fat series with pre-rounded trends, summary cards
 (avg/max/current/change/rate/min/max) and weekly averages. Display formatting
 happens only in components via `formatNumberEs(value, maxDecimals)` (es-ES locale).
 
 ---
 
-## 8. Protein recommendation (`lib/protein.ts` + `components/nutrition-recommendations.tsx`)
+## 8. Protein recommendation (`lib/core/protein.ts` + `components/nutrition-recommendations.tsx`)
 
 Evidence-based protein intake ranges computed from the user's unified goal, body weight,
 and optionally body fat percentage:
@@ -425,7 +448,7 @@ then calls the pure `calculateCalorieRecommendation()` and
 is entirely client-rendered.
 
 **Files:**
-- `lib/protein.ts` — pure calculation, no dependencies
+- `lib/core/protein.ts` — pure calculation, no dependencies
 - `components/nutrition-recommendations.tsx` — merged calorie + protein card on "Comidas"
 - `server/repositories/settings-repo.ts` — calorie profile CRUD on users table
 - `server/services/settings-service.ts` — thin service wrapper
@@ -550,7 +573,7 @@ Gotchas learned the hard way:
 | Want to… | Touch |
 |---|---|
 | Add carbs/fat tracking | schema type comment already reserves fields → extend `validation.ts` + `resolveMealTotals` + `MealForm` fields + stats series |
-| New stats metric | pure helper in `lib/stats.ts` (+ unit test) → wire into `lib/stats-builder.ts` (shared with server + demo) → card/chart in Estadísticas → explain in `/metodologia` + `i18n/es.ts` |
+| New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → card/chart in Estadísticas → explain in `/metodologia` + `i18n/es.ts` |
 | Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → toggle in Ajustes page → read via session endpoint |
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in `i18n/es.ts`; proxy already protects it |
 | Second language | copy `i18n/es.ts` → `en.ts`, export a dictionary selector (structure is ready, nothing else hardcodes Spanish) |

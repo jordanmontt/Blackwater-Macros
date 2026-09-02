@@ -1,7 +1,7 @@
 import { and, asc, eq, gte, lte, sql } from "drizzle-orm";
 import type { AppDb } from "../db/client";
 import { meals, type MealIngredient, type MealRow } from "../db/schema";
-import type { EntryMode } from "@/lib/types";
+import type { EntryMode } from "@/lib/core/types";
 
 export interface NewMealData {
   logDate: string;

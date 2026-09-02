@@ -1,12 +1,12 @@
-import { todayKey, addDaysToKey } from "./dates";
-import { resolveMealTotals } from "./nutrition";
+import { todayKey, addDaysToKey } from "./core/dates";
+import { resolveMealTotals } from "./core/nutrition";
 import type {
   CalorieProfile,
   IngredientInput,
   MealDTO,
   MealTemplateDTO,
   WeightDTO,
-} from "./types";
+} from "./core/types";
 import type { MealPayload, WeightPayload, TemplatePayload } from "./api";
 
 export const DEMO_COOKIE_NAME = "bw_demo";
@@ -271,6 +271,7 @@ function buildMealDto(input: {
     resolvedFat: totals.fat,
     order: input.order,
     createdAt: input.createdAt,
+    updatedAt: new Date(input.createdAt).toISOString(),
   };
 }
 
@@ -302,6 +303,7 @@ function buildTemplateDto(input: {
     resolvedProtein: totals.protein,
     resolvedCarbs: totals.carbs,
     resolvedFat: totals.fat,
+    updatedAt: new Date().toISOString(),
   };
 }
 
@@ -384,6 +386,7 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
         weightKg,
         bodyFatPct,
         note: null,
+        updatedAt: new Date().toISOString(),
       });
       if (rand() < 0.12) {
         const eveningWeight = Math.round((weightKg + 0.4 + rand() * 0.3) * 10) / 10;
@@ -393,6 +396,7 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
           weightKg: eveningWeight,
           bodyFatPct: null,
           note: "tras entrenar",
+          updatedAt: new Date().toISOString(),
         });
       }
     }
@@ -482,6 +486,7 @@ function stripMeal(meal: StoredMeal): MealDTO {
     resolvedProtein: meal.resolvedProtein,
     resolvedCarbs: meal.resolvedCarbs,
     resolvedFat: meal.resolvedFat,
+    updatedAt: meal.updatedAt,
   };
 }
 
@@ -617,6 +622,7 @@ export function createDemoWeight(payload: WeightPayload): WeightDTO {
     weightKg: payload.weightKg,
     bodyFatPct: payload.bodyFatPct ?? null,
     note: payload.note ?? null,
+    updatedAt: new Date().toISOString(),
   };
   write((store) => ({
     ...store,
@@ -640,6 +646,7 @@ export function updateDemoWeight(id: string, payload: WeightPayload): WeightDTO 
           weightKg: payload.weightKg,
           bodyFatPct: payload.bodyFatPct ?? null,
           note: payload.note ?? null,
+          updatedAt: new Date().toISOString(),
         };
         return updated;
       })

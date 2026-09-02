@@ -16,7 +16,7 @@ function csvResponse(filename: string, body: string) {
 
 export async function GET(request: Request, context: { params: Promise<{ kind: string }> }) {
   const { kind } = await context.params;
-  return withUserId(async (userId) => {
+  return withUserId(request, async (userId) => {
     if (kind === "meals") {
       const meals = await repositories.meals.listInRange(userId, null, null);
       return csvResponse("comidas.csv", buildMealsCsv(meals));

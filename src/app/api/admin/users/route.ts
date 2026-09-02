@@ -5,15 +5,15 @@ import { listUsers } from "@/server/services/admin-service";
 import { register } from "@/server/services/auth-service";
 import { registerInputSchema } from "@/server/validation";
 
-export async function GET() {
-  return withAdmin(async () => {
+export async function GET(request: Request) {
+  return withAdmin(request, async () => {
     const users = await listUsers(serviceDeps.auth);
     return NextResponse.json({ users });
   });
 }
 
 export async function POST(request: Request) {
-  return withAdmin(async () => {
+  return withAdmin(request, async () => {
     let body: unknown;
     try {
       body = await parseJsonBody(request);

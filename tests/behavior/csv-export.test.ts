@@ -98,6 +98,7 @@ describe("exportar peso", () => {
         bodyFatPct: 15.5,
         note: "en ayunas",
         createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ]);
 
@@ -122,6 +123,7 @@ describe("exportar peso", () => {
         bodyFatPct: null,
         note: null,
         createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ]);
     expect(csv).toContain("90,,");

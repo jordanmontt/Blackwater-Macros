@@ -8,7 +8,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  return withUserId(async (userId) => {
+  return withUserId(request, async (userId) => {
     const input = mealInputSchema.parse(await parseJsonBody(request));
     const meal = await updateMeal(repositories.meals, userId, id, input);
     if (!meal) return jsonError("Comida no encontrada", 404);
@@ -16,9 +16,9 @@ export async function PATCH(request: Request, context: RouteContext) {
   });
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  return withUserId(async (userId) => {
+  return withUserId(request, async (userId) => {
     const deleted = await deleteMeal(repositories.meals, userId, id);
     if (!deleted) return jsonError("Comida no encontrada", 404);
     return NextResponse.json({ ok: true });

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { NutritionRecommendationsCard } from "@/components/nutrition-recommendations";
-import type { CalorieProfile, WeightDTO } from "@/lib/types";
+import type { CalorieProfile, WeightDTO } from "@/lib/core/types";
 
 /**
  * Requisitos visibles en las tarjetas de recomendación (calorías y proteína)
@@ -36,6 +36,7 @@ const weight: WeightDTO = {
   weightKg: 80,
   bodyFatPct: null,
   note: null,
+  updatedAt: "2026-01-01T00:00:00.000Z",
 };
 
 const profile: CalorieProfile = {

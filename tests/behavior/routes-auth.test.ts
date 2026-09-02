@@ -72,9 +72,12 @@ describe("rutas de autenticación", () => {
       await seedUser(world!, "ana", "pass");
       const res = await postLogin(loginRequest({ username: "ana", password: "pass" }));
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ ok: true });
+      const body = await res.json();
+      expect(body.ok).toBe(true);
+      expect(typeof body.token).toBe("string");
+      expect(body.token.length).toBeGreaterThan(0);
       const token = extractSessionToken(res);
-      expect(token.length).toBeGreaterThan(0);
+      expect(body.token).toBe(token);
       expect(world!.data.sessions.has(token)).toBe(true);
     });
   });
@@ -83,13 +86,13 @@ describe("rutas de autenticación", () => {
     it("devuelve 200 y borra la sesión activa", async () => {
       const token = seedSession(world!, "u-1", "token-salida");
       holder.authCookie.value = token;
-      const res = await postLogout();
+      const res = await postLogout(new Request("http://test/api/auth/logout"));
       expect(res.status).toBe(200);
       expect(world!.data.sessions.has(token)).toBe(false);
     });
 
     it("devuelve 200 aunque no haya sesión", async () => {
-      const res = await postLogout();
+      const res = await postLogout(new Request("http://test/api/auth/logout"));
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual({ ok: true });
     });
@@ -97,7 +100,7 @@ describe("rutas de autenticación", () => {
 
   describe("GET /api/auth/session", () => {
     it("devuelve 401 si no hay cookie de sesión", async () => {
-      const res = await getSession();
+      const res = await getSession(new Request("http://test/api/auth/session"));
       expect(res.status).toBe(401);
       expect(await res.json()).toEqual({ error: "No autenticado" });
     });
@@ -105,7 +108,7 @@ describe("rutas de autenticación", () => {
     it("devuelve el usuario con perfil calórico y rol", async () => {
       const user = await seedUser(world!, "ana", "pass", true);
       holder.authCookie.value = seedSession(world!, user.id);
-      const res = await getSession();
+      const res = await getSession(new Request("http://test/api/auth/session"));
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.username).toBe("ana");
@@ -124,11 +127,47 @@ describe("rutas de autenticación", () => {
     it("marca isAdmin en falso para usuarios normales", async () => {
       const user = await seedUser(world!, "ray", "pass");
       holder.authCookie.value = seedSession(world!, user.id);
-      const res = await getSession();
+      const res = await getSession(new Request("http://test/api/auth/session"));
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.username).toBe("ray");
       expect(body.isAdmin).toBe(false);
+    });
+
+    it("devuelve el usuario autenticado con token Bearer", async () => {
+      const user = await seedUser(world!, "ana", "pass");
+      const token = seedSession(world!, user.id);
+      const res = await getSession(
+        new Request("http://test/api/auth/session", {
+          headers: { authorization: `Bearer ${token}` },
+        }),
+      );
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.username).toBe("ana");
+    });
+
+    it("devuelve 401 con token Bearer inválido", async () => {
+      const res = await getSession(
+        new Request("http://test/api/auth/session", {
+          headers: { authorization: "Bearer token-invalido" },
+        }),
+      );
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe("POST /api/auth/logout con token Bearer", () => {
+    it("borra la sesión indicada por el token Bearer", async () => {
+      const token = seedSession(world!, "u-1", "token-bearer-salida");
+      const res = await postLogout(
+        new Request("http://test/api/auth/logout", {
+          method: "POST",
+          headers: { authorization: `Bearer ${token}` },
+        }),
+      );
+      expect(res.status).toBe(200);
+      expect(world!.data.sessions.has(token)).toBe(false);
     });
   });
 });
