@@ -4,6 +4,13 @@ This document maps the existing web test suite to corresponding Android (Kotlin)
 tests. The web tests are the **source of truth** for behavior. Each Android test
 must reproduce the same user-visible outcome.
 
+> **Maintenance contract (Option A):** the pure algorithms are implemented twice
+> (TS in `src/lib/core/*` and a Kotlin port), with `tests/unit/*.test.ts` as the
+> shared spec. Any change to a `tests/unit/*.test.ts` file REQUIRES a mirrored
+> change to the corresponding Kotlin `*Test.kt`, and vice-versa. This is enforced
+> by `scripts/check-core-sync.ts` (via `android/test-sync/manifest.json`), which
+> **fails CI** on unpaired changes. See `docs/ANDROID-PLAN.md`.
+
 ## Guiding principles
 
 - Pure algorithms (`src/lib/core/*`) are reimplemented in Kotlin; port the unit

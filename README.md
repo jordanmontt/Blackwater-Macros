@@ -85,30 +85,74 @@ pestaña o desde la barra demo ("Iniciar sesión").
 | `npm run lint` | ESLint |
 | `npm run db:push` | Sincroniza el esquema con la base de datos |
 | `npm run create-user -- u p` | Crea (o actualiza) un usuario |
+| `npm run core:sync-check` | Comprueba que TS y Kotlin del core van en sincronía |
+| `npm run hooks:install` | Instala el aviso de sincronización al hacer commit |
+
+## Cómo funciona (visión de alto nivel)
+
+El proyecto es **una app web (Next.js) que es a la vez su propio backend**: sirve
+las páginas (React) y las mismas rutas `/api/*` actúan como servidor que guarda los
+datos en PostgreSQL (Neon). El navegador habla con esas rutas API y el servidor es
+quien hace de "fuente de verdad" (autorización, validación, cálculos y persistencia).
+
+Hay **dos mundos de código**:
+
+- **El servidor** (`src/server/` + `src/app/api/`): repositorios (acceso a BD) y
+  servicios (lógica de negocio). Filtra siempre por el usuario de la sesión.
+- **El cliente** (`src/lib/` + `src/components/` + `src/app/`): componentes React,
+  llamadas a la API (`src/lib/api.ts`) y un **modo demo** que funciona sin servidor
+  (`src/lib/demo-api.ts` / `demo-store.ts`) guardando datos en `sessionStorage`.
+
+La **lógica pura de cálculo** (suma de macros, proteína, calorías/BMR, fechas,
+estadísticas, CSV) vive aislada en `src/lib/core/` — **sin dependencias del
+navegador ni del servidor** — para poder reimplementarse 1:1 en Android/Kotlin.
 
 ## Estructura
 
 ```
 src/
-  app/                 Páginas y rutas API (App Router)
+  app/                 Páginas (React) y rutas API (App Router)
     api/               Backend serverless: meals, templates, weights, stats, export…
   components/          Componentes de UI (shadcn/ui + propios)
   i18n/es.ts           Textos en español centralizados (listo para más idiomas)
-  lib/                 Lógica pura compartida (fechas, nutrición, estadísticas, CSV)
-    lib/core/          Algoritmos puros sin dependencias (se portan a Android/Kotlin)
+  lib/                 Lógica del cliente (llamadas API, demo, caché)
+    api.ts             Cliente HTTP hacia /api/*
+    demo-api.ts, demo-store.ts   Modo demo (sin servidor, sessionStorage)
+    core/              Algoritmos puros sin dependencias (se portan a Android/Kotlin)
   server/
     auth/              Hash de contraseñas (scrypt) y tokens de sesión
-    db/                Esquema Drizzle y cliente Postgres
+    db/                Esquema Drizzle (src/server/db/schema.ts) y cliente Postgres
     repositories/      Acceso a datos (inyectables, fáciles de simular en tests)
     services/          Lógica de negocio pura sin HTTP
+    api-auth.ts        Resuelve la sesión: cookie (web) o Bearer (Android/API)
 tests/
-  behavior/            Pruebas de comportamiento: requisitos del usuario, caja negra
-  unit/                Pruebas técnicas de piezas puras: casos límite y detalles
+  behavior/            Pruebas de comportamiento (caja negra, requisitos del usuario)
+  unit/                Pruebas técnicas de piezas puras (el core, casos límite)
+docs/
+  TECHNICAL.md         Arquitectura detallada (fuente de verdad para desarrolladores)
+  api.md               Contrato de la API
+  ANDROID-PLAN.md      Plan de la app Android y contrato de mantenimiento
+  ANDROID-TEST-SPEC.md Cómo se espejan los tests web ⇄ Kotlin
+android/               (en construcción) La futura app nativa Android/Kotlin
 ```
 
 El detalle completo de cada capa (flujo de una petición, esquema de base de datos,
 referencia de la API, patrones de React y de tests) está en
 [TECHNICAL.md](./TECHNICAL.md).
+
+## Tests
+
+- **`npm test`** ejecuta toda la suite (Vitest).
+- **`tests/unit/`**: piezas puras (los algoritmos de `src/lib/core/`) con casos
+  límite. Son la "especificación" que se comparte con Android.
+- **`tests/behavior/`**: requisitos del usuario desde fuera (rutas API, flujos de
+  pantallas), sin importar cómo se guarde nada.
+
+> **Importante para mantenerlo (solo/a):** el core se implementa dos veces —
+> TypeScript (web) y Kotlin (Android). Si tocas un test de `tests/unit/`, **tienes
+> que tocar también su espejo Kotlin** (y viceversa). `npm run core:sync-check`
+> avisa si olvidas uno de los dos lados y **bloquea el merge en CI**. La app Android
+> y su calendario de trabajo están en `docs/ANDROID-PLAN.md`.
 
 ## Despliegue (gratis)
 

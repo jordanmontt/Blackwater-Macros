@@ -46,3 +46,16 @@ When porting these algorithms to Kotlin:
   with `Locale("es", "ES")` (`dates.ts`).
 - Clock reads are injected rather than called internally (e.g. `todayKey`).
 - The existing unit tests in `tests/unit/` are the specification to port.
+
+## Porting Maintenance Contract (Option A)
+
+The pure algorithms are implemented **twice**: here in TS (web) and as a Kotlin
+port (Android). `tests/unit/*.test.ts` is the shared spec for both.
+
+**Any change to a `tests/unit/*.test.ts` file REQUIRES a mirrored change to the
+Kotlin `*Test.kt` (and its implementation), and vice-versa.**
+
+Forgetting one side is caught automatically: `android/test-sync/manifest.json`
+pairs each TS spec with its Kotlin test, and `npm run core:sync-check` warns
+locally / **fails CI** when only one side of a pair changed. See
+`docs/ANDROID-PLAN.md`.

@@ -12,6 +12,8 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "core:sync-check": "tsx scripts/check-core-sync.ts",
+    "hooks:install": "bash scripts/install-hooks.sh",
     "create-user": "tsx scripts/create-user.ts",
     "set-admin": "tsx scripts/set-admin.ts"
   },

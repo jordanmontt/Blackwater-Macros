@@ -287,6 +287,8 @@ Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchem
 > **Full wire contract** (request/response shapes, auth, error format, Android
 > integration notes) lives in [`docs/api.md`](./docs/api.md). The mapping of web
 > tests to Kotlin/Android tests lives in [`docs/ANDROID-TEST-SPEC.md`](./docs/ANDROID-TEST-SPEC.md).
+> The Android implementation & maintenance plan (incl. the TS ⇄ Kotlin sync guard)
+> lives in [`docs/ANDROID-PLAN.md`](./docs/ANDROID-PLAN.md).
 
 ---
 
