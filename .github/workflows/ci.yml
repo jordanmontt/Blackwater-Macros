@@ -38,7 +38,8 @@ jobs:
   android:
     name: Android (Kotlin/Compose)
     runs-on: ubuntu-latest
-    if: hashFiles('android/**') != ''   # runs once the Gradle project exists
+    # Runs once the Gradle project exists (android/ is scaffolded).
+    if: hashFiles('android/settings.gradle.kts') != ''
     defaults:
       run:
         working-directory: android
