@@ -20,6 +20,8 @@ kotlinxSerialization = "1.8.1"
 # Room 2.8.x is the last stable line usable without AGP 9 / compileSdk 37.
 room = "2.8.3"
 
+coroutinesAndroid = "1.10.2"
+
 # Test
 junit = "4.13.2"
 truth = "1.4.4"
@@ -46,8 +48,12 @@ androidx-core = { group = "androidx.core", name = "core-ktx", version.ref = "cor
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "composeActivity" }
 androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navCompose" }
+
+# Coroutines (Android main-dispatcher support for the ViewModel)
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutinesAndroid" }
 
 # Networking
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }

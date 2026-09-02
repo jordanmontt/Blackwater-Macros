@@ -62,6 +62,9 @@ tests/
   behavior/                 # Black-box tests of USER requirements (Spanish comments)
   unit/                     # Technical edge-case tests of pure functions
 drizzle.config.ts           # drizzle-kit config; loads .env.local itself (§10)
+android/                    # Native Android app — two Gradle modules (see §14)
+  core/                     # :core — pure JVM module, Kotlin port of lib/core + mirror tests
+  app/                      # :app — Android module: UI (Compose) + data/networking layer
 ```
 
 **Dependency rule:** `app/api → composition → services → repositories → client`.
@@ -580,3 +583,64 @@ Gotchas learned the hard way:
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in `i18n/es.ts`; proxy already protects it |
 | Second language | copy `i18n/es.ts` → `en.ts`, export a dictionary selector (structure is ready, nothing else hardcodes Spanish) |
 | Real migrations | switch from `db:push` to `db:generate` + `db:migrate` (both scripted already) once schema changes risk data loss |
+
+---
+
+## 14. Android app (`android/`)
+
+Native Kotlin/Compose client of the **same deployed backend**. Two Gradle modules.
+Full roadmap and maintenance contract: `docs/ANDROID-PLAN.md`; API contract:
+`docs/api.md`; test-mapping: `docs/ANDROID-TEST-SPEC.md`.
+
+### Modules
+
+- **`:core`** — pure JVM (Java/Kotlin, no Android APIs). Kotlin port of
+  `src/lib/core/*.ts` (`Types`, `Nutrition`, `Protein`, `Calories`, `Dates`,
+  `Stats`, `StatsBuilder`, `Csv`) with `*Test.kt` mirrors of `tests/unit/*.test.ts`.
+  Runs on a plain JDK; no SDK needed. The sync-guard `npm run core:sync-check`
+  enforces TS ⇄ Kotlin parity.
+- **`:app`** — the Android application (Compose + Retrofit + Room). Everything
+  that touches Android lives here. Needs the Android SDK.
+
+### `:app` structure
+
+```
+app/src/main/kotlin/com/blackwatermacros/app/
+  MainActivity.kt            # ComponentActivity + Material3 theme + NavHost(login → home)
+  data/                      # Networking / wire layer
+    WireModels.kt            # kotlinx-serialization DTOs mirroring docs/api.md + @SerialName enums
+    JsonConfig.kt            # ApiJson: '.' decimals, camelCase, ignoreUnknownKeys
+    ApiService.kt            # Retrofit interface (absolute /api/... paths)
+    ApiClient.kt             # Retrofit + OkHttp factory; baseUrl from BuildConfig
+    BearerAuthInterceptor.kt # adds Authorization: Bearer <token>
+    ResponseErrorMapper.kt   # decodes { "error": "<Spanish>" } for user-facing messages
+    SessionManager.kt        # in-memory Bearer token shared by login/home
+  ui/
+    LoginViewModel/LoginScreen.kt   # login → token (SessionManager) → GET /api/auth/session
+    HomeViewModel/HomeScreen.kt     # shows session, "Cerrar sesión" → POST /api/auth/logout
+```
+
+### Configuration
+
+- **Base URL:** injected via `BuildConfig.API_BASE_URL`, default
+  `https://blackwater-macros.jordanmontt.fr/`. Override: `-Papp.baseUrl=<url>`.
+- **Toolchain** pinned in `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.1.20,
+  Compose BOM, Room, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk`
+  36, `minSdk` 24 + `coreLibraryDesugaring` for `java.time`.
+- **Local SDK** is machine-specific: `android/local.properties` (`sdk.dir=…`),
+  gitignored. CI installs its own SDK.
+
+### Tests
+
+- `./gradlew :core:test` — pure core port (JDK only).
+- `:app` runs on device/JVM with the Android SDK: `./gradlew test lint build`
+  runs `ApiContractTest` (MockWebServer port of `tests/behavior/routes-*.test.ts`)
+  and `ResponseErrorMapperTest`. CI runs all of these on every PR.
+
+### Current status & next steps
+
+Built: scaffold, `:core` port (green, 61 tests), and a minimal networking + Login
+screen proven against production. **Not yet built** (see `docs/ANDROID-PLAN.md`):
+token/offline persistence (Room), the local-first/offline-only mode, sync engine
+(LWW via `updatedAt`), and the remaining screens (meals, peso, estadísticas,
+ajustes, admin).

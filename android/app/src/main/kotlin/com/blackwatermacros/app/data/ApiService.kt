@@ -10,82 +10,83 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
- * Retrofit interface mirroring `docs/api.md`. Paths are relative to the base URL
- * (the deployed Next.js backend, `…/api`). Auth is a Bearer token attached by
- * the `BearerAuthInterceptor`.
+ * Retrofit interface mirroring `docs/api.md`. All paths are **absolute from the
+ * origin root** and include the `/api` prefix, so the base URL is simply the
+ * deployment origin (e.g. `https://blackwater-macros.jordanmontt.fr/`). Auth is a
+ * Bearer token attached by the `BearerAuthInterceptor`.
  */
 interface ApiService {
 
     // --- Auth ---
-    @POST("auth/login")
+    @POST("/api/auth/login")
     suspend fun login(@Body body: LoginRequest): LoginResponse
 
-    @POST("auth/logout")
+    @POST("/api/auth/logout")
     suspend fun logout(): OkResponse
 
-    @GET("auth/session")
+    @GET("/api/auth/session")
     suspend fun session(): SessionResponse
 
     // --- Meals ---
-    @GET("meals")
+    @GET("/api/meals")
     suspend fun listMeals(@Query("from") from: String? = null, @Query("to") to: String? = null): MealsResponse
 
-    @POST("meals")
+    @POST("/api/meals")
     suspend fun createMeal(@Body body: MealRequest): MealResponse
 
-    @PATCH("meals/{id}")
+    @PATCH("/api/meals/{id}")
     suspend fun updateMeal(@Path("id") id: String, @Body body: MealRequest): MealResponse
 
-    @DELETE("meals/{id}")
+    @DELETE("/api/meals/{id}")
     suspend fun deleteMeal(@Path("id") id: String): OkResponse
 
-    @PATCH("meals/reorder")
+    @PATCH("/api/meals/reorder")
     suspend fun reorderMeals(@Body body: ReorderRequest): OkResponse
 
     // --- Templates ---
-    @GET("templates")
+    @GET("/api/templates")
     suspend fun listTemplates(): TemplatesResponse
 
-    @POST("templates")
+    @POST("/api/templates")
     suspend fun createTemplate(@Body body: TemplateRequest): TemplateResponse
 
-    @PATCH("templates/{id}")
+    @PATCH("/api/templates/{id}")
     suspend fun updateTemplate(@Path("id") id: String, @Body body: TemplateRequest): TemplateResponse
 
-    @DELETE("templates/{id}")
+    @DELETE("/api/templates/{id}")
     suspend fun deleteTemplate(@Path("id") id: String): OkResponse
 
     // --- Weights ---
-    @GET("weights")
+    @GET("/api/weights")
     suspend fun listWeights(): WeightsResponse
 
-    @POST("weights")
+    @POST("/api/weights")
     suspend fun createWeight(@Body body: WeightRequest): WeightResponse
 
-    @PATCH("weights/{id}")
+    @PATCH("/api/weights/{id}")
     suspend fun updateWeight(@Path("id") id: String, @Body body: WeightRequest): WeightResponse
 
-    @DELETE("weights/{id}")
+    @DELETE("/api/weights/{id}")
     suspend fun deleteWeight(@Path("id") id: String): OkResponse
 
     // --- Stats ---
-    @GET("stats")
+    @GET("/api/stats")
     suspend fun stats(@Query("range") range: String? = null, @Query("today") today: String? = null): StatsSummary
 
     // --- Settings ---
-    @PUT("settings")
+    @PUT("/api/settings")
     suspend fun updateSettings(@Body body: WireCalorieProfile): SettingsResponse
 
     // --- Admin ---
-    @GET("admin/users")
+    @GET("/api/admin/users")
     suspend fun listUsers(): UsersResponse
 
-    @POST("admin/users")
+    @POST("/api/admin/users")
     suspend fun createUser(@Body body: AdminCreateUserRequest): OkResponse
 
-    @PATCH("admin/users/{id}")
+    @PATCH("/api/admin/users/{id}")
     suspend fun updateUser(@Path("id") id: String, @Body body: AdminUpdateUserRequest): UserResponse
 
-    @DELETE("admin/users/{id}")
+    @DELETE("/api/admin/users/{id}")
     suspend fun deleteUser(@Path("id") id: String): OkResponse
 }

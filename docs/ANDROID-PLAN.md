@@ -158,6 +158,27 @@ tables in `docs/ANDROID-TEST-SPEC.md`.
 8. **Release/F-Droid:** versioning convention, changelog, F-Droid metadata YAML,
    no GMS.
 
+### Progress (current reality)
+
+- **Steps 1–2 done:** `android/` scaffolded; `:core` port of all algorithms done
+  and green (`./gradlew :core:test` = 61 tests). Sync-guard manifest points at
+  `:core` test paths.
+- **Step 3 (networking) done:** `:app` `data/` layer — wire DTOs, Retrofit
+  `ApiService`, `BearerAuthInterceptor`, `JsonConfig` (`.` decimals), and
+  `ResponseErrorMapper`. **Step 6 partial:** a minimal **Login → Inicio** flow
+  (`LoginViewModel`, `LoginScreen`, `HomeScreen` + `SessionManager`, with
+  "Cerrar sesión"/logout) is built and proven against production at
+  `https://blackwater-macros.jordanmontt.fr/`. The 401 → re-login flow / token
+  persistence is deferred to Room (step 4).
+- **Local emulator works:** the Homebrew Android SDK (`/opt/homebrew/
+  share/android-commandlinetools`) is used via `android/local.properties`
+  (gitignored); the emulator can run `:app` locally for manual testing.
+  Base URL is injectable with `-Papp.baseUrl=<url>` (default production).
+- **Not yet built:** steps 4, 5, 7 (UI/Room tests), 8, and most of 6.
+- **Open design decision (user):** when logging in after local/offline use, what
+  happens to locally-entered data (keep-separate vs upload/merge vs discard) —
+  to be decided when designing the sync engine (step 5).
+
 ### Open items to confirm with the user early
 
 - min SDK / target SDK

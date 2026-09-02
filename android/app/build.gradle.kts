@@ -18,6 +18,10 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Base URL for the deployed backend (override via -Papp.baseUrl=…). Defaults to production.
+        val baseUrl = (project.findProperty("app.baseUrl") as String?) ?: "https://blackwater-macros.jordanmontt.fr/"
+        buildConfigField("String", "API_BASE_URL", "\"$baseUrl\"")
     }
 
     buildTypes {
@@ -35,6 +39,8 @@ android {
 
     buildFeatures {
         compose = true
+        // Generate BuildConfig so the base URL can be injected/overridden per build.
+        buildConfig = true
     }
 
     kotlinOptions {
@@ -56,8 +62,10 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.kotlinx.serialization)
