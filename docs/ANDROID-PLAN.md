@@ -62,7 +62,7 @@ deployed Next.js backend, and on keeping it maintainable as a **solo project**.
 The pure algorithms are implemented **twice** in two languages:
 
 - **Canonical TS:** `src/lib/core/*.ts` (read directly by the web app).
-- **Kotlin port:** `android/app/…/core/*.kt`.
+- **Kotlin port:** `android/core/src/main/kotlin/com/blackwatermacros/app/core/*.kt` (pure JVM module `:core`; the Android UI lives in `:app`).
 - **Shared behavioral spec:** `tests/unit/*.test.ts`.
 
 > **The rule:** `tests/unit/*.test.ts` is the specification for both.
@@ -140,7 +140,8 @@ tables in `docs/ANDROID-TEST-SPEC.md`.
 1. **Scaffold:** Gradle Android project in `android/` (this repo), Kotlin + Compose,
    no GMS. Package name, min SDK: confirm with the user before scaffolding.
 2. **Core port:** reimplement each `src/lib/core/*.ts` algorithm in
-   `android/app/…/core/*.kt` with `*Test.kt` mirrors of `tests/unit/*.test.ts`.
+   `android/core/src/main/kotlin/…/core/*.kt` with `*Test.kt` mirrors of
+   `tests/unit/*.test.ts` (under `android/core/src/test/kotlin/…/core/`).
    Every algorithm is small and pure — port it and the test together. Keep the
    manifest and CI sync-guard green.
 3. **Networking:** Retrofit interface mirroring `docs/api.md`; Bearer auth

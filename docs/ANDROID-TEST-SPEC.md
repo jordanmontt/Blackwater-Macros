@@ -13,8 +13,10 @@ must reproduce the same user-visible outcome.
 
 ## Guiding principles
 
-- Pure algorithms (`src/lib/core/*`) are reimplemented in Kotlin; port the unit
-  tests **1:1** to JUnit.
+- Pure algorithms (`src/lib/core/*`) are reimplemented in Kotlin in the **`:core`**
+  module (`android/core/src/main/kotlin/…/core/`); port the unit tests **1:1** to JUnit
+  under `android/core/src/test/kotlin/…/core/`. `:core` is pure JVM (no Android deps),
+  so these tests run without an Android SDK.
 - HTTP/API behavior is validated against the same endpoints; the route tests in
   `tests/behavior/routes-*.test.ts` define the wire contract (see `docs/api.md`).
 - UI tests are *behavioral* (what the user sees/does), not implementation-specific.

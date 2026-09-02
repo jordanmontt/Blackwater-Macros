@@ -18,9 +18,9 @@ Macros.
 ## Why "core"
 
 Both the **web app** (TypeScript, used directly) and the **Android app** (Kotlin,
-reimplemented) implement these exact algorithms. The unit tests in
-`tests/unit/*.test.ts` serve as the behavioral specification for both platforms —
-each assertion maps 1:1 to a Kotlin JUnit test.
+reimplemented in the pure-JVM `:core` module under `android/core/`) implement these
+exact algorithms. The unit tests in `tests/unit/*.test.ts` serve as the behavioral
+specification for both platforms — each assertion maps 1:1 to a Kotlin JUnit test.
 
 ## Files
 

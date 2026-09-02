@@ -4,37 +4,37 @@
     {
       "source": "src/lib/core/nutrition.ts",
       "ts": "tests/unit/nutrition.test.ts",
-      "kt": "android/app/src/test/java/com/blackwatermacros/app/core/NutritionTest.kt"
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/NutritionTest.kt"
     },
     {
       "source": "src/lib/core/protein.ts",
       "ts": "tests/unit/protein.test.ts",
-      "kt": "android/app/src/test/java/com/blackwatermacros/app/core/ProteinTest.kt"
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/ProteinTest.kt"
     },
     {
       "source": "src/lib/core/calories.ts",
       "ts": "tests/unit/calories.test.ts",
-      "kt": "android/app/src/test/java/com/blackwatermacros/app/core/CaloriesTest.kt"
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/CaloriesTest.kt"
     },
     {
       "source": "src/lib/core/dates.ts",
       "ts": "tests/unit/dates.test.ts",
-      "kt": "android/app/src/test/java/com/blackwatermacros/app/core/DatesTest.kt"
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/DatesTest.kt"
     },
     {
       "source": "src/lib/core/stats.ts",
       "ts": "tests/unit/stats.test.ts",
-      "kt": "android/app/src/test/java/com/blackwatermacros/app/core/StatsTest.kt"
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/StatsTest.kt"
     },
     {
       "source": "src/lib/core/stats-builder.ts",
       "ts": "tests/unit/stats-builder.test.ts",
-      "kt": "android/app/src/test/java/com/blackwatermacros/app/core/StatsBuilderTest.kt"
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/StatsBuilderTest.kt"
     },
     {
       "source": "src/lib/core/csv.ts",
       "ts": "tests/unit/auth-and-csv.test.ts",
-      "kt": "android/app/src/test/java/com/blackwatermacros/app/core/CsvTest.kt"
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/CsvTest.kt"
     }
   ]
 }
