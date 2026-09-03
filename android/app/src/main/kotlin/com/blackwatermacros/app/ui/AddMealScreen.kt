@@ -171,6 +171,7 @@ private fun FormContent(
             ExposedDropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
             ) {
                 modeItems.forEach { m ->
                     DropdownMenuItem(

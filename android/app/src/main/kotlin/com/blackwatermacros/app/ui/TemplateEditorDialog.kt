@@ -172,6 +172,7 @@ private fun TemplateFormFields(
             ExposedDropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
             ) {
                 modeItems.forEach { m ->
                     DropdownMenuItem(

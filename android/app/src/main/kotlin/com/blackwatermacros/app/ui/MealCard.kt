@@ -2,8 +2,6 @@ package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +15,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.core.formatNumberEs
@@ -37,7 +37,6 @@ import sh.calvin.reorderable.ReorderableCollectionItemScope
  * Meal card mirroring the web `MealCard`: drag grip handle, title + summary,
  * edit/delete actions, per-ingredient nutrition, notes, and macro badges.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MealCard(
     meal: MealDTO,
@@ -107,9 +106,14 @@ fun MealCard(
             if (meal.entryMode == WireEntryMode.PER_INGREDIENT && meal.ingredients.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
                 Column(Modifier.padding(start = 4.dp, top = 1.dp, bottom = 1.dp)) {
-                    meal.ingredients.forEach { ingredient ->
+                    meal.ingredients.forEachIndexed { index, ingredient ->
+                        if (index > 0) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        }
                         Row(
-                            Modifier.fillMaxWidth(),
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 3.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.Top,
                         ) {
@@ -120,23 +124,14 @@ fun MealCard(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
-                            FlowRow(
-                                modifier = Modifier.weight(1f),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                ingredient.calories?.let {
-                                    IngrMacro(it, "kcal")
-                                }
-                                ingredient.protein?.let {
-                                    IngrMacro(it, "g Proteína")
-                                }
-                                ingredient.carbs?.let {
-                                    IngrMacro(it, "g Carbohidratos")
-                                }
-                                ingredient.fat?.let {
-                                    IngrMacro(it, "g Grasa")
-                                }
-                            }
+                            Text(
+                                text = buildIngredientSummary(ingredient),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.End,
+                            )
                         }
                     }
                 }
@@ -153,34 +148,45 @@ fun MealCard(
 
             Spacer(Modifier.height(8.dp))
 
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 MacroBadge(
                     text = "${formatNumberEs(meal.resolvedCalories)} kcal",
                     filled = true,
+                    modifier = Modifier.weight(1f),
                 )
-                MacroBadge(text = "${formatNumberEs(meal.resolvedProtein, 1)} g · Proteína")
-                MacroBadge(text = "${formatNumberEs(meal.resolvedCarbs, 1)} g · Carbohidratos")
-                MacroBadge(text = "${formatNumberEs(meal.resolvedFat, 1)} g · Grasa")
+                MacroBadge(
+                    text = "${formatNumberEs(meal.resolvedProtein, 1)} g · Proteína",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                MacroBadge(
+                    text = "${formatNumberEs(meal.resolvedCarbs, 1)} g · Carbohidratos",
+                    modifier = Modifier.weight(1f),
+                )
+                MacroBadge(
+                    text = "${formatNumberEs(meal.resolvedFat, 1)} g · Grasa",
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
 }
 
-@Composable
-private fun IngrMacro(value: Double, label: String) {
-    Text(
-        text = "${formatNumberEs(value, 1)} $label",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+private fun buildIngredientSummary(ingredient: com.blackwatermacros.app.data.WireIngredient): String {
+    val parts = buildList {
+        ingredient.calories?.let { add("${formatNumberEs(it)} kcal") }
+        ingredient.protein?.let { add("${formatNumberEs(it, 1)} g Proteína") }
+    }
+    if (parts.isEmpty()) return ""
+    val base = parts.joinToString(" · ")
+    val hasMore = ingredient.carbs != null || ingredient.fat != null
+    return if (hasMore) "$base …" else base
 }
 
 @Composable
-private fun MacroBadge(text: String, filled: Boolean = false) {
+private fun MacroBadge(text: String, filled: Boolean = false, modifier: Modifier = Modifier) {
     Surface(
         shape = RoundedCornerShape(50),
         color = if (filled) {
@@ -193,11 +199,15 @@ private fun MacroBadge(text: String, filled: Boolean = false) {
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
+        modifier = modifier,
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 3.dp),
         )
     }
 }
