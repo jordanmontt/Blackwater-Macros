@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DragHandle
@@ -114,24 +115,56 @@ fun MealCard(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 3.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.Top,
                         ) {
                             Text(
-                                text = ingredient.name + (ingredient.quantity?.let { " · $it" } ?: ""),
+                                text = ingredient.name,
                                 modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Text(
-                                text = buildIngredientSummary(ingredient),
+                                text = ingredient.quantity ?: "",
+                                modifier = Modifier
+                                    .width(64.dp)
+                                    .padding(start = 6.dp),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.End,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                textAlign = TextAlign.End,
                             )
+                            Text(
+                                text = ingredient.calories?.let { "${formatNumberEs(it)} kcal" } ?: "",
+                                modifier = Modifier
+                                    .width(64.dp)
+                                    .padding(start = 6.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.End,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = ingredient.protein?.let { "${formatNumberEs(it)} g proteína" } ?: "",
+                                modifier = Modifier
+                                    .width(84.dp)
+                                    .padding(start = 6.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.End,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            if (ingredient.carbs != null || ingredient.fat != null) {
+                                Text(
+                                    text = "…",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.width(16.dp),
+                                )
+                            }
                         }
                     }
                 }
@@ -172,17 +205,6 @@ fun MealCard(
             }
         }
     }
-}
-
-private fun buildIngredientSummary(ingredient: com.blackwatermacros.app.data.WireIngredient): String {
-    val parts = buildList {
-        ingredient.calories?.let { add("${formatNumberEs(it)} kcal") }
-        ingredient.protein?.let { add("${formatNumberEs(it, 1)} g Proteína") }
-    }
-    if (parts.isEmpty()) return ""
-    val base = parts.joinToString(" · ")
-    val hasMore = ingredient.carbs != null || ingredient.fat != null
-    return if (hasMore) "$base …" else base
 }
 
 @Composable
