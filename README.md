@@ -183,6 +183,22 @@ La **lógica pura de cálculo** (suma de macros, proteína, calorías/BMR, fecha
 estadísticas, CSV) vive aislada en `src/lib/core/` — **sin dependencias del
 navegador ni del servidor** — para poder reimplementarse 1:1 en Android/Kotlin.
 
+## Decisiones de diseño importantes
+
+- **El backend guarda la lógica; las apps son solo interfaz.** Autenticación,
+  validación, cálculos y persistencia están en el backend. La web y la app
+  Android son UIs que hablan con la **misma API**.
+- **Los tests son la fuente de verdad.** La suite del `core` es la especificación
+  compartida entre web y Android: cada test web tiene su espejo Kotlin, velado por
+  `npm run core:sync-check`.
+- **Duplicar código es una decisión, y es aceptable.** Para un proyecto en
+  solitario se prefiere duplicar la matemática pura (anclada a tests) antes que la
+  alternativa de compilarlo a WebAssembly para la web.
+- **La web tiene una carpeta `core`** (`src/lib/core/`) con toda la lógica
+  importante, reimplementada 1:1 en Kotlin.
+
+El detalle de cada capa está en [TECHNICAL.md](./TECHNICAL.md).
+
 ## Estructura
 
 ```

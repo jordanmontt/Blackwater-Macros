@@ -77,6 +77,15 @@ and is the single source of truth for business math. Both the web app (TypeScrip
 and the Android app (Kotlin port) implement these exact algorithms, with `tests/unit/`
 as the shared behavioral specification. See `src/lib/core/README.md`.
 
+**Thin clients:** web and Android are deliberately **UI-only** — the backend owns
+all CRUD, auth, validation, and persistence. The *only* deliberate duplication in
+the codebase is this pure, test-pinned math, which exists in both the TS `lib/core`
+and the Kotlin `:core` module. That duplication is an accepted solo-project tradeoff
+(the alternative — compiling the shared Kotlin core to WebAssembly so web and
+Android use one implementation — was rejected); it stays safe because the math is
+pure and each TS spec has a Kotlin mirror enforced by `core:sync-check`. See
+`docs/ANDROID-PLAN.md` §2.
+
 ---
 
 ## 3. Data model (`src/server/db/schema.ts`)
@@ -589,7 +598,8 @@ Gotchas learned the hard way:
 ## 14. Android app (`android/`)
 
 Native Kotlin/Compose client of the **same deployed backend**. Two Gradle modules.
-Full roadmap and maintenance contract: `docs/ANDROID-PLAN.md`; API contract:
+Full roadmap and maintenance contract: `docs/ANDROID-PLAN.md` (incl. the thin-client
+architectural decision and the accepted core duplication — §2); API contract:
 `docs/api.md`; test-mapping: `docs/ANDROID-TEST-SPEC.md`.
 
 ### Modules
