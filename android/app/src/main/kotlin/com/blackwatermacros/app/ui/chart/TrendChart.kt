@@ -1,12 +1,16 @@
 package com.blackwatermacros.app.ui.chart
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -15,16 +19,19 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.core.DataPoint
 import com.blackwatermacros.app.core.formatDateKeyShort
 import com.blackwatermacros.app.core.formatNumberEsGrouped
 import com.blackwatermacros.app.core.movingAverageByDays
 import com.blackwatermacros.app.core.round1
+import kotlin.math.roundToInt
 
 /**
  * Generic line chart matching the web stats `TrendChart`:
  * solid value line + dashed 7-day moving-average trend, optional peak dot.
+ * Tap anywhere to toggle a tooltip showing the value and trend at that date.
  */
 @Composable
 fun TrendChart(
@@ -38,6 +45,7 @@ fun TrendChart(
     val axisColor = MaterialTheme.colorScheme.outlineVariant
     val ringColor = MaterialTheme.colorScheme.background
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val surfaceColor = MaterialTheme.colorScheme.surface
 
     val trend = movingAverageByDays(points, 7)
     val trendRows = points.mapIndexedNotNull { i, p ->
@@ -51,15 +59,29 @@ fun TrendChart(
     val vMin = 0.0
     val vMax = (allValues + trendVals).maxOrNull()?.let { it * 1.15 } ?: 1.0
 
-    Box(modifier, contentAlignment = Alignment.TopEnd) {
+    var selectedIndex by remember { mutableStateOf<Int?>(null) }
+
+    Box(modifier, contentAlignment = androidx.compose.ui.Alignment.TopEnd) {
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp),
+                .height(220.dp)
+                .pointerInput(points) {
+                    detectTapGestures { offset ->
+                        val n = points.size
+                        if (n > 0) {
+                            val left = 34.dp.toPx()
+                            val plotWidth = size.width - 6.dp.toPx() - left
+                            val frac = ((offset.x - left) / plotWidth).coerceIn(0f, 1f)
+                            val idx = (frac * (n - 1)).roundToInt()
+                            selectedIndex = if (selectedIndex == idx) null else idx
+                        }
+                    }
+                },
         ) {
             val chartWidth = size.width
             val plotHeight = size.height
-            val leftAxisWidth = 44.dp.toPx()
+            val leftAxisWidth = 34.dp.toPx()
             val plotTop = 44.dp.toPx()
             val plotLeft = leftAxisWidth
             val plotRight = chartWidth - 6.dp.toPx()
@@ -69,12 +91,12 @@ fun TrendChart(
             val fillArgb = labelColor.toArgb()
             val axisPaint = android.graphics.Paint().apply {
                 setColor(fillArgb)
-                textSize = 22f
+                textSize = 18f
                 textAlign = android.graphics.Paint.Align.RIGHT
             }
             val axisTitlePaint = android.graphics.Paint().apply {
                 setColor(fillArgb)
-                textSize = 20f
+                textSize = 18f
                 textAlign = android.graphics.Paint.Align.RIGHT
             }
 
@@ -161,6 +183,53 @@ fun TrendChart(
                         plotHeight - 2.dp.toPx(),
                         axisPaint.apply { textAlign = android.graphics.Paint.Align.CENTER },
                     )
+                }
+            }
+
+            selectedIndex?.let { si ->
+                val sx = x(si)
+                drawLine(
+                    color = labelColor.copy(alpha = 0.6f),
+                    start = Offset(sx, plotTop),
+                    end = Offset(sx, plotBottom),
+                    strokeWidth = 1.dp.toPx(),
+                )
+                val row = points[si]
+                val lines = buildList {
+                    add(formatDateKeyShort(row.date))
+                    add("Valor: ${formatNumberEsGrouped(row.value, 1)} $unit")
+                    trendRows.getOrNull(si)?.let { add("Media: ${formatNumberEsGrouped(it.second, 1)} $unit") }
+                }
+                val tooltipPaint = android.graphics.Paint().apply {
+                    setColor(fillArgb)
+                    textSize = 20f
+                    textAlign = android.graphics.Paint.Align.LEFT
+                }
+                val lineH = 26f
+                val pad = 10.dp.toPx()
+                val tw = lines.maxOf { tooltipPaint.measureText(it) } + pad * 2
+                val th = lineH * lines.size + pad
+                val minX = 4.dp.toPx()
+                val maxX = chartWidth - tw - 4.dp.toPx()
+                val rawTx = sx + 8.dp.toPx()
+                val tx = rawTx.coerceIn(minX, maxX)
+                val ty = 8.dp.toPx()
+                drawRoundRect(
+                    color = surfaceColor.copy(alpha = 0.95f),
+                    topLeft = Offset(tx, ty),
+                    size = androidx.compose.ui.geometry.Size(tw, th),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
+                )
+                drawRoundRect(
+                    color = labelColor.copy(alpha = 0.3f),
+                    topLeft = Offset(tx, ty),
+                    size = androidx.compose.ui.geometry.Size(tw, th),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
+                    style = Stroke(width = 1.dp.toPx()),
+                )
+                val baseline = ty + pad + lineH * 0.7f
+                lines.forEachIndexed { li, line ->
+                    drawContext.canvas.nativeCanvas.drawText(line, tx + pad, baseline + li * lineH, tooltipPaint)
                 }
             }
         }

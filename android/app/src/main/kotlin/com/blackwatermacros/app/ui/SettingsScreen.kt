@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -82,6 +83,7 @@ fun SettingsScreen(
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             CenteredTopAppBar(title = "Ajustes")
         },
@@ -422,79 +424,51 @@ private fun RecommendationsCard(loaded: SettingsUiState.Loaded) {
             Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-        if (calorie != null) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.Whatshot,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.height(16.dp),
+            if (calorie != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    RecommendationSection(
+                        title = "Recomendación de calorías",
+                        icon = Icons.Filled.Whatshot,
+                        goal = calorie.goal,
+                        rangeValue = "${formatNumberEs(calorie.targetMin)} – ${formatNumberEs(calorie.targetMax)}",
+                        rangeUnit = "kcal/día",
+                        detail = "promedio estimado: ${formatNumberEs(calorie.target)} kcal/día",
+                        current = 0.0,
+                        rangeMin = calorie.targetMin,
+                        rangeMax = calorie.targetMax,
+                        missingLabel = "",
+                        exceededLabel = "",
+                        showBar = false,
                     )
-                    Spacer(Modifier.width(6.dp))
                     Text(
-                        "Consumo objetivo",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium,
+                        "Metabolismo basal (TMB): ${formatNumberEs(calorie.bmr)} kcal/día",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                }
-                Spacer(Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        formatNumberEs(calorie.target),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        "kcal/día",
+                        "Gasto calórico diario estimado (TDEE): ${formatNumberEs(calorie.tdee)} kcal/día",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Text(
-                    "${formatNumberEs(calorie.targetMin)} – ${formatNumberEs(calorie.targetMax)} kcal/día",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    "TMB: ${formatNumberEs(calorie.bmr)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    "TDEE: ${formatNumberEs(calorie.tdee)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
-        }
-        if (protein != null) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.FitnessCenter,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.height(16.dp),
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        "Proteína recomendada",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    "${formatNumberEs(protein.bwRange.min)} – ${formatNumberEs(protein.bwRange.max)} g/día " +
-                        "(${formatNumberEs(protein.bwPerKg.min, 1)} – ${formatNumberEs(protein.bwPerKg.max, 1)} g/kg)",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+            if (protein != null) {
+                RecommendationSection(
+                    title = "Recomendación de proteína",
+                    icon = Icons.Filled.FitnessCenter,
+                    goal = protein.goal,
+                    rangeValue = "${formatNumberEs(protein.bwRange.min)} – ${formatNumberEs(protein.bwRange.max)}",
+                    rangeUnit = "g/día",
+                    detail = "promedio estimado: ${formatNumberEs(protein.target)} g/día · ${formatNumberEs(protein.bwPerKg.min, 1)} – ${formatNumberEs(protein.bwPerKg.max, 1)} g/kg",
+                    current = 0.0,
+                    rangeMin = protein.bwRange.min,
+                    rangeMax = protein.bwRange.max,
+                    missingLabel = "",
+                    exceededLabel = "",
+                    showBar = false,
                 )
-            }
             }
         }
     }

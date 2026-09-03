@@ -90,7 +90,8 @@ fun NutritionRecommendationsCard(
                             title = "Recomendación de calorías",
                             icon = Icons.Filled.Whatshot,
                             goal = calorie.goal,
-                            range = "${formatNumberEs(calorie.targetMin)} – ${formatNumberEs(calorie.targetMax)} kcal/día",
+                            rangeValue = "${formatNumberEs(calorie.targetMin)} – ${formatNumberEs(calorie.targetMax)}",
+                            rangeUnit = "kcal/día",
                             detail = "promedio estimado: ${formatNumberEs(calorie.target)} kcal/día",
                             current = dailyCalories,
                             rangeMin = calorie.targetMin,
@@ -107,7 +108,8 @@ fun NutritionRecommendationsCard(
                             title = "Recomendación de proteína",
                             icon = Icons.Filled.FitnessCenter,
                             goal = protein.goal,
-                            range = "${formatNumberEs(protein.bwRange.min)} – ${formatNumberEs(protein.bwRange.max)} g/día",
+                            rangeValue = "${formatNumberEs(protein.bwRange.min)} – ${formatNumberEs(protein.bwRange.max)}",
+                            rangeUnit = "g/día",
                             detail = "promedio estimado: ${formatNumberEs(protein.target)} g/día",
                             current = dailyProtein,
                             rangeMin = protein.bwRange.min,
@@ -123,17 +125,19 @@ fun NutritionRecommendationsCard(
 }
 
 @Composable
-private fun RecommendationSection(
+internal fun RecommendationSection(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     goal: Goal,
-    range: String,
+    rangeValue: String,
+    rangeUnit: String,
     detail: String,
     current: Double,
     rangeMin: Double,
     rangeMax: Double,
     missingLabel: String,
     exceededLabel: String,
+    showBar: Boolean = true,
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -148,15 +152,29 @@ private fun RecommendationSection(
             )
         }
         Spacer(Modifier.height(6.dp))
-        Text(range, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                rangeValue,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                rangeUnit,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         Spacer(Modifier.height(4.dp))
         Text(
             detail,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.height(10.dp))
-        IntakeBar(current, rangeMin, rangeMax, missingLabel, exceededLabel)
+        if (showBar) {
+            Spacer(Modifier.height(10.dp))
+            IntakeBar(current, rangeMin, rangeMax, missingLabel, exceededLabel)
+        }
     }
 }
 

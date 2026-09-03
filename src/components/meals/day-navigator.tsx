@@ -27,14 +27,8 @@ export function DayNavigator({ value, onChange }: DayNavigatorProps) {
       </Button>
       <div className="flex min-w-0 flex-col items-center px-1">
         <span className="truncate text-sm font-medium">{formatDateKeyLong(value)}</span>
-        {!isToday ? (
-          <button
-            type="button"
-            onClick={() => onChange(today)}
-            className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-          >
-            {t.common.today}
-          </button>
+        {isToday ? (
+          <span className="text-xs text-primary">{t.common.today}</span>
         ) : null}
       </div>
       <Button

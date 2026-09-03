@@ -71,29 +71,32 @@ fun BottomNavBar(
     onTabSelected: (AppTab) -> Unit,
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
-        color = MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.background,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AppTab.entries.forEach { tab ->
-                val selected = if (tab == AppTab.HOY) {
-                    currentRoute == tab.route
-                } else {
-                    currentRoute.startsWith(tab.route)
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                AppTab.entries.forEach { tab ->
+                    val selected = if (tab == AppTab.HOY) {
+                        currentRoute == tab.route
+                    } else {
+                        currentRoute.startsWith(tab.route)
+                    }
+                    NavItem(
+                        label = tab.label,
+                        icon = if (selected) tab.selectedIcon else tab.unselectedIcon,
+                        selected = selected,
+                        onClick = { onTabSelected(tab) },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
-                NavItem(
-                    label = tab.label,
-                    icon = if (selected) tab.selectedIcon else tab.unselectedIcon,
-                    selected = selected,
-                    onClick = { onTabSelected(tab) },
-                    modifier = Modifier.weight(1f),
-                )
             }
+            Spacer(Modifier.navigationBarsPadding())
         }
     }
 }
