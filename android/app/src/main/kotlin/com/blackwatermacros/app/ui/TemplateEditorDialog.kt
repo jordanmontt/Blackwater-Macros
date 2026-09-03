@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -23,9 +23,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,16 +59,25 @@ fun TemplateEditorDialog(
 ) {
     val draft = rememberTemplateDraft(template)
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = { if (!saving) onDismiss() },
-        title = {
+        sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+            confirmValueChange = { it != SheetValue.Hidden },
+        ),
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f),
+        ) {
             Text(
                 text = if (template != null) "Editar plantilla" else "Nueva plantilla",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
-        },
-        text = {
             androidx.compose.runtime.key(template?.id ?: "new") {
                 TemplateFormFields(
                     initialMode = draft.entryMode,
@@ -82,10 +94,8 @@ fun TemplateEditorDialog(
                     onSave = onSave,
                 )
             }
-        },
-        confirmButton = {},
-        dismissButton = {},
-    )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

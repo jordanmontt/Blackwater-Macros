@@ -1,26 +1,33 @@
 package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,8 +40,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -77,19 +83,7 @@ fun SettingsScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Ajustes",
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
-            )
+            CenteredTopAppBar(title = "Ajustes")
         },
     ) { innerPadding ->
         Column(
@@ -297,13 +291,13 @@ private fun ProfileCard(
         Spacer(Modifier.height(6.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ThemeButton(
-                label = "Masculino",
+                label = "Hombre",
                 selected = profile.gender == Gender.MALE,
                 onClick = { onProfileChange(profile.copy(gender = Gender.MALE)) },
                 Modifier.weight(1f),
             )
             ThemeButton(
-                label = "Femenino",
+                label = "Mujer",
                 selected = profile.gender == Gender.FEMALE,
                 onClick = { onProfileChange(profile.copy(gender = Gender.FEMALE)) },
                 Modifier.weight(1f),
@@ -311,51 +305,69 @@ private fun ProfileCard(
         }
         Spacer(Modifier.height(12.dp))
 
-        NumberFieldRow(
-            label = "Año de nacimiento",
-            value = profile.birthYear?.toString() ?: "",
-            placeholder = "1990",
-            validation = "El año debe estar entre 1920 y 2010",
-            onValue = { text ->
-                onProfileChange(profile.copy(birthYear = text.trim().toIntOrNull()))
-            },
-        )
-        NumberFieldRow(
-            label = "Altura (cm)",
-            value = profile.heightCm?.let { trimNum(it) } ?: "",
-            placeholder = "",
-            validation = "La altura debe estar entre 100 y 250 cm",
-            onValue = { text ->
-                onProfileChange(profile.copy(heightCm = text.trim().replace(",", ".").toDoubleOrNull()))
-            },
-        )
-        NumberFieldRow(
-            label = "Días de gimnasio por semana",
-            value = profile.gymDaysPerWeek?.toString() ?: "",
-            placeholder = "",
-            validation = "Los días deben ser entre 0 y 7",
-            onValue = { text ->
-                onProfileChange(profile.copy(gymDaysPerWeek = text.trim().toIntOrNull()))
-            },
-        )
-        NumberFieldRow(
-            label = "Duración de sesión (min)",
-            value = profile.gymSessionMinutes?.toString() ?: "",
-            placeholder = "",
-            validation = "La duración debe ser entre 0 y 300 min",
-            onValue = { text ->
-                onProfileChange(profile.copy(gymSessionMinutes = text.trim().toIntOrNull()))
-            },
-        )
-        NumberFieldRow(
-            label = "Caminata diaria (min)",
-            value = profile.walkingMinutesPerDay?.toString() ?: "",
-            placeholder = "",
-            validation = "El tiempo debe ser entre 0 y 480 min",
-            onValue = { text ->
-                onProfileChange(profile.copy(walkingMinutesPerDay = text.trim().toIntOrNull()))
-            },
-        )
+        ProfileGridRow {
+            NumberFieldRow(
+                label = "Año de nacimiento",
+                value = profile.birthYear?.toString() ?: "",
+                placeholder = "1990",
+                validation = "El año debe estar entre 1920 y 2010",
+                modifier = Modifier.weight(1f),
+                onValue = { text ->
+                    onProfileChange(profile.copy(birthYear = text.trim().toIntOrNull()))
+                },
+            )
+            NumberFieldRow(
+                label = "Altura (cm)",
+                value = profile.heightCm?.let { trimNum(it) } ?: "",
+                placeholder = "",
+                validation = "La altura debe estar entre 100 y 250 cm",
+                modifier = Modifier.weight(1f),
+                onValue = { text ->
+                    onProfileChange(profile.copy(heightCm = text.trim().replace(",", ".").toDoubleOrNull()))
+                },
+            )
+        }
+        ProfileGridRow {
+            NumberFieldRow(
+                label = "Días de gimnasio por semana",
+                value = profile.gymDaysPerWeek?.toString() ?: "",
+                placeholder = "",
+                validation = "Los días deben ser entre 0 y 7",
+                modifier = Modifier.weight(1f),
+                onValue = { text ->
+                    onProfileChange(profile.copy(gymDaysPerWeek = text.trim().toIntOrNull()))
+                },
+            )
+            NumberFieldRow(
+                label = "Duración de sesión (min)",
+                value = profile.gymSessionMinutes?.toString() ?: "",
+                placeholder = "",
+                validation = "La duración debe ser entre 0 y 300 min",
+                modifier = Modifier.weight(1f),
+                onValue = { text ->
+                    onProfileChange(profile.copy(gymSessionMinutes = text.trim().toIntOrNull()))
+                },
+            )
+        }
+        ProfileGridRow {
+            NumberFieldRow(
+                label = "Caminata diaria (min)",
+                value = profile.walkingMinutesPerDay?.toString() ?: "",
+                placeholder = "",
+                validation = "El tiempo debe ser entre 0 y 480 min",
+                modifier = Modifier.fillMaxWidth(),
+                onValue = { text ->
+                    onProfileChange(profile.copy(walkingMinutesPerDay = text.trim().toIntOrNull()))
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileGridRow(content: @Composable RowScope.() -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        content()
     }
 }
 
@@ -365,10 +377,19 @@ private fun NumberFieldRow(
     value: String,
     placeholder: String,
     validation: String,
+    modifier: Modifier = Modifier.fillMaxWidth(),
     onValue: (String) -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
-        FieldLabel(label)
+    Column(modifier.padding(bottom = 12.dp)) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            minLines = 2,
+            modifier = Modifier.heightIn(min = 0.dp),
+        )
         Spacer(Modifier.height(4.dp))
         CompactField(
             value = value,
@@ -390,43 +411,91 @@ private fun RecommendationsCard(loaded: SettingsUiState.Loaded) {
     val calorie = loaded.calorieRec
     val protein = loaded.proteinRec
     if (calorie == null && protein == null) return
-    SettingsCard("Recomendaciones") {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
         if (calorie != null) {
-            Text("Calorías recomendadas", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "${formatNumberEs(calorie.target)} kcal",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Rango: ${formatNumberEs(calorie.targetMin)} – ${formatNumberEs(calorie.targetMax)} kcal",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                "TMB: ${formatNumberEs(calorie.bmr)} · TDEE: ${formatNumberEs(calorie.tdee)} kcal",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Whatshot,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.height(16.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "Consumo objetivo",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+                Spacer(Modifier.height(2.dp))
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        formatNumberEs(calorie.target),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        "kcal/día",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    "${formatNumberEs(calorie.targetMin)} – ${formatNumberEs(calorie.targetMax)} kcal/día",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "TMB: ${formatNumberEs(calorie.bmr)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "TDEE: ${formatNumberEs(calorie.tdee)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         if (protein != null) {
-            Text("Proteína recomendada", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "${formatNumberEs(protein.bwRange.min)} – ${formatNumberEs(protein.bwRange.max)} g/día",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                "${formatNumberEs(protein.bwPerKg.min)} – ${formatNumberEs(protein.bwPerKg.max)} g/kg",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.FitnessCenter,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.height(16.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "Proteína recomendada",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "${formatNumberEs(protein.bwRange.min)} – ${formatNumberEs(protein.bwRange.max)} g/día " +
+                        "(${formatNumberEs(protein.bwPerKg.min, 1)} – ${formatNumberEs(protein.bwPerKg.max, 1)} g/kg)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            }
         }
     }
 }
@@ -445,11 +514,20 @@ private fun MethodologyLinkCard(onOpen: () -> Unit) {
             Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                "Cómo se calculan las métricas",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f),
+            Icon(
+                Icons.Filled.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Metodología", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                Text(
+                    "Cómo se calculan las métricas",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Icon(
                 Icons.Filled.ChevronRight,
                 contentDescription = null,
@@ -632,13 +710,28 @@ private fun AdminLinkCard(onOpen: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-        Column(Modifier.padding(16.dp)) {
-            Text("Administración", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Gestiona los usuarios de la aplicación.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Row(
+            Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Filled.Shield,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Administración", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                Text(
+                    "Gestiona los usuarios de la aplicación.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                Icons.Filled.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -652,14 +745,15 @@ private fun SessionCard(username: String, onLogout: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(12.dp))
-        androidx.compose.material3.Button(
-            onClick = onLogout,
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
-            ),
-        ) {
-            Text("Cerrar sesión")
+        androidx.compose.material3.OutlinedButton(onClick = onLogout) {
+            androidx.compose.material3.Icon(
+                Icons.AutoMirrored.Filled.Logout,
+                contentDescription = null,
+                modifier = Modifier.height(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.width(6.dp))
+            Text("Cerrar sesión", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

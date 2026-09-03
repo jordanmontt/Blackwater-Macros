@@ -1,6 +1,5 @@
 package com.blackwatermacros.app.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -74,12 +73,11 @@ fun BottomNavBar(
     Surface(
         modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
         color = MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 6.dp),
+                .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AppTab.entries.forEach { tab ->
@@ -121,12 +119,12 @@ private fun NavItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 6.dp),
+                .padding(vertical = 3.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(24.dp))
-            Spacer(Modifier.height(4.dp))
+            Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.height(2.dp))
             Text(
                 label,
                 modifier = Modifier.fillMaxWidth(),

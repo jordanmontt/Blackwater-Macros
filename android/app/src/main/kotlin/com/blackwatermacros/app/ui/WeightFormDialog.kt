@@ -2,6 +2,7 @@ package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,7 +41,7 @@ fun WeightFormDialog(
 ) {
     var weightText by remember(weight?.id) { mutableStateOf(weight?.weightKg?.let { trimDec(it) } ?: "") }
     var measuredAt by remember(weight?.id) {
-        mutableStateOf(weight?.measuredAt?.let { toLocalInput(it) } ?: "")
+        mutableStateOf(weight?.measuredAt?.let { toLocalInput(it) } ?: nowDateTimeLocalValue())
     }
     var bodyFatText by remember(weight?.id) { mutableStateOf(weight?.bodyFatPct?.let { trimDec(it) } ?: "") }
     var noteText by remember(weight?.id) { mutableStateOf(weight?.note ?: "") }
@@ -48,6 +49,7 @@ fun WeightFormDialog(
 
     AlertDialog(
         onDismissRequest = { if (!saving) onDismiss() },
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { Text(if (weight != null) "Editar" else "Registrar peso") },
         text = {
             Column(
@@ -56,38 +58,40 @@ fun WeightFormDialog(
                     .padding(top = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Column(Modifier.fillMaxWidth()) {
-                    FieldLabel("Peso (kg)")
-                    Spacer(Modifier.height(4.dp))
-                    CompactField(
-                        value = weightText,
-                        onValueChange = { weightText = it },
-                        placeholder = "",
-                        enabled = !saving,
-                        decimal = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                Column(Modifier.fillMaxWidth()) {
-                    FieldLabel("Fecha y hora")
-                    Spacer(Modifier.height(4.dp))
-                    CompactField(
-                        value = measuredAt,
-                        onValueChange = { measuredAt = it },
-                        placeholder = "2000-01-01T00:00",
-                        enabled = !saving,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    TextButton(
-                        onClick = { measuredAt = nowDateTimeLocalValue() },
-                        enabled = !saving,
-                    ) {
-                        Text("Ahora", style = MaterialTheme.typography.labelMedium)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        FieldLabel("Peso (kg)")
+                        Spacer(Modifier.height(4.dp))
+                        CompactField(
+                            value = weightText,
+                            onValueChange = { weightText = it },
+                            placeholder = "",
+                            enabled = !saving,
+                            decimal = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    Column(Modifier.weight(1f)) {
+                        FieldLabel("Fecha y hora")
+                        Spacer(Modifier.height(4.dp))
+                        CompactField(
+                            value = measuredAt,
+                            onValueChange = { measuredAt = it },
+                            placeholder = "2000-01-01T00:00",
+                            enabled = !saving,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        TextButton(
+                            onClick = { measuredAt = nowDateTimeLocalValue() },
+                            enabled = !saving,
+                        ) {
+                            Text("Ahora", style = MaterialTheme.typography.labelMedium)
+                        }
                     }
                 }
                 Column(Modifier.fillMaxWidth()) {
-                    FieldLabel("Grasa corporal (%)")
+                    FieldLabel("Grasa corporal (%) (opcional)")
                     Spacer(Modifier.height(4.dp))
                     CompactField(
                         value = bodyFatText,

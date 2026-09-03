@@ -77,6 +77,10 @@ fun formatTimestamp(iso: String): String =
     TIME_FORMATTER.format(LocalDateTime.parse(iso))
 
 fun formatNumberEs(value: Double, maxDecimals: Int = 0): String =
+    formatNumberEsGrouped(value, maxDecimals).replace(".", "")
+
+/** es-ES number formatting that keeps the thousands separator (e.g. "2.000"). */
+fun formatNumberEsGrouped(value: Double, maxDecimals: Int = 0): String =
     java.text.NumberFormat.getNumberInstance(Locale("es", "ES")).apply {
         maximumFractionDigits = maxDecimals
     }.format(value)

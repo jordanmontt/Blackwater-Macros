@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -87,6 +88,7 @@ fun NutritionRecommendationsCard(
                     if (calorie != null) {
                         RecommendationSection(
                             title = "Recomendación de calorías",
+                            icon = Icons.Filled.Whatshot,
                             goal = calorie.goal,
                             range = "${formatNumberEs(calorie.targetMin)} – ${formatNumberEs(calorie.targetMax)} kcal/día",
                             detail = "promedio estimado: ${formatNumberEs(calorie.target)} kcal/día",
@@ -103,6 +105,7 @@ fun NutritionRecommendationsCard(
                     if (protein != null) {
                         RecommendationSection(
                             title = "Recomendación de proteína",
+                            icon = Icons.Filled.FitnessCenter,
                             goal = protein.goal,
                             range = "${formatNumberEs(protein.bwRange.min)} – ${formatNumberEs(protein.bwRange.max)} g/día",
                             detail = "promedio estimado: ${formatNumberEs(protein.target)} g/día",
@@ -122,6 +125,7 @@ fun NutritionRecommendationsCard(
 @Composable
 private fun RecommendationSection(
     title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     goal: Goal,
     range: String,
     detail: String,
@@ -133,7 +137,7 @@ private fun RecommendationSection(
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.Whatshot, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
             Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             Spacer(Modifier.width(6.dp))

@@ -1,6 +1,7 @@
 package com.blackwatermacros.app.ui.chart
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,13 +12,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import com.blackwatermacros.app.core.formatDateKeyShort
+import com.blackwatermacros.app.core.formatNumberEsGrouped
 import com.blackwatermacros.app.ui.WeightFatRow
 
 private val Chart1 = Color(0xFF4A8C5A)
@@ -42,20 +48,19 @@ fun WeightFatChart(
     if (weightRows.isEmpty()) return
 
     val weights = weightRows.map { it.second }
-    val weightMin = weights.min()
-    val weightMax = weights.max()
-    val pctMin = pctRows.minOfOrNull { it.second } ?: 0.0
-    val pctMax = pctRows.maxOfOrNull { it.second } ?: 1.0
+    val trends = trendRows.map { it.second }
+    val weightMinRaw = (weights + trends).min()
+    val weightMaxRaw = (weights + trends).max()
+    val pctMinRaw = pctRows.minOfOrNull { it.second } ?: 0.0
+    val pctMaxRaw = pctRows.maxOfOrNull { it.second } ?: 1.0
+    val weightPad = if (weightMaxRaw > weightMinRaw) (weightMaxRaw - weightMinRaw) * 0.12 else 1.0
+    val weightMin = weightMinRaw - weightPad
+    val weightMax = weightMaxRaw + weightPad
+    val pctPad = if (pctMaxRaw > pctMinRaw) (pctMaxRaw - pctMinRaw) * 0.12 else 1.0
+    val pctMin = pctMinRaw - pctPad
+    val pctMax = pctMaxRaw + pctPad
 
     Column(modifier) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            LegendDot(Chart1, "Peso")
-            Spacer(Modifier.width(10.dp))
-            LegendDot(Chart3, "Tendencia")
-            Spacer(Modifier.width(10.dp))
-            LegendDot(Chart2, "Grasa corporal")
-        }
-        Spacer(Modifier.height(4.dp))
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
@@ -63,37 +68,41 @@ fun WeightFatChart(
         ) {
             val chartWidth = size.width
             val plotHeight = size.height
+            val plotTop = 48.dp.toPx()
+            val labelBaseline = 14.dp.toPx()
             val leftAxisWidth = 44.dp.toPx()
             val rightAxisWidth = 40.dp.toPx()
             val plotLeft = leftAxisWidth
             val plotRight = chartWidth - rightAxisWidth
             val plotWidth = plotRight - plotLeft
+            val plotBottom = plotHeight - 18.dp.toPx()
+
+            val fillArgb = labelColor.toArgb()
+            val axisPaint = android.graphics.Paint().apply {
+                color = fillArgb
+                textSize = 22f
+                textAlign = android.graphics.Paint.Align.RIGHT
+            }
+            val axisTitlePaint = android.graphics.Paint().apply {
+                color = fillArgb
+                textSize = 20f
+                textAlign = android.graphics.Paint.Align.RIGHT
+            }
 
             fun yWeight(v: Double): Float {
                 val t = if (weightMax > weightMin) (v - weightMin) / (weightMax - weightMin) else 0.5
-                return (plotHeight - (t * plotHeight).toFloat())
+                return (plotBottom - (t * (plotBottom - plotTop)).toFloat())
             }
 
             fun yPct(v: Double): Float {
                 val t = if (pctMax > pctMin) (v - pctMin) / (pctMax - pctMin) else 0.5
-                return (plotHeight - (t * plotHeight).toFloat())
+                return (plotBottom - (t * (plotBottom - plotTop)).toFloat())
             }
 
             fun xIndex(i: Int): Float {
                 val n = data.size
                 return if (n <= 1) plotLeft + plotWidth / 2f
                 else plotLeft + (plotWidth * i / (n - 1)).toFloat()
-            }
-
-            val gridRows = 4
-            for (r in 0..gridRows) {
-                val y = plotHeight * r / gridRows
-                drawLine(
-                    color = axisColor,
-                    start = Offset(plotLeft, y),
-                    end = Offset(plotRight, y),
-                    strokeWidth = 1.dp.toPx(),
-                )
             }
 
             fun drawSeries(rows: List<Pair<Int, Double>>, color: Color, dash: FloatArray?, yFn: (Double) -> Float) {
@@ -116,6 +125,30 @@ fun WeightFatChart(
                 }
             }
 
+            val gridLines = 4
+            for (r in 0..gridLines) {
+                val t = r.toDouble() / gridLines
+                val y = plotBottom - (t * (plotBottom - plotTop)).toFloat()
+                drawLine(
+                    color = axisColor,
+                    start = Offset(plotLeft, y),
+                    end = Offset(plotRight, y),
+                    strokeWidth = 1.dp.toPx(),
+                )
+                drawContext.canvas.nativeCanvas.drawText(
+                    formatNumberEsGrouped(weightMin + (weightMax - weightMin) * t, 1),
+                    leftAxisWidth - 4.dp.toPx(),
+                    y + 5.dp.toPx(),
+                    axisPaint,
+                )
+            }
+            drawContext.canvas.nativeCanvas.drawText(
+                "Peso (kg)",
+                leftAxisWidth - 4.dp.toPx(),
+                24.dp.toPx(),
+                axisTitlePaint,
+            )
+
             drawSeries(weightRows, Chart1, null, ::yWeight)
             drawSeries(trendRows, Chart3, floatArrayOf(6f, 4f), ::yWeight)
             drawSeries(pctRows, Chart2, floatArrayOf(3f, 3f), ::yPct)
@@ -133,6 +166,27 @@ fun WeightFatChart(
                     radius = 2.dp.toPx(),
                     center = Offset(xIndex(i), yPct(v)),
                 )
+            }
+            if (data.isNotEmpty()) {
+                val labels = listOf(0, data.size / 2, data.size - 1).distinct().filter { it in data.indices }
+                labels.forEach { i ->
+                    drawContext.canvas.nativeCanvas.drawText(
+                        formatDateKeyShort(data[i].date),
+                        xIndex(i),
+                        plotHeight - 2.dp.toPx(),
+                        axisPaint.apply { textAlign = android.graphics.Paint.Align.CENTER },
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        Box(Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center) {
+                LegendDot(Chart1, "Peso")
+                Spacer(Modifier.width(10.dp))
+                LegendDot(Chart3, "Tendencia")
+                Spacer(Modifier.width(10.dp))
+                LegendDot(Chart2, "Grasa corporal")
             }
         }
     }

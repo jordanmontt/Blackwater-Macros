@@ -26,6 +26,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.core.formatNumberEs
 import com.blackwatermacros.app.data.MealDTO
@@ -111,11 +113,15 @@ fun MealCard(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 1.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.Top,
                         ) {
                             Text(
                                 text = ingredient.name + (ingredient.quantity?.let { " · $it" } ?: ""),
                                 modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodySmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                             Text(
                                 text = buildString {
@@ -126,6 +132,7 @@ fun MealCard(
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.End,
                             )
                         }
                     }
@@ -146,6 +153,7 @@ fun MealCard(
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 MacroBadge(
                     text = "${formatNumberEs(meal.resolvedCalories)} kcal",

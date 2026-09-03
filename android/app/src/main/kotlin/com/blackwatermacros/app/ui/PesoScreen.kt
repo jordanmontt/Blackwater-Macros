@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -33,8 +35,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,19 +73,7 @@ fun PesoScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Peso",
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
-            )
+            CenteredTopAppBar(title = "Peso")
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -253,9 +241,9 @@ private fun SummaryCard(summary: PesoSummary) {
             )
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniStatCell("Cambio peso (7 días)", summary.changeWeight7d, "kg", Modifier.weight(1f))
+                MiniStatCell("Cambio de peso (7 días)", summary.changeWeight7d, "kg", Modifier.weight(1f))
                 MiniStatCell("Grasa actual", summary.currentBodyFatPct, "%", Modifier.weight(1f))
-                MiniStatCell("Cambio grasa (7 días)", summary.changeFat7d, "%", Modifier.weight(1f))
+                MiniStatCell("Cambio de grasa (7 días)", summary.changeFat7d, "%", Modifier.weight(1f))
             }
         }
     }
@@ -278,22 +266,35 @@ private fun MiniStatCell(label: String, value: Double?, unit: String, modifier: 
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
+            minLines = 2,
+            modifier = Modifier.heightIn(min = 0.dp),
         )
         Spacer(Modifier.height(4.dp))
-        Text(
-            buildString {
-                if (value != null) {
-                    if (value > 0) append("+")
-                    append(formatNumberEs(value, 1))
-                    append(" ")
-                    append(unit)
-                } else {
-                    append("—")
-                }
-            },
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
+        if (value != null) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    buildString {
+                        if (value > 0) append("+")
+                        append(formatNumberEs(value, 1))
+                    },
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    unit,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+        } else {
+            Text(
+                "—",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
 

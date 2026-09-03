@@ -25,7 +25,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,8 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,7 +49,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.data.AdminUserDTO
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen(
     onBack: () -> Unit,
@@ -64,16 +62,9 @@ fun AdminScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Administración",
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                },
-                navigationIcon = {
+            CenteredTopAppBar(
+                title = "Administración",
+                leading = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -82,9 +73,6 @@ fun AdminScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
             )
         },
     ) { innerPadding ->
@@ -302,6 +290,7 @@ private fun AdminUserDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { Text(title) },
         text = {
             Column(
@@ -383,10 +372,11 @@ private fun AdminUserDialog(
 
 @Composable
 private fun CustomSwitch(checked: Boolean, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    val trackWidth = 52.dp
-    val trackHeight = 32.dp
-    val thumbSize = 24.dp
-    val thumbOffset = if (checked) trackWidth - thumbSize - 4.dp else 4.dp
+    val trackWidth = 36.dp
+    val trackHeight = 22.dp
+    val thumbSize = 16.dp
+    val thumbOffset = if (checked) trackWidth - thumbSize - 3.dp else 3.dp
+    val contentAlpha = if (enabled) 1f else 0.4f
     val clickModifier = if (enabled) {
         Modifier.clickable { onCheckedChange(!checked) }
     } else {
@@ -395,13 +385,14 @@ private fun CustomSwitch(checked: Boolean, enabled: Boolean, onCheckedChange: (B
     Box(
         Modifier
             .clip(RoundedCornerShape(50))
+            .alpha(contentAlpha)
             .background(
                 if (checked) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.surfaceVariant,
             )
             .size(width = trackWidth, height = trackHeight)
             .then(clickModifier)
-            .padding(4.dp),
+            .padding(3.dp),
     ) {
         Box(
             Modifier

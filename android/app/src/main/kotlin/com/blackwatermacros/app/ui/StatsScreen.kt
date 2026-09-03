@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,8 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -42,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.core.DataPoint
 import com.blackwatermacros.app.core.formatDateKeyShort
 import com.blackwatermacros.app.core.formatNumberEs
+import com.blackwatermacros.app.core.formatNumberEsGrouped
 import com.blackwatermacros.app.data.StatsSummary
 import com.blackwatermacros.app.data.WireDailyNutritionPoint
 import com.blackwatermacros.app.ui.chart.TrendChart
@@ -66,16 +66,9 @@ fun StatsScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Estadísticas",
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                },
-                actions = {
+            CenteredTopAppBar(
+                title = "Estadísticas",
+                trailing = {
                     IconButton(onClick = onOpenMetodologia) {
                         Icon(
                             Icons.Filled.Info,
@@ -84,9 +77,6 @@ fun StatsScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
             )
         },
     ) { innerPadding ->
@@ -262,18 +252,31 @@ private fun MiniStatColumn(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(2.dp))
-        Text(
-            buildString {
-                if (value != null) {
-                    if (sign && value > 0) append("+")
-                    append(formatNumberEs(value, decimals))
-                } else {
-                    append("—")
-                }
-            } + if (value != null) " $unit" else "",
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-        )
+        if (value != null) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    buildString {
+                        if (sign && value > 0) append("+")
+                        append(formatNumberEs(value, decimals))
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    unit,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+        } else {
+            Text(
+                "—",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
 
@@ -328,7 +331,7 @@ private fun WeeklyAveragesCard(summary: StatsSummary) {
                 ) {
                     Text(formatDateKeyShort(week.weekStart), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        "${formatNumberEs(week.avg, 1)} kg",
+                        "${formatNumberEsGrouped(week.avg, 1)} kg",
                         fontWeight = FontWeight.Medium,
                     )
                 }
@@ -340,10 +343,10 @@ private fun WeeklyAveragesCard(summary: StatsSummary) {
             ) {
                 val w = summary.weight
                 Text("Mínimo: ", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
-                Text("${formatNumberEs(w.minKg ?: 0.0, 1)} kg", fontWeight = FontWeight.Medium, style = MaterialTheme.typography.labelMedium)
+                Text("${formatNumberEsGrouped(w.minKg ?: 0.0, 1)} kg", fontWeight = FontWeight.Medium, style = MaterialTheme.typography.labelMedium)
                 Spacer(Modifier.weight(1f))
                 Text("Máximo: ", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
-                Text("${formatNumberEs(w.maxKg ?: 0.0, 1)} kg", fontWeight = FontWeight.Medium, style = MaterialTheme.typography.labelMedium)
+                Text("${formatNumberEsGrouped(w.maxKg ?: 0.0, 1)} kg", fontWeight = FontWeight.Medium, style = MaterialTheme.typography.labelMedium)
             }
         }
     }
@@ -368,8 +371,8 @@ private fun NutritionSection(summary: StatsSummary) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth()) {
-                MacroCell("Media de calorías", summary.caloriesAvg, "", Modifier.weight(1f))
-                MacroCell("Día pico", summary.caloriesMaxDay?.let { it.calories }, "", Modifier.weight(1f), summary.caloriesMaxDay?.date)
+                MacroCell("Media de calorías", summary.caloriesAvg, "kcal", Modifier.weight(1f))
+                MacroCell("Día pico", summary.caloriesMaxDay?.let { it.calories }, "kcal", Modifier.weight(1f), summary.caloriesMaxDay?.date)
             }
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth()) {
@@ -403,11 +406,27 @@ private fun MacroCell(label: String, value: Double?, unit: String, modifier: Mod
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(2.dp))
-        Text(
-            value?.let { "${formatNumberEs(it)} ${unit.trim()}".trim() } ?: "—",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-        )
+        if (value != null) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    formatNumberEs(value),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    unit.trim(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        } else {
+            Text(
+                "—",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
 

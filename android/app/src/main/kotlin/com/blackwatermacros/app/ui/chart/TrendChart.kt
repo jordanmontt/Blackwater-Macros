@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,10 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.blackwatermacros.app.core.DataPoint
-import com.blackwatermacros.app.core.formatNumberEs
+import com.blackwatermacros.app.core.formatDateKeyShort
+import com.blackwatermacros.app.core.formatNumberEsGrouped
 import com.blackwatermacros.app.core.movingAverageByDays
 import com.blackwatermacros.app.core.round1
 
@@ -36,6 +37,7 @@ fun TrendChart(
 ) {
     val axisColor = MaterialTheme.colorScheme.outlineVariant
     val ringColor = MaterialTheme.colorScheme.background
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     val trend = movingAverageByDays(points, 7)
     val trendRows = points.mapIndexedNotNull { i, p ->
@@ -45,8 +47,9 @@ fun TrendChart(
     if (points.isEmpty()) return
 
     val allValues = points.map { it.value }
+    val trendVals = trendRows.map { it.second }
     val vMin = 0.0
-    val vMax = (allValues.maxOrNull() ?: 1.0) * 1.15
+    val vMax = (allValues + trendVals).maxOrNull()?.let { it * 1.15 } ?: 1.0
 
     Box(modifier, contentAlignment = Alignment.TopEnd) {
         Canvas(
@@ -57,13 +60,27 @@ fun TrendChart(
             val chartWidth = size.width
             val plotHeight = size.height
             val leftAxisWidth = 44.dp.toPx()
+            val plotTop = 44.dp.toPx()
             val plotLeft = leftAxisWidth
             val plotRight = chartWidth - 6.dp.toPx()
             val plotWidth = plotRight - plotLeft
+            val plotBottom = plotHeight - 18.dp.toPx()
+
+            val fillArgb = labelColor.toArgb()
+            val axisPaint = android.graphics.Paint().apply {
+                setColor(fillArgb)
+                textSize = 22f
+                textAlign = android.graphics.Paint.Align.RIGHT
+            }
+            val axisTitlePaint = android.graphics.Paint().apply {
+                setColor(fillArgb)
+                textSize = 20f
+                textAlign = android.graphics.Paint.Align.RIGHT
+            }
 
             fun y(v: Double): Float {
                 val t = if (vMax > vMin) (v - vMin) / (vMax - vMin) else 0.5
-                return (plotHeight * (1f - t.toFloat()))
+                return (plotBottom - (t * (plotBottom - plotTop)).toFloat())
             }
 
             fun x(i: Int): Float {
@@ -74,14 +91,27 @@ fun TrendChart(
 
             val gridRows = 4
             for (r in 0..gridRows) {
-                val yy = plotHeight * r / gridRows
+                val t = r.toDouble() / gridRows
+                val yy = plotBottom - (t * (plotBottom - plotTop)).toFloat()
                 drawLine(
                     color = axisColor,
                     start = Offset(plotLeft, yy),
                     end = Offset(plotRight, yy),
                     strokeWidth = 1.dp.toPx(),
                 )
+                drawContext.canvas.nativeCanvas.drawText(
+                    formatNumberEsGrouped(vMin + (vMax - vMin) * t, 0),
+                    leftAxisWidth - 4.dp.toPx(),
+                    yy + 5.dp.toPx(),
+                    axisPaint,
+                )
             }
+            drawContext.canvas.nativeCanvas.drawText(
+                unit.ifBlank { "" },
+                leftAxisWidth - 4.dp.toPx(),
+                24.dp.toPx(),
+                axisTitlePaint,
+            )
 
             fun drawPath(rows: List<Pair<Int, Double>>, strokeColor: Color, dash: FloatArray?, width: Float) {
                 if (rows.isEmpty()) return
@@ -120,6 +150,18 @@ fun TrendChart(
                     radius = 4.dp.toPx(),
                     center = Offset(x(peakIndex), peakY),
                 )
+            }
+
+            if (points.isNotEmpty()) {
+                val labels = listOf(0, points.size / 2, points.size - 1).distinct().filter { it in points.indices }
+                labels.forEach { i ->
+                    drawContext.canvas.nativeCanvas.drawText(
+                        formatDateKeyShort(points[i].date),
+                        x(i),
+                        plotHeight - 2.dp.toPx(),
+                        axisPaint.apply { textAlign = android.graphics.Paint.Align.CENTER },
+                    )
+                }
             }
         }
     }
