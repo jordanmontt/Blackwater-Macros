@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -18,10 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.blackwatermacros.app.data.WireEntryMode
 
 /**
@@ -78,14 +74,14 @@ internal fun IngredientEditor(
                 onValueChange = { onUpdate(Patch(name = it)) },
                 placeholder = "4 huevos",
                 enabled = enabled,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(3f),
             )
             CompactField(
                 value = item.quantity,
                 onValueChange = { onUpdate(Patch(quantity = it)) },
-                placeholder = "(ej. 30 g)",
+                placeholder = "30g",
                 enabled = enabled,
-                modifier = Modifier.width(quantityFieldWidth()),
+                modifier = Modifier.weight(1f),
             )
             IconButton(onClick = onRemove, enabled = enabled && canRemove) {
                 Icon(
@@ -164,23 +160,6 @@ private fun MacroField(
         decimal = true,
         modifier = modifier,
     )
-}
-
-/** Width that fits the "(ej. 30 g)" placeholder fully on one row at the field font size. */
-@Composable
-private fun quantityFieldWidth(): androidx.compose.ui.unit.Dp {
-    val density = LocalDensity.current
-    val textMeasurer = rememberTextMeasurer()
-    val placeholder = androidx.compose.ui.text.AnnotatedString("(ej. 30 g)")
-    val style = MaterialTheme.typography.bodyMedium.copy(
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontSize = 16.sp,
-    )
-    val measured = textMeasurer.measure(placeholder, style = style)
-    return with(density) {
-        val paddingPx = 10.dp.toPx() * 2f
-        ((measured.size.width.toFloat() + paddingPx) / density.density).dp
-    }
 }
 
 // --- Parsing (web `parseNumber` semantics) ---

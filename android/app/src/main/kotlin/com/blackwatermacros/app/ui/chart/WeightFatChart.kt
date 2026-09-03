@@ -35,11 +35,55 @@ import com.blackwatermacros.app.ui.ChartClay
 import com.blackwatermacros.app.ui.ChartForest
 import com.blackwatermacros.app.ui.ChartSage
 import com.blackwatermacros.app.ui.WeightFatRow
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.log10
+import kotlin.math.pow
 import kotlin.math.roundToInt
 
 private val Chart1 = ChartForest
 private val Chart2 = ChartClay
 private val Chart3 = ChartSage
+
+/** Nice round step covering [min, max] with roughly [targetTicks] divisions. */
+internal fun niceTickStep(min: Double, max: Double, targetTicks: Int): Double {
+    if (max <= min) return 1.0
+    val span = max - min
+    val rawStep = span / targetTicks
+    val mag = 10.0.pow(floor(log10(rawStep)))
+    val norm = rawStep / mag
+    val nice = when {
+        norm < 1.5 -> 1.0
+        norm < 3.0 -> 2.0
+        norm < 7.0 -> 5.0
+        else -> 10.0
+    }
+    return nice * mag
+}
+
+/** Round tick values from [min] to [max] stepping by [step], starting at a multiple of [step]. */
+internal fun niceTicks(min: Double, max: Double, step: Double): List<Double> {
+    val start = ceil(min / step) * step
+    val result = mutableListOf<Double>()
+    var v = start
+    var guard = 0
+    while (v <= max + step / 2 && guard < 64) {
+        result.add(v)
+        v += step
+        guard++
+    }
+    return result
+}
+
+/** Whole-number-ish label: trims a trailing ".0" (and ".5" stays as 0.5). */
+private fun axisLabel(v: Double): String {
+    val rounded = (v * 10).roundToInt() / 10.0
+    return if (rounded == Math.floor(rounded) && !rounded.isInfinite() && !rounded.isNaN()) {
+        rounded.toLong().toString()
+    } else {
+        rounded.toString()
+    }
+}
 
 /**
  * Dual-Y line chart matching the web `WeightFatChart`:
@@ -152,15 +196,17 @@ fun WeightFatChart(
                 }
             }
 
-            val gridLines = 4
+            val weightStep = niceTickStep(weightMin, weightMax, 4)
+            val weightTicks = niceTicks(weightMin, weightMax, weightStep)
+            val pctStep = niceTickStep(pctMin, pctMax, 4)
+            val pctTicks = niceTicks(pctMin, pctMax, pctStep)
             val rightTickPaint = android.graphics.Paint().apply {
                 color = fillArgb
                 textSize = 18f
                 textAlign = android.graphics.Paint.Align.LEFT
             }
-            for (r in 0..gridLines) {
-                val t = r.toDouble() / gridLines
-                val y = plotBottom - (t * (plotBottom - plotTop)).toFloat()
+            weightTicks.forEach { w ->
+                val y = yWeight(w)
                 drawLine(
                     color = axisColor,
                     start = Offset(plotLeft, y),
@@ -168,14 +214,17 @@ fun WeightFatChart(
                     strokeWidth = 1.dp.toPx(),
                 )
                 drawContext.canvas.nativeCanvas.drawText(
-                    formatNumberEsGrouped(weightMin + (weightMax - weightMin) * t, 1),
+                    axisLabel(w),
                     leftAxisWidth - 4.dp.toPx(),
                     y + 5.dp.toPx(),
                     axisPaint,
                 )
-                if (pctRows.isNotEmpty()) {
+            }
+            if (pctRows.isNotEmpty()) {
+                pctTicks.forEach { p ->
+                    val y = yPct(p)
                     drawContext.canvas.nativeCanvas.drawText(
-                        formatNumberEsGrouped(pctMin + (pctMax - pctMin) * t, 1),
+                        axisLabel(p),
                         plotRight + 5.dp.toPx(),
                         y + 5.dp.toPx(),
                         rightTickPaint,
