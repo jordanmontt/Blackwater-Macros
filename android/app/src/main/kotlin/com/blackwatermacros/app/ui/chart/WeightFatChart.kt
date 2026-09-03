@@ -153,6 +153,11 @@ fun WeightFatChart(
             }
 
             val gridLines = 4
+            val rightTickPaint = android.graphics.Paint().apply {
+                color = fillArgb
+                textSize = 18f
+                textAlign = android.graphics.Paint.Align.LEFT
+            }
             for (r in 0..gridLines) {
                 val t = r.toDouble() / gridLines
                 val y = plotBottom - (t * (plotBottom - plotTop)).toFloat()
@@ -168,6 +173,14 @@ fun WeightFatChart(
                     y + 5.dp.toPx(),
                     axisPaint,
                 )
+                if (pctRows.isNotEmpty()) {
+                    drawContext.canvas.nativeCanvas.drawText(
+                        formatNumberEsGrouped(pctMin + (pctMax - pctMin) * t, 1),
+                        plotRight + 5.dp.toPx(),
+                        y + 5.dp.toPx(),
+                        rightTickPaint,
+                    )
+                }
             }
             drawContext.canvas.nativeCanvas.drawText(
                 "Peso (kg)",
@@ -175,6 +188,14 @@ fun WeightFatChart(
                 24.dp.toPx(),
                 axisTitlePaint,
             )
+            if (pctRows.isNotEmpty()) {
+                drawContext.canvas.nativeCanvas.drawText(
+                    "Grasa (%)",
+                    plotRight + 5.dp.toPx(),
+                    24.dp.toPx(),
+                    rightTickPaint,
+                )
+            }
 
             drawSeries(weightRows, Chart1, null, ::yWeight)
             drawSeries(trendRows, Chart3, floatArrayOf(6f, 4f), ::yWeight)
