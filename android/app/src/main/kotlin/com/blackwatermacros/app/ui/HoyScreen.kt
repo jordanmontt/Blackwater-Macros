@@ -79,7 +79,7 @@ private const val HEADER_COUNT = 3
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HoyScreen(
-    onLogout: () -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: HoyViewModel = viewModel(),
 ) {
     val day by viewModel.day.collectAsStateWithLifecycle()
@@ -112,19 +112,18 @@ fun HoyScreen(
     }
 
     Scaffold(
+        modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Comidas", fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    IconButton(onClick = onLogout) {
-                        Text(
-                            "Salir",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
+                title = {
+                    Text(
+                        "Comidas",
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,

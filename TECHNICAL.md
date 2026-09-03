@@ -606,24 +606,40 @@ Full roadmap and maintenance contract: `docs/ANDROID-PLAN.md`; API contract:
 
 ```
 app/src/main/kotlin/com/blackwatermacros/app/
-  MainActivity.kt            # ComponentActivity + Material3 theme + NavHost(login→home→hoy)
+  MainActivity.kt            # ComponentActivity + Material3 theme; single NavHost(login →
+                             #   4-tab shell, popUpTo saveState/restoreState). Theme hoisted via
+                             #   darkTheme state (Claro/Oscuro switch) passed to the theme.
+  BottomNavBar.kt            # AppTab enum + bottom bar — Comidas/Peso/Estadísticas/Ajustes,
+                             #   mirrors web AppNav (order, filled/selected icons, labels)
   data/                      # Networking / wire layer
     WireModels.kt            # kotlinx-serialization DTOs mirroring docs/api.md + @SerialName enums
     JsonConfig.kt            # ApiJson: '.' decimals, camelCase, ignoreUnknownKeys
-    ApiService.kt            # Retrofit interface (absolute /api/... paths)
+    ApiService.kt            # Retrofit interface (absolute /api/... paths), incl. weights,
+                             #   settings (profile/templates), stats and admin endpoints
     ApiClient.kt             # Retrofit + OkHttp factory; baseUrl from BuildConfig
     BearerAuthInterceptor.kt # adds Authorization: Bearer <token>
     ResponseErrorMapper.kt   # decodes { "error": "<Spanish>" } for user-facing messages
     SessionManager.kt        # in-memory Bearer token shared across screens
   ui/
     LoginViewModel/LoginScreen.kt        # login → token (SessionManager) → GET /api/auth/session
-    HomeViewModel/HomeScreen.kt          # shows session; "Ver comidas de hoy" / "Cerrar sesión"
-    HoyViewModel/HoyScreen/MealCard      # Comidas: day navigator, totals, recommendations,
+    HoyViewModel/HoyScreen/MealCard      # Comidas (tab): day navigator, totals, recommendations,
                                          #   template row, reorderable list (GET /api/meals,
                                          #   PATCH /api/meals/reorder), delete (DELETE /api/meals)
     AddMealViewModel/AddMealScreen       # Nueva/Editar comida sheet: both modes (POST/PATCH /api/meals)
     NutritionRecommendationsCard.kt      # Calorie + protein recs (weights + profile via :core)
     RecommendationsViewModel.kt          # loads latest weight + calorieProfile → :core recs
+    PesoViewModel/PesoScreen             # Peso (tab): weight summary + 7d deltas, day-grouped history,
+                                         #   WeightFormDialog (POST/PATCH/DELETE /api/weights)
+    WeightFormDialog.kt                  # Registrar/Editar peso: kg, fecha+hora (Ahora), % grasa, nota
+    StatsViewModel/StatsScreen           # Estadísticas (tab): range tabs (7/30/90/todo),
+                                         #   GET /api/stats → weight/macro summaries + trend charts
+    SettingsViewModel/SettingsScreen     # Ajustes (tab): theme + goal + autosave profile (debounced
+                                         #   500ms w/ validation), recs, Metodología link, templates
+                                         #   (PATCH/DELETE), Admin link, Cerrar sesión (logout)
+    AdminViewModel/AdminScreen           # Admin (pushed, isAdmin-gated): user CRUD
+    MethodologyScreen                    # Metodología (pushed): static, exact web strings
+    chart/WeightFatChart.kt              # Canvas dual-Y chart (peso + grasa + tendencia, legend)
+    chart/TrendChart.kt                  # Canvas value line + 7d trend + peak dot
 ```
 
 ### Configuration
@@ -645,10 +661,19 @@ app/src/main/kotlin/com/blackwatermacros/app/
 
 ### Current status & next steps
 
-Built: scaffold, `:core` port (green, 61 tests), networking + Login, **Home**, and the
-full **Comidas/Hoy** screen (create/edit/delete meals with both entry modes, true
+Built: scaffold, `:core` port (green, 61 tests), networking + Login, and the full
+**Comidas/Hoy** screen (create/edit/delete meals with both entry modes, true
 drag-and-drop reorder persisted via `/api/meals/reorder`, apply templates, and the
-calorie/protein recommendations card). **Not yet built** (see `docs/ANDROID-PLAN.md`):
-token/offline persistence (Room), the local-first/offline-only mode, sync engine
-(LWW via `updatedAt`), and the remaining screens (peso, estadísticas, ajustes,
-admin).
+calorie/protein recommendations card). A **4-tab persistent shell**
+(Comidas / **Peso** / **Estadísticas** / **Ajustes**) mirrors the web `AppNav`,
+plus **Peso** (weight CRUD + dual-Y Canvas chart), **Estadísticas** (range selector,
+weight/macro summaries, trend charts), **Ajustes** (theme/goal, autosave profile with
+debounced validation, templates, logout), **Metodología** and **Admin** (isAdmin-gated)
+as pushed pages. Charts are hand-built Compose Canvas (no chart library); web CSV export
+is **not** ported (buttons rendered disabled).
+
+**Not yet built** (see `docs/ANDROID-PLAN.md`): token/offline persistence (Room), the
+local-first/offline-only mode, sync engine (LWW via `updatedAt`), and CSV export.
+Settings templates create/edit-on-tap shows the new-template sheet only (list
+create/edit is a partial port). Post-login screens verified by build/lint/tests;
+live emulator login check still pending user credentials.

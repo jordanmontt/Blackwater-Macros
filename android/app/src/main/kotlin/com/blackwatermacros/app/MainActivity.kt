@@ -4,17 +4,36 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.blackwatermacros.app.ui.HomeScreen
+import androidx.navigation.navArgument
+import com.blackwatermacros.app.ui.AdminScreen
+import com.blackwatermacros.app.ui.AppTab
+import com.blackwatermacros.app.ui.BottomNavBar
 import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
+import com.blackwatermacros.app.ui.MethodologyScreen
+import com.blackwatermacros.app.ui.PesoScreen
+import com.blackwatermacros.app.ui.SettingsScreen
+import com.blackwatermacros.app.ui.StatsScreen
 
 /** Web palette (src/app/globals.css) mapped to Material3 roles. */
 private val LightColors = lightColorScheme(
@@ -64,34 +83,112 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BlackwaterMacrosTheme {
-                AppNav()
-            }
+            AppRoot()
+        }
+    }
+}
+
+private val AllTabRoutes = setOf(
+    AppTab.HOY.route,
+    AppTab.PESO.route,
+    AppTab.ESTADISTICAS.route,
+    AppTab.AJUSTES.route,
+)
+
+@Composable
+private fun AppRoot() {
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+    val systemDark = isSystemInDarkTheme()
+    var darkTheme by remember { mutableStateOf(systemDark) }
+
+    BlackwaterMacrosTheme(darkTheme = darkTheme) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            bottomBar = {
+                if (currentRoute in AllTabRoutes) {
+                    BottomNavBar(
+                        currentRoute = currentRoute ?: "",
+                        onTabSelected = { tab ->
+                            navController.navigate(tab.route) {
+                                popUpTo(
+                                    navController.graph.findStartDestination().id,
+                                ) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                    )
+                }
+            },
+        ) { innerPadding ->
+            AppNavHost(
+                navController = navController,
+                innerPadding = innerPadding,
+                darkTheme = darkTheme,
+                onThemeChanged = { darkTheme = it },
+            )
         }
     }
 }
 
 @Composable
-private fun AppNav() {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "login") {
+private fun AppNavHost(
+    navController: NavHostController,
+    innerPadding: PaddingValues,
+    darkTheme: Boolean,
+    onThemeChanged: (Boolean) -> Unit,
+) {
+    NavHost(
+        navController = navController,
+        startDestination = "login",
+        modifier = Modifier,
+    ) {
         composable("login") {
-            LoginScreen(onLoggedIn = { navController.navigate("home") { popUpTo("login") { inclusive = true } } })
-        }
-        composable("home") {
-            HomeScreen(
-                onOpenHoy = { navController.navigate("hoy") },
-                onLoggedOut = {
-                    navController.navigate("login") { popUpTo("home") { inclusive = true } }
+            LoginScreen(
+                onLoggedIn = {
+                    navController.navigate(AppTab.HOY.route) {
+                        popUpTo("login") { inclusive = true }
+                    }
                 },
             )
         }
-        composable("hoy") {
-            HoyScreen(
+        composable(AppTab.HOY.route) {
+            HoyScreen(modifier = Modifier.padding(innerPadding))
+        }
+        composable(AppTab.PESO.route) {
+            PesoScreen(modifier = Modifier.padding(innerPadding))
+        }
+        composable(AppTab.ESTADISTICAS.route) {
+            StatsScreen(
+                onOpenMetodologia = { navController.navigate("metodologia") },
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
+        composable(AppTab.AJUSTES.route) {
+            SettingsScreen(
+                modifier = Modifier.padding(innerPadding),
+                darkTheme = darkTheme,
+                onThemeChanged = onThemeChanged,
                 onLogout = {
-                    navController.navigate("login") { popUpTo(0) { inclusive = true } }
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
                 },
+                onOpenMetodologia = { navController.navigate("metodologia") },
+                onOpenAdmin = { navController.navigate("admin") },
             )
+        }
+        composable("metodologia") {
+            MethodologyScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            "admin",
+        ) {
+            AdminScreen(onBack = { navController.popBackStack() })
         }
     }
 }

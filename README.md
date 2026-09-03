@@ -88,17 +88,31 @@ La app nativa Android está en `android/`, estructurada en dos módulos:
 `core` (JVM puro, sin Android — lógica de cálculo portada y testada) y `app`
 (UI + red). Es el mismo backend desplegado; usa `Authorization: Bearer <token>`.
 
-**Estado actual:** primera versión funcional — **Iniciar sesión** → **Inicio** →
-**Comidas/Hoy**. Login (`POST /api/auth/login` → `GET /api/auth/session`), una
-pantalla de **Inicio** con la sesión, y la pantalla **Comidas** (`GET /api/meals`
-por día) con navegador de fechas, tarjeta de totales diarios, tarjeta de
-**recomendaciones**, fila de **Aplicar plantilla**, lista de comidas reordenable
-arrastrando (persiste vía `PATCH /api/meals/reorder`), y un formulario **Nueva
-comida / Editar comida** (`POST`/`PATCH /api/meals`) compartido en una hoja
-inferior con los dos modos de entrada («Por ingrediente» y «Solo total»), más
-eliminar comidas con confirmación (`DELETE /api/meals`). Tema propio que
-reproduce la paleta de la web. El token se guarda solo en memoria (se vuelve a
-pedir al reiniciar). Pendiente: peso, estadísticas y el modo offline/local (ver
+**Estado actual:** app funcional con la mayoría de pantallas de la web. Tras el
+**Iniciar sesión** (`POST /api/auth/login` → `GET /api/auth/session`) hay un shell
+de **4 pestañas persistentes** que refleja la navegación web: **Comidas**, **Peso**,
+**Estadísticas** y **Ajustes** (mismo orden, iconos seleccionados y títulos).
+
+- **Comidas/Hoy** (`GET /api/meals` por día): navegador de fechas, totales diarios,
+  tarjeta de recomendaciones (paramétrica por objetivo), fila de *Aplicar plantilla*, lista
+  reordenable arrastrando (`PATCH /api/meals/reorder`) y formulario **Nueva / Editar
+  comida** en hoja inferior con los dos modos (**Por ingrediente** / **Solo total**),
+  más borrar con confirmación (`DELETE /api/meals`).
+- **Peso** (`/api/weights`): registro de pesos (kg, % grasa, fecha, nota), resumen del peso
+  actual con variación a 7 días, gráfico de evolución + grasa (Canvas propio) y lista
+  agrupada por día con editar/borrar.
+- **Estadísticas** (`/api/stats`): selector de rango (7/30/90 días o todo), resumen de peso,
+  gráfico peso+grasa, medias semanales, resumen de macros y gráficas de tendencia de
+  kcal/proteína/peso/grasa con media móvil de 7 días y día pico.
+- **Ajustes**: apariencia (claro/oscuro), objetivo deportivo, perfil con **autoguardado**
+  (los campos se validan y persisten con debounce de 500 ms), recomendaciones, plantillas y
+  **Cerrar sesión**. Enlace a **Metodología**; si el usuario es admin, enlace a **Admin**.
+- **Metodología** y **Admin** (solo admin: crear/editar/borrar usuarios) como páginas
+  empujadas encima del shell.
+
+Gráficas dibujadas a mano con Compose Canvas (sin librería). Export CSV de la web queda
+**pendiente en Android** (botones inhabilitados). El token se guarda solo en memoria (se
+vuelve a pedir al reiniciar); el modo offline/local sigue pendiente (ver
 `docs/ANDROID-PLAN.md`).
 
 ### Compilar

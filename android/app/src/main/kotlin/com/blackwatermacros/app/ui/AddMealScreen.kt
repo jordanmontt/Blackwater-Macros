@@ -335,7 +335,7 @@ private fun FormContent(
 }
 
 @Composable
-private fun FieldLabel(text: String) {
+fun FieldLabel(text: String) {
     Text(
         text,
         style = MaterialTheme.typography.labelLarge,
@@ -458,7 +458,7 @@ private fun MacroField(
  * vertical padding so the box is web-sized rather than Material's tall default.
  */
 @Composable
-private fun CompactField(
+fun CompactField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -544,7 +544,7 @@ private fun quantityFieldWidth(): androidx.compose.ui.unit.Dp {
  * `px-2.5`, `py-2`, `text-base`).
  */
 @Composable
-private fun CompactTextArea(
+fun CompactTextArea(
     value: String,
     onValueChange: (String) -> Unit,
     enabled: Boolean,
