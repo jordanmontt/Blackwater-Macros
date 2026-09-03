@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -64,7 +66,12 @@ fun SettingsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val templates by viewModel.templates.collectAsStateWithLifecycle()
+    val saving by viewModel.saving.collectAsStateWithLifecycle()
     var deletingTemplate by remember { mutableStateOf<TemplateDTO?>(null) }
+    var editingTemplate by remember { mutableStateOf<TemplateDTO?>(null) }
+    var templateDialogOpen by remember { mutableStateOf(false) }
+    var templateError by remember { mutableStateOf<String?>(null) }
+    var templateSaving by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -115,6 +122,16 @@ fun SettingsScreen(
                 ExportCard()
                 TemplatesCard(
                     templates = templates,
+                    onCreate = {
+                        editingTemplate = null
+                        templateError = null
+                        templateDialogOpen = true
+                    },
+                    onEdit = { template ->
+                        editingTemplate = template
+                        templateError = null
+                        templateDialogOpen = true
+                    },
                     onDelete = { deletingTemplate = it },
                 )
                 if (loaded.isAdmin) {
@@ -143,6 +160,39 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { deletingTemplate = null }) { Text("Cancelar") }
+            },
+        )
+    }
+
+    if (templateDialogOpen) {
+        TemplateEditorDialog(
+            template = editingTemplate,
+            saving = templateSaving,
+            error = templateError,
+            onDismiss = { templateDialogOpen = false },
+            onSave = { request ->
+                templateSaving = true
+                templateError = null
+                val target = editingTemplate
+                if (target == null) {
+                    viewModel.createTemplate(request) { err ->
+                        templateSaving = false
+                        if (err == null) {
+                            templateDialogOpen = false
+                        } else {
+                            templateError = err
+                        }
+                    }
+                } else {
+                    viewModel.updateTemplate(target.id, request) { err ->
+                        templateSaving = false
+                        if (err == null) {
+                            templateDialogOpen = false
+                        } else {
+                            templateError = err
+                        }
+                    }
+                }
             },
         )
     }
@@ -439,47 +489,137 @@ private fun ExportButton(label: String, modifier: Modifier = Modifier) {
 @Composable
 private fun TemplatesCard(
     templates: List<TemplateDTO>,
+    onCreate: () -> Unit,
+    onEdit: (TemplateDTO) -> Unit,
     onDelete: (TemplateDTO) -> Unit,
 ) {
-    SettingsCard("Plantillas") {
-        if (templates.isEmpty()) {
-            Text(
-                "Todavía no tienes plantillas.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            templates.forEachIndexed { i, template ->
-                if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 4.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(template.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                        Text(
-                            "${formatNumberEs(template.resolvedCalories)} kcal · ${formatNumberEs(template.resolvedProtein)} g proteína",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "Plantillas",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f),
+                )
+                androidx.compose.material3.OutlinedButton(onClick = onCreate) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = null,
+                        modifier = Modifier,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text("Nueva plantilla", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+
+            if (templates.isEmpty()) {
+                Text(
+                    "Aún no tienes plantillas guardadas.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                templates.forEachIndexed { i, template ->
+                    if (i > 0) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 4.dp))
                     }
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.height(20.dp))
-                    }
-                    IconButton(onClick = { onDelete(template) }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.height(20.dp))
+                    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    template.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    if (template.entryMode == com.blackwatermacros.app.data.WireEntryMode.TOTAL_ONLY) {
+                                        "Total manual"
+                                    } else {
+                                        "${template.ingredients.size} ingredientes"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            IconButton(onClick = { onEdit(template) }) {
+                                Icon(
+                                    Icons.Filled.Edit,
+                                    contentDescription = "Editar",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.height(20.dp),
+                                )
+                            }
+                            IconButton(onClick = { onDelete(template) }) {
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    contentDescription = "Eliminar",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.height(20.dp),
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            NutritionBadge(
+                                text = "${formatNumberEs(template.resolvedCalories)} kcal",
+                                variant = "secondary",
+                            )
+                            NutritionBadge(
+                                text = "${formatNumberEs(template.resolvedProtein)} g · Proteína",
+                            )
+                            NutritionBadge(
+                                text = "${formatNumberEs(template.resolvedCarbs)} g · Carbohidratos",
+                            )
+                            NutritionBadge(
+                                text = "${formatNumberEs(template.resolvedFat)} g · Grasa",
+                            )
+                        }
                     }
                 }
             }
-            Spacer(Modifier.height(8.dp))
-            androidx.compose.material3.OutlinedButton(
-                onClick = {},
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Nueva plantilla")
-            }
         }
     }
+}
+
+@Composable
+private fun NutritionBadge(text: String, variant: String = "outline") {
+    val isSecondary = variant == "secondary"
+    val background =
+        if (isSecondary) MaterialTheme.colorScheme.secondaryContainer
+        else Color.Transparent
+    val borderColor =
+        if (isSecondary) Color.Transparent
+        else MaterialTheme.colorScheme.outlineVariant
+    val contentColor =
+        if (isSecondary) MaterialTheme.colorScheme.onSecondaryContainer
+        else MaterialTheme.colorScheme.onSurfaceVariant
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = contentColor,
+        maxLines = 1,
+        modifier = Modifier
+            .background(background, RoundedCornerShape(6.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(6.dp))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    )
 }
 
 @Composable

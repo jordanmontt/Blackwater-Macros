@@ -15,6 +15,7 @@ import com.blackwatermacros.app.data.ApiService
 import com.blackwatermacros.app.data.ResponseErrorMapper
 import com.blackwatermacros.app.data.SessionManager
 import com.blackwatermacros.app.data.TemplateDTO
+import com.blackwatermacros.app.data.TemplateRequest
 import com.blackwatermacros.app.data.WireCalorieProfile
 import com.blackwatermacros.app.data.WireGender
 import com.blackwatermacros.app.data.WireGoal
@@ -131,6 +132,31 @@ class SettingsViewModel : ViewModel() {
                 onDone(true)
             } catch (_: Throwable) {
                 onDone(false)
+            }
+        }
+    }
+
+    fun createTemplate(request: TemplateRequest, onDone: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val created = api.createTemplate(request).template
+                _templates.value = (_templates.value + created).sortedBy { it.name.lowercase() }
+                onDone(null)
+            } catch (t: Throwable) {
+                onDone(ResponseErrorMapper.messageFrom(t))
+            }
+        }
+    }
+
+    fun updateTemplate(id: String, request: TemplateRequest, onDone: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val updated = api.updateTemplate(id, request).template
+                _templates.value = _templates.value.map { if (it.id == id) updated else it }
+                    .sortedBy { it.name.lowercase() }
+                onDone(null)
+            } catch (t: Throwable) {
+                onDone(ResponseErrorMapper.messageFrom(t))
             }
         }
     }

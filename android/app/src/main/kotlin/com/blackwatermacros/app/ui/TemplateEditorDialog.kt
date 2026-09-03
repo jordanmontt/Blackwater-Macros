@@ -1,31 +1,25 @@
 package com.blackwatermacros.app.ui
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
@@ -39,61 +33,64 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.blackwatermacros.app.data.MealDTO
+import com.blackwatermacros.app.data.TemplateDTO
+import com.blackwatermacros.app.data.TemplateRequest
 import com.blackwatermacros.app.data.WireEntryMode
 
 /**
- * Shared create/edit meal form (the web `MealForm` + `NutritionEntryFields`),
- * rendered as the content of a modal bottom sheet hosted by HoyScreen.
- * Supports the two web entry modes: per-ingredient nutrition or a single
- * manual total. Starts with a single empty ingredient for new meals.
+ * Create/edit dialog for meal templates. Mirrors the web `template-form.tsx`
+ * + `nutrition-fields.tsx`: same fields as the meal form (title, entry mode,
+ * per-ingredient or manual total, notes) sending `name === title`, per the
+ * web `TemplateForm.handleSubmit`.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddMealScreen(
-    logDate: String,
-    meal: MealDTO? = null,
-    onCancel: () -> Unit,
-    onSaved: () -> Unit,
-    viewModel: AddMealViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-        key = meal?.id ?: "new",
-    ) {
-        AddMealViewModel(logDate, meal?.id)
-    },
+fun TemplateEditorDialog(
+    template: TemplateDTO?,
+    saving: Boolean,
+    error: String?,
+    onDismiss: () -> Unit,
+    onSave: (TemplateRequest) -> Unit,
 ) {
-    val saving by viewModel.saving.collectAsStateWithLifecycle()
-    val isEdit = meal != null
-    val draft = rememberDraft(meal)
+    val draft = rememberTemplateDraft(template)
 
-    androidx.compose.runtime.key(if (isEdit) "edit-${meal?.id}" else "new-$logDate") {
-        FormContent(
-            initialMode = draft.entryMode,
-            initialTitle = draft.title,
-            initialNotes = draft.notes,
-            initialIngredients = draft.ingredients,
-            initialTotalCalories = draft.totalCalories,
-            initialTotalProtein = draft.totalProtein,
-            initialTotalCarbs = draft.totalCarbs,
-            initialTotalFat = draft.totalFat,
-            isEdit = isEdit,
-            saving = saving,
-            onCancel = onCancel,
-            onSaved = onSaved,
-            viewModel = viewModel,
-        )
-    }
+    AlertDialog(
+        onDismissRequest = { if (!saving) onDismiss() },
+        title = {
+            Text(
+                text = if (template != null) "Editar plantilla" else "Nueva plantilla",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+        text = {
+            androidx.compose.runtime.key(template?.id ?: "new") {
+                TemplateFormFields(
+                    initialMode = draft.entryMode,
+                    initialTitle = draft.title,
+                    initialNotes = draft.notes,
+                    initialIngredients = draft.ingredients,
+                    initialTotalCalories = draft.totalCalories,
+                    initialTotalProtein = draft.totalProtein,
+                    initialTotalCarbs = draft.totalCarbs,
+                    initialTotalFat = draft.totalFat,
+                    saving = saving,
+                    error = error,
+                    onCancel = onDismiss,
+                    onSave = onSave,
+                )
+            }
+        },
+        confirmButton = {},
+        dismissButton = {},
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FormContent(
+private fun TemplateFormFields(
     initialMode: WireEntryMode,
     initialTitle: String,
     initialNotes: String,
@@ -102,11 +99,10 @@ private fun FormContent(
     initialTotalProtein: String,
     initialTotalCarbs: String,
     initialTotalFat: String,
-    isEdit: Boolean,
     saving: Boolean,
+    error: String?,
     onCancel: () -> Unit,
-    onSaved: () -> Unit,
-    viewModel: AddMealViewModel,
+    onSave: (TemplateRequest) -> Unit,
 ) {
     var mode by rememberSaveable { mutableStateOf(initialMode) }
     var title by rememberSaveable { mutableStateOf(initialTitle) }
@@ -116,21 +112,16 @@ private fun FormContent(
     var totalProtein by rememberSaveable { mutableStateOf(initialTotalProtein) }
     var totalCarbs by rememberSaveable { mutableStateOf(initialTotalCarbs) }
     var totalFat by rememberSaveable { mutableStateOf(initialTotalFat) }
-    var error by rememberSaveable { mutableStateOf<String?>(null) }
+    var localError by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val shownError = localError ?: error
 
     Column(
         Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
+            .padding(bottom = 8.dp),
     ) {
-        Text(
-            text = if (isEdit) "Editar comida" else "Nueva comida",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Spacer(Modifier.height(16.dp))
-
         FieldLabel("Título")
         Spacer(Modifier.height(6.dp))
         CompactField(
@@ -257,7 +248,7 @@ private fun FormContent(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        error?.let {
+        shownError?.let {
             Spacer(Modifier.height(12.dp))
             Text(
                 it,
@@ -285,25 +276,23 @@ private fun FormContent(
                         totalFat = totalFat,
                     )
                     if (submitErr != null) {
-                        error = submitErr
+                        localError = submitErr
                         return@Button
                     }
-                    error = null
-                    viewModel.submit(
-                        title = title,
-                        notes = notes,
-                        entryMode = mode,
-                        ingredients = buildIngredients(mode, ingredients).first,
-                        totalCalories = parseTotal(totalCalories),
-                        totalProtein = parseTotal(totalProtein),
-                        totalCarbs = parseTotal(totalCarbs),
-                        totalFat = parseTotal(totalFat),
-                    ) { result ->
-                        when (result) {
-                            AddMealResult.Saved -> onSaved()
-                            is AddMealResult.Failed -> error = result.message
-                        }
-                    }
+                    localError = null
+                    onSave(
+                        TemplateRequest(
+                            name = title.trim(),
+                            title = title.trim(),
+                            notes = notes.trim().ifBlank { null },
+                            entryMode = mode,
+                            ingredients = buildIngredients(mode, ingredients).first,
+                            totalCalories = if (mode == WireEntryMode.TOTAL_ONLY) parseTotal(totalCalories) else null,
+                            totalProtein = if (mode == WireEntryMode.TOTAL_ONLY) parseTotal(totalProtein) else null,
+                            totalCarbs = if (mode == WireEntryMode.TOTAL_ONLY) parseTotal(totalCarbs) else null,
+                            totalFat = if (mode == WireEntryMode.TOTAL_ONLY) parseTotal(totalFat) else null,
+                        ),
+                    )
                 },
                 enabled = !saving,
             ) {
@@ -321,138 +310,7 @@ private fun FormContent(
     }
 }
 
-@Composable
-fun FieldLabel(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-}
-
-/**
- * Compact single-line text field mirroring the web `Input` component
- * (`h-8`, `px-2.5`, `rounded-lg`, `text-base`): no floating label, reduced
- * vertical padding so the box is web-sized rather than Material's tall default.
- */
-@Composable
-fun CompactField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    enabled: Boolean,
-    modifier: Modifier = Modifier,
-    decimal: Boolean = false,
-    readOnly: Boolean = false,
-    trailingIcon: (@Composable () -> Unit)? = null,
-) {
-    val border = androidx.compose.foundation.BorderStroke(
-        1.dp,
-        if (enabled) MaterialTheme.colorScheme.outline
-        else MaterialTheme.colorScheme.outline.copy(alpha = 0.38f),
-    )
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        enabled = enabled && !readOnly,
-        readOnly = readOnly,
-        singleLine = true,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp,
-        ),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Text,
-        ),
-        decorationBox = { innerTextField ->
-            val endPadding = if (trailingIcon != null && readOnly) 4.dp else 10.dp
-            Row(
-                Modifier
-                    .defaultMinSize(minHeight = 32.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(8.dp),
-                    )
-                    .border(border, RoundedCornerShape(8.dp))
-                    .padding(start = 10.dp, end = endPadding, top = 6.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterStart,
-                ) {
-                    if (value.isEmpty()) {
-                        Text(
-                            text = placeholder,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    innerTextField()
-                }
-                if (trailingIcon != null) {
-                    Spacer(Modifier.width(4.dp))
-                    trailingIcon()
-                }
-            }
-        },
-        modifier = modifier,
-    )
-}
-
-/**
- * Compact multi-line text area mirroring the web `Textarea` (`min-h-16`,
- * `px-2.5`, `py-2`, `text-base`).
- */
-@Composable
-fun CompactTextArea(
-    value: String,
-    onValueChange: (String) -> Unit,
-    enabled: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val border = androidx.compose.foundation.BorderStroke(
-        1.dp,
-        if (enabled) MaterialTheme.colorScheme.outline
-        else MaterialTheme.colorScheme.outline.copy(alpha = 0.38f),
-    )
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        enabled = enabled,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp,
-        ),
-        decorationBox = { innerTextField ->
-            Box(
-                Modifier
-                    .defaultMinSize(minHeight = 64.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(8.dp),
-                    )
-                    .border(border, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                contentAlignment = Alignment.TopStart,
-            ) {
-                if (value.isEmpty()) {
-                    Text(
-                        text = "Notas",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                innerTextField()
-            }
-        },
-        modifier = modifier,
-    )
-}
-
-// --- Draft construction (web `rawNutritionDraft` / `resultToNutritionDraft`) ---
-
-private data class EmptyDraft(
+private data class TemplateDraft(
     val entryMode: WireEntryMode,
     val title: String,
     val notes: String,
@@ -464,10 +322,10 @@ private data class EmptyDraft(
 )
 
 @Composable
-private fun rememberDraft(meal: MealDTO?): EmptyDraft {
-    return androidx.compose.runtime.remember(meal) {
-        if (meal == null) {
-            EmptyDraft(
+private fun rememberTemplateDraft(template: TemplateDTO?): TemplateDraft {
+    return androidx.compose.runtime.remember(template) {
+        if (template == null) {
+            TemplateDraft(
                 entryMode = WireEntryMode.PER_INGREDIENT,
                 title = "",
                 notes = "",
@@ -478,8 +336,8 @@ private fun rememberDraft(meal: MealDTO?): EmptyDraft {
                 totalFat = "",
             )
         } else {
-            val ingredients = if (meal.ingredients.isNotEmpty()) {
-                meal.ingredients.map { ingredient ->
+            val ingredients = if (template.ingredients.isNotEmpty()) {
+                template.ingredients.map { ingredient ->
                     IngredientDraft(
                         name = ingredient.name,
                         quantity = ingredient.quantity ?: "",
@@ -492,18 +350,17 @@ private fun rememberDraft(meal: MealDTO?): EmptyDraft {
             } else {
                 listOf(emptyIngredient)
             }
-            val isTotalOnly = meal.entryMode == WireEntryMode.TOTAL_ONLY
-            EmptyDraft(
-                entryMode = meal.entryMode,
-                title = meal.title,
-                notes = meal.notes ?: "",
+            val isTotalOnly = template.entryMode == WireEntryMode.TOTAL_ONLY
+            TemplateDraft(
+                entryMode = template.entryMode,
+                title = template.title,
+                notes = template.notes ?: "",
                 ingredients = ingredients,
-                totalCalories = if (isTotalOnly) meal.totalCalories?.let { toDecimalInput(it) } ?: "" else "",
-                totalProtein = if (isTotalOnly) meal.totalProtein?.let { toDecimalInput(it) } ?: "" else "",
-                totalCarbs = if (isTotalOnly) meal.totalCarbs?.let { toDecimalInput(it) } ?: "" else "",
-                totalFat = if (isTotalOnly) meal.totalFat?.let { toDecimalInput(it) } ?: "" else "",
+                totalCalories = if (isTotalOnly) template.totalCalories?.let { toDecimalInput(it) } ?: "" else "",
+                totalProtein = if (isTotalOnly) template.totalProtein?.let { toDecimalInput(it) } ?: "" else "",
+                totalCarbs = if (isTotalOnly) template.totalCarbs?.let { toDecimalInput(it) } ?: "" else "",
+                totalFat = if (isTotalOnly) template.totalFat?.let { toDecimalInput(it) } ?: "" else "",
             )
         }
     }
 }
-
