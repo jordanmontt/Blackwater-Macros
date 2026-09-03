@@ -28,6 +28,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,10 +51,10 @@ import com.blackwatermacros.app.data.WireDailyNutritionPoint
 import com.blackwatermacros.app.ui.chart.TrendChart
 import com.blackwatermacros.app.ui.chart.WeightFatChart
 
-private val Chart1 = Color(0xFF4A8C5A)
-private val Chart2 = Color(0xFFB5605A)
-private val Chart3 = Color(0xFFC79A3C)
-private val Chart4 = Color(0xFF5A7FB5)
+private val Chart1 = ChartEmber
+private val Chart2 = ChartClay
+private val Chart3 = ChartGold
+private val Chart4 = ChartBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,43 +124,24 @@ private fun RangeTabs(
     selected: StatsRangeOption,
     onSelect: (StatsRangeOption) -> Unit,
 ) {
-    Row(
+    SingleChoiceSegmentedButtonRow(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(8.dp),
-            )
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
-        StatsRangeOption.entries.forEach { option ->
-            val isSelected = option == selected
-            Box(
-                Modifier
-                    .weight(1f)
-                    .background(
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            Color.Transparent
-                        },
-                        shape = RoundedCornerShape(6.dp),
-                    )
-                    .clickable { onSelect(option) }
-                    .padding(vertical = 8.dp),
-                contentAlignment = Alignment.Center,
+        StatsRangeOption.entries.forEachIndexed { index, option ->
+            SegmentedButton(
+                selected = option == selected,
+                onClick = { onSelect(option) },
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = StatsRangeOption.entries.size,
+                ),
             ) {
                 Text(
                     option.label,
                     style = MaterialTheme.typography.labelMedium,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    maxLines = 1,
                 )
             }
         }
@@ -215,8 +199,8 @@ private fun WeightSummaryCard(summary: StatsSummary) {
     SectionTitle("Resumen de peso")
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         val w = summary.weight
         Column(Modifier.padding(16.dp)) {
@@ -319,8 +303,8 @@ private fun WeeklyAveragesCard(summary: StatsSummary) {
     SectionTitle("Media semanal del peso")
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             summary.weeklyWeightAvg.forEachIndexed { i, week ->
@@ -368,8 +352,8 @@ private fun NutritionSection(summary: StatsSummary) {
     SectionTitle("Resumen de macros")
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth()) {
@@ -444,8 +428,8 @@ private fun ChartSection(
     SectionTitle(title)
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             val data = points.mapIndexedNotNull { i, p ->

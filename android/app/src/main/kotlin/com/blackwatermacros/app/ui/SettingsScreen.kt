@@ -30,8 +30,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -39,6 +37,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -196,12 +197,10 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingsCard(title: String?, content: @Composable () -> Unit) {
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             if (title != null) {
@@ -216,35 +215,32 @@ private fun SettingsCard(title: String?, content: @Composable () -> Unit) {
 @Composable
 private fun AppearanceCard(darkTheme: Boolean, onThemeChanged: (Boolean) -> Unit) {
     SettingsCard("Apariencia") {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ThemeButton("Claro", selected = !darkTheme, onClick = { onThemeChanged(false) }, Modifier.weight(1f))
-            ThemeButton("Oscuro", selected = darkTheme, onClick = { onThemeChanged(true) }, Modifier.weight(1f))
-        }
+        SegmentedRow(
+            options = listOf("Claro" to !darkTheme, "Oscuro" to darkTheme),
+            onSelect = { index -> onThemeChanged(index == 1) },
+        )
     }
 }
 
 @Composable
-private fun ThemeButton(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier
-            .background(
-                color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                shape = RoundedCornerShape(6.dp),
-            )
-            .border(
-                1.dp,
-                if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                RoundedCornerShape(6.dp),
-            )
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+private fun SegmentedRow(
+    options: List<Pair<String, Boolean>>,
+    onSelect: (Int) -> Unit,
+) {
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+        options.forEachIndexed { index, (label, selected) ->
+            SegmentedButton(
+                selected = selected,
+                onClick = { onSelect(index) },
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+            ) {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                )
+            }
+        }
     }
 }
 
@@ -263,14 +259,19 @@ private fun GoalCard(goal: Goal?, onGoalChange: (Goal) -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(12.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Goal.entries.forEach { g ->
-                ThemeButton(
-                    label = goalLabels.getValue(g),
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            Goal.entries.forEachIndexed { index, g ->
+                SegmentedButton(
                     selected = goal == g,
                     onClick = { onGoalChange(g) },
-                    Modifier.weight(1f),
-                )
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = Goal.entries.size),
+                ) {
+                    Text(
+                        goalLabels.getValue(g),
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                    )
+                }
             }
         }
     }
@@ -291,19 +292,23 @@ private fun ProfileCard(
 
         Text("Género", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(6.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ThemeButton(
-                label = "Hombre",
-                selected = profile.gender == Gender.MALE,
-                onClick = { onProfileChange(profile.copy(gender = Gender.MALE)) },
-                Modifier.weight(1f),
-            )
-            ThemeButton(
-                label = "Mujer",
-                selected = profile.gender == Gender.FEMALE,
-                onClick = { onProfileChange(profile.copy(gender = Gender.FEMALE)) },
-                Modifier.weight(1f),
-            )
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            listOf(
+                Gender.MALE to "Hombre",
+                Gender.FEMALE to "Mujer",
+            ).forEachIndexed { index, (gender, label) ->
+                SegmentedButton(
+                    selected = profile.gender == gender,
+                    onClick = { onProfileChange(profile.copy(gender = gender)) },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
+                ) {
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                    )
+                }
+            }
         }
         Spacer(Modifier.height(12.dp))
 
@@ -413,12 +418,10 @@ private fun RecommendationsCard(loaded: SettingsUiState.Loaded) {
     val calorie = loaded.calorieRec
     val protein = loaded.proteinRec
     if (calorie == null && protein == null) return
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
             Modifier
@@ -476,13 +479,11 @@ private fun RecommendationsCard(loaded: SettingsUiState.Loaded) {
 
 @Composable
 private fun MethodologyLinkCard(onOpen: () -> Unit) {
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .clickable(onClick = onOpen),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
             Modifier.fillMaxWidth().padding(16.dp),
@@ -545,12 +546,10 @@ private fun TemplatesCard(
     onEdit: (TemplateDTO) -> Unit,
     onDelete: (TemplateDTO) -> Unit,
 ) {
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(
@@ -676,13 +675,11 @@ private fun NutritionBadge(text: String, variant: String = "outline") {
 
 @Composable
 private fun AdminLinkCard(onOpen: () -> Unit) {
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .clickable(onClick = onOpen),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
             Modifier.fillMaxWidth().padding(16.dp),

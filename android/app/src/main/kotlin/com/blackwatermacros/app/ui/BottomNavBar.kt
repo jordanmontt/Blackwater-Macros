@@ -1,5 +1,7 @@
 package com.blackwatermacros.app.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
@@ -110,7 +113,7 @@ private fun NavItem(
     modifier: Modifier = Modifier,
 ) {
     val tint = if (selected) {
-        MaterialTheme.colorScheme.primary
+        MaterialTheme.colorScheme.onTertiaryContainer
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
@@ -126,18 +129,37 @@ private fun NavItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(22.dp))
-            Spacer(Modifier.height(2.dp))
-            Text(
-                label,
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.labelSmall,
-                color = tint,
-                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Surface(
+                color = if (selected) {
+                    MaterialTheme.colorScheme.tertiaryContainer
+                } else {
+                    Color.Transparent
+                },
+                shape = RoundedCornerShape(50),
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        icon,
+                        contentDescription = label,
+                        tint = tint,
+                        modifier = Modifier.size(22.dp),
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        label,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = tint,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
     }
 }

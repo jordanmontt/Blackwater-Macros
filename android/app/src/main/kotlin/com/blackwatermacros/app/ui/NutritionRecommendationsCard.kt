@@ -16,8 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Whatshot
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,19 +50,15 @@ fun NutritionRecommendationsCard(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     when (state) {
-        RecommendationsUiState.Loading -> Card(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        RecommendationsUiState.Loading -> AppCard(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         ) {
             Box(Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
             }
         }
-        RecommendationsUiState.NoWeight -> Card(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        RecommendationsUiState.NoWeight -> AppCard(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         ) {
             Text(
                 text = "Registra tu peso para ver recomendaciones",
@@ -79,10 +73,8 @@ fun NutritionRecommendationsCard(
             val calorie = ready.calorie
             val protein = ready.protein
             if (calorie == null && protein == null) return
-            Card(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+            AppCard(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             ) {
                 Column(Modifier.fillMaxWidth().padding(16.dp)) {
                     if (calorie != null) {
@@ -241,15 +233,15 @@ private fun intakeStatus(
     exceededLabel: String,
 ): Status {
     return when {
-        current >= rangeMin && current <= rangeMax -> Status("en rango", Color(0xFF2E7D32))
+        current >= rangeMin && current <= rangeMax -> Status("en rango", Color(0xFF2F7D43))
         current < rangeMin -> {
             val missingMin = formatNumberEs(round(rangeMin - current))
             val missingMax = formatNumberEs(round(rangeMax - current))
-            Status(missingLabel.replace("{min}", missingMin).replace("{max}", missingMax), Color(0xFFF9A825))
+            Status(missingLabel.replace("{min}", missingMin).replace("{max}", missingMax), Color(0xFFC8910A))
         }
         else -> {
             val exceeded = formatNumberEs(round(current - rangeMax))
-            Status(exceededLabel.replace("{min}", exceeded), Color(0xFFEF6C00))
+            Status(exceededLabel.replace("{min}", exceeded), Color(0xFFB2561F))
         }
     }
 }

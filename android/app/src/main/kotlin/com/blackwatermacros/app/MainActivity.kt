@@ -28,6 +28,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.blackwatermacros.app.ui.AdminScreen
 import com.blackwatermacros.app.ui.AppTab
+import com.blackwatermacros.app.ui.BlackwaterShapes
+import com.blackwatermacros.app.ui.BlackwaterTypography
 import com.blackwatermacros.app.ui.BottomNavBar
 import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
@@ -36,56 +38,68 @@ import com.blackwatermacros.app.ui.PesoScreen
 import com.blackwatermacros.app.ui.SettingsScreen
 import com.blackwatermacros.app.ui.StatsScreen
 
-/** Web palette (src/app/globals.css) mapped to Material3 roles. */
+/**
+ * "Blackwater" palette — a warm, organic dark-forest look with a single warm
+ * ember accent (tertiary) used sparingly. Light theme keeps a warm paper
+ * background; dark theme is a deep, atmospheric green-black.
+ */
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF2F5838),
-    onPrimary = Color(0xFFF8F5EE),
-    primaryContainer = Color(0xFFE3E7D8),
-    onPrimaryContainer = Color(0xFF1A3520),
-    background = Color(0xFFF4F2E9),
-    onBackground = Color(0xFF1F2A1C),
+    primary = Color(0xFF2F4A37),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFDCE8D6),
+    onPrimaryContainer = Color(0xFF122A19),
+    secondary = Color(0xFF4A5949),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFDCE5DB),
+    onSecondaryContainer = Color(0xFF1E2B21),
+    tertiary = Color(0xFFB2561F),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFFFDCC2),
+    onTertiaryContainer = Color(0xFF3B2103),
+    background = Color(0xFFF8F6EF),
+    onBackground = Color(0xFF1A1D18),
     surface = Color(0xFFFBFAF6),
-    onSurface = Color(0xFF1F2A1C),
-    secondary = Color(0xFF213321),
-    onSecondary = Color(0xFFE6E7DC),
-    secondaryContainer = Color(0xFFE6E7DC),
-    onSecondaryContainer = Color(0xFF213321),
-    surfaceVariant = Color(0xFFE9E8DF),
-    onSurfaceVariant = Color(0xFF676B5B),
-    surfaceContainerLowest = Color(0xFFFCFBF7),
-    surfaceContainerLow = Color(0xFFF7F5EE),
-    surfaceContainer = Color(0xFFF2F0E8),
-    surfaceContainerHigh = Color(0xFFECEADF),
-    error = Color(0xFFE7000B),
+    onSurface = Color(0xFF1A1D18),
+    surfaceVariant = Color(0xFFE4E6DA),
+    onSurfaceVariant = Color(0xFF5C6359),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF6F4EC),
+    surfaceContainer = Color(0xFFF1EFE7),
+    surfaceContainerHigh = Color(0xFFEBE9E1),
+    surfaceContainerHighest = Color(0xFFE4E6DA),
+    error = Color(0xFFB3261E),
     onError = Color(0xFFFFFFFF),
-    outline = Color(0xFFD9D8CD),
-    outlineVariant = Color(0xFFDFDFD4),
-    surfaceContainerHighest = Color(0xFFE9E8DF),
+    outline = Color(0xFFC2C7BA),
+    outlineVariant = Color(0xFFDDE1D6),
 )
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF63A471),
-    onPrimary = Color(0xFF050E08),
-    primaryContainer = Color(0xFF222F22),
-    onPrimaryContainer = Color(0xFFE8E4DC),
-    background = Color(0xFF08110B),
-    onBackground = Color(0xFFDAD7CF),
-    surface = Color(0xFF111D15),
-    onSurface = Color(0xFFDAD7CF),
-    secondary = Color(0xFFE1DED5),
-    onSecondary = Color(0xFF1D2A21),
-    secondaryContainer = Color(0xFF1D2A21),
-    onSecondaryContainer = Color(0xFFE1DED5),
-    surfaceVariant = Color(0xFF1D2A21),
-    onSurfaceVariant = Color(0xFF999588),
-    surfaceContainerLowest = Color(0xFF0A140D),
-    surfaceContainerLow = Color(0xFF0E1A12),
-    surfaceContainer = Color(0xFF0F1C14),
-    surfaceContainerHigh = Color(0xFF122016),
-    error = Color(0xFFFF6467),
-    onError = Color(0xFF3B0000),
-    outline = Color(0xFFFFFFFF),
-    outlineVariant = Color(0xFF999588),
-    surfaceContainerHighest = Color(0xFF1D2A21),
+    primary = Color(0xFF9FB7A2),
+    onPrimary = Color(0xFF123018),
+    primaryContainer = Color(0xFF293D2C),
+    onPrimaryContainer = Color(0xFFC7E3C9),
+    secondary = Color(0xFFB6C4B8),
+    onSecondary = Color(0xFF22301F),
+    secondaryContainer = Color(0xFF303C27),
+    onSecondaryContainer = Color(0xFFDCE8DE),
+    tertiary = Color(0xFFFB9E63),
+    onTertiary = Color(0xFF3E2002),
+    tertiaryContainer = Color(0xFF5A3000),
+    onTertiaryContainer = Color(0xFFFFDCC0),
+    background = Color(0xFF0C0F0C),
+    onBackground = Color(0xFFDDE0D9),
+    surface = Color(0xFF141814),
+    onSurface = Color(0xFFDDE0D9),
+    surfaceVariant = Color(0xFF2A2E27),
+    onSurfaceVariant = Color(0xFFA6A99F),
+    surfaceContainerLowest = Color(0xFF070A07),
+    surfaceContainerLow = Color(0xFF111510),
+    surfaceContainer = Color(0xFF151A14),
+    surfaceContainerHigh = Color(0xFF1A1F19),
+    surfaceContainerHighest = Color(0xFF252A23),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF3F0000),
+    outline = Color(0xFF8A8F83),
+    outlineVariant = Color(0xFF3A4038),
 )
 
 class MainActivity : ComponentActivity() {
@@ -210,6 +224,8 @@ fun BlackwaterMacrosTheme(
 ) {
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColors else LightColors,
+        typography = BlackwaterTypography,
+        shapes = BlackwaterShapes,
         content = content,
     )
 }

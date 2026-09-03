@@ -31,12 +31,15 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.core.formatDateKeyShort
 import com.blackwatermacros.app.core.formatNumberEsGrouped
+import com.blackwatermacros.app.ui.ChartClay
+import com.blackwatermacros.app.ui.ChartForest
+import com.blackwatermacros.app.ui.ChartSage
 import com.blackwatermacros.app.ui.WeightFatRow
 import kotlin.math.roundToInt
 
-private val Chart1 = Color(0xFF4A8C5A)
-private val Chart2 = Color(0xFFB5605A)
-private val Chart3 = Color(0xFFC79A3C)
+private val Chart1 = ChartForest
+private val Chart2 = ChartClay
+private val Chart3 = ChartSage
 
 /**
  * Dual-Y line chart matching the web `WeightFatChart`:
