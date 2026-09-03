@@ -3,9 +3,15 @@ package com.blackwatermacros.app.ui.chart
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,7 +67,8 @@ fun TrendChart(
 
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
 
-    Box(modifier, contentAlignment = androidx.compose.ui.Alignment.TopEnd) {
+    Column {
+        Box(modifier, contentAlignment = androidx.compose.ui.Alignment.TopEnd) {
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
@@ -233,5 +240,26 @@ fun TrendChart(
                 }
             }
         }
+        }
+        Spacer(Modifier.height(4.dp))
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+        ) {
+            LegendDot(color, "Valor")
+            Spacer(Modifier.width(12.dp))
+            LegendDot(trendColor, "Tendencia")
+        }
+    }
+}
+
+@Composable
+private fun LegendDot(color: Color, label: String) {
+    Row {
+        Canvas(modifier = Modifier.size(8.dp)) {
+            drawCircle(color)
+        }
+        Spacer(Modifier.width(4.dp))
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

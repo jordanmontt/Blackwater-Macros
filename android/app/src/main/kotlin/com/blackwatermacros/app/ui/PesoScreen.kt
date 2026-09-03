@@ -364,52 +364,55 @@ private fun WeightRow(
     onEdit: (WeightDTO) -> Unit,
     onDelete: (WeightDTO) -> Unit,
 ) {
-    Row(
+    Column(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            buildString {
-                append(formatNumberEs(entry.weightKg, 1))
-                append(" kg")
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    buildString {
+                        append(formatNumberEs(entry.weightKg, 1))
+                        append(" kg")
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                )
                 entry.bodyFatPct?.let {
-                    append(" · ")
-                    append(formatNumberEs(it, 1))
-                    append("% grasa")
+                    Text(
+                        " · ${formatNumberEs(it, 1)}% grasa",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-            },
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-        )
-        Spacer(Modifier.weight(1f))
+            }
+            Spacer(Modifier.weight(1f))
+            IconButton(onClick = { onEdit(entry) }) {
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = "Editar",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+            IconButton(onClick = { onDelete(entry) }) {
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = "Eliminar",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
         entry.note?.let { note ->
             Text(
                 note,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 8.dp),
-            )
-        }
-        IconButton(onClick = { onEdit(entry) }) {
-            Icon(
-                Icons.Filled.Edit,
-                contentDescription = "Editar",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
-            )
-        }
-        IconButton(onClick = { onDelete(entry) }) {
-            Icon(
-                Icons.Filled.Delete,
-                contentDescription = "Eliminar",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
             )
         }
     }

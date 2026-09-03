@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.core.formatNumberEs
@@ -110,9 +109,7 @@ fun MealCard(
                 Column(Modifier.padding(start = 4.dp, top = 1.dp, bottom = 1.dp)) {
                     meal.ingredients.forEach { ingredient ->
                         Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 1.dp),
+                            Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.Top,
                         ) {
@@ -123,17 +120,23 @@ fun MealCard(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
-                            Text(
-                                text = buildString {
-                                    ingredient.calories?.let { append("${formatNumberEs(it)} ") }
-                                    ingredient.protein?.let { append("${formatNumberEs(it, 1)}g ") }
-                                    ingredient.carbs?.let { append("${formatNumberEs(it, 1)}g ") }
-                                    ingredient.fat?.let { append("${formatNumberEs(it, 1)}g") }
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.End,
-                            )
+                            FlowRow(
+                                modifier = Modifier.weight(1f),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                ingredient.calories?.let {
+                                    IngrMacro(it, "kcal")
+                                }
+                                ingredient.protein?.let {
+                                    IngrMacro(it, "g Proteína")
+                                }
+                                ingredient.carbs?.let {
+                                    IngrMacro(it, "g Carbohidratos")
+                                }
+                                ingredient.fat?.let {
+                                    IngrMacro(it, "g Grasa")
+                                }
+                            }
                         }
                     }
                 }
@@ -165,6 +168,15 @@ fun MealCard(
             }
         }
     }
+}
+
+@Composable
+private fun IngrMacro(value: Double, label: String) {
+    Text(
+        text = "${formatNumberEs(value, 1)} $label",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable

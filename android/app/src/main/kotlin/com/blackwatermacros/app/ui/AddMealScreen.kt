@@ -354,7 +354,7 @@ fun CompactField(
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        enabled = enabled && !readOnly,
+        enabled = enabled,
         readOnly = readOnly,
         singleLine = true,
         textStyle = MaterialTheme.typography.bodyMedium.copy(
@@ -368,13 +368,13 @@ fun CompactField(
             val endPadding = if (trailingIcon != null && readOnly) 4.dp else 10.dp
             Row(
                 Modifier
-                    .defaultMinSize(minHeight = 32.dp)
+                    .defaultMinSize(minHeight = 26.dp)
                     .background(
                         color = MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(8.dp),
                     )
                     .border(border, RoundedCornerShape(8.dp))
-                    .padding(start = 10.dp, end = endPadding, top = 6.dp, bottom = 6.dp),
+                    .padding(start = 10.dp, end = endPadding, top = 3.dp, bottom = 3.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(

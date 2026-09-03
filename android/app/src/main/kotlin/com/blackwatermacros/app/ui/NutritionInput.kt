@@ -70,7 +70,7 @@ internal fun IngredientEditor(
         Modifier
             .fillMaxWidth()
             .border(1.dp, MaterialTheme.colorScheme.outline, shape)
-            .padding(10.dp),
+            .padding(8.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             CompactField(
@@ -95,12 +95,12 @@ internal fun IngredientEditor(
                 )
             }
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(5.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             MacroField(item.calories, "kcal", enabled, Modifier.weight(1f)) { onUpdate(Patch(calories = it)) }
             MacroField(item.protein, "g proteína", enabled, Modifier.weight(1f)) { onUpdate(Patch(protein = it)) }
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(5.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             MacroField(item.carbs, "g carbohidratos", enabled, Modifier.weight(1f)) { onUpdate(Patch(carbs = it)) }
             MacroField(item.fat, "g grasa", enabled, Modifier.weight(1f)) { onUpdate(Patch(fat = it)) }
