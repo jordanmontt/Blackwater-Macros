@@ -6,6 +6,7 @@
     <string name="action_delete">Supprimer</string>
     <string name="action_edit">Modifier</string>
     <string name="action_ok">OK</string>
+    <string name="action_undo">Annuler</string>
     <string name="action_back">Retour</string>
     <string name="meal_new">Nouveau repas</string>
     <string name="meal_edit">Modifier le repas</string>
@@ -40,8 +41,6 @@
     <string name="tab_stats">Statistiques</string>
     <string name="tab_settings">Réglages</string>
     <string name="meal_add">Ajouter un repas</string>
-    <string name="meal_delete_title">Supprimer le repas ?</string>
-    <string name="meal_delete_body">Ce repas et ses ingrédients seront supprimés. Cette action est irréversible.</string>
     <string name="meal_deleted">Repas supprimé</string>
     <string name="meal_reorder">Réorganiser le repas</string>
     <string name="meal_manual_total">Total manuel</string>
@@ -132,7 +131,9 @@
     <string name="goal_cut">Sèche</string>
     <string name="goal_maintain">Maintien</string>
     <string name="goal_surplus">Prise de masse</string>
-    <string name="profile_title">Votre profil</string>
+    <string name="profile_title">Profil</string>
+    <string name="profile_link_subtitle">Objectif, données corporelles et recommandations de calories et de protéines</string>
+    <string name="profile_body_title">Données corporelles</string>
     <string name="profile_description">Indiquez votre sexe, votre âge et votre activité pour estimer vos besoins caloriques.</string>
     <string name="profile_gender">Sexe</string>
     <string name="gender_male">Homme</string>
@@ -157,7 +158,7 @@
     <string name="rec_need_weight">Enregistrez votre poids pour voir les recommandations</string>
     <string name="rec_need_profile">Choisissez votre objectif et complétez votre profil pour voir les recommandations</string>
     <string name="rec_go_to_weight">Aller au poids</string>
-    <string name="rec_go_to_settings">Aller aux réglages</string>
+    <string name="rec_go_to_profile">Aller au profil</string>
     <string name="rec_in_range">dans la plage</string>
     <string name="rec_missing">encore %1$s–%2$s %3$s</string>
     <string name="rec_exceeded">%1$s %2$s de trop</string>
@@ -244,6 +245,8 @@ Sèche : DEJ − 400 kcal (plage : −500 à −300). Maintien : DEJ ± 100 kcal
     <string name="data_delete_body_account">Seule la copie de ce téléphone est supprimée. Les données de votre compte sur le serveur ne sont pas touchées et seront de nouveau téléchargées à la prochaine synchronisation.</string>
     <string name="data_delete_confirm">Supprimer</string>
     <string name="data_deleted">Données supprimées de ce téléphone.</string>
+    <string name="sync_indicator_synced">Tout est synchronisé</string>
+    <string name="sync_indicator_problem">La synchronisation nécessite votre attention</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d ingrédient</item>
         <item quantity="many">%d ingrédients</item>

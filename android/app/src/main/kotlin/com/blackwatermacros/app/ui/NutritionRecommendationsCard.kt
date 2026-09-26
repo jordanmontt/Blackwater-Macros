@@ -45,7 +45,7 @@ import kotlin.math.round
 fun NutritionRecommendationsCard(
     dailyCalories: Double,
     dailyProtein: Double,
-    onOpenSettings: () -> Unit = {},
+    onOpenProfile: () -> Unit = {},
     onOpenWeight: () -> Unit = {},
     viewModel: RecommendationsViewModel = viewModel(),
 ) {
@@ -62,7 +62,7 @@ fun NutritionRecommendationsCard(
         RecommendationsUiState.NoWeight ->
             HintCard(stringResource(R.string.rec_need_weight), stringResource(R.string.rec_go_to_weight), onOpenWeight)
         RecommendationsUiState.NeedsProfile ->
-            HintCard(stringResource(R.string.rec_need_profile), stringResource(R.string.rec_go_to_settings), onOpenSettings)
+            HintCard(stringResource(R.string.rec_need_profile), stringResource(R.string.rec_go_to_profile), onOpenProfile)
         is RecommendationsUiState.Ready -> {
             val ready = state as RecommendationsUiState.Ready
             val calorie = ready.calorie

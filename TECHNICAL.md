@@ -321,7 +321,8 @@ overwrite.
 | Comidas | `app/page.tsx` | Day navigation, single daily-totals card, template chips, meal list, MealForm dialog, delete confirm, merged nutrition recommendations card, floating add-meal button |
 | Peso | `app/peso/page.tsx` | Current-weight summary (peso actual, grasa actual, cambio grasa 7 días), combined weight+fat chart, entries grouped by day, floating register button |
 | Estadísticas | `app/estadisticas/page.tsx` | Range tabs, 6 composition MiniStat cards, combined weight/body fat chart, weekly averages, macro summary + 4 macro trend charts; ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | Unified goal selector (first card), calorie profile form, theme selector (only place with theme switching), CSV export buttons, template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
+| Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), link to Perfil, Metodología link, CSV export buttons, template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
+| Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
 | Metodología | `app/metodologia/page.tsx` | Static content page explaining metric formulas + protein recommendation science + citations |
@@ -372,6 +373,18 @@ edge allow-list marker (see §4.5); every API route still requires a real
 
 Demo sessions always report `isAdmin: false`, so the Ajustes «Administración»
 card (and therefore the `/admin` page) is unreachable in demo mode.
+
+### Look & feel: native controls, shared palette
+
+- **Palette:** `globals.css` uses the exact colors of the Android theme (`MainActivity.kt`
+  Light/DarkColors): forest-green primary, warm paper background, and one warm «ember»
+  accent (`--tertiary*`) used only for the floating add buttons and the selected tab pill.
+  Chart series follow Android (ember, clay, gold, blue, forest).
+- **Native per browser:** the system font stack, the browser's own form controls and
+  pickers (`<select>` via `components/ui/native-select.tsx`, a native checkbox with
+  `role="switch"` in Admin — Safari 17.4+ draws it as an iOS switch — and
+  `datetime-local`), native scrollbars, and `accent-color` so they are tinted with the
+  app green. Custom Base UI Select/Switch were removed for this reason.
 
 ### Numeric input convention
 
@@ -642,6 +655,13 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
 - **Delete all data** (Ajustes → Tus datos) wipes the phone only, after confirmation.
   Without an account that is permanent; with one, the server is untouched and the next
   sync downloads the account again (unsynced changes are lost — the dialog says how many).
+- **Settings split:** Ajustes keeps Cuenta, Plantillas, Tus datos, Apariencia,
+  Metodología and Admin; goal, body data and recommendations live in a pushed
+  **Perfil** page (`ProfileScreen`), like the web's `/ajustes/perfil`.
+- **Comidas header** shows a small cloud when logged in (synced / N pending / syncing /
+  needs attention); tapping it opens Ajustes. Deleting a meal is immediate with an
+  **Undo** snackbar (`AppRepository.restoreMeal` puts back the same id and position,
+  even if the delete already reached the server).
 - **Statistics** are computed on the phone with `:core` `buildStatsFromData` (same
   numbers as `/api/stats`, which Android no longer calls).
 - **Validation** uses the server's limits (weight 20–400 kg, fat 3–60 %, profile

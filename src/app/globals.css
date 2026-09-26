@@ -43,6 +43,10 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-tertiary-container-foreground: var(--tertiary-container-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -53,74 +57,86 @@
 }
 
 :root {
+  /* Same palette as the Android app (android/app/.../MainActivity.kt LightColors). */
   color-scheme: light;
-  --background: oklch(0.96 0.012 95);
-  --foreground: oklch(0.27 0.03 140);
-  --card: oklch(0.985 0.006 95);
-  --card-foreground: oklch(0.27 0.03 140);
-  --popover: oklch(0.985 0.006 95);
-  --popover-foreground: oklch(0.27 0.03 140);
-  --primary: oklch(0.42 0.07 150);
-  --primary-foreground: oklch(0.97 0.01 90);
-  --secondary: oklch(0.925 0.015 110);
-  --secondary-foreground: oklch(0.3 0.04 145);
-  --muted: oklch(0.93 0.012 100);
-  --muted-foreground: oklch(0.52 0.025 120);
-  --accent: oklch(0.92 0.02 120);
-  --accent-foreground: oklch(0.3 0.05 150);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.9 0.015 105);
-  --input: oklch(0.88 0.015 105);
-  --ring: oklch(0.6 0.06 150);
-  --chart-1: oklch(0.48 0.08 150);
-  --chart-2: oklch(0.62 0.09 75);
-  --chart-3: oklch(0.5 0.07 45);
-  --chart-4: oklch(0.52 0.045 230);
-  --chart-5: oklch(0.45 0.09 120);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0.006 95);
-  --sidebar-foreground: oklch(0.27 0.03 140);
-  --sidebar-primary: oklch(0.42 0.07 150);
-  --sidebar-primary-foreground: oklch(0.97 0.01 90);
-  --sidebar-accent: oklch(0.92 0.02 120);
-  --sidebar-accent-foreground: oklch(0.3 0.05 150);
-  --sidebar-border: oklch(0.9 0.015 105);
-  --sidebar-ring: oklch(0.6 0.06 150);
+  --background: #f8f6ef;
+  --foreground: #1a1d18;
+  --card: #f6f4ec;
+  --card-foreground: #1a1d18;
+  --popover: #fbfaf6;
+  --popover-foreground: #1a1d18;
+  --primary: #2f4a37;
+  --primary-foreground: #ffffff;
+  --secondary: #dce5db;
+  --secondary-foreground: #1e2b21;
+  --muted: #e4e6da;
+  --muted-foreground: #5c6359;
+  --accent: #dce8d6;
+  --accent-foreground: #122a19;
+  /* The single warm "ember" accent: floating add buttons and the selected tab. */
+  --tertiary: #b2561f;
+  --tertiary-foreground: #ffffff;
+  --tertiary-container: #ffdcc2;
+  --tertiary-container-foreground: #3b2103;
+  --destructive: #b3261e;
+  --border: #dde1d6;
+  --input: #c2c7ba;
+  --ring: #2f4a37;
+  /* Chart series, as on Android (ember, clay, gold, blue, forest). */
+  --chart-1: #b2561f;
+  --chart-2: #9a6b5a;
+  --chart-3: #c89a3c;
+  --chart-4: #5a7fb5;
+  --chart-5: #4a6b4f;
+  --radius: 0.75rem;
+  --sidebar: #fbfaf6;
+  --sidebar-foreground: #1a1d18;
+  --sidebar-primary: #2f4a37;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dce8d6;
+  --sidebar-accent-foreground: #122a19;
+  --sidebar-border: #dde1d6;
+  --sidebar-ring: #2f4a37;
 }
 
 .dark {
+  /* Android DarkColors. */
   color-scheme: dark;
-  --background: oklch(0.165 0.018 155);
-  --foreground: oklch(0.88 0.012 90);
-  --card: oklch(0.215 0.022 155);
-  --card-foreground: oklch(0.88 0.012 90);
-  --popover: oklch(0.215 0.022 155);
-  --popover-foreground: oklch(0.88 0.012 90);
-  --primary: oklch(0.66 0.1 150);
-  --primary-foreground: oklch(0.15 0.02 155);
-  --secondary: oklch(0.27 0.024 155);
-  --secondary-foreground: oklch(0.9 0.012 90);
-  --muted: oklch(0.27 0.024 155);
-  --muted-foreground: oklch(0.67 0.02 95);
-  --accent: oklch(0.29 0.03 145);
-  --accent-foreground: oklch(0.92 0.012 90);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.66 0.1 150);
-  --chart-1: oklch(0.7 0.1 150);
-  --chart-2: oklch(0.78 0.1 75);
-  --chart-3: oklch(0.62 0.08 45);
-  --chart-4: oklch(0.7 0.05 230);
-  --chart-5: oklch(0.75 0.06 120);
-  --sidebar: oklch(0.215 0.022 155);
-  --sidebar-foreground: oklch(0.88 0.012 90);
-  --sidebar-primary: oklch(0.66 0.1 150);
-  --sidebar-primary-foreground: oklch(0.15 0.02 155);
-  --sidebar-accent: oklch(0.29 0.03 145);
-  --sidebar-accent-foreground: oklch(0.92 0.012 90);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.66 0.1 150);
+  --background: #0c0f0c;
+  --foreground: #dde0d9;
+  --card: #151a14;
+  --card-foreground: #dde0d9;
+  --popover: #1a1f19;
+  --popover-foreground: #dde0d9;
+  --primary: #9fb7a2;
+  --primary-foreground: #123018;
+  --secondary: #303c27;
+  --secondary-foreground: #dce8de;
+  --muted: #2a2e27;
+  --muted-foreground: #a6a99f;
+  --accent: #293d2c;
+  --accent-foreground: #c7e3c9;
+  --tertiary: #fb9e63;
+  --tertiary-foreground: #3e2002;
+  --tertiary-container: #5a3000;
+  --tertiary-container-foreground: #ffdcc0;
+  --destructive: #ffb4ab;
+  --border: #3a4038;
+  --input: #5a6056;
+  --ring: #9fb7a2;
+  --chart-1: #fb9e63;
+  --chart-2: #b98a78;
+  --chart-3: #d9b25c;
+  --chart-4: #8aa9d6;
+  --chart-5: #9fb7a2;
+  --sidebar: #141814;
+  --sidebar-foreground: #dde0d9;
+  --sidebar-primary: #9fb7a2;
+  --sidebar-primary-foreground: #123018;
+  --sidebar-accent: #293d2c;
+  --sidebar-accent-foreground: #c7e3c9;
+  --sidebar-border: #3a4038;
+  --sidebar-ring: #9fb7a2;
 }
 
 @layer base {
@@ -132,5 +148,13 @@
   }
   html {
     @apply font-sans;
+    /*
+     * Look native in every browser: the system font (SF in Safari, Segoe on
+     * Windows, Roboto on Android…), the browser's own form controls, pickers
+     * and scrollbars — tinted with the app color instead of replaced.
+     */
+    accent-color: var(--primary);
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
   }
 }

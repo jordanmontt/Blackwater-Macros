@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { api, ApiError } from "@/lib/api";
 import { t } from "@/i18n";
 import type { AdminUserDTO } from "@/lib/core/types";
@@ -345,11 +344,16 @@ export default function AdminPage() {
               <Label htmlFor="edit-is-admin" className="cursor-pointer">
                 {t.admin.isAdminLabel}
               </Label>
-              <Switch
+              {/* Native checkbox with switch semantics; Safari 17.4+ even draws it as an iOS switch. */}
+              <input
                 id="edit-is-admin"
+                type="checkbox"
+                role="switch"
+                {...{ switch: "" }}
+                className="size-5"
                 checked={form.isAdmin}
                 disabled={editing?.username === username}
-                onCheckedChange={(checked) => setForm({ ...form, isAdmin: checked })}
+                onChange={(event) => setForm({ ...form, isAdmin: event.target.checked })}
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}

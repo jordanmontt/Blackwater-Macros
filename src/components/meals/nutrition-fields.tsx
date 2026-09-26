@@ -5,13 +5,7 @@ import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { EntryMode, IngredientInput } from "@/lib/core/types";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
@@ -103,12 +97,6 @@ export function resultToNutritionDraft(nutrition: {
     totalFat: isTotalOnly && nutrition.totalFat !== null ? toDecimalInput(nutrition.totalFat) : "",
   };
 }
-
-/** Labels for the entry-mode select; lets <SelectValue> render text instead of the raw enum. */
-const modeItems = [
-  { value: "per_ingredient", label: t.meal.modePerIngredient },
-  { value: "total_only", label: t.meal.modeTotalOnly },
-];
 
 function parseNumber(value: string): number | undefined {
   const trimmed = value.trim().replace(",", ".");
@@ -234,19 +222,14 @@ export function NutritionEntryFields({
 
       <div className="space-y-2">
         <Label>{t.meal.modeLabel}</Label>
-        <Select
-          items={modeItems}
+        <NativeSelect
+          aria-label={t.meal.modeLabel}
           value={entryMode}
-          onValueChange={(value) => setEntryMode(value as EntryMode)}
+          onChange={(event) => setEntryMode(event.target.value as EntryMode)}
         >
-          <SelectTrigger className="w-full" aria-label={t.meal.modeLabel}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="per_ingredient">{t.meal.modePerIngredient}</SelectItem>
-            <SelectItem value="total_only">{t.meal.modeTotalOnly}</SelectItem>
-          </SelectContent>
-        </Select>
+          <option value="per_ingredient">{t.meal.modePerIngredient}</option>
+          <option value="total_only">{t.meal.modeTotalOnly}</option>
+        </NativeSelect>
         <p className="text-xs text-muted-foreground">
           {entryMode === "per_ingredient"
             ? t.meal.modePerIngredientHint

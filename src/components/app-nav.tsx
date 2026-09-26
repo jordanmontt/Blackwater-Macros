@@ -30,10 +30,18 @@ export function AppNav() {
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center gap-0.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground md:flex-row md:gap-2 md:rounded-md md:px-3 md:py-2",
-                  active && "text-primary",
+                  active && "text-foreground md:bg-tertiary-container md:text-tertiary-container-foreground",
                 )}
               >
-                <item.icon className="size-5 md:size-4" />
+                {/* Selected tab: ember pill behind the icon, as in the Android bottom bar. */}
+                <span
+                  className={cn(
+                    "rounded-full px-4 py-0.5 md:p-0",
+                    active && "bg-tertiary-container text-tertiary-container-foreground md:bg-transparent",
+                  )}
+                >
+                  <item.icon className="size-5 md:size-4" />
+                </span>
                 <span>{item.label}</span>
               </Link>
             </li>

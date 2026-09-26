@@ -69,6 +69,12 @@ class AppRepository(
         changed()
     }
 
+    /** Undo of [deleteMeal]: puts the meal back exactly as it was (same id and position). */
+    suspend fun restoreMeal(meal: MealDTO) {
+        db.meals().upsert(meal.toEntity().copy(pending = true, updatedAt = nowIso()))
+        changed()
+    }
+
     suspend fun reorderMeals(orderedIds: List<String>) {
         val dao = db.meals()
         val now = nowIso()

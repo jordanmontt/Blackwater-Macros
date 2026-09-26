@@ -27,7 +27,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.R
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -36,11 +35,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -76,6 +76,7 @@ private const val HEADER_COUNT = 3
 fun HoyScreen(
     modifier: Modifier = Modifier,
     onOpenSettings: () -> Unit = {},
+    onOpenProfile: () -> Unit = {},
     onOpenWeight: () -> Unit = {},
     viewModel: HoyViewModel = viewModel(),
 ) {
@@ -85,7 +86,6 @@ fun HoyScreen(
 
     var formOpen by remember { mutableStateOf(false) }
     var editingMeal by remember { mutableStateOf<MealDTO?>(null) }
-    var deletingMeal by remember { mutableStateOf<MealDTO?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -97,6 +97,21 @@ fun HoyScreen(
 
     val templateAddedMessage = stringResource(R.string.template_applied)
     val mealDeletedMessage = stringResource(R.string.meal_deleted)
+    val undoLabel = stringResource(R.string.action_undo)
+
+    /** Deletes right away; the snackbar offers Undo instead of asking first. */
+    fun deleteMeal(meal: MealDTO) {
+        viewModel.deleteMeal(meal.id)
+        scope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            val result = snackbarHostState.showSnackbar(
+                message = mealDeletedMessage,
+                actionLabel = undoLabel,
+                duration = SnackbarDuration.Long,
+            )
+            if (result == SnackbarResult.ActionPerformed) viewModel.restoreMeal(meal)
+        }
+    }
 
     fun applyTemplate(template: TemplateDTO) {
         viewModel.applyTemplate(template)
@@ -109,7 +124,10 @@ fun HoyScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            CenteredTopAppBar(title = stringResource(R.string.tab_meals))
+            CenteredTopAppBar(
+                title = stringResource(R.string.tab_meals),
+                trailing = { SyncIndicator(onClick = onOpenSettings) },
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -152,7 +170,7 @@ fun HoyScreen(
                             totals = totals,
                             templates = templates,
                             onApplyTemplate = ::applyTemplate,
-                            onOpenSettings = onOpenSettings,
+                            onOpenProfile = onOpenProfile,
                             onOpenWeight = onOpenWeight,
                             onAdd = {
                                 editingMeal = null
@@ -168,9 +186,9 @@ fun HoyScreen(
                                 editingMeal = meal
                                 formOpen = true
                             },
-                            onDelete = { meal -> deletingMeal = meal },
+                            onDelete = ::deleteMeal,
                             onApplyTemplate = ::applyTemplate,
-                            onOpenSettings = onOpenSettings,
+                            onOpenProfile = onOpenProfile,
                             onOpenWeight = onOpenWeight,
                             onReorder = { newList ->
                                 listMeals = newList
@@ -200,25 +218,6 @@ fun HoyScreen(
         )
     }
 
-    deletingMeal?.let { meal ->
-        AlertDialog(
-            onDismissRequest = { deletingMeal = null },
-            title = { Text(stringResource(R.string.meal_delete_title)) },
-            text = { Text(stringResource(R.string.meal_delete_body)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteMeal(meal.id)
-                        scope.launch { snackbarHostState.showSnackbar(mealDeletedMessage) }
-                        deletingMeal = null
-                    },
-                ) { Text(stringResource(R.string.action_delete)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { deletingMeal = null }) { Text(stringResource(R.string.action_cancel)) }
-            },
-        )
-    }
 }
 
 @Composable
@@ -229,7 +228,7 @@ private fun MealList(
     onEdit: (MealDTO) -> Unit,
     onDelete: (MealDTO) -> Unit,
     onApplyTemplate: (TemplateDTO) -> Unit,
-    onOpenSettings: () -> Unit,
+    onOpenProfile: () -> Unit,
     onOpenWeight: () -> Unit,
     onReorder: (List<MealDTO>) -> Unit,
 ) {
@@ -248,7 +247,7 @@ private fun MealList(
     ) {
         item(key = "totals") { DailyTotalsCard(totals) }
         item(key = "recommendations") {
-            NutritionRecommendationsCard(totals.calories, totals.protein, onOpenSettings, onOpenWeight)
+            NutritionRecommendationsCard(totals.calories, totals.protein, onOpenProfile, onOpenWeight)
         }
         item(key = "templates") {
             if (templates.isEmpty()) {
@@ -286,7 +285,7 @@ private fun EmptyDayContent(
     totals: Totals,
     templates: List<TemplateDTO>,
     onApplyTemplate: (TemplateDTO) -> Unit,
-    onOpenSettings: () -> Unit,
+    onOpenProfile: () -> Unit,
     onOpenWeight: () -> Unit,
     onAdd: () -> Unit,
 ) {
@@ -296,7 +295,7 @@ private fun EmptyDayContent(
             .verticalScroll(rememberScrollState()),
     ) {
         DailyTotalsCard(totals)
-        NutritionRecommendationsCard(totals.calories, totals.protein, onOpenSettings, onOpenWeight)
+        NutritionRecommendationsCard(totals.calories, totals.protein, onOpenProfile, onOpenWeight)
         if (templates.isNotEmpty()) {
             TemplatesRow(
                 templates = templates,

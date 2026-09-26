@@ -296,7 +296,7 @@ export default function HoyPage() {
         onClick={openCreate}
         aria-label={t.hoy.addMeal}
         size="icon"
-        className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 size-14 rounded-full shadow-lg md:bottom-6"
+        className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 size-14 rounded-full bg-tertiary text-tertiary-foreground shadow-lg hover:bg-tertiary/90 md:bottom-6"
       >
         <PlusIcon className="size-6" />
       </Button>

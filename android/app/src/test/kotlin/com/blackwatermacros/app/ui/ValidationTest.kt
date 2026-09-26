@@ -87,4 +87,17 @@ class ValidationTest {
         assertThat(ready.protein).isNotNull()
         assertThat(ready.calorie).isNull() // needs sex too
     }
+
+    @Test
+    fun `the header cloud reflects the sync state and hides without an account`() {
+        val account = com.blackwatermacros.app.data.Account("ana", "t", isAdmin = false)
+        assertThat(syncIndicatorState(null, 3, false, null)).isEqualTo(SyncIndicatorState.Hidden)
+        assertThat(syncIndicatorState(account, 0, false, null)).isEqualTo(SyncIndicatorState.Synced)
+        assertThat(syncIndicatorState(account, 2, false, null)).isEqualTo(SyncIndicatorState.Pending(2))
+        assertThat(syncIndicatorState(account, 2, true, null)).isEqualTo(SyncIndicatorState.Syncing)
+        assertThat(syncIndicatorState(account.copy(sessionExpired = true), 0, false, null)).isEqualTo(SyncIndicatorState.Problem)
+        assertThat(
+            syncIndicatorState(account, 0, false, com.blackwatermacros.app.data.sync.SyncProblem.SERVER_ERROR),
+        ).isEqualTo(SyncIndicatorState.Problem)
+    }
 }

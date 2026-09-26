@@ -32,6 +32,7 @@ import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
 import com.blackwatermacros.app.ui.MethodologyScreen
 import com.blackwatermacros.app.ui.PesoScreen
+import com.blackwatermacros.app.ui.ProfileScreen
 import com.blackwatermacros.app.ui.SettingsScreen
 import com.blackwatermacros.app.ui.StatsScreen
 
@@ -175,6 +176,7 @@ private fun AppNavHost(
             HoyScreen(
                 modifier = Modifier.padding(innerPadding),
                 onOpenSettings = { navController.navigateToTab(AppTab.AJUSTES) },
+                onOpenProfile = { navController.navigate("perfil") },
                 onOpenWeight = { navController.navigateToTab(AppTab.PESO) },
             )
         }
@@ -191,9 +193,13 @@ private fun AppNavHost(
             SettingsScreen(
                 modifier = Modifier.padding(innerPadding),
                 onOpenLogin = { navController.navigate("login") },
+                onOpenProfile = { navController.navigate("perfil") },
                 onOpenMetodologia = { navController.navigate("metodologia") },
                 onOpenAdmin = { navController.navigate("admin") },
             )
+        }
+        composable("perfil") {
+            ProfileScreen(onBack = { navController.popBackStack() })
         }
         composable("metodologia") {
             MethodologyScreen(onBack = { navController.popBackStack() })
