@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+build/
+
+# Local config (machine-specific SDK path)
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Captures
+captures/
+
+# NDK / CMake
+.idea/caches
+.externalNativeBuild
+.cxx
+
+# Kotlin
+# (derived build outputs live under each module/build/)

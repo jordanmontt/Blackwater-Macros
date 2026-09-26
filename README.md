@@ -82,6 +82,73 @@ dataset local (~45 días de comidas, pesos y plantillas) que se guarda solo en t
 navegador (`sessionStorage`) y puedes editar libremente. Se reinicia al cerrar la
 pestaña o desde la barra demo ("Iniciar sesión").
 
+## App Android (Kotlin/Compose)
+
+La app nativa Android está en `android/`, estructurada en dos módulos:
+`core` (JVM puro, sin Android — lógica de cálculo portada y testada) y `app`
+(UI + red). Es el mismo backend desplegado; usa `Authorization: Bearer <token>`.
+
+**Estado actual:** app funcional con la mayoría de pantallas de la web. Tras el
+**Iniciar sesión** (`POST /api/auth/login` → `GET /api/auth/session`) hay un shell
+de **4 pestañas persistentes** que refleja la navegación web: **Comidas**, **Peso**,
+**Estadísticas** y **Ajustes** (mismo orden, iconos seleccionados y títulos).
+
+- **Comidas/Hoy** (`GET /api/meals` por día): navegador de fechas, totales diarios,
+  tarjeta de recomendaciones (paramétrica por objetivo), fila de *Aplicar plantilla*, lista
+  reordenable arrastrando (`PATCH /api/meals/reorder`) y formulario **Nueva / Editar
+  comida** en hoja inferior con los dos modos (**Por ingrediente** / **Solo total**),
+  más borrar con confirmación (`DELETE /api/meals`).
+- **Peso** (`/api/weights`): registro de pesos (kg, % grasa, fecha, nota), resumen del peso
+  actual con variación a 7 días, gráfico de evolución + grasa (Canvas propio) y lista
+  agrupada por día con editar/borrar.
+- **Estadísticas** (`/api/stats`): selector de rango (7/30/90 días o todo), resumen de peso,
+  gráfico peso+grasa, medias semanales, resumen de macros y gráficas de tendencia de
+  kcal/proteína/peso/grasa con media móvil de 7 días y día pico.
+- **Ajustes**: apariencia (claro/oscuro), objetivo deportivo, perfil con **autoguardado**
+  (los campos se validan y persisten con debounce de 500 ms), recomendaciones, plantillas y
+  **Cerrar sesión**. Enlace a **Metodología**; si el usuario es admin, enlace a **Admin**.
+- **Metodología** y **Admin** (solo admin: crear/editar/borrar usuarios) como páginas
+  empujadas encima del shell.
+
+Gráficas dibujadas a mano con Compose Canvas (sin librería). Export CSV de la web queda
+**pendiente en Android** (botones inhabilitados). El token se guarda solo en memoria (se
+vuelve a pedir al reiniciar); el modo offline/local sigue pendiente (ver
+`docs/ANDROID-PLAN.md`).
+
+### Compilar
+
+```bash
+cd android
+./gradlew test lint build      # toda la suite (core + app) y lint
+```
+
+### URL del backend
+
+La URL base se inyecta por BuildConfig, con valor por defecto
+`https://blackwater-macros.jordanmontt.fr/`. Para apuntar a otra (p. ej. local):
+
+```bash
+./gradlew :app:installDebug -Papp.baseUrl=http://10.0.2.2:3000/
+```
+
+### Probarla en un emulador
+
+La app se instala con las herramientas de Android (SDK vía Homebrew en este repo
+de desarrollo). Con un emulador encendido y visible por `adb`:
+
+```bash
+cd android
+./gradlew :app:installDebug     # instala app-debug.apk en el emulador
+adb shell am start -n com.blackwatermacros.app/.MainActivity
+```
+
+El emulador usa la red del ordenador, así que alcanza el backend de producción
+sin más configuración. Inicia sesión, entra en **Ver comidas de hoy** y añade una
+comida con el botón **+**.
+
+> El archivo `android/local.properties` (ruta del SDK) es específico de tu máquina
+> y **no se sube** (está en `.gitignore`).
+
 ## Scripts útiles
 
 | Comando | Descripción |
@@ -115,6 +182,22 @@ Hay **dos mundos de código**:
 La **lógica pura de cálculo** (suma de macros, proteína, calorías/BMR, fechas,
 estadísticas, CSV) vive aislada en `src/lib/core/` — **sin dependencias del
 navegador ni del servidor** — para poder reimplementarse 1:1 en Android/Kotlin.
+
+## Decisiones de diseño importantes
+
+- **El backend guarda la lógica; las apps son solo interfaz.** Autenticación,
+  validación, cálculos y persistencia están en el backend. La web y la app
+  Android son UIs que hablan con la **misma API**.
+- **Los tests son la fuente de verdad.** La suite del `core` es la especificación
+  compartida entre web y Android: cada test web tiene su espejo Kotlin, velado por
+  `npm run core:sync-check`.
+- **Duplicar código es una decisión, y es aceptable.** Para un proyecto en
+  solitario se prefiere duplicar la matemática pura (anclada a tests) antes que la
+  alternativa de compilarlo a WebAssembly para la web.
+- **La web tiene una carpeta `core`** (`src/lib/core/`) con toda la lógica
+  importante, reimplementada 1:1 en Kotlin.
+
+El detalle de cada capa está en [TECHNICAL.md](./TECHNICAL.md).
 
 ## Estructura
 

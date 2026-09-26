@@ -62,7 +62,7 @@ deployed Next.js backend, and on keeping it maintainable as a **solo project**.
 The pure algorithms are implemented **twice** in two languages:
 
 - **Canonical TS:** `src/lib/core/*.ts` (read directly by the web app).
-- **Kotlin port:** `android/app/…/core/*.kt`.
+- **Kotlin port:** `android/core/src/main/kotlin/com/blackwatermacros/app/core/*.kt` (pure JVM module `:core`; the Android UI lives in `:app`).
 - **Shared behavioral spec:** `tests/unit/*.test.ts`.
 
 > **The rule:** `tests/unit/*.test.ts` is the specification for both.
@@ -140,7 +140,8 @@ tables in `docs/ANDROID-TEST-SPEC.md`.
 1. **Scaffold:** Gradle Android project in `android/` (this repo), Kotlin + Compose,
    no GMS. Package name, min SDK: confirm with the user before scaffolding.
 2. **Core port:** reimplement each `src/lib/core/*.ts` algorithm in
-   `android/app/…/core/*.kt` with `*Test.kt` mirrors of `tests/unit/*.test.ts`.
+   `android/core/src/main/kotlin/…/core/*.kt` with `*Test.kt` mirrors of
+   `tests/unit/*.test.ts` (under `android/core/src/test/kotlin/…/core/`).
    Every algorithm is small and pure — port it and the test together. Keep the
    manifest and CI sync-guard green.
 3. **Networking:** Retrofit interface mirroring `docs/api.md`; Bearer auth
@@ -157,12 +158,59 @@ tables in `docs/ANDROID-TEST-SPEC.md`.
 8. **Release/F-Droid:** versioning convention, changelog, F-Droid metadata YAML,
    no GMS.
 
+### Progress (current reality)
+
+- **Steps 1–2 done:** `android/` scaffolded; `:core` port of all algorithms done
+  and green (`./gradlew :core:test` = 61 tests). Sync-guard manifest points at
+  `:core` test paths.
+- **Step 3 (networking) done:** `:app` `data/` layer — wire DTOs, Retrofit
+  `ApiService` (incl. weights/stats/settings/admin endpoints), `BearerAuthInterceptor`,
+  `JsonConfig` (`.` decimals), and `ResponseErrorMapper`. **Step 6 substantially
+  built:** a **Login → 4-tab shell** flow replacing the old Home screen. The shell
+  (`MainActivity` + `BottomNavBar`) mirrors the web `AppNav`: **Comidas / Peso /
+  Estadísticas / Ajustes**, using `popUpTo { saveState }` + `restoreState` so tab
+  state is preserved, with the theme toggled by a hoisted `darkTheme` state.
+  - **Comidas/Hoy** (`HoyViewModel` + `HoyScreen` + `MealCard` + `AddMealScreen`)
+    proven against production at `https://blackwater-macros.jordanmontt.fr/`. Full
+    web feature set: day navigator, daily-totals card, shared **create/edit bottom-sheet
+    form** with both entry modes, **edit/delete** (AlertDialog confirm), **true
+    drag-and-drop reorder** (`sh.calvin.reorderable`, persisted via `PATCH /api/meals/reorder`),
+    **Aplicar plantilla** row, and the **calorie/protein recommendations card** (via `:core`).
+  - **Peso** (`PesoViewModel/PesoScreen` + `WeightFormDialog` + `chart/WeightFatChart`):
+    weight+%fat CRUD (`POST/PATCH/DELETE /api/weights`), current-weight summary with 7-day
+    deltas, day-grouped history with edit/delete, and a hand-built dual-Y Canvas chart.
+  - **Estadísticas** (`StatsViewModel/StatsScreen` + `chart/TrendChart`): range tabs
+    (7/30/90 días/Todo), weight & macro summaries, weekly averages and trend charts
+    (value + 7-day moving average + peak) via `GET /api/stats` computed with `:core`.
+  - **Ajustes** (`SettingsViewModel/SettingsScreen`): theme (Claro/Oscuro), deportivo
+    objetivo, **autosave profile** (applies immediately, persists 500 ms later via debounce,
+    skipping on validation errors; exact Spanish messages), recommendations, Metodología
+    link, templates list (PATCH/DELETE), and **Cerrar sesión**. Export CSV buttons rendered
+    disabled (export not ported).
+  - **Metodología** (`MethodologyScreen`) as a static page and **Admin**
+    (`AdminViewModel/AdminScreen`, isAdmin-gated user CRUD) as pushed pages.
+- **Charts decision resolved:** hand-built Compose Canvas (no chart library) — avoids the
+  F-Droid/GMS charting question from "Open items". `material-icons-extended` added for the
+  nav/action icons.
+- **Local emulator works:** the Homebrew Android SDK (`/opt/homebrew/
+  share/android-commandlinetools`) is used via `android/local.properties`
+  (gitignored); the emulator can run `:app` locally for manual testing.
+  Base URL is injectable with `-Papp.baseUrl=<url>` (default production). Latest
+  `./gradlew test lint build` passes; app installs + launches to Login without crashes.
+  Post-login tab/screen visual check still pending user credentials.
+- **Not yet built:** steps 4, 5, 7 (UI/Room tests), 8, CSV export, and Settings
+  templates create/edit-on-tap (only the new-template sheet shows; list create/edit is a
+  partial port).
+- **Open design decision (user):** when logging in after local/offline use, what
+  happens to locally-entered data (keep-separate vs upload/merge vs discard) —
+  to be decided when designing the sync engine (step 5).
+
 ### Open items to confirm with the user early
 
 - min SDK / target SDK
 - package name (e.g. `com.blackwatermacros.app`)
-- include the admin user-management screen on Android, or defer?
-- charting library for the weight/body-fat chart (must be F-Droid-safe, no GMS)
+- include the admin user-management screen on Android, or defer?*(implemented, isAdmin-gated)*
+- charting library for the weight/body-fat chart *(resolved: hand-built Compose Canvas, no lib)*
 
 ---
 
