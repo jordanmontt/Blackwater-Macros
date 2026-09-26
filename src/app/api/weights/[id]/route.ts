@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { weightInputSchema } from "@/server/validation";
-import { deleteWeight, updateWeight } from "@/server/services/weights-service";
+import { recordIdSchema, weightInputSchema } from "@/server/validation";
+import { deleteWeight, updateWeight, upsertWeight } from "@/server/services/weights-service";
 import { repositories } from "@/server/composition";
 import { jsonError, parseJsonBody, withUserId } from "@/server/route-utils";
 
@@ -11,6 +11,18 @@ export async function PATCH(request: Request, context: RouteContext) {
   return withUserId(request, async (userId) => {
     const input = weightInputSchema.parse(await parseJsonBody(request));
     const weight = await updateWeight(repositories.weights, userId, id, input);
+    if (!weight) return jsonError("Registro no encontrado", 404);
+    return NextResponse.json({ weight });
+  });
+}
+
+/** Idempotent create-or-replace with a client-generated id (Android offline sync). */
+export async function PUT(request: Request, context: RouteContext) {
+  const { id } = await context.params;
+  return withUserId(request, async (userId) => {
+    recordIdSchema.parse(id);
+    const input = weightInputSchema.parse(await parseJsonBody(request));
+    const weight = await upsertWeight(repositories.weights, userId, id, input);
     if (!weight) return jsonError("Registro no encontrado", 404);
     return NextResponse.json({ weight });
   });

@@ -43,22 +43,6 @@ enum class WireGoal {
     SURPLUS,
 }
 
-/** Range for /api/stats; defaults to 30d when absent/invalid. */
-@Serializable
-enum class WireStatsRange {
-    @SerialName("7d")
-    RANGE_7D,
-
-    @SerialName("30d")
-    RANGE_30D,
-
-    @SerialName("90d")
-    RANGE_90D,
-
-    @SerialName("all")
-    ALL,
-}
-
 // --- Auth ---
 
 @Serializable
@@ -104,6 +88,8 @@ data class MealRequest(
     val totalProtein: Double? = null,
     val totalCarbs: Double? = null,
     val totalFat: Double? = null,
+    /** Position within the day; only sent by the offline-sync `PUT`. */
+    val sortOrder: Int? = null,
 )
 
 @Serializable
@@ -123,6 +109,7 @@ data class MealDTO(
     val resolvedCarbs: Double,
     val resolvedFat: Double,
     val updatedAt: String,
+    val sortOrder: Int = 0,
 )
 
 @Serializable
@@ -130,9 +117,6 @@ data class MealsResponse(val meals: List<MealDTO>)
 
 @Serializable
 data class MealResponse(val meal: MealDTO)
-
-@Serializable
-data class ReorderRequest(val orderedIds: List<String>)
 
 // --- Templates ---
 
@@ -199,71 +183,6 @@ data class WeightsResponse(val weights: List<WeightDTO>)
 
 @Serializable
 data class WeightResponse(val weight: WeightDTO)
-
-// --- Stats (flat, not wrapped) ---
-
-@Serializable
-data class WireDailyNutritionPoint(
-    val date: String,
-    val calories: Double,
-    val protein: Double,
-    val carbs: Double,
-    val fat: Double,
-)
-
-@Serializable
-data class WireWeightPoint(
-    val date: String,
-    val weight: Double,
-    val trend: Double?,
-)
-
-@Serializable
-data class WireBodyFatPoint(
-    val date: String,
-    val bodyFatPct: Double,
-    val trend: Double?,
-)
-
-@Serializable
-data class WireWeeklyAvg(
-    val weekStart: String,
-    val avg: Double,
-)
-
-@Serializable
-data class WireCompositionStats(
-    val currentWeightKg: Double?,
-    val currentTrendKg: Double?,
-    val changeSinceStartKg: Double?,
-    val ratePerWeekKg: Double?,
-    val minKg: Double?,
-    val maxKg: Double?,
-    val currentBodyFatPct: Double?,
-    val changeBodyFatPct: Double?,
-    val minBodyFatPct: Double?,
-    val maxBodyFatPct: Double?,
-)
-
-@Serializable
-data class StatsSummary(
-    val calories: List<WireDailyNutritionPoint>,
-    val protein: List<WireDailyNutritionPoint>,
-    val carbs: List<WireDailyNutritionPoint>,
-    val fat: List<WireDailyNutritionPoint>,
-    val weights: List<WireWeightPoint>,
-    val bodyFat: List<WireBodyFatPoint>,
-    val caloriesAvg: Double?,
-    val caloriesMaxDay: WireDailyNutritionPoint?,
-    val proteinAvg: Double?,
-    val proteinMaxDay: WireDailyNutritionPoint?,
-    val carbsAvg: Double?,
-    val carbsMaxDay: WireDailyNutritionPoint?,
-    val fatAvg: Double?,
-    val fatMaxDay: WireDailyNutritionPoint?,
-    val weight: WireCompositionStats,
-    val weeklyWeightAvg: List<WireWeeklyAvg>,
-)
 
 // --- Settings ---
 

@@ -111,6 +111,35 @@ export function createMemoryWorld(): MemoryWorld {
         if (row && row.userId === userId) mealsData.set(id, { ...row, sortOrder: index });
       });
     },
+    async upsert(userId, id, input, sortOrder) {
+      const existing = mealsData.get(id);
+      if (existing && existing.userId !== userId) return null;
+      if (existing) {
+        const updated: MealRow = {
+          ...existing,
+          ...input,
+          sortOrder: sortOrder ?? existing.sortOrder,
+          updatedAt: new Date(),
+        };
+        mealsData.set(id, updated);
+        return updated;
+      }
+      const sameDay = [...mealsData.values()].filter(
+        (row) => row.userId === userId && row.logDate === input.logDate,
+      );
+      const nextOrder = sameDay.length ? Math.max(...sameDay.map((row) => row.sortOrder)) + 1 : 0;
+      const now = new Date();
+      const row: MealRow = {
+        id,
+        userId,
+        createdAt: now,
+        updatedAt: now,
+        sortOrder: sortOrder ?? nextOrder,
+        ...input,
+      };
+      mealsData.set(id, row);
+      return row;
+    },
   };
 
   const templates: MealTemplatesRepository = {
@@ -143,6 +172,16 @@ export function createMemoryWorld(): MemoryWorld {
       templatesData.delete(id);
       return true;
     },
+    async upsert(userId, id, input) {
+      const existing = templatesData.get(id);
+      if (existing && existing.userId !== userId) return null;
+      const now = new Date();
+      const row: MealTemplateRow = existing
+        ? { ...existing, ...input, updatedAt: now }
+        : { id, userId, createdAt: now, updatedAt: now, ...input };
+      templatesData.set(id, row);
+      return row;
+    },
   };
 
   const weights: WeightsRepository = {
@@ -174,6 +213,16 @@ export function createMemoryWorld(): MemoryWorld {
       if (!existing || existing.userId !== userId) return false;
       weightsData.delete(id);
       return true;
+    },
+    async upsert(userId, id, input) {
+      const existing = weightsData.get(id);
+      if (existing && existing.userId !== userId) return null;
+      const now = new Date();
+      const row: WeightRow = existing
+        ? { ...existing, ...input, updatedAt: now }
+        : { id, userId, createdAt: now, updatedAt: now, ...input };
+      weightsData.set(id, row);
+      return row;
     },
   };
 

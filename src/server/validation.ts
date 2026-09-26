@@ -26,6 +26,14 @@ export const mealInputSchema = z.object({
 
 export type MealInput = z.infer<typeof mealInputSchema>;
 
+/** `PUT /api/meals/:id` body: a meal plus its optional position within the day. */
+export const mealUpsertSchema = mealInputSchema.extend({
+  sortOrder: z.number().int().min(0).optional(),
+});
+
+/** Client-generated record ids (offline sync) must be UUIDs — the DB column type. */
+export const recordIdSchema = z.string().uuid("Identificador no válido");
+
 export const templateInputSchema = z.object({
   name: z.string().trim().min(1, "El nombre de la plantilla es obligatorio").max(120),
   title: z.string().trim().min(1, "El título es obligatorio").max(120),

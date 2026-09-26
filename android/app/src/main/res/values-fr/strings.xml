@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from the translation table; English is the default for any other phone language. -->
+<resources>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_save">Enregistrer</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_edit">Modifier</string>
+    <string name="action_ok">OK</string>
+    <string name="action_back">Retour</string>
+    <string name="meal_new">Nouveau repas</string>
+    <string name="meal_edit">Modifier le repas</string>
+    <string name="template_new">Nouveau modèle</string>
+    <string name="template_edit">Modifier le modèle</string>
+    <string name="form_title">Titre</string>
+    <string name="form_title_placeholder">Petit-déjeuner</string>
+    <string name="form_entry_mode_question">Comment voulez-vous saisir les valeurs nutritionnelles ?</string>
+    <string name="entry_mode_per_ingredient">Par ingrédient</string>
+    <string name="entry_mode_total_only">Total uniquement</string>
+    <string name="form_help_per_ingredient">Saisissez les calories, protéines, glucides et lipides de chaque ingrédient : ils s\'additionnent automatiquement.</string>
+    <string name="form_help_total_only">Saisissez uniquement le total des calories, protéines, glucides et lipides du repas.</string>
+    <string name="form_ingredients">Ingrédients</string>
+    <string name="form_add_ingredient">Ajouter un ingrédient</string>
+    <string name="form_notes_optional">Notes (facultatif)</string>
+    <string name="form_notes_placeholder">Notes</string>
+    <string name="ingredient_name_placeholder">4 œufs</string>
+    <string name="ingredient_quantity_placeholder">30 g</string>
+    <string name="unit_kcal">kcal</string>
+    <string name="macro_g_protein">g protéines</string>
+    <string name="macro_g_carbs">g glucides</string>
+    <string name="macro_g_fat">g lipides</string>
+    <string name="total_calories">Calories</string>
+    <string name="total_protein_g">Protéines (g)</string>
+    <string name="total_carbs_g">Glucides (g)</string>
+    <string name="total_fat_g">Lipides (g)</string>
+    <string name="error_title_required">Le titre est obligatoire.</string>
+    <string name="error_ingredient_required">Ajoutez au moins un ingrédient avec un nom.</string>
+    <string name="error_invalid_number">Certains nombres ne sont pas valides.</string>
+    <string name="tab_meals">Repas</string>
+    <string name="tab_weight">Poids</string>
+    <string name="tab_stats">Statistiques</string>
+    <string name="tab_settings">Réglages</string>
+    <string name="meal_add">Ajouter un repas</string>
+    <string name="meal_delete_title">Supprimer le repas ?</string>
+    <string name="meal_delete_body">Ce repas et ses ingrédients seront supprimés. Cette action est irréversible.</string>
+    <string name="meal_deleted">Repas supprimé</string>
+    <string name="meal_reorder">Réorganiser le repas</string>
+    <string name="meal_manual_total">Total manuel</string>
+    <string name="meals_empty_day">Vous n\'avez encore enregistré aucun repas ce jour-là.</string>
+    <string name="template_apply">Appliquer un modèle</string>
+    <string name="template_applied">« %1$s » ajouté à ce jour</string>
+    <string name="today">Aujourd\'hui</string>
+    <string name="day_previous">Jour précédent</string>
+    <string name="day_next">Jour suivant</string>
+    <string name="day_totals">Totaux du jour</string>
+    <string name="macro_protein">Protéines</string>
+    <string name="macro_carbs">Glucides</string>
+    <string name="macro_fat">Lipides</string>
+    <string name="range_7d">7 jours</string>
+    <string name="range_30d">30 jours</string>
+    <string name="range_90d">90 jours</string>
+    <string name="range_all">Tout</string>
+    <string name="methodology">Méthodologie</string>
+    <string name="stats_no_data">Pas encore de pesée sur cette période.</string>
+    <string name="stats_weight_summary">Résumé du poids</string>
+    <string name="weight_current">Poids actuel</string>
+    <string name="stats_current_trend">Tendance actuelle</string>
+    <string name="body_fat_current">Masse grasse actuelle</string>
+    <string name="stats_total_change">Variation totale</string>
+    <string name="stats_weekly_rate">Rythme hebdomadaire</string>
+    <string name="unit_kg_per_week">kg/semaine</string>
+    <string name="stats_fat_change">Variation de masse grasse</string>
+    <string name="stats_weight_fat_chart">Évolution du poids et de la masse grasse</string>
+    <string name="stats_weekly_average">Moyenne hebdomadaire du poids</string>
+    <string name="stats_minimum">Minimum :</string>
+    <string name="stats_maximum">Maximum :</string>
+    <string name="stats_macro_summary">Résumé des macros</string>
+    <string name="stats_avg_calories">Calories moyennes</string>
+    <string name="stats_avg_protein">Protéines moyennes</string>
+    <string name="stats_avg_carbs">Glucides moyens</string>
+    <string name="stats_avg_fat">Lipides moyens</string>
+    <string name="stats_peak_day">Jour record</string>
+    <string name="stats_daily_calories">Calories quotidiennes</string>
+    <string name="stats_daily_protein">Protéines quotidiennes</string>
+    <string name="stats_daily_carbs">Glucides quotidiens</string>
+    <string name="stats_daily_fat">Lipides quotidiens</string>
+    <string name="chart_value">Valeur</string>
+    <string name="chart_average">Moyenne</string>
+    <string name="chart_trend">Tendance</string>
+    <string name="chart_weight_axis">Poids (kg)</string>
+    <string name="chart_fat_axis">Graisse (%)</string>
+    <string name="body_fat">Masse grasse</string>
+    <string name="weight_add">Enregistrer le poids</string>
+    <string name="weight_edit">Modifier le poids</string>
+    <string name="weight_delete_title">Supprimer l\'entrée ?</string>
+    <string name="weight_delete_body">Cette entrée de poids sera définitivement supprimée.</string>
+    <string name="weight_empty">Vous n\'avez encore enregistré aucun poids.</string>
+    <string name="weight_change_7d">Variation du poids (7 jours)</string>
+    <string name="body_fat_change_7d">Variation de masse grasse (7 jours)</string>
+    <string name="body_fat_value">%1$s %% de masse grasse</string>
+    <string name="weight_kg">Poids (kg)</string>
+    <string name="body_fat_pct">Masse grasse (%)</string>
+    <string name="body_fat_placeholder">15 (facultatif)</string>
+    <string name="weight_date">Date</string>
+    <string name="weight_time">Heure</string>
+    <string name="weight_note_optional">Note (facultatif)</string>
+    <string name="error_weight_range">Saisissez un poids entre 20 et 400 kg.</string>
+    <string name="error_body_fat_range">La masse grasse doit être comprise entre 3 et 60 %.</string>
+    <string name="account_title">Compte</string>
+    <string name="account_local_description">Vos données sont enregistrées uniquement sur ce téléphone. Si vous avez un compte, connectez-vous pour les synchroniser avec la version web.</string>
+    <string name="account_login">Se connecter</string>
+    <string name="account_connected_as">Connecté en tant que %1$s</string>
+    <string name="sync_session_expired">Votre session a expiré. Reconnectez-vous pour continuer la synchronisation.</string>
+    <string name="sync_in_progress">Synchronisation…</string>
+    <string name="sync_problem_server">Le serveur a rencontré un problème. Nouvelle tentative automatique.</string>
+    <string name="sync_problem_rejected">Le serveur a refusé une modification. Nouvelle tentative automatique.</string>
+    <string name="sync_problem_unexpected">Synchronisation impossible. Nouvelle tentative automatique.</string>
+    <string name="sync_offline">Pas de connexion. La synchronisation se fera automatiquement au retour du réseau.</string>
+    <string name="sync_done">Synchronisé %1$s</string>
+    <string name="sync_today_at">aujourd\'hui à %1$s</string>
+    <string name="sync_on_date_at">le %1$s à %2$s</string>
+    <string name="sync_never">Pas encore synchronisé</string>
+    <string name="sync_now">Synchroniser</string>
+    <string name="logout">Se déconnecter</string>
+    <string name="logging_out">Déconnexion…</string>
+    <string name="logout_title">Se déconnecter ?</string>
+    <string name="appearance_title">Apparence</string>
+    <string name="theme_system">Système</string>
+    <string name="theme_light">Clair</string>
+    <string name="theme_dark">Sombre</string>
+    <string name="goal_title">Objectif sportif</string>
+    <string name="goal_description">Définissez votre objectif pour calculer vos plages recommandées de protéines et de calories.</string>
+    <string name="goal_cut">Sèche</string>
+    <string name="goal_maintain">Maintien</string>
+    <string name="goal_surplus">Prise de masse</string>
+    <string name="profile_title">Votre profil</string>
+    <string name="profile_description">Indiquez votre sexe, votre âge et votre activité pour estimer vos besoins caloriques.</string>
+    <string name="profile_gender">Sexe</string>
+    <string name="gender_male">Homme</string>
+    <string name="gender_female">Femme</string>
+    <string name="profile_birth_year">Année de naissance</string>
+    <string name="profile_height">Taille (cm)</string>
+    <string name="profile_gym_days">Jours de sport par semaine</string>
+    <string name="profile_gym_minutes">Durée de séance (min)</string>
+    <string name="profile_walking_minutes">Marche quotidienne (min)</string>
+    <string name="error_birth_year">Entre 1920 et 2010</string>
+    <string name="error_height">Entre 100 et 250 cm</string>
+    <string name="error_gym_days">Entre 0 et 7</string>
+    <string name="error_gym_minutes">Entre 0 et 300 min</string>
+    <string name="error_walking_minutes">Entre 0 et 480 min</string>
+    <string name="rec_calories_title">Recommandation de calories</string>
+    <string name="rec_protein_title">Recommandation de protéines</string>
+    <string name="unit_kcal_day">kcal/jour</string>
+    <string name="unit_g_day">g/jour</string>
+    <string name="rec_estimated_average">moyenne estimée : %1$s</string>
+    <string name="rec_bmr">Métabolisme de base (MB) : %1$s kcal/jour</string>
+    <string name="rec_tdee">Dépense énergétique quotidienne estimée (DEJ) : %1$s kcal/jour</string>
+    <string name="rec_need_weight">Enregistrez votre poids pour voir les recommandations</string>
+    <string name="rec_need_profile">Choisissez votre objectif et complétez votre profil pour voir les recommandations</string>
+    <string name="rec_go_to_weight">Aller au poids</string>
+    <string name="rec_go_to_settings">Aller aux réglages</string>
+    <string name="rec_in_range">dans la plage</string>
+    <string name="rec_missing">encore %1$s–%2$s %3$s</string>
+    <string name="rec_exceeded">%1$s %2$s de trop</string>
+    <string name="methodology_subtitle">Comment les indicateurs sont calculés</string>
+    <string name="admin_title">Administration</string>
+    <string name="admin_subtitle">Gérer les utilisateurs de l\'application.</string>
+    <string name="templates_title">Modèles</string>
+    <string name="templates_empty">Vous n\'avez encore aucun modèle enregistré.</string>
+    <string name="template_delete_title">Supprimer le modèle ?</string>
+    <string name="template_delete_body">Ce modèle sera supprimé. Cette action est irréversible.</string>
+    <string name="data_title">Vos données</string>
+    <string name="data_description">Exportez ou importez vos repas et votre poids en CSV (même format que la version web). Pratique comme sauvegarde ou pour changer de téléphone.</string>
+    <string name="data_export_meals">Exporter les repas</string>
+    <string name="data_export_weights">Exporter le poids</string>
+    <string name="data_import">Importer un CSV</string>
+    <string name="data_meals_file_name">blackwater-repas-%1$s.csv</string>
+    <string name="data_weights_file_name">blackwater-poids-%1$s.csv</string>
+    <string name="data_exported">Fichier enregistré.</string>
+    <string name="data_unknown_file">Ce fichier n\'est pas un CSV de repas ou de poids Blackwater.</string>
+    <string name="data_failed">Impossible de lire ou d\'écrire le fichier.</string>
+    <string name="login_description">Synchronisez vos repas et votre poids avec la version web. Les comptes sont sur invitation.</string>
+    <string name="login_username">Nom d\'utilisateur</string>
+    <string name="login_password">Mot de passe</string>
+    <string name="login_submit">Se connecter</string>
+    <string name="login_local_data_title">Ce téléphone contient déjà des données</string>
+    <string name="login_local_data_body">%1$s
+
+Voulez-vous les envoyer vers le compte « %2$s » ou les supprimer et n\'utiliser que les données du compte ?</string>
+    <string name="login_local_data_upload">Les envoyer vers mon compte</string>
+    <string name="login_local_data_discard">Les supprimer</string>
+    <string name="login_error_missing">Saisissez votre nom d\'utilisateur et votre mot de passe.</string>
+    <string name="login_error_credentials">Nom d\'utilisateur ou mot de passe incorrect.</string>
+    <string name="login_error_network">Problème de connexion. Réessayez.</string>
+    <string name="login_error_wrong_account">Ce téléphone est lié à « %1$s ». Déconnectez-vous d\'abord pour utiliser un autre compte.</string>
+    <string name="login_error_server">Erreur du serveur (%1$d). Réessayez plus tard.</string>
+    <string name="admin_users">Utilisateurs</string>
+    <string name="admin_new_user">Nouvel utilisateur</string>
+    <string name="admin_users_description">Créez et gérez les comptes de l\'application.</string>
+    <string name="admin_no_users">Il n\'y a pas encore d\'utilisateurs.</string>
+    <string name="admin_new_user_description">Le compte pourra se connecter immédiatement.</string>
+    <string name="admin_edit_user">Modifier l\'utilisateur</string>
+    <string name="admin_edit_user_description">Modifiez le nom, le mot de passe ou le rôle de l\'utilisateur.</string>
+    <string name="admin_delete_title">Supprimer l\'utilisateur ?</string>
+    <string name="admin_delete_body">Ses repas, pesées, modèles et sessions seront supprimés. Cette action est irréversible.</string>
+    <string name="admin_you">(vous)</string>
+    <string name="admin_member_since">Depuis le %1$s</string>
+    <string name="admin_new_password_optional">Nouveau mot de passe (facultatif)</string>
+    <string name="admin_password_hint">8 caractères minimum</string>
+    <string name="admin_is_admin">Administrateur</string>
+    <string name="admin_error_username">Le nom d\'utilisateur est obligatoire.</string>
+    <string name="admin_error_password">Le mot de passe doit contenir au moins 8 caractères.</string>
+    <string name="meth_intro">Comment chaque indicateur des Statistiques est calculé, avec les formules exactes et les références sur lesquelles ils reposent.</string>
+    <string name="meth_scale_title">Poids sur la balance vs tendance</string>
+    <string name="meth_scale_body">Le « poids actuel » est votre dernière entrée. La « tendance actuelle » est la valeur la plus récente de la moyenne mobile sur 7 jours. La « variation totale » compare la première et la dernière entrée de la période choisie. Le « minimum » et le « maximum » sont les valeurs extrêmes de vos entrées sur la période.</string>
+    <string name="meth_ma_title">Moyenne mobile sur 7 jours (tendance)</string>
+    <string name="meth_ma_window">W(d) = { entrées datées dans [d − 6, d] }</string>
+    <string name="meth_ma_body">Toutes vos entrées datées dans la fenêtre de 7 jours se terminant le jour d sont moyennées. Les jours sans entrée ne comptent pas et ne sont pas remplacés par des zéros : si vous ne vous êtes pesé que 3 fois cette semaine-là, la moyenne porte sur ces 3 entrées. Cela atténue le bruit quotidien (eau, sel, contenu intestinal) tout en conservant le vrai signal de la masse grasse, qui évolue lentement. C\'est la pratique recommandée dans la littérature sur l\'auto-pesée et la base du concept de « poids de tendance » popularisé par The Hacker\'s Diet.</string>
+    <string name="meth_rate_title">Rythme hebdomadaire (kg/semaine)</string>
+    <string name="meth_rate_formula">rythme = β × 7 [kg/semaine]</string>
+    <string name="meth_rate_body">x est le nombre de jours écoulés depuis la première entrée de la période et y le poids enregistré. La pente β est multipliée par 7 pour l\'exprimer par semaine. La régression utilise vos entrées brutes de la période affichée : elle capte mieux la direction à long terme que la comparaison de deux points.</string>
+    <string name="meth_weekly_title">Moyenne hebdomadaire du poids</string>
+    <string name="meth_weekly_body">Les semaines commencent le lundi. On calcule la moyenne arithmétique de toutes les entrées de chaque semaine ; les semaines sans entrée n\'apparaissent pas.</string>
+    <string name="meth_daily_title">Calories, protéines, glucides et lipides quotidiens</string>
+    <string name="meth_daily_body">Le total de chaque jour est la somme des repas de ce jour (calories, protéines, glucides et lipides sont calculés à l\'enregistrement, en additionnant les ingrédients ou en prenant votre total manuel). Les jours sans repas comptent pour 0 : les trous reflètent ainsi honnêtement l\'assiduité au lieu de disparaître. La « moyenne » est la moyenne arithmétique de la période, le « jour record » la valeur maximale, et la courbe de tendance applique exactement la même moyenne mobile sur 7 jours décrite plus haut.</string>
+    <string name="meth_protein_title">Recommandations de protéines quotidiennes</string>
+    <string name="meth_protein_body">La quantité de protéines dont vous avez besoin dépend de votre objectif, de votre poids et de votre composition corporelle. L\'application calcule une plage quotidienne en multipliant votre poids par un facteur qui dépend de votre objectif.
+
+Maintien musculaire (1,2–1,6 g/kg/jour) : suffisant pour la plupart des personnes actives. Prise de masse (1,6–2,0 g/kg/jour) : au-delà de 1,6 g/kg les bénéfices supplémentaires diminuent, mais jusqu\'à 2,0 cela couvre la variabilité individuelle. Sèche (1,6–2,2 g/kg de poids corporel) : pendant un déficit calorique, les protéines aident à préserver le muscle.
+
+La recommandation est calculée uniquement sur le poids corporel total.</string>
+    <string name="meth_tdee_title">Estimation de la dépense énergétique quotidienne (DEJ)</string>
+    <string name="meth_tdee_men">Hommes : MB = (10 × poids_kg) + (6,25 × taille_cm) − (5 × âge) + 5</string>
+    <string name="meth_tdee_women">Femmes : MB = (10 × poids_kg) + (6,25 × taille_cm) − (5 × âge) − 161</string>
+    <string name="meth_tdee_total">DEJ = MB × facteur d\'activité</string>
+    <string name="meth_tdee_body">La dépense énergétique totale est estimée en deux étapes : on calcule d\'abord le métabolisme de base (MB) avec l\'équation de Mifflin-St Jeor (1990), considérée comme la plus précise pour les non-sportifs (Frankenfield et al. 2005, 82 % de précision à ±10 %). Il est ensuite multiplié par un facteur d\'activité basé sur la fréquence des séances, leur durée et le temps de marche quotidien.
+
+Les facteurs d\'activité vont de 1,2 (sédentaire) à 1,9 (très actif). La recherche montre que l\'on a tendance à surestimer son niveau d\'activité ; les seuils sont donc calibrés de manière prudente.
+
+Sèche : DEJ − 400 kcal (plage : −500 à −300). Maintien : DEJ ± 100 kcal. Prise de masse : DEJ + 300 kcal (plage : +200 à +400).</string>
+    <string name="meth_references">Références</string>
+    <string name="data_delete_button">Supprimer toutes les données de ce téléphone</string>
+    <string name="data_delete_title">Supprimer toutes les données ?</string>
+    <string name="data_delete_body_local">Tous les repas, pesées, modèles et votre profil seront définitivement supprimés de ce téléphone. Exportez d\'abord un CSV si vous voulez une sauvegarde.</string>
+    <string name="data_delete_body_account">Seule la copie de ce téléphone est supprimée. Les données de votre compte sur le serveur ne sont pas touchées et seront de nouveau téléchargées à la prochaine synchronisation.</string>
+    <string name="data_delete_confirm">Supprimer</string>
+    <string name="data_deleted">Données supprimées de ce téléphone.</string>
+    <plurals name="ingredient_count">
+        <item quantity="one">%d ingrédient</item>
+        <item quantity="many">%d ingrédients</item>
+        <item quantity="other">%d ingrédients</item>
+    </plurals>
+    <plurals name="sync_pending">
+        <item quantity="one">%d modification en attente d\'envoi</item>
+        <item quantity="many">%d modifications en attente d\'envoi</item>
+        <item quantity="other">%d modifications en attente d\'envoi</item>
+    </plurals>
+    <plurals name="logout_unsynced">
+        <item quantity="one">Vous avez %d modification non synchronisée. Elle sera perdue si vous vous déconnectez maintenant.</item>
+        <item quantity="many">Vous avez %d modifications non synchronisées. Elles seront perdues si vous vous déconnectez maintenant.</item>
+        <item quantity="other">Vous avez %d modifications non synchronisées. Elles seront perdues si vous vous déconnectez maintenant.</item>
+    </plurals>
+    <plurals name="data_imported_meals">
+        <item quantity="one">%d repas importé</item>
+        <item quantity="many">%d repas importés</item>
+        <item quantity="other">%d repas importés</item>
+    </plurals>
+    <plurals name="data_imported_weights">
+        <item quantity="one">%d pesée importée</item>
+        <item quantity="many">%d pesées importées</item>
+        <item quantity="other">%d pesées importées</item>
+    </plurals>
+    <plurals name="data_import_skipped">
+        <item quantity="one">%d existait déjà</item>
+        <item quantity="many">%d existaient déjà</item>
+        <item quantity="other">%d existaient déjà</item>
+    </plurals>
+    <plurals name="data_import_invalid">
+        <item quantity="one">%d ligne illisible</item>
+        <item quantity="many">%d lignes illisibles</item>
+        <item quantity="other">%d lignes illisibles</item>
+    </plurals>
+    <plurals name="local_meals">
+        <item quantity="one">%d repas</item>
+        <item quantity="many">%d repas</item>
+        <item quantity="other">%d repas</item>
+    </plurals>
+    <plurals name="local_weights">
+        <item quantity="one">%d pesée</item>
+        <item quantity="many">%d pesées</item>
+        <item quantity="other">%d pesées</item>
+    </plurals>
+    <plurals name="local_templates">
+        <item quantity="one">%d modèle</item>
+        <item quantity="many">%d modèles</item>
+        <item quantity="other">%d modèles</item>
+    </plurals>
+    <plurals name="data_delete_unsynced">
+        <item quantity="one">%d modification n\'a pas encore été envoyée et sera perdue.</item>
+        <item quantity="many">%d modifications n\'ont pas encore été envoyées et seront perdues.</item>
+        <item quantity="other">%d modifications n\'ont pas encore été envoyées et seront perdues.</item>
+    </plurals>
+</resources>

@@ -68,6 +68,18 @@ export async function updateTemplate(
   return toDto(row);
 }
 
+/** Idempotent create-or-replace used by offline clients (client-generated id). */
+export async function upsertTemplate(
+  repo: MealTemplatesRepository,
+  userId: string,
+  id: string,
+  input: TemplateInput,
+) {
+  const row = await repo.upsert(userId, id, toDomainData(input));
+  if (!row) return null;
+  return toDto(row);
+}
+
 export async function deleteTemplate(
   repo: MealTemplatesRepository,
   userId: string,

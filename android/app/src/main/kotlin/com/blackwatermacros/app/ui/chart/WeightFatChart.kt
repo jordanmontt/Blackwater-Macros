@@ -1,5 +1,9 @@
 package com.blackwatermacros.app.ui.chart
 
+import com.blackwatermacros.app.R
+import androidx.compose.ui.res.stringResource
+import com.blackwatermacros.app.ui.formatDateShort
+import com.blackwatermacros.app.ui.formatNumberGrouped
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -29,8 +33,6 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import com.blackwatermacros.app.core.formatDateKeyShort
-import com.blackwatermacros.app.core.formatNumberEsGrouped
 import com.blackwatermacros.app.ui.ChartClay
 import com.blackwatermacros.app.ui.ChartForest
 import com.blackwatermacros.app.ui.ChartSage
@@ -97,6 +99,12 @@ fun WeightFatChart(
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val axisColor = MaterialTheme.colorScheme.outlineVariant
     val surfaceColor = MaterialTheme.colorScheme.surface
+    val weightLabel = stringResource(R.string.tab_weight)
+    val trendLabel = stringResource(R.string.chart_trend)
+    val fatLabel = stringResource(R.string.macro_fat)
+    val bodyFatLabel = stringResource(R.string.body_fat)
+    val weightAxis = stringResource(R.string.chart_weight_axis)
+    val fatAxis = stringResource(R.string.chart_fat_axis)
 
     val weightRows = data.mapIndexedNotNull { i, r -> r.weight?.let { i to it } }
     val pctRows = data.mapIndexedNotNull { i, r -> r.bodyFatPct?.let { i to it } }
@@ -232,14 +240,14 @@ fun WeightFatChart(
                 }
             }
             drawContext.canvas.nativeCanvas.drawText(
-                "Peso (kg)",
+                weightAxis,
                 leftAxisWidth - 4.dp.toPx(),
                 24.dp.toPx(),
                 axisTitlePaint,
             )
             if (pctRows.isNotEmpty()) {
                 drawContext.canvas.nativeCanvas.drawText(
-                    "Grasa (%)",
+                    fatAxis,
                     plotRight + 5.dp.toPx(),
                     24.dp.toPx(),
                     rightTickPaint,
@@ -268,7 +276,7 @@ fun WeightFatChart(
                 val labels = listOf(0, data.size / 2, data.size - 1).distinct().filter { it in data.indices }
                 labels.forEach { i ->
                     drawContext.canvas.nativeCanvas.drawText(
-                        formatDateKeyShort(data[i].date),
+                        formatDateShort(data[i].date),
                         xIndex(i),
                         plotHeight - 2.dp.toPx(),
                         axisPaint.apply { textAlign = android.graphics.Paint.Align.CENTER },
@@ -286,10 +294,10 @@ fun WeightFatChart(
                 )
                 val row = data[si]
                 val lines = buildList {
-                    add(formatDateKeyShort(row.date))
-                    row.weight?.let { add("Peso: ${formatNumberEsGrouped(it, 1)} kg") }
-                    row.weightTrend?.let { add("Tendencia: ${formatNumberEsGrouped(it, 1)} kg") }
-                    row.bodyFatPct?.let { add("Grasa: ${formatNumberEsGrouped(it, 1)}%") }
+                    add(formatDateShort(row.date))
+                    row.weight?.let { add("$weightLabel: ${formatNumberGrouped(it, 1)} kg") }
+                    row.weightTrend?.let { add("$trendLabel: ${formatNumberGrouped(it, 1)} kg") }
+                    row.bodyFatPct?.let { add("$fatLabel: ${formatNumberGrouped(it, 1)}%") }
                 }
                 val tooltipPaint = android.graphics.Paint().apply {
                     color = labelColor.toArgb()
@@ -327,11 +335,11 @@ fun WeightFatChart(
         Spacer(Modifier.height(4.dp))
         Box(Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
             Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center) {
-                LegendDot(Chart1, "Peso")
+                LegendDot(Chart1, weightLabel)
                 Spacer(Modifier.width(10.dp))
-                LegendDot(Chart3, "Tendencia")
+                LegendDot(Chart3, trendLabel)
                 Spacer(Modifier.width(10.dp))
-                LegendDot(Chart2, "Grasa corporal")
+                LegendDot(Chart2, bodyFatLabel)
             }
         }
     }

@@ -110,14 +110,15 @@ class ApiContractTest {
     }
 
     @Test
-    fun createMeal_perIngredientParsesResolvedTotals() = runTest {
+    fun putMeal_perIngredientParsesResolvedTotals() = runTest {
         server.enqueue(
             jsonResponse(
-                201,
+                200,
                 """{"meal":{"id":"m-1","logDate":"2026-06-15","title":"Desayuno","notes":null,"entryMode":"per_ingredient","ingredients":[],"totalCalories":null,"totalProtein":null,"totalCarbs":null,"totalFat":null,"resolvedCalories":250.0,"resolvedProtein":8.5,"resolvedCarbs":32.0,"resolvedFat":10.0,"updatedAt":"2026-06-15T08:00:00.000Z"}}""",
             ),
         )
-        val meal = api.createMeal(
+        val meal = api.putMeal(
+            "m-1",
             MealRequest(
                 logDate = "2026-06-15",
                 title = "Desayuno",
@@ -130,10 +131,11 @@ class ApiContractTest {
     }
 
     @Test
-    fun createMeal_validationErrorThrows400() = runTest {
+    fun putMeal_validationErrorThrows400() = runTest {
         server.enqueue(jsonResponse(400, """{"error":"El titulo es obligatorio"}"""))
         val e = runCatching {
-            api.createMeal(
+            api.putMeal(
+                "m-1",
                 MealRequest(logDate = "2026-06-15", title = "", entryMode = WireEntryMode.PER_INGREDIENT),
             )
         }.exceptionOrNull()
@@ -142,14 +144,14 @@ class ApiContractTest {
     }
 
     @Test
-    fun updateMeal_returnsUpdatedMeal() = runTest {
+    fun putMeal_replacesExistingMeal() = runTest {
         server.enqueue(
             jsonResponse(
                 200,
                 """{"meal":{"id":"m-1","logDate":"2026-06-15","title":"Despues","notes":null,"entryMode":"total_only","ingredients":[],"totalCalories":600.0,"totalProtein":null,"totalCarbs":null,"totalFat":null,"resolvedCalories":600.0,"resolvedProtein":0.0,"resolvedCarbs":0.0,"resolvedFat":0.0,"updatedAt":"2026-06-15T09:00:00.000Z"}}""",
             ),
         )
-        val meal = api.updateMeal(
+        val meal = api.putMeal(
             "m-1",
             MealRequest(
                 logDate = "2026-06-15",
@@ -170,27 +172,18 @@ class ApiContractTest {
         assertThat((e as HttpException).code()).isEqualTo(404)
     }
 
-    @Test
-    fun reorderMeals_returnsOkAndSendsOrderedIds() = runTest {
-        server.enqueue(jsonResponse(200, """{"ok":true}"""))
-        api.reorderMeals(ReorderRequest(listOf("m-2", "m-1")))
-        val request = server.takeRequest()
-        assertThat(request.path).isEqualTo("/api/meals/reorder")
-        val bodyObj = json.decodeFromString<ReorderRequest>(request.body.readUtf8())
-        assertThat(bodyObj.orderedIds).containsExactly("m-2", "m-1").inOrder()
-    }
-
     // --- Templates ---
 
     @Test
-    fun createTemplate_parsesTemplate() = runTest {
+    fun putTemplate_parsesTemplate() = runTest {
         server.enqueue(
             jsonResponse(
-                201,
+                200,
                 """{"template":{"id":"t-1","name":"Desayuno base","title":"Avena con leche","notes":null,"entryMode":"per_ingredient","ingredients":[{"name":"Avena","calories":150,"protein":5}],"totalCalories":null,"totalProtein":null,"totalCarbs":null,"totalFat":null,"resolvedCalories":250.0,"resolvedProtein":8.5,"resolvedCarbs":0.0,"resolvedFat":0.0,"updatedAt":"2026-06-15T08:00:00.000Z"}}""",
             ),
         )
-        val template = api.createTemplate(
+        val template = api.putTemplate(
+            "t-1",
             TemplateRequest(
                 name = "Desayuno base",
                 title = "Avena con leche",
@@ -203,10 +196,10 @@ class ApiContractTest {
     }
 
     @Test
-    fun updateTemplate_otherUsersThrows404() = runTest {
+    fun putTemplate_otherUsersThrows404() = runTest {
         server.enqueue(jsonResponse(404, """{"error":"Plantilla no encontrada"}"""))
         val e = runCatching {
-            api.updateTemplate(
+            api.putTemplate(
                 "t-otra",
                 TemplateRequest(name = "X", title = "X", entryMode = WireEntryMode.PER_INGREDIENT),
             )
@@ -218,14 +211,15 @@ class ApiContractTest {
     // --- Weights ---
 
     @Test
-    fun createWeight_withBodyFat() = runTest {
+    fun putWeight_withBodyFat() = runTest {
         server.enqueue(
             jsonResponse(
-                201,
+                200,
                 """{"weight":{"id":"w-1","measuredAt":"2026-06-15T08:00:00.000Z","weightKg":77.4,"bodyFatPct":18.5,"note":null,"updatedAt":"2026-06-15T08:00:00.000Z"}}""",
             ),
         )
-        val weight = api.createWeight(
+        val weight = api.putWeight(
+            "w-1",
             WeightRequest(measuredAt = "2026-06-15T08:00:00.000Z", weightKg = 77.4, bodyFatPct = 18.5),
         ).weight
         assertThat(weight.weightKg).isEqualTo(77.4)
@@ -233,38 +227,13 @@ class ApiContractTest {
     }
 
     @Test
-    fun createWeight_outOfRangeThrows400() = runTest {
+    fun putWeight_outOfRangeThrows400() = runTest {
         server.enqueue(jsonResponse(400, """{"error":"Peso fuera de rango"}"""))
         val e = runCatching {
-            api.createWeight(WeightRequest(measuredAt = "2026-06-15T08:00:00.000Z", weightKg = 5.0))
+            api.putWeight("w-1", WeightRequest(measuredAt = "2026-06-15T08:00:00.000Z", weightKg = 5.0))
         }.exceptionOrNull()
         assertThat(e).isInstanceOf(HttpException::class.java)
         assertThat((e as HttpException).code()).isEqualTo(400)
-    }
-
-    // --- Stats (flat, not wrapped) ---
-
-    @Test
-    fun stats_parsesFlatSummaryWithWeight() = runTest {
-        server.enqueue(
-            jsonResponse(
-                200,
-                """{"calories":[{"date":"2026-06-15","calories":500.0,"protein":25.0,"carbs":50.0,"fat":20.0}],"protein":[],"carbs":[],"fat":[],"weights":[{"date":"2026-06-15","weight":80.0,"trend":null}],"bodyFat":[],"caloriesAvg":500.0,"caloriesMaxDay":{"date":"2026-06-15","calories":500.0,"protein":25.0,"carbs":50.0,"fat":20.0},"proteinAvg":null,"proteinMaxDay":null,"carbsAvg":null,"carbsMaxDay":null,"fatAvg":null,"fatMaxDay":null,"weight":{"currentWeightKg":80.0,"currentTrendKg":null,"changeSinceStartKg":null,"ratePerWeekKg":null,"minKg":80.0,"maxKg":80.0,"currentBodyFatPct":null,"changeBodyFatPct":null,"minBodyFatPct":null,"maxBodyFatPct":null},"weeklyWeightAvg":[]}""",
-            ),
-        )
-        val stats = api.stats(range = "30d", today = "2026-06-15")
-        assertThat(stats.caloriesAvg).isEqualTo(500.0)
-        assertThat(stats.weight.currentWeightKg).isEqualTo(80.0)
-        assertThat(stats.calories).hasSize(1)
-        assertThat(stats.weight.currentBodyFatPct).isNull()
-    }
-
-    @Test
-    fun stats_unauthThrows401() = runTest {
-        server.enqueue(jsonResponse(401, """{"error":"No autenticado"}"""))
-        val e = runCatching { api.stats(range = "30d", today = "2026-06-15") }.exceptionOrNull()
-        assertThat(e).isInstanceOf(HttpException::class.java)
-        assertThat((e as HttpException).code()).isEqualTo(401)
     }
 
     // --- Settings ---
@@ -278,19 +247,60 @@ class ApiContractTest {
             ),
         )
         val settings = api.updateSettings(
-            WireCalorieProfile(
-                gender = WireGender.MALE,
-                birthYear = 1990,
-                heightCm = 178.0,
-                gymDaysPerWeek = 3,
-                gymSessionMinutes = 60,
-                walkingMinutesPerDay = 30,
-                calorieGoal = WireGoal.CUT,
+            profileBody(
+                WireCalorieProfile(
+                    gender = WireGender.MALE,
+                    birthYear = 1990,
+                    heightCm = 178.0,
+                    gymDaysPerWeek = 3,
+                    gymSessionMinutes = 60,
+                    walkingMinutesPerDay = 30,
+                    calorieGoal = WireGoal.CUT,
+                ),
             ),
         )
         assertThat(settings.calorieProfile.gender).isEqualTo(WireGender.MALE)
         assertThat(settings.calorieProfile.heightCm).isEqualTo(178.0)
         assertThat(settings.calorieProfile.calorieGoal).isEqualTo(WireGoal.CUT)
+    }
+
+    @Test
+    fun updateSettings_sendsUnsetFieldsAsExplicitNulls() = runTest {
+        // The server schema is `.nullable()` (key required), so omitting a key is a 400.
+        server.enqueue(jsonResponse(200, """{"calorieProfile":{}}"""))
+        api.updateSettings(profileBody(WireCalorieProfile(calorieGoal = WireGoal.MAINTAIN)))
+        val body = server.takeRequest().body.readUtf8()
+        assertThat(body).contains("\"gender\":null")
+        assertThat(body).contains("\"walkingMinutesPerDay\":null")
+        assertThat(body).contains("\"calorieGoal\":\"maintain\"")
+    }
+
+    // --- Offline sync upserts ---
+
+    @Test
+    fun putMeal_sendsPhoneIdAndSortOrder() = runTest {
+        server.enqueue(
+            jsonResponse(
+                200,
+                """{"meal":{"id":"5b0f7a52-9d0a-4f5e-8a57-3f1c2b6f0a11","logDate":"2026-06-15","title":"Desayuno","notes":null,"entryMode":"total_only","ingredients":[],"totalCalories":400,"totalProtein":20,"totalCarbs":null,"totalFat":null,"resolvedCalories":400,"resolvedProtein":20,"resolvedCarbs":0,"resolvedFat":0,"sortOrder":2,"updatedAt":"2026-06-15T08:00:00.000Z"}}""",
+            ),
+        )
+        val meal = api.putMeal(
+            "5b0f7a52-9d0a-4f5e-8a57-3f1c2b6f0a11",
+            MealRequest(
+                logDate = "2026-06-15",
+                title = "Desayuno",
+                entryMode = WireEntryMode.TOTAL_ONLY,
+                totalCalories = 400.0,
+                totalProtein = 20.0,
+                sortOrder = 2,
+            ),
+        ).meal
+        val request = server.takeRequest()
+        assertThat(request.method).isEqualTo("PUT")
+        assertThat(request.path).isEqualTo("/api/meals/5b0f7a52-9d0a-4f5e-8a57-3f1c2b6f0a11")
+        assertThat(request.body.readUtf8()).contains("\"sortOrder\":2")
+        assertThat(meal.sortOrder).isEqualTo(2)
     }
 
     // --- Admin ---

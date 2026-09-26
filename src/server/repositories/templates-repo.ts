@@ -24,6 +24,8 @@ export interface MealTemplatesRepository {
   create(userId: string, data: NewTemplateData): Promise<MealTemplateRow>;
   update(userId: string, id: string, data: NewTemplateData): Promise<MealTemplateRow | null>;
   delete(userId: string, id: string): Promise<boolean>;
+  /** Create-or-replace with a client-generated id (offline sync); null if the id belongs to another user. */
+  upsert(userId: string, id: string, data: NewTemplateData): Promise<MealTemplateRow | null>;
 }
 
 export function createMealTemplatesRepository(db: AppDb): MealTemplatesRepository {
@@ -64,6 +66,20 @@ export function createMealTemplatesRepository(db: AppDb): MealTemplatesRepositor
         .where(and(eq(mealTemplates.userId, userId), eq(mealTemplates.id, id)))
         .returning({ id: mealTemplates.id });
       return rows.length > 0;
+    },
+    async upsert(userId, id, data) {
+      const updated = await db
+        .update(mealTemplates)
+        .set({ ...data, updatedAt: sql`now()` })
+        .where(and(eq(mealTemplates.userId, userId), eq(mealTemplates.id, id)))
+        .returning();
+      if (updated[0]) return updated[0];
+      const inserted = await db
+        .insert(mealTemplates)
+        .values({ ...data, id, userId })
+        .onConflictDoNothing({ target: mealTemplates.id })
+        .returning();
+      return inserted[0] ?? null;
     },
   };
 }

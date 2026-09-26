@@ -165,6 +165,22 @@ Body is the same `MealInput` as create (full replace). Success `200`:
 ```
 Errors: `404` if the meal does not belong to the caller: `{ "error": "Comida no encontrada" }`.
 
+### Create or replace meal (offline sync)
+
+`PUT /api/meals/:id` — auth required. Used by the Android app, which creates
+ids on the phone (UUID) so records logged offline can be uploaded later.
+
+Body is `MealInput` plus an optional `sortOrder` (integer ≥ 0, position within
+the day). Creates the meal with that id, or replaces it if it already exists.
+**Idempotent**: sending the same request twice leaves exactly one meal. Without
+`sortOrder` a new meal goes last in its day and an existing one keeps its
+position. Success `200`:
+```json
+{ "meal": MealDTO }
+```
+Errors: `400` if `:id` is not a UUID or the body is invalid; `404` if the id
+belongs to another user (`{ "error": "Comida no encontrada" }`).
+
 ### Delete meal
 
 `DELETE /api/meals/:id` — auth required. Success `200`:
@@ -239,6 +255,12 @@ Body is like `MealInput` plus required `name` (max 120). Success `201`:
 ```
 `404` if not owned: `{ "error": "Plantilla no encontrada" }`.
 
+### Create or replace template (offline sync)
+
+`PUT /api/templates/:id` — auth required. Same semantics as `PUT /api/meals/:id`
+(UUID id, idempotent create-or-replace, `404` if owned by another user). Body
+is `TemplateInput`. Success `200`: `{ "template": MealTemplateDTO }`.
+
 ### Delete template
 
 `DELETE /api/templates/:id` — auth required. Success `200`: `{ "ok": true }`.
@@ -298,6 +320,12 @@ Success `201`:
 { "weight": WeightDTO }
 ```
 `404` if not owned: `{ "error": "Registro no encontrado" }`.
+
+### Create or replace weight (offline sync)
+
+`PUT /api/weights/:id` — auth required. Same semantics as `PUT /api/meals/:id`
+(UUID id, idempotent create-or-replace, `404` if owned by another user). Body
+is `WeightInput`. Success `200`: `{ "weight": WeightDTO }`.
 
 ### Delete weight
 
@@ -419,19 +447,25 @@ At least one must be present. Success `200`: `{ "user": AdminUserDTO }`.
 
 ## Android Integration Notes
 
-1. **Auth token:** obtain via `login`, store securely (e.g. EncryptedSharedPreferences),
-   send as `Authorization: Bearer <token>` on every request.
-2. **401 handling:** if any request returns 401, the token is expired/invalid — prompt
-   the user to log in again.
-3. **Offline-first:** the Android app stores a local copy (Room/SQLite). When online,
-   show local data and sync in the background via these endpoints. Use last-write-wins
-   on conflicts.
-4. **Sync protocol (`updatedAt`):** every mutable record — meals, templates and
-   weights — exposes an `updatedAt` ISO-8601 UTC string. The server sets it on creation
-   and refreshes it on every update. For last-write-wins, the client compares its local
-   `updatedAt` against the server's: whichever is later wins. This is the single
-   authoritative clock for sync; do not derive it from `measuredAt`/`logDate`.
-5. **Numbers:** always `.` in JSON; format for display with `,` using
-   `java.text.NumberFormat` with `Locale("es", "ES")`.
-6. **Timezones:** `logDate` days are the user's local calendar day. Sync should send
-   the Android device's own `today` day to `/api/stats` so ranges match the user's view.
+The Android app is **local-first**: every screen reads and writes an on-device
+Room database; the network is never in the UI path. Without an account the app
+is fully usable and never calls the API. With an account, a background sync
+mirrors the database with the server:
+
+1. **Auth token:** obtained via `login`, stored in the app's private
+   SharedPreferences, sent as `Authorization: Bearer <token>`.
+2. **401 handling:** the account is marked *session expired*; local data and
+   pending changes are kept and sync pauses until the user logs in again.
+3. **Push:** every locally changed record is sent with `PUT /api/<kind>/:id`
+   (phone-generated UUID, idempotent — safe to retry after a dropped
+   connection) or `DELETE` (a `404` counts as done). The calorie profile goes
+   through `PUT /api/settings` with **every key present** (unset = `null`).
+4. **Pull:** full lists (`GET /api/meals`, `/api/templates`, `/api/weights`,
+   `/api/auth/session`) replace every local row that has no pending change;
+   rows missing on the server are removed (so deletions on the web propagate).
+5. **Conflicts:** last to sync wins, per record. `updatedAt` is stored but not
+   compared.
+6. **Numbers:** always `.` in JSON; the UI formats them in the app language.
+7. **Timezones:** `logDate` days are the user's local calendar day; statistics
+   are computed on the phone with the `:core` port of the stats builder, so
+   `/api/stats` is not used by Android.

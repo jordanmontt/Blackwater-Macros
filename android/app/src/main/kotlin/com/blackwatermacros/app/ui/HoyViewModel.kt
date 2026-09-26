@@ -2,174 +2,89 @@ package com.blackwatermacros.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.blackwatermacros.app.BuildConfig
+import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.core.addDaysToKey
-import com.blackwatermacros.app.core.formatDateKeyLong
 import com.blackwatermacros.app.core.todayKey
-import com.blackwatermacros.app.data.ApiClient
+import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.MealRequest
-import com.blackwatermacros.app.data.ReorderRequest
-import com.blackwatermacros.app.data.ResponseErrorMapper
 import com.blackwatermacros.app.data.TemplateDTO
 import com.blackwatermacros.app.data.WireEntryMode
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 sealed interface HoyUiState {
     data object Loading : HoyUiState
     data class Loaded(val meals: List<MealDTO>) : HoyUiState
-    data class Error(val message: String) : HoyUiState
 }
 
 /**
- * Drives the "Comidas/Hoy" screen: holds the selected calendar day and loads
- * that day's meals from `GET /api/meals?from&to`. Mirrors the web `today`
- * page: create/edit/delete meals (`POST`/`PATCH`/`DELETE /api/meals`),
- * drag reorder (`PATCH /api/meals/reorder`), apply templates
- * (`POST /api/meals` from a template), and surface the saved meal templates.
+ * Drives the "Comidas/Hoy" screen from the local database: the selected day's
+ * meals and the saved templates update live, with no network in the way.
  */
-class HoyViewModel : ViewModel() {
+@OptIn(ExperimentalCoroutinesApi::class)
+class HoyViewModel(
+    private val repository: AppRepository = AppGraph.repository,
+) : ViewModel() {
 
     private val _day = MutableStateFlow(todayKey())
     val day: StateFlow<String> = _day.asStateFlow()
 
-    private val _state = MutableStateFlow<HoyUiState>(HoyUiState.Loading)
-    val state: StateFlow<HoyUiState> = _state.asStateFlow()
+    val state: StateFlow<HoyUiState> = _day
+        .flatMapLatest { repository.mealsForDay(it) }
+        .map<List<MealDTO>, HoyUiState> { HoyUiState.Loaded(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HoyUiState.Loading)
 
-    private val _templates = MutableStateFlow<List<TemplateDTO>>(emptyList())
-    val templates: StateFlow<List<TemplateDTO>> = _templates.asStateFlow()
+    val templates: StateFlow<List<TemplateDTO>> = repository.templates()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    private val api = ApiClient.create(
-        baseUrl = ensureTrailingSlash(BuildConfig.API_BASE_URL),
-        tokenProvider = com.blackwatermacros.app.data.SessionManager::tokenProvider,
-    )
+    private var reorderJob: Job? = null
 
-    init {
-        load()
-        loadTemplates()
-    }
-
-    /** ISO date caption for the day navigator, e.g. "martes, 2 de septiembre". */
-    fun dayCaption(): String = formatDateKeyLong(_day.value)
+    /** Caption for the day navigator, e.g. "Tuesday, September 2". */
+    fun dayCaption(): String = formatDateLong(_day.value)
 
     fun prevDay() = shiftDay(-1)
 
     fun nextDay() = shiftDay(1)
 
     fun goToday() {
-        if (_day.value == todayKey()) return
         _day.value = todayKey()
-        load()
-    }
-
-    fun refresh() {
-        load()
-        loadTemplates()
     }
 
     private fun shiftDay(delta: Int) {
         _day.value = addDaysToKey(_day.value, delta)
-        load()
     }
 
-    fun load() {
-        _state.value = HoyUiState.Loading
-        val day = _day.value
-        viewModelScope.launch {
-            try {
-                val res = api.listMeals(from = day, to = day)
-                _state.value = HoyUiState.Loaded(res.meals)
-            } catch (t: Throwable) {
-                _state.value = HoyUiState.Error(ResponseErrorMapper.messageFrom(t))
-            }
-        }
-    }
-
-    private fun loadTemplates() {
-        viewModelScope.launch {
-            try {
-                _templates.value = api.listTemplates().templates
-            } catch (_: Throwable) {
-                // Templates row hides gracefully if the fetch fails (web keeps []).
-                _templates.value = emptyList()
-            }
-        }
-    }
-
-    /** Optimistically reorders the visible list and persists via the reorder endpoint. */
+    /** Persists a drag reorder; debounced because the list reports every step of the drag. */
     fun reorder(meals: List<MealDTO>) {
         val ids = meals.map { it.id }
-        _state.value = HoyUiState.Loaded(meals)
-        viewModelScope.launch {
-            try {
-                api.reorderMeals(ReorderRequest(orderedIds = ids))
-            } catch (_: Throwable) {
-                load()
-            }
+        reorderJob?.cancel()
+        reorderJob = viewModelScope.launch {
+            delay(300)
+            repository.reorderMeals(ids)
         }
     }
 
-    fun createMeal(request: MealRequest, onDone: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            try {
-                val created = api.createMeal(request).meal
-                _state.value = _state.value.let { current ->
-                    if (current is HoyUiState.Loaded) {
-                        HoyUiState.Loaded(current.meals + created)
-                    } else {
-                        current
-                    }
-                }
-                onDone(true)
-            } catch (t: Throwable) {
-                onDone(false)
-            }
-        }
+    /** Creates ([mealId] null) or replaces a meal. */
+    fun saveMeal(mealId: String?, request: MealRequest) {
+        viewModelScope.launch { repository.saveMeal(mealId, request) }
     }
 
-    fun updateMeal(mealId: String, request: MealRequest, onDone: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            try {
-                val updated = api.updateMeal(mealId, request).meal
-                _state.value = _state.value.let { current ->
-                    if (current is HoyUiState.Loaded) {
-                        HoyUiState.Loaded(
-                            current.meals.map { if (it.id == mealId) updated else it },
-                        )
-                    } else {
-                        current
-                    }
-                }
-                onDone(true)
-            } catch (t: Throwable) {
-                onDone(false)
-            }
-        }
-    }
-
-    fun deleteMeal(mealId: String, onDone: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            try {
-                api.deleteMeal(mealId)
-                _state.value = _state.value.let { current ->
-                    if (current is HoyUiState.Loaded) {
-                        HoyUiState.Loaded(current.meals.filter { it.id != mealId })
-                    } else {
-                        current
-                    }
-                }
-                onDone(true)
-            } catch (_: Throwable) {
-                onDone(false)
-            }
-        }
+    fun deleteMeal(mealId: String) {
+        viewModelScope.launch { repository.deleteMeal(mealId) }
     }
 
     /** Applies a saved template as a new meal on the current day (web `applyTemplate`). */
-    fun applyTemplate(template: TemplateDTO, onResult: (ApplyTemplateResult) -> Unit) {
+    fun applyTemplate(template: TemplateDTO) {
         val request = MealRequest(
             logDate = _day.value,
             title = template.title,
@@ -181,31 +96,9 @@ class HoyViewModel : ViewModel() {
             totalCarbs = totalIfOnly(template.entryMode, template.totalCarbs),
             totalFat = totalIfOnly(template.entryMode, template.totalFat),
         )
-        viewModelScope.launch {
-            try {
-                val created = api.createMeal(request).meal
-                _state.value = _state.value.let { current ->
-                    if (current is HoyUiState.Loaded) {
-                        HoyUiState.Loaded(current.meals + created)
-                    } else {
-                        current
-                    }
-                }
-                onResult(ApplyTemplateResult.Applied(template))
-            } catch (t: Throwable) {
-                onResult(ApplyTemplateResult.Failed(ResponseErrorMapper.messageFrom(t)))
-            }
-        }
+        viewModelScope.launch { repository.saveMeal(null, request) }
     }
 
     private fun totalIfOnly(entryMode: WireEntryMode, value: Double?): Double? =
         if (entryMode == WireEntryMode.TOTAL_ONLY) value else null
-
-    private fun ensureTrailingSlash(base: String): String =
-        if (base.endsWith("/")) base else "$base/"
-}
-
-sealed interface ApplyTemplateResult {
-    data class Applied(val template: TemplateDTO) : ApplyTemplateResult
-    data class Failed(val message: String) : ApplyTemplateResult
 }

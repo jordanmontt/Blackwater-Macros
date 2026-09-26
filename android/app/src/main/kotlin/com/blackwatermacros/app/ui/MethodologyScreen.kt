@@ -2,7 +2,6 @@ package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,10 +19,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.blackwatermacros.app.R
 
 @Composable
 fun MethodologyScreen(onBack: () -> Unit) {
@@ -31,12 +32,12 @@ fun MethodologyScreen(onBack: () -> Unit) {
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenteredTopAppBar(
-                title = "Metodología",
+                title = stringResource(R.string.methodology),
                 leading = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.action_back),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -57,50 +58,32 @@ fun MethodologyScreen(onBack: () -> Unit) {
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "Cómo se calculan cada una de las métricas que aparecen en Estadísticas, con las fórmulas exactas y las referencias en las que se basan.",
+                stringResource(R.string.meth_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            MethodCard(R.string.meth_scale_title, R.string.meth_scale_body)
             MethodCard(
-                title = "Peso en báscula vs tendencia",
-                body = "El «peso actual» es tu última entrada registrada. La «tendencia actual» es el valor más reciente de la media móvil de 7 días. El «cambio total» compara la primera y la última entrada del rango seleccionado. El «mínimo» y el «máximo» son los valores extremos de tus entradas dentro del rango.",
+                R.string.meth_ma_title,
+                R.string.meth_ma_body,
+                formula = listOf("MA(d) = (w₁ + w₂ + … + wₙ) / n", stringResource(R.string.meth_ma_window)),
             )
             MethodCard(
-                title = "Media móvil de 7 días (tendencia)",
+                R.string.meth_rate_title,
+                R.string.meth_rate_body,
+                formula = listOf("β = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)²", stringResource(R.string.meth_rate_formula)),
+            )
+            MethodCard(R.string.meth_weekly_title, R.string.meth_weekly_body)
+            MethodCard(R.string.meth_daily_title, R.string.meth_daily_body)
+            MethodCard(R.string.meth_protein_title, R.string.meth_protein_body)
+            MethodCard(
+                R.string.meth_tdee_title,
+                R.string.meth_tdee_body,
                 formula = listOf(
-                    "MA(d) = (w₁ + w₂ + … + wₙ) / n",
-                    "W(d) = { entradas con fecha en [d − 6, d] }",
+                    stringResource(R.string.meth_tdee_men),
+                    stringResource(R.string.meth_tdee_women),
+                    stringResource(R.string.meth_tdee_total),
                 ),
-                body = "Se promedian todas tus entradas cuya fecha cae dentro de la ventana de 7 días que termina en d. Los días sin registro no cuentan ni se rellenan con ceros: si solo pesaste 3 veces esa semana, la media es de esas 3 entradas. Esto atenúa el ruido diario (agua, sal, contenido intestinal) manteniendo la señal real de grasa, que cambia despacio. Es la práctica habitual recomendada en la literatura de auto-pesaje y la base del concepto de «peso de tendencia» popularizado por The Hacker's Diet.",
-            )
-            MethodCard(
-                title = "Ritmo semanal (kg/semana)",
-                formula = listOf(
-                    "β = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)²",
-                    "ritmo = β × 7 [kg/semana]",
-                ),
-                body = "x son los días transcurridos desde la primera entrada del rango e y el peso registrado. La pendiente β se multiplica por 7 para expresarla por semana. La regresión usa tus entradas crudas del rango visible: captura mejor la dirección a largo plazo que comparar solo dos puntos concretos.",
-            )
-            MethodCard(
-                title = "Media semanal del peso",
-                body = "Las semanas empiezan el lunes. Se hace la media aritmética de todas las entradas de cada semana; las semanas sin ninguna entrada no aparecen.",
-            )
-            MethodCard(
-                title = "Calorías, proteína, carbohidratos y grasa diarios",
-                body = "El total de cada día es la suma de tus comidas de ese día (las calorías, proteína, carbohidratos y grasa se calculan al guardar, ya sea sumando ingredientes o tomando tu total manual). Los días sin comidas cuentan como 0: así los huecos reflejan honestamente la adherencia en lugar de desaparecer. La «media» es la media aritmética del rango, el «día pico» el valor máximo, y la línea de tendencia aplica exactamente la misma media móvil de 7 días descrita arriba.",
-            )
-            MethodCard(
-                title = "Recomendaciones de proteína diaria",
-                body = "La cantidad de proteína que necesitas depende de tu objetivo, tu peso y tu composición corporal. La app calcula un rango diario multiplicando tu peso por un factor según tu objetivo.\n\nMantener músculo (1.2–1.6 g/kg/día): suficiente para la mayoría de personas activas. Volumen (1.6–2.0 g/kg/día): por encima de 1.6 g/kg los beneficios adicionales empiezan a disminuir, pero hasta 2.0 cubre la variabilidad individual. Definición (1.6–2.2 g/kg de peso corporal): durante un déficit calórico la proteína ayuda a preservar músculo.\n\nLa recomendación se calcula exclusivamente sobre el peso corporal total.",
-            )
-            MethodCard(
-                title = "Estimación del gasto calórico diario (TDEE)",
-                formula = listOf(
-                    "Hombres: TMB = (10 × peso_kg) + (6.25 × altura_cm) - (5 × edad) + 5",
-                    "Mujeres: TMB = (10 × peso_kg) + (6.25 × altura_cm) - (5 × edad) - 161",
-                    "TDEE = TMB × factor de actividad",
-                ),
-                body = "El gasto calórico total se estima en dos pasos: primero se calcula el metabolismo basal (TMB) con la ecuación de Mifflin-St Jeor (1990), considerada la más precisa para personas no deportistas (Frankenfield et al. 2005, 82% de precisión dentro de ±10%). Luego se multiplica por un factor de actividad basado en la frecuencia del gimnasio, la duración de las sesiones y el tiempo de caminata diario.\n\nLos factores de actividad van de 1.2 (sedentario) a 1.9 (muy activo). La investigación muestra que la gente tiende a sobreestimar su nivel de actividad, por lo que los umbrales se calibran de forma conservadora.\n\nDefinición: TDEE − 400 kcal (rango: −500 a −300). Mantenimiento: TDEE ± 100 kcal. Volumen: TDEE + 300 kcal (rango: +200 a +400).",
             )
             ReferencesCard()
             Spacer(Modifier.height(24.dp))
@@ -111,10 +94,12 @@ fun MethodologyScreen(onBack: () -> Unit) {
 
 @Composable
 private fun MethodCard(
-    title: String,
-    body: String? = null,
+    @StringRes titleRes: Int,
+    @StringRes bodyRes: Int,
     formula: List<String>? = null,
 ) {
+    val title = stringResource(titleRes)
+    val body: String? = stringResource(bodyRes)
     AppCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -163,12 +148,12 @@ private fun ReferencesCard() {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text("Referencias", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.meth_references), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
             val refs = listOf(
                 "Zheng Y, Burke LE, Danford CA, Ewing LJ, Terry MA, Sereika SM. «Self-weighing in weight management: a systematic literature review». Obesity Reviews. 2015;16(2):124–139.",
-                "Walker J. The Hacker's Diet: How to lose weight and hair through stress and poor nutrition. 3.ª ed. 2005. Disponible en línea (fourmilab.ch).",
-                "Montgomery DC, Peck EA, Vining GG. Introduction to Linear Regression Analysis. 6.ª ed. Hoboken (NJ): Wiley; 2021.",
+                "Walker J. The Hacker's Diet: How to lose weight and hair through stress and poor nutrition. 3rd ed. 2005. Available online (fourmilab.ch).",
+                "Montgomery DC, Peck EA, Vining GG. Introduction to Linear Regression Analysis. 6th ed. Hoboken (NJ): Wiley; 2021.",
                 "Morton RW et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength. Br J Sports Med. 2018;52:376–384.",
                 "Nunes EA et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. J Cachexia Sarcopenia Muscle. 2022;13:795–810.",
                 "Kokura Y et al. Protein supplementation for improving skeletal muscle mass and function in community-dwelling older adults: a systematic review. Clin Nutr ESPEN. 2024.",

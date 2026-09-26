@@ -47,12 +47,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.blackwatermacros.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.blackwatermacros.app.core.formatDateKeyLong
-import com.blackwatermacros.app.core.formatNumberEs
 import com.blackwatermacros.app.data.WeightDTO
-import com.blackwatermacros.app.data.WeightRequest
 import com.blackwatermacros.app.ui.chart.WeightFatChart
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,8 +64,6 @@ fun PesoScreen(
     var formWeight by remember { mutableStateOf<WeightDTO?>(null) }
     var formOpen by remember { mutableStateOf(false) }
     var deletingWeight by remember { mutableStateOf<WeightDTO?>(null) }
-    var saving by remember { mutableStateOf(false) }
-    var formError by remember { mutableStateOf<String?>(null) }
 
     val loaded = state as? PesoUiState.Loaded
 
@@ -75,19 +72,18 @@ fun PesoScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            CenteredTopAppBar(title = "Peso")
+            CenteredTopAppBar(title = stringResource(R.string.tab_weight))
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
                     formWeight = null
-                    formError = null
                     formOpen = true
                 },
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary,
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Registrar peso")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.weight_add))
             }
         },
     ) { innerPadding ->
@@ -100,26 +96,14 @@ fun PesoScreen(
                 PesoUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-                is PesoUiState.Error -> Box(
-                    Modifier.fillMaxSize().padding(24.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        (state as PesoUiState.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-is PesoUiState.Loaded -> PesoContent(
+                is PesoUiState.Loaded -> PesoContent(
                     summary = (state as PesoUiState.Loaded).summary,
                     onOpenCreate = {
                         formWeight = null
-                        formError = null
                         formOpen = true
                     },
                     onEdit = { w ->
                         formWeight = w
-                        formError = null
                         formOpen = true
                     },
                     onDelete = { deletingWeight = it },
@@ -131,26 +115,10 @@ is PesoUiState.Loaded -> PesoContent(
     if (formOpen && loaded != null) {
         WeightFormDialog(
             weight = formWeight,
-            saving = saving,
-            error = formError,
             onDismiss = { formOpen = false },
-            onSubmit = { weightKg, measuredAt, bodyFatPct, note ->
-                saving = true
-                formError = null
-                val request = WeightRequest(
-                    measuredAt = measuredAt,
-                    weightKg = weightKg,
-                    bodyFatPct = bodyFatPct,
-                    note = note,
-                )
-                val id = formWeight?.id
-                val done: (Boolean) -> Unit = { ok ->
-                    saving = false
-                    if (ok) formOpen = false
-                    else formError = "Algo salió mal. Inténtalo de nuevo."
-                }
-                if (id == null) viewModel.createWeight(request, done)
-                else viewModel.updateWeight(id, request, done)
+            onSubmit = { request ->
+                viewModel.saveWeight(formWeight?.id, request)
+                formOpen = false
             },
         )
     }
@@ -158,19 +126,20 @@ is PesoUiState.Loaded -> PesoContent(
     deletingWeight?.let { w ->
         AlertDialog(
             onDismissRequest = { deletingWeight = null },
-            title = { Text("¿Eliminar registro?") },
-            text = { Text("Este registro de peso se borrará permanentemente.") },
+            title = { Text(stringResource(R.string.weight_delete_title)) },
+            text = { Text(stringResource(R.string.weight_delete_body)) },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deleteWeight(w.id) { ok -> if (ok) deletingWeight = null }
+                        viewModel.deleteWeight(w.id)
+                        deletingWeight = null
                     },
                 ) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { deletingWeight = null }) { Text("Cancelar") }
+                TextButton(onClick = { deletingWeight = null }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -205,7 +174,7 @@ private fun PesoContent(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    "Todavía no has registrado ningún peso.",
+                    stringResource(R.string.weight_empty),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
@@ -231,21 +200,21 @@ private fun SummaryCard(summary: PesoSummary) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
-                "Peso actual",
+                stringResource(R.string.weight_current),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(2.dp))
             Text(
-                summary.currentWeightKg?.let { "${formatNumberEs(it, 1)} kg" } ?: "—",
+                summary.currentWeightKg?.let { "${formatNumber(it, 1)} kg" } ?: "—",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniStatCell("Cambio de peso (7 días)", summary.changeWeight7d, "kg", Modifier.weight(1f))
-                MiniStatCell("Grasa actual", summary.currentBodyFatPct, "%", Modifier.weight(1f))
-                MiniStatCell("Cambio de grasa (7 días)", summary.changeFat7d, "%", Modifier.weight(1f))
+                MiniStatCell(stringResource(R.string.weight_change_7d), summary.changeWeight7d, "kg", Modifier.weight(1f))
+                MiniStatCell(stringResource(R.string.body_fat_current), summary.currentBodyFatPct, "%", Modifier.weight(1f))
+                MiniStatCell(stringResource(R.string.body_fat_change_7d), summary.changeFat7d, "%", Modifier.weight(1f))
             }
         }
     }
@@ -277,7 +246,7 @@ private fun MiniStatCell(label: String, value: Double?, unit: String, modifier: 
                 Text(
                     buildString {
                         if (value > 0) append("+")
-                        append(formatNumberEs(value, 1))
+                        append(formatNumber(value, 1))
                     },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
@@ -311,7 +280,7 @@ private fun ChartCard(summary: PesoSummary) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
-                "Evolución del peso y grasa corporal",
+                stringResource(R.string.stats_weight_fat_chart),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -334,7 +303,7 @@ private fun HistoryList(
     ) {
         grouped.forEach { (dayKey, entries) ->
             Text(
-                formatDateKeyLong(dayKey),
+                formatDateLong(dayKey),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 16.dp, bottom = 6.dp),
@@ -376,7 +345,7 @@ private fun WeightRow(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     buildString {
-                        append(formatNumberEs(entry.weightKg, 1))
+                        append(formatNumber(entry.weightKg, 1))
                         append(" kg")
                     },
                     style = MaterialTheme.typography.bodyLarge,
@@ -384,7 +353,7 @@ private fun WeightRow(
                 )
                 entry.bodyFatPct?.let {
                     Text(
-                        " · ${formatNumberEs(it, 1)}% grasa",
+                        " · " + stringResource(R.string.body_fat_value, formatNumber(it, 1)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -394,7 +363,7 @@ private fun WeightRow(
             IconButton(onClick = { onEdit(entry) }) {
                 Icon(
                     Icons.Filled.Edit,
-                    contentDescription = "Editar",
+                    contentDescription = stringResource(R.string.action_edit),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp),
                 )
@@ -402,7 +371,7 @@ private fun WeightRow(
             IconButton(onClick = { onDelete(entry) }) {
                 Icon(
                     Icons.Filled.Delete,
-                    contentDescription = "Eliminar",
+                    contentDescription = stringResource(R.string.action_delete),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp),
                 )

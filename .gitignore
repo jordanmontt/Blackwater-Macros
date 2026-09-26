@@ -48,3 +48,7 @@ yarn-error.log*
 /android/*.iml
 /android/captures/
 next-env.d.ts
+
+# JVM crash dumps
+hs_err_pid*.log
+replay_pid*.log

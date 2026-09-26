@@ -15,6 +15,8 @@ export interface WeightsRepository {
   create(userId: string, data: NewWeightData): Promise<WeightRow>;
   update(userId: string, id: string, data: NewWeightData): Promise<WeightRow | null>;
   delete(userId: string, id: string): Promise<boolean>;
+  /** Create-or-replace with a client-generated id (offline sync); null if the id belongs to another user. */
+  upsert(userId: string, id: string, data: NewWeightData): Promise<WeightRow | null>;
 }
 
 export function createWeightsRepository(db: AppDb): WeightsRepository {
@@ -55,6 +57,20 @@ export function createWeightsRepository(db: AppDb): WeightsRepository {
         .where(and(eq(weights.userId, userId), eq(weights.id, id)))
         .returning({ id: weights.id });
       return rows.length > 0;
+    },
+    async upsert(userId, id, data) {
+      const updated = await db
+        .update(weights)
+        .set({ ...data, updatedAt: sql`now()` })
+        .where(and(eq(weights.userId, userId), eq(weights.id, id)))
+        .returning();
+      if (updated[0]) return updated[0];
+      const inserted = await db
+        .insert(weights)
+        .values({ ...data, id, userId })
+        .onConflictDoNothing({ target: weights.id })
+        .returning();
+      return inserted[0] ?? null;
     },
   };
 }

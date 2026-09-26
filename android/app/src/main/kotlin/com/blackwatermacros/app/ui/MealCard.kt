@@ -1,5 +1,8 @@
 package com.blackwatermacros.app.ui
 
+import androidx.compose.ui.res.pluralStringResource
+import com.blackwatermacros.app.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,7 +30,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.blackwatermacros.app.core.formatNumberEs
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.WireEntryMode
 import sh.calvin.reorderable.ReorderableCollectionItemScope
@@ -57,7 +59,7 @@ fun MealCard(
                 ) {
                     Icon(
                         Icons.Filled.DragHandle,
-                        contentDescription = "Reordenar comida",
+                        contentDescription = stringResource(R.string.meal_reorder),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp),
                     )
@@ -71,9 +73,9 @@ fun MealCard(
                     Spacer(Modifier.height(1.dp))
                     Text(
                         text = if (meal.entryMode == WireEntryMode.TOTAL_ONLY) {
-                            "Total manual"
+                            stringResource(R.string.meal_manual_total)
                         } else {
-                            "${meal.ingredients.size} ingredientes"
+                            pluralStringResource(R.plurals.ingredient_count, meal.ingredients.size, meal.ingredients.size)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -83,7 +85,7 @@ fun MealCard(
                     IconButton(onClick = onEdit) {
                         Icon(
                             Icons.Filled.Edit,
-                            contentDescription = "Editar",
+                            contentDescription = stringResource(R.string.action_edit),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp),
                         )
@@ -91,7 +93,7 @@ fun MealCard(
                     IconButton(onClick = onDelete) {
                         Icon(
                             Icons.Filled.Delete,
-                            contentDescription = "Eliminar",
+                            contentDescription = stringResource(R.string.action_delete),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp),
                         )
@@ -131,7 +133,7 @@ fun MealCard(
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Text(
-                                text = ingredient.calories?.let { "${formatNumberEs(it)} kcal" } ?: "",
+                                text = ingredient.calories?.let { "${formatNumber(it)} kcal" } ?: "",
                                 modifier = Modifier
                                     .width(64.dp)
                                     .padding(start = 6.dp),
@@ -142,7 +144,7 @@ fun MealCard(
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Text(
-                                text = ingredient.protein?.let { "${formatNumberEs(it)} g proteína" } ?: "",
+                                text = ingredient.protein?.let { "${formatNumber(it, 1)} ${stringResource(R.string.macro_g_protein)}" } ?: "",
                                 modifier = Modifier
                                     .width(84.dp)
                                     .padding(start = 6.dp),
@@ -178,23 +180,23 @@ fun MealCard(
 
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 MacroBadge(
-                    text = "${formatNumberEs(meal.resolvedCalories)} kcal",
+                    text = "${formatNumber(meal.resolvedCalories)} kcal",
                     filled = true,
                     modifier = Modifier.weight(1f),
                 )
                 MacroBadge(
-                    text = "${formatNumberEs(meal.resolvedProtein, 1)} g · Proteína",
+                    text = "${formatNumber(meal.resolvedProtein, 1)} g · ${stringResource(R.string.macro_protein)}",
                     modifier = Modifier.weight(1f),
                 )
             }
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 MacroBadge(
-                    text = "${formatNumberEs(meal.resolvedCarbs, 1)} g · Carbohidratos",
+                    text = "${formatNumber(meal.resolvedCarbs, 1)} g · ${stringResource(R.string.macro_carbs)}",
                     modifier = Modifier.weight(1f),
                 )
                 MacroBadge(
-                    text = "${formatNumberEs(meal.resolvedFat, 1)} g · Grasa",
+                    text = "${formatNumber(meal.resolvedFat, 1)} g · ${stringResource(R.string.macro_fat)}",
                     modifier = Modifier.weight(1f),
                 )
             }

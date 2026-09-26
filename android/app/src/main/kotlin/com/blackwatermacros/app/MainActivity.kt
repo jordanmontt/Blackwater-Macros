@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.blackwatermacros.app.data.ThemeMode
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
@@ -13,19 +15,14 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.blackwatermacros.app.ui.AdminScreen
 import com.blackwatermacros.app.ui.AppTab
 import com.blackwatermacros.app.ui.BlackwaterShapes
@@ -109,6 +106,12 @@ class MainActivity : ComponentActivity() {
             AppRoot()
         }
     }
+
+    /** Every time the app comes to the foreground, catch up with the server (if connected). */
+    override fun onStart() {
+        super.onStart()
+        if (AppGraph.account.current != null) AppGraph.scheduler.requestSync()
+    }
 }
 
 private val AllTabRoutes = setOf(
@@ -123,8 +126,12 @@ private fun AppRoot() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val systemDark = isSystemInDarkTheme()
-    var darkTheme by remember { mutableStateOf(systemDark) }
+    val themeMode by AppGraph.preferences.theme.collectAsStateWithLifecycle()
+    val darkTheme = when (themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
 
     BlackwaterMacrosTheme(darkTheme = darkTheme) {
         Scaffold(
@@ -134,17 +141,7 @@ private fun AppRoot() {
                 if (currentRoute in AllTabRoutes) {
                     BottomNavBar(
                         currentRoute = currentRoute ?: "",
-                        onTabSelected = { tab ->
-                            navController.navigate(tab.route) {
-                                popUpTo(
-                                    navController.graph.findStartDestination().id,
-                                ) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
+                        onTabSelected = { tab -> navController.navigateToTab(tab) },
                     )
                 }
             },
@@ -152,8 +149,6 @@ private fun AppRoot() {
             AppNavHost(
                 navController = navController,
                 innerPadding = innerPadding,
-                darkTheme = darkTheme,
-                onThemeChanged = { darkTheme = it },
             )
         }
     }
@@ -163,25 +158,25 @@ private fun AppRoot() {
 private fun AppNavHost(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    darkTheme: Boolean,
-    onThemeChanged: (Boolean) -> Unit,
 ) {
+    // No login gate: the app is fully usable offline; the account is optional (Ajustes → Cuenta).
     NavHost(
         navController = navController,
-        startDestination = "login",
+        startDestination = AppTab.HOY.route,
         modifier = Modifier,
     ) {
         composable("login") {
             LoginScreen(
-                onLoggedIn = {
-                    navController.navigate(AppTab.HOY.route) {
-                        popUpTo("login") { inclusive = true }
-                    }
-                },
+                onBack = { navController.popBackStack() },
+                onConnected = { navController.popBackStack() },
             )
         }
         composable(AppTab.HOY.route) {
-            HoyScreen(modifier = Modifier.padding(innerPadding))
+            HoyScreen(
+                modifier = Modifier.padding(innerPadding),
+                onOpenSettings = { navController.navigateToTab(AppTab.AJUSTES) },
+                onOpenWeight = { navController.navigateToTab(AppTab.PESO) },
+            )
         }
         composable(AppTab.PESO.route) {
             PesoScreen(modifier = Modifier.padding(innerPadding))
@@ -195,13 +190,7 @@ private fun AppNavHost(
         composable(AppTab.AJUSTES.route) {
             SettingsScreen(
                 modifier = Modifier.padding(innerPadding),
-                darkTheme = darkTheme,
-                onThemeChanged = onThemeChanged,
-                onLogout = {
-                    navController.navigate("login") {
-                        popUpTo(0) { inclusive = true }
-                    }
-                },
+                onOpenLogin = { navController.navigate("login") },
                 onOpenMetodologia = { navController.navigate("metodologia") },
                 onOpenAdmin = { navController.navigate("admin") },
             )
@@ -214,6 +203,14 @@ private fun AppNavHost(
         ) {
             AdminScreen(onBack = { navController.popBackStack() })
         }
+    }
+}
+
+private fun NavHostController.navigateToTab(tab: AppTab) {
+    navigate(tab.route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }
 

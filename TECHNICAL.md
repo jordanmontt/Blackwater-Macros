@@ -77,8 +77,10 @@ and is the single source of truth for business math. Both the web app (TypeScrip
 and the Android app (Kotlin port) implement these exact algorithms, with `tests/unit/`
 as the shared behavioral specification. See `src/lib/core/README.md`.
 
-**Thin clients:** web and Android are deliberately **UI-only** — the backend owns
-all CRUD, auth, validation, and persistence. The *only* deliberate duplication in
+**Clients:** the web is a deliberately **thin client** — the backend owns all
+CRUD, auth, validation and persistence. Android is **local-first** (its own Room
+database, optional account sync — see §14), but it computes with the same `:core`
+math and validates with the same limits as `validation.ts`. The *only* deliberate duplication in
 the codebase is this pure, test-pinned math, which exists in both the TS `lib/core`
 and the Kotlin `:core` module. That duplication is an accepted solo-project tradeoff
 (the alternative — compiling the shared Kotlin core to WebAssembly so web and
@@ -284,9 +286,10 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 | GET `/api/meals?from&to` | ✓ | Meals in date range (inclusive `YYYY-MM-DD` keys) |
 | POST `/api/meals` | ✓ | Create meal (`MealInput`) → `{meal}` |
 | PATCH `/api/meals/:id` | ✓ | Update meal (full payload replace) → `{meal}` or 404 |
+| PUT `/api/meals/:id` | ✓ | Idempotent create-or-replace with a client UUID (+ optional `sortOrder`) → `{meal}`; 404 if owned by another user. Android offline sync |
 | DELETE `/api/meals/:id` | ✓ | Delete → `{ok:true}` or 404 |
-| GET/POST `/api/templates`, PATCH/DELETE `/api/templates/:id` | ✓ | Template management |
-| GET/POST `/api/weights`, PATCH/DELETE `/api/weights/:id` | ✓ | Weight entries (`WeightInput`: ISO timestamp + optional `bodyFatPct`) |
+| GET/POST `/api/templates`, PATCH/PUT/DELETE `/api/templates/:id` | ✓ | Template management (PUT = idempotent upsert, as for meals) |
+| GET/POST `/api/weights`, PATCH/PUT/DELETE `/api/weights/:id` | ✓ | Weight entries (`WeightInput`: ISO timestamp + optional `bodyFatPct`; PUT = idempotent upsert) |
 | PUT `/api/settings` | ✓ | Update calorie profile (`CalorieProfile`) → `{calorieProfile}` |
 | GET `/api/stats?range=7d\|30d\|90d\|all&today=YYYY-MM-DD` | ✓ | Full `StatsSummary` DTO (weights, body fat, nutrition) |
 | GET `/api/export/meals.csv` · `/api/export/weights.csv` | ✓ | CSV download (BOM, es-friendly; weights includes `grasa_corporal_pct`) |
@@ -294,7 +297,12 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchema`,
 `weightInputSchema` (includes optional `bodyFatPct`), `calorieProfileInputSchema`
 (calorieGoal enum: cut|maintain|surplus), `loginInputSchema`, `registerInputSchema`,
-`adminUpdateUserSchema`, plus `ingredientInputSchema` reused inside.
+`adminUpdateUserSchema`, `mealUpsertSchema` (meal + optional `sortOrder`), `recordIdSchema`
+(UUID path ids for PUT), plus `ingredientInputSchema` reused inside.
+
+Each repository also has `upsert(userId, id, data)`: UPDATE scoped by user, else INSERT
+… ON CONFLICT DO NOTHING — so a UUID owned by someone else yields `null` (404), never an
+overwrite.
 
 > **Full wire contract** (request/response shapes, auth, error format, Android
 > integration notes) lives in [`docs/api.md`](./docs/api.md). The mapping of web
@@ -597,93 +605,108 @@ Gotchas learned the hard way:
 
 ## 14. Android app (`android/`)
 
-Native Kotlin/Compose client of the **same deployed backend**. Two Gradle modules.
-Full roadmap and maintenance contract: `docs/ANDROID-PLAN.md` (incl. the thin-client
-architectural decision and the accepted core duplication — §2); API contract:
-`docs/api.md`; test-mapping: `docs/ANDROID-TEST-SPEC.md`.
+Native Kotlin/Compose app, published as free software (F-Droid target: no Google
+services). Two Gradle modules. Wire contract: `docs/api.md` (§ Android Integration
+Notes); plan and history: `docs/ANDROID-PLAN.md`.
 
-### Modules
+### 14.1 Local-first design (the one idea to keep in mind)
 
-- **`:core`** — pure JVM (Java/Kotlin, no Android APIs). Kotlin port of
-  `src/lib/core/*.ts` (`Types`, `Nutrition`, `Protein`, `Calories`, `Dates`,
-  `Stats`, `StatsBuilder`, `Csv`) with `*Test.kt` mirrors of `tests/unit/*.test.ts`.
-  Runs on a plain JDK; no SDK needed. The sync-guard `npm run core:sync-check`
-  enforces TS ⇄ Kotlin parity.
-- **`:app`** — the Android application (Compose + Retrofit + Room). Everything
-  that touches Android lives here. Needs the Android SDK.
+There is only one app: the local one. **Every screen reads and writes the Room
+database on the phone; nothing in the UI waits for the network.** The account is an
+optional add-on that turns on a background sync.
 
-### `:app` structure
+```
+Screens (Comidas · Peso · Estadísticas · Ajustes)
+        │ read/write — always local, instant
+        ▼
+AppRepository ── Room (meals, templates, weights, profile)
+        │ (only when logged in)
+        ▼
+SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even if the app is closed)
+```
+
+- **No login gate.** The app opens on Comidas. Ajustes → «Cuenta» offers «Iniciar
+  sesión» (invite-only accounts) and shows sync status afterwards.
+- **Offline.** A save is on disk before the UI returns; with an account the row is
+  flagged `pending` and uploaded by the next sync (app start/resume, 2 s after any
+  edit, when the network comes back, or «Sincronizar»).
+- **Sync = push, then pull.** Push: each pending row → `PUT /api/<kind>/:id`
+  (phone-generated UUID, idempotent) or `DELETE` for tombstones (404 = done). Pull:
+  full lists replace every non-pending row; rows gone from the server are removed.
+  Last to sync wins per record. A push only clears `pending` if the row was not edited
+  again meanwhile (`updatedAt` doubles as a strictly increasing local edit stamp).
+- **Login with local data** → dialog: upload it to the account, or discard it.
+  Re-login after an expired session keeps everything (another account is refused).
+- **Logout** → a last sync attempt, a warning if changes would be lost, then all local
+  data is deleted (it is safe on the server) and the app is back in local mode.
+- **Delete all data** (Ajustes → Tus datos) wipes the phone only, after confirmation.
+  Without an account that is permanent; with one, the server is untouched and the next
+  sync downloads the account again (unsynced changes are lost — the dialog says how many).
+- **Statistics** are computed on the phone with `:core` `buildStatsFromData` (same
+  numbers as `/api/stats`, which Android no longer calls).
+- **Validation** uses the server's limits (weight 20–400 kg, fat 3–60 %, profile
+  ranges) so a record saved offline is never rejected at sync time.
+
+### 14.2 Modules and structure
+
+- **`:core`** — pure JVM Kotlin port of `src/lib/core/*.ts` with `*Test.kt` mirrors of
+  `tests/unit/*.test.ts` (`npm run core:sync-check` enforces parity).
+- **`:app`** — everything Android.
 
 ```
 app/src/main/kotlin/com/blackwatermacros/app/
-  MainActivity.kt            # ComponentActivity + Material3 theme; single NavHost(login →
-                             #   4-tab shell, popUpTo saveState/restoreState). Theme hoisted via
-                             #   darkTheme state (Claro/Oscuro switch) passed to the theme.
-  BottomNavBar.kt            # AppTab enum + bottom bar — Comidas/Peso/Estadísticas/Ajustes,
-                             #   mirrors web AppNav (order, filled/selected icons, labels)
-  data/                      # Networking / wire layer
-    WireModels.kt            # kotlinx-serialization DTOs mirroring docs/api.md + @SerialName enums
-    JsonConfig.kt            # ApiJson: '.' decimals, camelCase, ignoreUnknownKeys
-    ApiService.kt            # Retrofit interface (absolute /api/... paths), incl. weights,
-                             #   settings (profile/templates), stats and admin endpoints
-    ApiClient.kt             # Retrofit + OkHttp factory; baseUrl from BuildConfig
-    BearerAuthInterceptor.kt # adds Authorization: Bearer <token>
-    ResponseErrorMapper.kt   # decodes { "error": "<Spanish>" } for user-facing messages
-    SessionManager.kt        # in-memory Bearer token shared across screens
+  AppGraph.kt                # service locator + BlackwaterApp (Application) — builds everything once
+  MainActivity.kt            # theme (from AppPreferences), NavHost: 4 tabs + login/metodologia/admin pages;
+                             #   requests a sync on every onStart when logged in
+  data/
+    local/LocalDatabase.kt   # Room entities (pending/deleted flags) + DAOs
+    local/Mappers.kt         # DTO ⇄ entity, totals via :core resolveMealTotals, nowIso() edit stamp
+    AppRepository.kt         # the only data API the screens use (Flows + writes + CSV import)
+    AccountStore.kt          # persisted account (token, username, isAdmin, sessionExpired, lastSyncAt)
+    AccountController.kt     # verify → connect (upload/discard local data) → logout (wipe)
+    AppPreferences.kt        # theme (Sistema/Claro/Oscuro)
+    CsvBackup.kt             # CSV export/import in the web export's exact format
+    sync/SyncEngine.kt       # push + pull, typed SyncOutcome/SyncProblem, never throws
+    sync/SyncScheduler.kt    # WorkManager unique work (network constraint, backoff) + SyncWorker
+    ApiService.kt, ApiClient.kt, WireModels.kt, JsonConfig.kt (profileBody: explicit nulls)
   ui/
-    LoginViewModel/LoginScreen.kt        # login → token (SessionManager) → GET /api/auth/session
-    HoyViewModel/HoyScreen/MealCard      # Comidas (tab): day navigator, totals, recommendations,
-                                         #   template row, reorderable list (GET /api/meals,
-                                         #   PATCH /api/meals/reorder), delete (DELETE /api/meals)
-    AddMealViewModel/AddMealScreen       # Nueva/Editar comida sheet: both modes (POST/PATCH /api/meals)
-    NutritionRecommendationsCard.kt      # Calorie + protein recs (weights + profile via :core)
-    RecommendationsViewModel.kt          # loads latest weight + calorieProfile → :core recs
-    PesoViewModel/PesoScreen             # Peso (tab): weight summary + 7d deltas, day-grouped history,
-                                         #   WeightFormDialog (POST/PATCH/DELETE /api/weights)
-    WeightFormDialog.kt                  # Registrar/Editar peso: kg, fecha+hora (Ahora), % grasa, nota
-    StatsViewModel/StatsScreen           # Estadísticas (tab): range tabs (7/30/90/todo),
-                                         #   GET /api/stats → weight/macro summaries + trend charts
-    SettingsViewModel/SettingsScreen     # Ajustes (tab): theme + goal + autosave profile (debounced
-                                         #   500ms w/ validation), recs, Metodología link, templates
-                                         #   (PATCH/DELETE), Admin link, Cerrar sesión (logout)
-    AdminViewModel/AdminScreen           # Admin (pushed, isAdmin-gated): user CRUD
-    MethodologyScreen                    # Metodología (pushed): static, exact web strings
-    chart/WeightFatChart.kt              # Canvas dual-Y chart (peso + grasa + tendencia, legend)
-    chart/TrendChart.kt                  # Canvas value line + 7d trend + peak dot
+    Format.kt                # dates/numbers in the app language (appLocale(): phone locale if supported, else English)
+    MealForm.kt, FormFields.kt   # one meal/template form (MealFormValue) + validation
+    HoyScreen/…, PesoScreen/…, StatsScreen/…, SettingsScreen/…, LoginScreen/…, AdminScreen/…
 ```
 
-### Configuration
+### 14.3 Languages
 
-- **Base URL:** injected via `BuildConfig.API_BASE_URL`, default
-  `https://blackwater-macros.jordanmontt.fr/`. Override: `-Papp.baseUrl=<url>`.
-- **Toolchain** pinned in `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.1.20,
-  Compose BOM, Room, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk`
-  36, `minSdk` 24 + `coreLibraryDesugaring` for `java.time`.
-- **Local SDK** is machine-specific: `android/local.properties` (`sdk.dir=…`),
-  gitignored. CI installs its own SDK.
+All UI text lives in `res/values*/strings.xml`: English (default, also the fallback for
+any other phone language), Spanish, French, Italian and German. The app follows the
+phone language; on Android 13+ it can also be changed per app in system settings
+(`generateLocaleConfig`). Dates and numbers use `ui/Format.kt` (not the es-ES formatters
+of `:core`). `TranslationsTest` fails if a language misses a key or a placeholder. CSV
+column names stay Spanish on purpose (they are the web's file format).
 
-### Tests
+### 14.4 Configuration
 
-- `./gradlew :core:test` — pure core port (JDK only).
-- `:app` runs on device/JVM with the Android SDK: `./gradlew test lint build`
-  runs `ApiContractTest` (MockWebServer port of `tests/behavior/routes-*.test.ts`)
-  and `ResponseErrorMapperTest`. CI runs all of these on every PR.
+- **Base URL:** `BuildConfig.API_BASE_URL`, default `https://blackwater-macros.jordanmontt.fr/`,
+  override with `-Papp.baseUrl=<url>`. Only used after logging in.
+- **Toolchain:** `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.1.20, Compose BOM, Room,
+  WorkManager, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk` 36,
+  `minSdk` 24 + desugaring for `java.time`.
+- **Local SDK:** `android/local.properties` (`sdk.dir=…`), gitignored.
+- **JDK 21.0.2 on Apple Silicon** has a JIT bug that crashes Gradle during `lint`; use a
+  newer JDK or pass `-Dorg.gradle.jvmargs="-Xmx3g -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=512m"`.
 
-### Current status & next steps
+### 14.5 Tests (`./gradlew :core:test :app:testDebugUnitTest`)
 
-Built: scaffold, `:core` port (green, 61 tests), networking + Login, and the full
-**Comidas/Hoy** screen (create/edit/delete meals with both entry modes, true
-drag-and-drop reorder persisted via `/api/meals/reorder`, apply templates, and the
-calorie/protein recommendations card). A **4-tab persistent shell**
-(Comidas / **Peso** / **Estadísticas** / **Ajustes**) mirrors the web `AppNav`,
-plus **Peso** (weight CRUD + dual-Y Canvas chart), **Estadísticas** (range selector,
-weight/macro summaries, trend charts), **Ajustes** (theme/goal, autosave profile with
-debounced validation, templates, logout), **Metodología** and **Admin** (isAdmin-gated)
-as pushed pages. Charts are hand-built Compose Canvas (no chart library); web CSV export
-is **not** ported (buttons rendered disabled).
+- `OfflineSyncTest` (Robolectric + in-memory Room + `FakeServer` MockWebServer
+  dispatcher): local-only mode, offline save then upload, idempotent re-sync, edits/deletes/
+  reorder upload, web changes & deletions pulled, profile nulls, expired session,
+  login upload/discard, logout wipe, delete-all-data, CSV import dedupe, broken responses (captive portal).
+- `ApiContractTest` (wire format), `CsvBackupTest` (round-trip + web file),
+  `ValidationTest` (form/weight/profile limits, recommendation states), `TranslationsTest`.
+- Server side: `tests/behavior/routes-sync-upsert.test.ts` covers the PUT endpoints.
 
-**Not yet built** (see `docs/ANDROID-PLAN.md`): token/offline persistence (Room), the
-local-first/offline-only mode, sync engine (LWW via `updatedAt`), and CSV export.
-Settings templates create/edit-on-tap shows the new-template sheet only (list
-create/edit is a partial port). Post-login screens verified by build/lint/tests;
-live emulator login check still pending user credentials.
+### 14.6 Not done yet
+
+Incremental (delta) sync — full pull is fine at personal scale; F-Droid metadata and a
+release signing setup; UI (Compose) tests. Error messages returned by the server (only
+visible in the Admin page) stay in Spanish.

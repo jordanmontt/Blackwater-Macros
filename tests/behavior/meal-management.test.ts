@@ -82,6 +82,16 @@ function memoryMeals(): MealsRepository {
         }
       }
     },
+    async upsert(userId, id, data: NewMealData, sortOrder) {
+      const existing = rows.get(id);
+      if (existing && existing.userId !== userId) return null;
+      const now = new Date();
+      const row: MealRow = existing
+        ? { ...existing, ...data, sortOrder: sortOrder ?? existing.sortOrder, updatedAt: now }
+        : { id, userId, createdAt: now, updatedAt: now, sortOrder: sortOrder ?? 0, ...data };
+      rows.set(id, row);
+      return row;
+    },
   };
 }
 
@@ -124,6 +134,16 @@ function memoryTemplates(): MealTemplatesRepository {
       if (!existing || existing.userId !== userId) return false;
       rows.delete(id);
       return true;
+    },
+    async upsert(userId, id, data: NewTemplateData) {
+      const existing = rows.get(id);
+      if (existing && existing.userId !== userId) return null;
+      const now = new Date();
+      const row: MealTemplateRow = existing
+        ? { ...existing, ...data, updatedAt: now }
+        : { id, userId, createdAt: now, updatedAt: now, ...data };
+      rows.set(id, row);
+      return row;
     },
   };
 }

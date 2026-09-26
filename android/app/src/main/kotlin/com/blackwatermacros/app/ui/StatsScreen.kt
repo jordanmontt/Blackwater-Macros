@@ -1,7 +1,6 @@
 package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,14 +39,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.blackwatermacros.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.core.DataPoint
-import com.blackwatermacros.app.core.formatDateKeyShort
-import com.blackwatermacros.app.core.formatNumberEs
-import com.blackwatermacros.app.core.formatNumberEsGrouped
-import com.blackwatermacros.app.data.StatsSummary
-import com.blackwatermacros.app.data.WireDailyNutritionPoint
+import com.blackwatermacros.app.core.DailyNutritionPoint
+import com.blackwatermacros.app.core.StatsSummary
 import com.blackwatermacros.app.ui.chart.TrendChart
 import com.blackwatermacros.app.ui.chart.WeightFatChart
 
@@ -72,12 +70,12 @@ fun StatsScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             CenteredTopAppBar(
-                title = "Estadísticas",
+                title = stringResource(R.string.tab_stats),
                 trailing = {
                     IconButton(onClick = onOpenMetodologia) {
                         Icon(
                             Icons.Filled.Info,
-                            contentDescription = "Metodología",
+                            contentDescription = stringResource(R.string.methodology),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -98,16 +96,6 @@ fun StatsScreen(
                 when (state) {
                     StatsUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
-                    }
-                    is StatsUiState.Error -> Box(
-                        Modifier.fillMaxSize().padding(24.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            (state as StatsUiState.Error).message,
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center,
-                        )
                     }
                     is StatsUiState.Loaded -> StatsContent(
                         summary = (state as StatsUiState.Loaded).summary,
@@ -139,7 +127,7 @@ private fun RangeTabs(
                 ),
             ) {
                 Text(
-                    option.label,
+                    stringResource(option.labelRes),
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
                 )
@@ -176,7 +164,7 @@ private fun NoData() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            "Sin datos todavía en este periodo.",
+            stringResource(R.string.stats_no_data),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
@@ -196,7 +184,7 @@ private fun SectionTitle(title: String) {
 
 @Composable
 private fun WeightSummaryCard(summary: StatsSummary) {
-    SectionTitle("Resumen de peso")
+    SectionTitle(stringResource(R.string.stats_weight_summary))
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -205,18 +193,18 @@ private fun WeightSummaryCard(summary: StatsSummary) {
         val w = summary.weight
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniStatColumn("Peso actual", w.currentWeightKg, "kg", sign = false, decimals = 1, Modifier.weight(1f))
-                MiniStatColumn("Tendencia actual", w.currentTrendKg, "kg", sign = false, decimals = 1, Modifier.weight(1f))
+                MiniStatColumn(stringResource(R.string.weight_current), w.currentWeightKg, "kg", sign = false, decimals = 1, Modifier.weight(1f))
+                MiniStatColumn(stringResource(R.string.stats_current_trend), w.currentTrendKg, "kg", sign = false, decimals = 1, Modifier.weight(1f))
             }
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniStatColumn("Grasa actual", w.currentBodyFatPct, "%", sign = false, decimals = 1, Modifier.weight(1f))
-                MiniStatColumn("Cambio total", w.changeSinceStartKg, "kg", sign = true, decimals = 1, Modifier.weight(1f))
+                MiniStatColumn(stringResource(R.string.body_fat_current), w.currentBodyFatPct, "%", sign = false, decimals = 1, Modifier.weight(1f))
+                MiniStatColumn(stringResource(R.string.stats_total_change), w.changeSinceStartKg, "kg", sign = true, decimals = 1, Modifier.weight(1f))
             }
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniStatColumn("Ritmo semanal", w.ratePerWeekKg, "kg/semana", sign = true, decimals = 2, Modifier.weight(1f))
-                MiniStatColumn("Cambio grasa", w.changeBodyFatPct, "%", sign = true, decimals = 1, Modifier.weight(1f))
+                MiniStatColumn(stringResource(R.string.stats_weekly_rate), w.ratePerWeekKg, stringResource(R.string.unit_kg_per_week), sign = true, decimals = 2, Modifier.weight(1f))
+                MiniStatColumn(stringResource(R.string.stats_fat_change), w.changeBodyFatPct, "%", sign = true, decimals = 1, Modifier.weight(1f))
             }
         }
     }
@@ -243,7 +231,7 @@ private fun MiniStatColumn(
                 Text(
                     buildString {
                         if (sign && value > 0) append("+")
-                        append(formatNumberEs(value, decimals))
+                        append(formatNumber(value, decimals))
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
@@ -268,7 +256,7 @@ private fun MiniStatColumn(
 
 @Composable
 private fun WeightChartCard(summary: StatsSummary) {
-    SectionTitle("Evolución del peso y grasa corporal")
+    SectionTitle(stringResource(R.string.stats_weight_fat_chart))
     val rows = mergeWeightFatRows(summary)
     if (rows.isNotEmpty()) {
         Card(
@@ -300,7 +288,7 @@ private fun mergeWeightFatRows(summary: StatsSummary): List<WeightFatRow> {
 
 @Composable
 private fun WeeklyAveragesCard(summary: StatsSummary) {
-    SectionTitle("Media semanal del peso")
+    SectionTitle(stringResource(R.string.stats_weekly_average))
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -315,9 +303,9 @@ private fun WeeklyAveragesCard(summary: StatsSummary) {
                         .padding(vertical = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(formatDateKeyShort(week.weekStart), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(formatDateShort(week.weekStart), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        "${formatNumberEsGrouped(week.avg, 1)} kg",
+                        "${formatNumberGrouped(week.avg, 1)} kg",
                         fontWeight = FontWeight.Medium,
                     )
                 }
@@ -328,11 +316,11 @@ private fun WeeklyAveragesCard(summary: StatsSummary) {
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 val w = summary.weight
-                Text("Mínimo: ", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
-                Text("${formatNumberEsGrouped(w.minKg ?: 0.0, 1)} kg", fontWeight = FontWeight.Medium, style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.stats_minimum) + " ", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+                Text("${formatNumberGrouped(w.minKg ?: 0.0, 1)} kg", fontWeight = FontWeight.Medium, style = MaterialTheme.typography.labelMedium)
                 Spacer(Modifier.weight(1f))
-                Text("Máximo: ", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
-                Text("${formatNumberEsGrouped(w.maxKg ?: 0.0, 1)} kg", fontWeight = FontWeight.Medium, style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.stats_maximum) + " ", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+                Text("${formatNumberGrouped(w.maxKg ?: 0.0, 1)} kg", fontWeight = FontWeight.Medium, style = MaterialTheme.typography.labelMedium)
             }
         }
     }
@@ -349,7 +337,7 @@ private fun NutritionSection(summary: StatsSummary) {
         NoData()
         return
     }
-    SectionTitle("Resumen de macros")
+    SectionTitle(stringResource(R.string.stats_macro_summary))
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -357,37 +345,37 @@ private fun NutritionSection(summary: StatsSummary) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth()) {
-                MacroCell("Media de calorías", summary.caloriesAvg, "kcal", Modifier.weight(1f))
-                MacroCell("Día pico", summary.caloriesMaxDay?.let { it.calories }, "kcal", Modifier.weight(1f), summary.caloriesMaxDay?.date)
+                MacroCell(stringResource(R.string.stats_avg_calories), summary.caloriesAvg, "kcal", Modifier.weight(1f))
+                MacroCell(stringResource(R.string.stats_peak_day), summary.caloriesMaxDay?.let { it.calories }, "kcal", Modifier.weight(1f), summary.caloriesMaxDay?.date)
             }
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth()) {
-                MacroCell("Media de proteína", summary.proteinAvg, "g", Modifier.weight(1f))
-                MacroCell("Día pico", summary.proteinMaxDay?.let { it.protein }, "g", Modifier.weight(1f), summary.proteinMaxDay?.date)
+                MacroCell(stringResource(R.string.stats_avg_protein), summary.proteinAvg, "g", Modifier.weight(1f))
+                MacroCell(stringResource(R.string.stats_peak_day), summary.proteinMaxDay?.let { it.protein }, "g", Modifier.weight(1f), summary.proteinMaxDay?.date)
             }
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth()) {
-                MacroCell("Media de carbohidratos", summary.carbsAvg, "g", Modifier.weight(1f))
-                MacroCell("Día pico", summary.carbsMaxDay?.let { it.carbs }, "g", Modifier.weight(1f), summary.carbsMaxDay?.date)
+                MacroCell(stringResource(R.string.stats_avg_carbs), summary.carbsAvg, "g", Modifier.weight(1f))
+                MacroCell(stringResource(R.string.stats_peak_day), summary.carbsMaxDay?.let { it.carbs }, "g", Modifier.weight(1f), summary.carbsMaxDay?.date)
             }
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth()) {
-                MacroCell("Media de grasa", summary.fatAvg, "g", Modifier.weight(1f))
-                MacroCell("Día pico", summary.fatMaxDay?.let { it.fat }, "g", Modifier.weight(1f), summary.fatMaxDay?.date)
+                MacroCell(stringResource(R.string.stats_avg_fat), summary.fatAvg, "g", Modifier.weight(1f))
+                MacroCell(stringResource(R.string.stats_peak_day), summary.fatMaxDay?.let { it.fat }, "g", Modifier.weight(1f), summary.fatMaxDay?.date)
             }
         }
     }
-    ChartSection("Calorías diarias", summary.calories, Chart1, "kcal", summary.caloriesMaxDay, summary.caloriesAvg)
-    ChartSection("Proteína diaria", summary.protein, Chart2, "g", summary.proteinMaxDay, summary.proteinAvg)
-    ChartSection("Carbohidratos diarios", summary.carbs, Chart3, "g", summary.carbsMaxDay, summary.carbsAvg)
-    ChartSection("Grasa diaria", summary.fat, Chart4, "g", summary.fatMaxDay, summary.fatAvg)
+    ChartSection(stringResource(R.string.stats_daily_calories), summary.calories, Chart1, "kcal", summary.caloriesMaxDay) { it.calories }
+    ChartSection(stringResource(R.string.stats_daily_protein), summary.protein, Chart2, "g", summary.proteinMaxDay) { it.protein }
+    ChartSection(stringResource(R.string.stats_daily_carbs), summary.carbs, Chart3, "g", summary.carbsMaxDay) { it.carbs }
+    ChartSection(stringResource(R.string.stats_daily_fat), summary.fat, Chart4, "g", summary.fatMaxDay) { it.fat }
 }
 
 @Composable
 private fun MacroCell(label: String, value: Double?, unit: String, modifier: Modifier = Modifier, maxDate: String? = null) {
     Column(modifier) {
         Text(
-            if (maxDate != null) "$label · ${formatDateKeyShort(maxDate)}" else label,
+            if (maxDate != null) "$label · ${formatDateShort(maxDate)}" else label,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -395,7 +383,7 @@ private fun MacroCell(label: String, value: Double?, unit: String, modifier: Mod
         if (value != null) {
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    formatNumberEs(value),
+                    formatNumber(value),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -419,11 +407,11 @@ private fun MacroCell(label: String, value: Double?, unit: String, modifier: Mod
 @Composable
 private fun ChartSection(
     title: String,
-    points: List<WireDailyNutritionPoint>,
+    points: List<DailyNutritionPoint>,
     color: Color,
     unit: String,
-    peak: WireDailyNutritionPoint?,
-    avg: Double?,
+    peak: DailyNutritionPoint?,
+    value: (DailyNutritionPoint) -> Double,
 ) {
     SectionTitle(title)
     Card(
@@ -432,31 +420,12 @@ private fun ChartSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
-            val data = points.mapIndexedNotNull { i, p ->
-                when (unit) {
-                    "kcal" -> DataPoint(p.date, p.calories)
-                    "g" -> when (title) {
-                        "Proteína diaria" -> DataPoint(p.date, p.protein)
-                        "Carbohidratos diarios" -> DataPoint(p.date, p.carbs)
-                        else -> DataPoint(p.date, p.fat)
-                    }
-                    else -> DataPoint(p.date, p.calories)
-                }
-            }
             TrendChart(
-                points = data,
+                points = points.map { DataPoint(it.date, value(it)) },
                 color = color,
                 trendColor = Chart4,
                 unit = unit,
-                peak = peak?.let { DataPoint(it.date, when (unit) {
-                    "kcal" -> it.calories
-                    "g" -> when (title) {
-                        "Proteína diaria" -> it.protein
-                        "Carbohidratos diarios" -> it.carbs
-                        else -> it.fat
-                    }
-                    else -> it.calories
-                }) },
+                peak = peak?.let { DataPoint(it.date, value(it)) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }

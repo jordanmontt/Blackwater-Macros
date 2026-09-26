@@ -2,26 +2,23 @@ package com.blackwatermacros.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.blackwatermacros.app.BuildConfig
+import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.core.DataPoint
 import com.blackwatermacros.app.core.addDaysToKey
-import com.blackwatermacros.app.core.formatDateKeyLong
 import com.blackwatermacros.app.core.movingAverageByDays
 import com.blackwatermacros.app.core.round1
-import com.blackwatermacros.app.data.ApiClient
-import com.blackwatermacros.app.data.ResponseErrorMapper
-import com.blackwatermacros.app.data.SessionManager
+import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.WeightDTO
 import com.blackwatermacros.app.data.WeightRequest
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 sealed interface PesoUiState {
     data object Loading : PesoUiState
     data class Loaded(val summary: PesoSummary) : PesoUiState
-    data class Error(val message: String) : PesoUiState
 }
 
 /** Rows for the weight/fat chart (mirror web `chartRows`). */
@@ -43,66 +40,20 @@ data class PesoSummary(
     val groupedWeights: List<Pair<String, List<WeightDTO>>>,
 )
 
-class PesoViewModel : ViewModel() {
+class PesoViewModel(
+    private val repository: AppRepository = AppGraph.repository,
+) : ViewModel() {
 
-    private val _state = MutableStateFlow<PesoUiState>(PesoUiState.Loading)
-    val state: StateFlow<PesoUiState> = _state.asStateFlow()
+    val state: StateFlow<PesoUiState> = repository.weights()
+        .map<List<WeightDTO>, PesoUiState> { PesoUiState.Loaded(buildSummary(it)) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PesoUiState.Loading)
 
-    private val api = ApiClient.create(
-        baseUrl = ensureTrailingSlash(BuildConfig.API_BASE_URL),
-        tokenProvider = SessionManager::tokenProvider,
-    )
-
-    init {
-        load()
+    fun saveWeight(id: String?, request: WeightRequest) {
+        viewModelScope.launch { repository.saveWeight(id, request) }
     }
 
-    fun load() {
-        _state.value = PesoUiState.Loading
-        viewModelScope.launch {
-            try {
-                val weights = api.listWeights().weights.sortedBy { it.measuredAt }
-                _state.value = PesoUiState.Loaded(buildSummary(weights))
-            } catch (t: Throwable) {
-                _state.value = PesoUiState.Error(ResponseErrorMapper.messageFrom(t))
-            }
-        }
-    }
-
-    fun createWeight(request: WeightRequest, onDone: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            try {
-                api.createWeight(request)
-                load()
-                onDone(true)
-            } catch (_: Throwable) {
-                onDone(false)
-            }
-        }
-    }
-
-    fun updateWeight(id: String, request: WeightRequest, onDone: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            try {
-                api.updateWeight(id, request)
-                load()
-                onDone(true)
-            } catch (_: Throwable) {
-                onDone(false)
-            }
-        }
-    }
-
-    fun deleteWeight(id: String, onDone: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            try {
-                api.deleteWeight(id)
-                load()
-                onDone(true)
-            } catch (_: Throwable) {
-                onDone(false)
-            }
-        }
+    fun deleteWeight(id: String) {
+        viewModelScope.launch { repository.deleteWeight(id) }
     }
 
     private fun buildSummary(weights: List<WeightDTO>): PesoSummary {
@@ -110,10 +61,10 @@ class PesoViewModel : ViewModel() {
         val currentWeightKg = latest?.weightKg
 
         val changeWeight7d = latest?.let { latestEntry ->
-            val latestDay = latestEntry.measuredAt.take(10)
+            val latestDay = latestEntry.measuredAt.localDay()
             val cutoff = addDaysToKey(latestDay, -7)
             val prior = weights.asReversed()
-                .firstOrNull { it.measuredAt.take(10) <= cutoff }
+                .firstOrNull { it.measuredAt.localDay() <= cutoff }
                 ?: return@let null
             round1(latestEntry.weightKg - prior.weightKg)
         }
@@ -123,18 +74,18 @@ class PesoViewModel : ViewModel() {
         val currentBodyFatPct = lastFat?.bodyFatPct
 
         val changeFat7d = lastFat?.let { latestEntry ->
-            val latestDay = latestEntry.measuredAt.take(10)
+            val latestDay = latestEntry.measuredAt.localDay()
             val cutoff = addDaysToKey(latestDay, -7)
             val prior = fatEntries.asReversed()
-                .firstOrNull { it.measuredAt.take(10) <= cutoff }
+                .firstOrNull { it.measuredAt.localDay() <= cutoff }
                 ?: return@let null
             round1(latestEntry.bodyFatPct!! - prior.bodyFatPct!!)
         }
 
-        val points = weights.map { DataPoint(date = it.measuredAt.take(10), value = it.weightKg) }
+        val points = weights.map { DataPoint(date = it.measuredAt.localDay(), value = it.weightKg) }
         val trend = movingAverageByDays(points, 7)
         val fatByDay = weights.mapNotNull { entry ->
-            entry.bodyFatPct?.let { entry.measuredAt.take(10) to it }
+            entry.bodyFatPct?.let { entry.measuredAt.localDay() to it }
         }
 
         val chartRows = points.mapIndexed { i, p ->
@@ -147,7 +98,7 @@ class PesoViewModel : ViewModel() {
         }
 
         val groupedWeights = weights
-            .groupBy { it.measuredAt.take(10) }
+            .groupBy { it.measuredAt.localDay() }
             .toSortedMap(compareByDescending { it })
             .map { (day, entries) -> day to entries.asReversed() }
 
@@ -161,9 +112,8 @@ class PesoViewModel : ViewModel() {
             groupedWeights = groupedWeights,
         )
     }
-
-    private fun ensureTrailingSlash(base: String): String =
-        if (base.endsWith("/")) base else "$base/"
 }
 
-private fun formatDayLong(key: String): String = formatDateKeyLong(key)
+/** Calendar day of a UTC instant in the phone's timezone (a 00:30 weigh-in belongs to that local day). */
+private fun String.localDay(): String =
+    java.time.Instant.parse(this).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString()
