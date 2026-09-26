@@ -83,6 +83,10 @@ class HoyViewModel(
         viewModelScope.launch { repository.deleteMeal(mealId) }
     }
 
+    fun restoreMeal(meal: MealDTO) {
+        viewModelScope.launch { repository.restoreMeal(meal) }
+    }
+
     /** Applies a saved template as a new meal on the current day (web `applyTemplate`). */
     fun applyTemplate(template: TemplateDTO) {
         val request = MealRequest(

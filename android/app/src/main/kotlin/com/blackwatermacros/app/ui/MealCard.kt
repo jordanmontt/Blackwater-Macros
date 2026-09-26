@@ -103,6 +103,8 @@ fun MealCard(
 
             if (meal.entryMode == WireEntryMode.PER_INGREDIENT && meal.ingredients.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
+                // With a single ingredient its numbers equal the meal totals shown below.
+                val showIngredientNumbers = meal.ingredients.size > 1
                 Column(Modifier.padding(start = 4.dp, top = 1.dp, bottom = 1.dp)) {
                     meal.ingredients.forEachIndexed { index, ingredient ->
                         if (index > 0) {
@@ -132,35 +134,37 @@ fun MealCard(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
-                            Text(
-                                text = ingredient.calories?.let { "${formatNumber(it)} kcal" } ?: "",
-                                modifier = Modifier
-                                    .width(64.dp)
-                                    .padding(start = 6.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.End,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Text(
-                                text = ingredient.protein?.let { "${formatNumber(it, 1)} ${stringResource(R.string.macro_g_protein)}" } ?: "",
-                                modifier = Modifier
-                                    .width(84.dp)
-                                    .padding(start = 6.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.End,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            if (ingredient.carbs != null || ingredient.fat != null) {
+                            if (showIngredientNumbers) {
                                 Text(
-                                    text = "…",
+                                    text = ingredient.calories?.let { "${formatNumber(it)} kcal" } ?: "",
+                                    modifier = Modifier
+                                        .width(64.dp)
+                                        .padding(start = 6.dp),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.width(16.dp),
+                                    textAlign = TextAlign.End,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
+                                Text(
+                                    text = ingredient.protein?.let { "${formatNumber(it, 1)} ${stringResource(R.string.macro_g_protein)}" } ?: "",
+                                    modifier = Modifier
+                                        .width(84.dp)
+                                        .padding(start = 6.dp),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.End,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                if (ingredient.carbs != null || ingredient.fat != null) {
+                                    Text(
+                                        text = "…",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.width(16.dp),
+                                    )
+                                }
                             }
                         }
                     }

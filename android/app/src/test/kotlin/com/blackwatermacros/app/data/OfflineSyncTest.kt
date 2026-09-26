@@ -169,6 +169,25 @@ class OfflineSyncTest {
     }
 
     @Test
+    fun `undo after deleting a meal brings it back, locally and on the server`() = runBlocking<Unit> {
+        repository.saveMeal(null, breakfast())
+        val meal = repository.mealsForDay("2026-06-15").first().single()
+        repository.deleteMeal(meal.id)
+        repository.restoreMeal(meal)
+        assertThat(repository.mealsForDay("2026-06-15").first().map { it.id }).containsExactly(meal.id)
+
+        connect()
+        sync.sync()
+        repository.deleteMeal(meal.id)
+        sync.sync() // the delete already reached the server…
+        assertThat(backend.meals).isEmpty()
+        repository.restoreMeal(meal) // …and undo still works
+        sync.sync()
+        assertThat(backend.meals.keys).containsExactly(meal.id)
+        assertThat(repository.mealsForDay("2026-06-15").first().map { it.title }).containsExactly("Desayuno")
+    }
+
+    @Test
     fun `reordering meals is uploaded`() = runBlocking<Unit> {
         connect()
         repository.saveMeal(null, breakfast().copy(title = "A"))

@@ -6,6 +6,7 @@
     <string name="action_delete">Eliminar</string>
     <string name="action_edit">Editar</string>
     <string name="action_ok">Aceptar</string>
+    <string name="action_undo">Deshacer</string>
     <string name="action_back">Volver</string>
     <string name="meal_new">Nueva comida</string>
     <string name="meal_edit">Editar comida</string>
@@ -40,8 +41,6 @@
     <string name="tab_stats">Estadísticas</string>
     <string name="tab_settings">Ajustes</string>
     <string name="meal_add">Añadir comida</string>
-    <string name="meal_delete_title">¿Eliminar comida?</string>
-    <string name="meal_delete_body">Se borrará esta comida y sus ingredientes. Esta acción no se puede deshacer.</string>
     <string name="meal_deleted">Comida eliminada</string>
     <string name="meal_reorder">Reordenar comida</string>
     <string name="meal_manual_total">Total manual</string>
@@ -132,7 +131,9 @@
     <string name="goal_cut">Definición</string>
     <string name="goal_maintain">Mantenimiento</string>
     <string name="goal_surplus">Volumen</string>
-    <string name="profile_title">Tu perfil</string>
+    <string name="profile_title">Perfil</string>
+    <string name="profile_link_subtitle">Objetivo, datos corporales y recomendaciones de calorías y proteína</string>
+    <string name="profile_body_title">Datos corporales</string>
     <string name="profile_description">Define tu género, edad y actividad para estimar tus necesidades calóricas.</string>
     <string name="profile_gender">Género</string>
     <string name="gender_male">Hombre</string>
@@ -157,7 +158,7 @@
     <string name="rec_need_weight">Registra tu peso para ver recomendaciones</string>
     <string name="rec_need_profile">Elige tu objetivo y completa tu perfil para ver recomendaciones</string>
     <string name="rec_go_to_weight">Ir a Peso</string>
-    <string name="rec_go_to_settings">Ir a Ajustes</string>
+    <string name="rec_go_to_profile">Ir a Perfil</string>
     <string name="rec_in_range">en rango</string>
     <string name="rec_missing">te faltan %1$s–%2$s %3$s</string>
     <string name="rec_exceeded">te pasaste de %1$s %2$s</string>
@@ -244,6 +245,8 @@ Definición: TDEE − 400 kcal (rango: −500 a −300). Mantenimiento: TDEE ± 
     <string name="data_delete_body_account">Solo se borra la copia de este teléfono. Los datos de tu cuenta en el servidor no se tocan y se volverán a descargar en la próxima sincronización.</string>
     <string name="data_delete_confirm">Borrar</string>
     <string name="data_deleted">Datos borrados de este teléfono.</string>
+    <string name="sync_indicator_synced">Todo sincronizado</string>
+    <string name="sync_indicator_problem">La sincronización necesita atención</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d ingrediente</item>
         <item quantity="many">%d ingredientes</item>

@@ -248,6 +248,12 @@ export const t = {
     administrationDescription: "Gestiona los usuarios de la aplicación.",
     openAdmin: "Administración",
   },
+  perfil: {
+    title: "Perfil",
+    description: "Tu objetivo, tus datos corporales y las recomendaciones de calorías y proteína.",
+    open: "Abrir perfil",
+    backToSettings: "Volver a Ajustes",
+  },
   admin: {
     title: "Administración",
     forAdminsOnly: "No tienes permiso para acceder a esta página.",

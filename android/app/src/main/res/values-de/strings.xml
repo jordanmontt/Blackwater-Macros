@@ -6,6 +6,7 @@
     <string name="action_delete">Löschen</string>
     <string name="action_edit">Bearbeiten</string>
     <string name="action_ok">OK</string>
+    <string name="action_undo">Rückgängig</string>
     <string name="action_back">Zurück</string>
     <string name="meal_new">Neue Mahlzeit</string>
     <string name="meal_edit">Mahlzeit bearbeiten</string>
@@ -40,8 +41,6 @@
     <string name="tab_stats">Statistik</string>
     <string name="tab_settings">Einstellungen</string>
     <string name="meal_add">Mahlzeit hinzufügen</string>
-    <string name="meal_delete_title">Mahlzeit löschen?</string>
-    <string name="meal_delete_body">Diese Mahlzeit und ihre Zutaten werden gelöscht. Das kann nicht rückgängig gemacht werden.</string>
     <string name="meal_deleted">Mahlzeit gelöscht</string>
     <string name="meal_reorder">Mahlzeit verschieben</string>
     <string name="meal_manual_total">Manuelle Summe</string>
@@ -132,7 +131,9 @@
     <string name="goal_cut">Diät</string>
     <string name="goal_maintain">Erhalt</string>
     <string name="goal_surplus">Aufbau</string>
-    <string name="profile_title">Dein Profil</string>
+    <string name="profile_title">Profil</string>
+    <string name="profile_link_subtitle">Ziel, Körperdaten und Kalorien- und Eiweißempfehlungen</string>
+    <string name="profile_body_title">Körperdaten</string>
     <string name="profile_description">Gib Geschlecht, Alter und Aktivität an, um deinen Kalorienbedarf zu schätzen.</string>
     <string name="profile_gender">Geschlecht</string>
     <string name="gender_male">Mann</string>
@@ -157,7 +158,7 @@
     <string name="rec_need_weight">Erfasse dein Gewicht, um Empfehlungen zu sehen</string>
     <string name="rec_need_profile">Wähle dein Ziel und vervollständige dein Profil, um Empfehlungen zu sehen</string>
     <string name="rec_go_to_weight">Zum Gewicht</string>
-    <string name="rec_go_to_settings">Zu den Einstellungen</string>
+    <string name="rec_go_to_profile">Zum Profil</string>
     <string name="rec_in_range">im Bereich</string>
     <string name="rec_missing">noch %1$s–%2$s %3$s</string>
     <string name="rec_exceeded">%1$s %2$s zu viel</string>
@@ -244,6 +245,8 @@ Diät: TDEE − 400 kcal (Bereich: −500 bis −300). Erhalt: TDEE ± 100 kcal.
     <string name="data_delete_body_account">Nur die Kopie auf diesem Telefon wird gelöscht. Die Daten deines Kontos auf dem Server bleiben erhalten und werden bei der nächsten Synchronisierung erneut heruntergeladen.</string>
     <string name="data_delete_confirm">Löschen</string>
     <string name="data_deleted">Daten von diesem Telefon gelöscht.</string>
+    <string name="sync_indicator_synced">Alles synchronisiert</string>
+    <string name="sync_indicator_problem">Synchronisierung braucht Aufmerksamkeit</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d Zutat</item>
         <item quantity="other">%d Zutaten</item>

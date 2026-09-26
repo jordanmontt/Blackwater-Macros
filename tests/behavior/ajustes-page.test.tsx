@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, within, waitFor } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AjustesPage from "@/app/ajustes/page";
 import { t } from "@/i18n";
@@ -10,8 +10,7 @@ import { emptyCalorieProfile, templateDto } from "../helpers/repos";
 /**
  * Requisitos visibles en la pantalla "Ajustes":
  *  - cambia el tema (claro / oscuro / sistema),
- *  - elegir un objetivo guarda el perfil calórico con un breve debounce y no
- *    guarda mientras haya errores de validación,
+ *  - enlaza a "Perfil" (objetivo y datos corporales viven allí),
  *  - exportar comidas y peso apunta a la API (CSV),
  *  - crea, edita y borra plantillas (el formulario es "@/components/meals/template-form"),
  *  - cierra la sesión de forma explícita.
@@ -130,32 +129,11 @@ describe("pantalla Ajustes", () => {
     expect(themeMock.setTheme).toHaveBeenCalledWith("dark");
   });
 
-  it("guarda el objetivo tras el debounce de medio segundo", async () => {
-    const user = userEvent.setup();
+  it("enlaza a la página de perfil (objetivo y datos corporales)", async () => {
     render(<AjustesPage />);
-
-    await user.click(await screen.findByRole("button", { name: t.ajustes.goalSurplus }));
-    expect(vi.mocked(api.updateSettings)).not.toHaveBeenCalled();
-
-    await waitFor(() =>
-      expect(vi.mocked(api.updateSettings)).toHaveBeenCalledWith(
-        expect.objectContaining({ calorieGoal: "surplus" }),
-      ),
-    );
-  });
-
-  it("no guarda el perfil y muestra el error si un campo no valida", async () => {
-    const user = userEvent.setup();
-    render(<AjustesPage />);
-
-    const birthYear = await screen.findByLabelText(t.calorias.birthYearLabel);
-    await user.type(birthYear, "1800");
-
-    expect(await screen.findByText("El año debe estar entre 1920 y 2010")).toBeInTheDocument();
-    // deja pasar el debounce y comprueba que sigue sin guardar
-    await waitFor(() => {
-      expect(vi.mocked(api.updateSettings)).not.toHaveBeenCalled();
-    });
+    const link = await screen.findByRole("button", { name: t.perfil.open });
+    expect(link).toHaveAttribute("href", "/ajustes/perfil");
+    expect(screen.queryByText(t.ajustes.goalSection)).not.toBeInTheDocument();
   });
 
   it("los botones de exportación apuntan a la API en CSV", async () => {

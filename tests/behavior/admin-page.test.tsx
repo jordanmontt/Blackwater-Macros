@@ -154,7 +154,7 @@ await waitFor(() =>
 
       await user.click(screen.getByRole("button", { name: `${t.admin.edit} jefe` }));
       const roleSwitch = await screen.findByRole("switch");
-      expect(roleSwitch).toHaveAttribute("data-disabled");
+      expect(roleSwitch).toBeDisabled();
 
       await user.click(screen.getByRole("button", { name: t.admin.save }));
       await waitFor(() =>
