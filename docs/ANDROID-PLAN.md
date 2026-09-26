@@ -21,10 +21,15 @@ deployed Next.js backend, and on keeping it maintainable as a **solo project**.
 - **Backend:** Android calls the **exact same deployed Next.js backend** (same
   server, same DB, same endpoints). Auth already supports both the web
   `bw_session` cookie and `Authorization: Bearer <token>`.
-- **Conflict resolution:** **last-write-wins** using the `updatedAt` ISO-8601 UTC
-  field exposed on every mutable DTO (meals, templates, weights). The server sets
-  `updatedAt` on create and refreshes it on every update/reorder. This is the
-  single authoritative clock for sync.
+- **Local-first (decided 2026-09-26):** the app is a complete free app that stores
+  everything on the phone; the account is an optional add-on for invited users that
+  turns on sync. No login gate — the app opens on Comidas; login lives in Ajustes →
+  Cuenta. See `TECHNICAL.md` §14.1 for the full design.
+- **Login with local data:** ask (upload to the account / discard). **Logout:** delete
+  the phone's data (after warning about unsynced changes).
+- **Conflict resolution:** last to sync wins, per record. Ids are generated on the
+  phone and uploaded with an idempotent `PUT /api/<kind>/:id`.
+- **Languages:** English (default), Spanish, French, Italian, German.
 - **Target store:** **F-Droid** → **no Google Play Services / GMS dependencies.**
 - **Wire format:** always `.` as decimal separator in JSON; display with `,` using
   `java.text.NumberFormat` with `Locale("es", "ES")`.
@@ -201,9 +206,9 @@ tables in `docs/ANDROID-TEST-SPEC.md`.
 - **Not yet built:** steps 4, 5, 7 (UI/Room tests), 8, CSV export, and Settings
   templates create/edit-on-tap (only the new-template sheet shows; list create/edit is a
   partial port).
-- **Open design decision (user):** when logging in after local/offline use, what
-  happens to locally-entered data (keep-separate vs upload/merge vs discard) —
-  to be decided when designing the sync engine (step 5).
+- **Steps 4–5 done (local-first):** Room database, `AppRepository`, `SyncEngine` +
+  WorkManager scheduling, persisted account, login/logout flows, local statistics,
+  CSV export/import, 5 languages. Server gained idempotent `PUT /:id` upserts.
 
 ### Open items to confirm with the user early
 

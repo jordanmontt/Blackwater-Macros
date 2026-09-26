@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { templateInputSchema } from "@/server/validation";
-import { deleteTemplate, updateTemplate } from "@/server/services/templates-service";
+import { recordIdSchema, templateInputSchema } from "@/server/validation";
+import { deleteTemplate, updateTemplate, upsertTemplate } from "@/server/services/templates-service";
 import { repositories } from "@/server/composition";
 import { jsonError, parseJsonBody, withUserId } from "@/server/route-utils";
 
@@ -11,6 +11,18 @@ export async function PATCH(request: Request, context: RouteContext) {
   return withUserId(request, async (userId) => {
     const input = templateInputSchema.parse(await parseJsonBody(request));
     const template = await updateTemplate(repositories.templates, userId, id, input);
+    if (!template) return jsonError("Plantilla no encontrada", 404);
+    return NextResponse.json({ template });
+  });
+}
+
+/** Idempotent create-or-replace with a client-generated id (Android offline sync). */
+export async function PUT(request: Request, context: RouteContext) {
+  const { id } = await context.params;
+  return withUserId(request, async (userId) => {
+    recordIdSchema.parse(id);
+    const input = templateInputSchema.parse(await parseJsonBody(request));
+    const template = await upsertTemplate(repositories.templates, userId, id, input);
     if (!template) return jsonError("Plantilla no encontrada", 404);
     return NextResponse.json({ template });
   });

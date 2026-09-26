@@ -1,7 +1,8 @@
 package com.blackwatermacros.app.ui
 
+import com.blackwatermacros.app.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,35 +35,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.annotation.StringRes
 
 enum class AppTab(
     val route: String,
-    val label: String,
+    @StringRes val labelRes: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
 ) {
     HOY(
         route = "hoy",
-        label = "Comidas",
+        labelRes = R.string.tab_meals,
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home,
     ),
     PESO(
         route = "peso",
-        label = "Peso",
+        labelRes = R.string.tab_weight,
         selectedIcon = Icons.Filled.Scale,
         unselectedIcon = Icons.Outlined.Scale,
     ),
     ESTADISTICAS(
         route = "estadisticas",
-        label = "Estadísticas",
+        labelRes = R.string.tab_stats,
         selectedIcon = Icons.Filled.BarChart,
         unselectedIcon = Icons.Outlined.BarChart,
     ),
     AJUSTES(
         route = "ajustes",
-        label = "Ajustes",
+        labelRes = R.string.tab_settings,
         selectedIcon = Icons.Filled.Settings,
         unselectedIcon = Icons.Outlined.Settings,
     ),
@@ -91,7 +92,7 @@ fun BottomNavBar(
                         currentRoute.startsWith(tab.route)
                     }
                     NavItem(
-                        label = tab.label,
+                        label = stringResource(tab.labelRes),
                         icon = if (selected) tab.selectedIcon else tab.unselectedIcon,
                         selected = selected,
                         onClick = { onTabSelected(tab) },

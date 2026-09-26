@@ -88,32 +88,22 @@ La app nativa Android está en `android/`, estructurada en dos módulos:
 `core` (JVM puro, sin Android — lógica de cálculo portada y testada) y `app`
 (UI + red). Es el mismo backend desplegado; usa `Authorization: Bearer <token>`.
 
-**Estado actual:** app funcional con la mayoría de pantallas de la web. Tras el
-**Iniciar sesión** (`POST /api/auth/login` → `GET /api/auth/session`) hay un shell
-de **4 pestañas persistentes** que refleja la navegación web: **Comidas**, **Peso**,
-**Estadísticas** y **Ajustes** (mismo orden, iconos seleccionados y títulos).
+**Diseño: local primero.** La app funciona completa sin cuenta: todo se guarda en el
+teléfono (Room) y abre directamente en **Comidas**. La cuenta es opcional (Ajustes →
+**Cuenta** → Iniciar sesión, solo por invitación): al conectarla, los datos se sincronizan
+en segundo plano con el mismo backend que la web (`PUT /api/<tipo>/:id` idempotente +
+listas completas). Funciona sin conexión: lo que registras en el gimnasio se guarda al
+instante y se sube solo cuando vuelve la red, aunque cierres la app.
 
-- **Comidas/Hoy** (`GET /api/meals` por día): navegador de fechas, totales diarios,
-  tarjeta de recomendaciones (paramétrica por objetivo), fila de *Aplicar plantilla*, lista
-  reordenable arrastrando (`PATCH /api/meals/reorder`) y formulario **Nueva / Editar
-  comida** en hoja inferior con los dos modos (**Por ingrediente** / **Solo total**),
-  más borrar con confirmación (`DELETE /api/meals`).
-- **Peso** (`/api/weights`): registro de pesos (kg, % grasa, fecha, nota), resumen del peso
-  actual con variación a 7 días, gráfico de evolución + grasa (Canvas propio) y lista
-  agrupada por día con editar/borrar.
-- **Estadísticas** (`/api/stats`): selector de rango (7/30/90 días o todo), resumen de peso,
-  gráfico peso+grasa, medias semanales, resumen de macros y gráficas de tendencia de
-  kcal/proteína/peso/grasa con media móvil de 7 días y día pico.
-- **Ajustes**: apariencia (claro/oscuro), objetivo deportivo, perfil con **autoguardado**
-  (los campos se validan y persisten con debounce de 500 ms), recomendaciones, plantillas y
-  **Cerrar sesión**. Enlace a **Metodología**; si el usuario es admin, enlace a **Admin**.
-- **Metodología** y **Admin** (solo admin: crear/editar/borrar usuarios) como páginas
-  empujadas encima del shell.
+- **Comidas**, **Peso**, **Estadísticas** (calculadas en el teléfono) y **Ajustes**
+  (cuenta y sincronización, objetivo, perfil, plantillas, exportar/importar CSV con el
+  mismo formato que la web, tema Sistema/Claro/Oscuro, Metodología y Admin).
+- Idiomas: inglés (por defecto), español, francés, italiano y alemán — según el idioma
+  del teléfono.
+- Al iniciar sesión con datos locales se pregunta si subirlos o descartarlos; al cerrar
+  sesión se borran del teléfono (avisando si hay cambios sin sincronizar).
 
-Gráficas dibujadas a mano con Compose Canvas (sin librería). Export CSV de la web queda
-**pendiente en Android** (botones inhabilitados). El token se guarda solo en memoria (se
-vuelve a pedir al reiniciar); el modo offline/local sigue pendiente (ver
-`docs/ANDROID-PLAN.md`).
+Detalles en `TECHNICAL.md` §14.
 
 ### Compilar
 

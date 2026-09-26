@@ -37,10 +37,20 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
+    androidResources {
+        // Lets Android 13+ users pick the app language in system settings (en default + es/fr/it/de).
+        generateLocaleConfig = true
+    }
+
     buildFeatures {
         compose = true
         // Generate BuildConfig so the base URL can be injected/overridden per build.
         buildConfig = true
+    }
+
+    testOptions {
+        // Room + Android framework classes run on the JVM through Robolectric.
+        unitTests.isIncludeAndroidResources = true
     }
 
     kotlinOptions {
@@ -79,6 +89,8 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
+    implementation(libs.work.runtime)
+
     coreLibraryDesugaring(libs.android.jdk.desugaring)
 
     testImplementation(libs.junit)
@@ -86,6 +98,8 @@ dependencies {
     testImplementation(libs.mockwebserver)
     testImplementation(libs.coroutines.test)
     testImplementation(libs.retrofit.mock)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.robolectric)
 
     debugImplementation(libs.compose.ui.tooling)
 }

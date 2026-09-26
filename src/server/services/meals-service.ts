@@ -64,6 +64,19 @@ export async function updateMeal(
   return toMealDto(meal);
 }
 
+/** Idempotent create-or-replace used by offline clients (client-generated id). */
+export async function upsertMeal(
+  repo: MealsRepository,
+  userId: string,
+  id: string,
+  input: MealInput,
+  sortOrder?: number,
+) {
+  const meal = await repo.upsert(userId, id, toDomainData(input), sortOrder);
+  if (!meal) return null;
+  return toMealDto(meal);
+}
+
 export async function deleteMeal(repo: MealsRepository, userId: string, id: string) {
   return repo.delete(userId, id);
 }

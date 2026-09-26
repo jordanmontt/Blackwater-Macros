@@ -1,5 +1,6 @@
 package com.blackwatermacros.app.data
 
+import kotlinx.serialization.json.JsonObject
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -10,7 +11,10 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
- * Retrofit interface mirroring `docs/api.md`. All paths are **absolute from the
+ * Retrofit interface for the endpoints the Android app uses (see `docs/api.md`):
+ * sync (full lists + idempotent `PUT /:id` + `DELETE`), auth, settings and admin.
+ * The app never creates/edits through POST/PATCH — writes are local first and
+ * pushed later by `SyncEngine`. All paths are **absolute from the
  * origin root** and include the `/api` prefix, so the base URL is simply the
  * deployment origin (e.g. `https://blackwater-macros.jordanmontt.fr/`). Auth is a
  * Bearer token attached by the `BearerAuthInterceptor`.
@@ -31,27 +35,20 @@ interface ApiService {
     @GET("/api/meals")
     suspend fun listMeals(@Query("from") from: String? = null, @Query("to") to: String? = null): MealsResponse
 
-    @POST("/api/meals")
-    suspend fun createMeal(@Body body: MealRequest): MealResponse
-
-    @PATCH("/api/meals/{id}")
-    suspend fun updateMeal(@Path("id") id: String, @Body body: MealRequest): MealResponse
+    /** Idempotent create-or-replace with a phone-generated id (offline sync). */
+    @PUT("/api/meals/{id}")
+    suspend fun putMeal(@Path("id") id: String, @Body body: MealRequest): MealResponse
 
     @DELETE("/api/meals/{id}")
     suspend fun deleteMeal(@Path("id") id: String): OkResponse
 
-    @PATCH("/api/meals/reorder")
-    suspend fun reorderMeals(@Body body: ReorderRequest): OkResponse
 
     // --- Templates ---
     @GET("/api/templates")
     suspend fun listTemplates(): TemplatesResponse
 
-    @POST("/api/templates")
-    suspend fun createTemplate(@Body body: TemplateRequest): TemplateResponse
-
-    @PATCH("/api/templates/{id}")
-    suspend fun updateTemplate(@Path("id") id: String, @Body body: TemplateRequest): TemplateResponse
+    @PUT("/api/templates/{id}")
+    suspend fun putTemplate(@Path("id") id: String, @Body body: TemplateRequest): TemplateResponse
 
     @DELETE("/api/templates/{id}")
     suspend fun deleteTemplate(@Path("id") id: String): OkResponse
@@ -60,22 +57,19 @@ interface ApiService {
     @GET("/api/weights")
     suspend fun listWeights(): WeightsResponse
 
-    @POST("/api/weights")
-    suspend fun createWeight(@Body body: WeightRequest): WeightResponse
-
-    @PATCH("/api/weights/{id}")
-    suspend fun updateWeight(@Path("id") id: String, @Body body: WeightRequest): WeightResponse
+    @PUT("/api/weights/{id}")
+    suspend fun putWeight(@Path("id") id: String, @Body body: WeightRequest): WeightResponse
 
     @DELETE("/api/weights/{id}")
     suspend fun deleteWeight(@Path("id") id: String): OkResponse
 
-    // --- Stats ---
-    @GET("/api/stats")
-    suspend fun stats(@Query("range") range: String? = null, @Query("today") today: String? = null): StatsSummary
-
     // --- Settings ---
+    /**
+     * Body must carry every profile key with explicit `null`s (the server schema
+     * is `.nullable()`, not optional) — build it with [profileBody].
+     */
     @PUT("/api/settings")
-    suspend fun updateSettings(@Body body: WireCalorieProfile): SettingsResponse
+    suspend fun updateSettings(@Body body: JsonObject): SettingsResponse
 
     // --- Admin ---
     @GET("/api/admin/users")

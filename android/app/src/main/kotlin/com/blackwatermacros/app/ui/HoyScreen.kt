@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,7 +22,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.res.stringResource
+import com.blackwatermacros.app.R
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,16 +34,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,13 +55,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.blackwatermacros.app.core.formatNumberEs
 import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.TemplateDTO
 import kotlin.math.roundToLong
 import kotlinx.coroutines.launch
-import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -77,6 +75,8 @@ private const val HEADER_COUNT = 3
 @Composable
 fun HoyScreen(
     modifier: Modifier = Modifier,
+    onOpenSettings: () -> Unit = {},
+    onOpenWeight: () -> Unit = {},
     viewModel: HoyViewModel = viewModel(),
 ) {
     val day by viewModel.day.collectAsStateWithLifecycle()
@@ -86,7 +86,6 @@ fun HoyScreen(
     var formOpen by remember { mutableStateOf(false) }
     var editingMeal by remember { mutableStateOf<MealDTO?>(null) }
     var deletingMeal by remember { mutableStateOf<MealDTO?>(null) }
-    var applyingTemplateId by remember { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -96,16 +95,12 @@ fun HoyScreen(
         if (state is HoyUiState.Loaded) listMeals = (state as HoyUiState.Loaded).meals
     }
 
+    val templateAddedMessage = stringResource(R.string.template_applied)
+    val mealDeletedMessage = stringResource(R.string.meal_deleted)
+
     fun applyTemplate(template: TemplateDTO) {
-        applyingTemplateId = template.id
-        viewModel.applyTemplate(template) { result ->
-            applyingTemplateId = null
-            if (result is ApplyTemplateResult.Applied) {
-                scope.launch {
-                    snackbarHostState.showSnackbar("«${template.name}» añadido a este día")
-                }
-            }
-        }
+        viewModel.applyTemplate(template)
+        scope.launch { snackbarHostState.showSnackbar(templateAddedMessage.format(template.name)) }
     }
 
     Scaffold(
@@ -114,7 +109,7 @@ fun HoyScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            CenteredTopAppBar(title = "Comidas")
+            CenteredTopAppBar(title = stringResource(R.string.tab_meals))
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -125,7 +120,7 @@ fun HoyScreen(
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary,
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Añadir comida")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.meal_add))
             }
         },
     ) { innerPadding ->
@@ -150,23 +145,15 @@ fun HoyScreen(
                 ) {
                     CircularProgressIndicator()
                 }
-                is HoyUiState.Error -> Box(
-                    Modifier.fillMaxSize().padding(24.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = (state as HoyUiState.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
                 is HoyUiState.Loaded -> {
                     val totals = Totals(loadedMeals)
                     if (loadedMeals.isEmpty()) {
                         EmptyDayContent(
                             totals = totals,
                             templates = templates,
-                            applyingTemplateId = applyingTemplateId,
                             onApplyTemplate = ::applyTemplate,
+                            onOpenSettings = onOpenSettings,
+                            onOpenWeight = onOpenWeight,
                             onAdd = {
                                 editingMeal = null
                                 formOpen = true
@@ -177,14 +164,18 @@ fun HoyScreen(
                             meals = listMeals,
                             totals = totals,
                             templates = templates,
-                            applyingTemplateId = applyingTemplateId,
                             onEdit = { meal ->
                                 editingMeal = meal
                                 formOpen = true
                             },
                             onDelete = { meal -> deletingMeal = meal },
                             onApplyTemplate = ::applyTemplate,
-                            onReorder = { newList -> viewModel.reorder(newList) },
+                            onOpenSettings = onOpenSettings,
+                            onOpenWeight = onOpenWeight,
+                            onReorder = { newList ->
+                                listMeals = newList
+                                viewModel.reorder(newList)
+                            },
                         )
                     }
                 }
@@ -193,60 +184,38 @@ fun HoyScreen(
     }
 
     if (formOpen) {
-        ModalBottomSheet(
-            onDismissRequest = {
+        val editing = editingMeal
+        MealFormSheet(
+            heading = stringResource(if (editing != null) R.string.meal_edit else R.string.meal_new),
+            initial = editing?.toFormValue(),
+            onDismiss = {
                 formOpen = false
                 editingMeal = null
             },
-            sheetState = rememberModalBottomSheetState(
-                skipPartiallyExpanded = true,
-                confirmValueChange = { it != SheetValue.Hidden },
-            ),
-            containerColor = MaterialTheme.colorScheme.surface,
-        ) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.9f),
-            ) {
-                AddMealScreen(
-                    logDate = day,
-                    meal = editingMeal,
-                    onCancel = {
-                        formOpen = false
-                        editingMeal = null
-                    },
-                    onSaved = {
-                        formOpen = false
-                        editingMeal = null
-                        viewModel.refresh()
-                    },
-                )
-            }
-        }
+            onSubmit = { value ->
+                viewModel.saveMeal(editing?.id, value.toMealRequest(day))
+                formOpen = false
+                editingMeal = null
+            },
+        )
     }
 
     deletingMeal?.let { meal ->
         AlertDialog(
             onDismissRequest = { deletingMeal = null },
-            title = { Text("¿Eliminar comida?") },
-            text = { Text("Se borrará esta comida y sus ingredientes. Esta acción no se puede deshacer.") },
+            title = { Text(stringResource(R.string.meal_delete_title)) },
+            text = { Text(stringResource(R.string.meal_delete_body)) },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deleteMeal(meal.id) { ok ->
-                            if (ok) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Comida eliminada")
-                                }
-                            }
-                        }
+                        viewModel.deleteMeal(meal.id)
+                        scope.launch { snackbarHostState.showSnackbar(mealDeletedMessage) }
                         deletingMeal = null
                     },
-                ) { Text("Eliminar") }
+                ) { Text(stringResource(R.string.action_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { deletingMeal = null }) { Text("Cancelar") }
+                TextButton(onClick = { deletingMeal = null }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -257,10 +226,11 @@ private fun MealList(
     meals: List<MealDTO>,
     totals: Totals,
     templates: List<TemplateDTO>,
-    applyingTemplateId: String?,
     onEdit: (MealDTO) -> Unit,
     onDelete: (MealDTO) -> Unit,
     onApplyTemplate: (TemplateDTO) -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenWeight: () -> Unit,
     onReorder: (List<MealDTO>) -> Unit,
 ) {
     val lazyListState: LazyListState = rememberLazyListState()
@@ -278,7 +248,7 @@ private fun MealList(
     ) {
         item(key = "totals") { DailyTotalsCard(totals) }
         item(key = "recommendations") {
-            NutritionRecommendationsCard(totals.calories, totals.protein)
+            NutritionRecommendationsCard(totals.calories, totals.protein, onOpenSettings, onOpenWeight)
         }
         item(key = "templates") {
             if (templates.isEmpty()) {
@@ -286,7 +256,6 @@ private fun MealList(
             } else {
                 TemplatesRow(
                     templates = templates,
-                    applyingTemplateId = applyingTemplateId,
                     onApply = onApplyTemplate,
                 )
             }
@@ -316,8 +285,9 @@ private fun MealList(
 private fun EmptyDayContent(
     totals: Totals,
     templates: List<TemplateDTO>,
-    applyingTemplateId: String?,
     onApplyTemplate: (TemplateDTO) -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenWeight: () -> Unit,
     onAdd: () -> Unit,
 ) {
     Column(
@@ -326,11 +296,10 @@ private fun EmptyDayContent(
             .verticalScroll(rememberScrollState()),
     ) {
         DailyTotalsCard(totals)
-        NutritionRecommendationsCard(totals.calories, totals.protein)
+        NutritionRecommendationsCard(totals.calories, totals.protein, onOpenSettings, onOpenWeight)
         if (templates.isNotEmpty()) {
             TemplatesRow(
                 templates = templates,
-                applyingTemplateId = applyingTemplateId,
                 onApply = onApplyTemplate,
             )
         } else {
@@ -350,13 +319,32 @@ private fun EmptyDayContent(
             shape = RoundedCornerShape(12.dp),
             color = androidx.compose.ui.graphics.Color.Transparent,
         ) {
-            Text(
-                text = "Todavía no has registrado ninguna comida este día.",
-                modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp, horizontal = 16.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(
+                Modifier.fillMaxWidth().padding(vertical = 32.dp, horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = stringResource(R.string.meals_empty_day),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(Modifier.size(4.dp))
+                    Text(
+                        text = stringResource(R.string.meal_add),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
         }
     }
 }
@@ -364,12 +352,11 @@ private fun EmptyDayContent(
 @Composable
 private fun TemplatesRow(
     templates: List<TemplateDTO>,
-    applyingTemplateId: String? = null,
     onApply: (TemplateDTO) -> Unit = {},
 ) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Text(
-            text = "Aplicar plantilla",
+            text = stringResource(R.string.template_apply),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -383,11 +370,10 @@ private fun TemplatesRow(
             templates.forEach { template ->
                 OutlinedButton(
                     onClick = { onApply(template) },
-                    enabled = applyingTemplateId == null,
                     shape = RoundedCornerShape(50),
                 ) {
                     Text(
-                        if (applyingTemplateId == template.id) "Añadiendo…" else template.name,
+                        template.name,
                         style = MaterialTheme.typography.labelMedium,
                     )
                 }
@@ -412,7 +398,9 @@ private fun DayNavigator(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onPrev) { Text("‹", style = MaterialTheme.typography.titleLarge) }
+        IconButton(onClick = onPrev) {
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = stringResource(R.string.day_previous))
+        }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = caption,
@@ -421,14 +409,16 @@ private fun DayNavigator(
             )
             if (isToday) {
                 Text(
-                    text = "Hoy",
+                    text = stringResource(R.string.today),
                     modifier = Modifier.padding(top = 2.dp),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
-        IconButton(onClick = onNext) { Text("›", style = MaterialTheme.typography.titleLarge) }
+        IconButton(onClick = onNext) {
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = stringResource(R.string.day_next))
+        }
     }
 }
 
@@ -439,19 +429,19 @@ private fun DailyTotalsCard(totals: Totals) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
-                text = "Totales del día",
+                text = stringResource(R.string.day_totals),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
             )
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TotalCell("Calorías", "${totals.calories.roundToLong()} kcal", Modifier.weight(1f))
-                TotalCell("Proteína", "${formatNumberEs(totals.protein, 1)} g", Modifier.weight(1f))
+                TotalCell(stringResource(R.string.total_calories), "${totals.calories.roundToLong()} kcal", Modifier.weight(1f))
+                TotalCell(stringResource(R.string.macro_protein), "${formatNumber(totals.protein, 1)} g", Modifier.weight(1f))
             }
             Spacer(Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TotalCell("Carbohidratos", "${formatNumberEs(totals.carbs, 1)} g", Modifier.weight(1f))
-                TotalCell("Grasa", "${formatNumberEs(totals.fat, 1)} g", Modifier.weight(1f))
+                TotalCell(stringResource(R.string.macro_carbs), "${formatNumber(totals.carbs, 1)} g", Modifier.weight(1f))
+                TotalCell(stringResource(R.string.macro_fat), "${formatNumber(totals.fat, 1)} g", Modifier.weight(1f))
             }
         }
     }

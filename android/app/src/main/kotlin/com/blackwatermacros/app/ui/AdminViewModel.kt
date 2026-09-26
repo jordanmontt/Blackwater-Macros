@@ -2,14 +2,12 @@ package com.blackwatermacros.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.blackwatermacros.app.BuildConfig
+import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.data.AdminCreateUserRequest
 import com.blackwatermacros.app.data.AdminUpdateUserRequest
 import com.blackwatermacros.app.data.AdminUserDTO
-import com.blackwatermacros.app.data.ApiClient
 import com.blackwatermacros.app.data.ApiService
 import com.blackwatermacros.app.data.ResponseErrorMapper
-import com.blackwatermacros.app.data.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,10 +24,8 @@ class AdminViewModel : ViewModel() {
     private val _state = MutableStateFlow<AdminUiState>(AdminUiState.Loading)
     val state: StateFlow<AdminUiState> = _state.asStateFlow()
 
-    private val api: ApiService = ApiClient.create(
-        baseUrl = ensureTrailingSlash(BuildConfig.API_BASE_URL),
-        tokenProvider = SessionManager::tokenProvider,
-    )
+    /** Admin is online-only by nature; it talks to the server directly. */
+    private val api: ApiService = AppGraph.api
 
     init {
         load()
@@ -93,7 +89,4 @@ class AdminViewModel : ViewModel() {
             }
         }
     }
-
-    private fun ensureTrailingSlash(base: String): String =
-        if (base.endsWith("/")) base else "$base/"
 }

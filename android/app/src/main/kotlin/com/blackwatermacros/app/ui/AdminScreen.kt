@@ -1,5 +1,7 @@
 package com.blackwatermacros.app.ui
 
+import com.blackwatermacros.app.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -57,12 +59,12 @@ fun AdminScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenteredTopAppBar(
-                title = "Administración",
+                title = stringResource(R.string.admin_title),
                 leading = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver a Ajustes",
+                            contentDescription = stringResource(R.string.action_back),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -100,7 +102,7 @@ fun AdminScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                "Usuarios",
+                                stringResource(R.string.admin_users),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.weight(1f),
@@ -108,19 +110,19 @@ fun AdminScreen(
                             androidx.compose.material3.Button(
                                 onClick = { createOpen = true },
                             ) {
-                                Text("Nuevo usuario")
+                                Text(stringResource(R.string.admin_new_user))
                             }
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "Crea y gestiona las cuentas de la aplicación.",
+                            stringResource(R.string.admin_users_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(Modifier.height(12.dp))
                         if (loaded.users.isEmpty()) {
                             Text(
-                                "Todavía no hay usuarios.",
+                                stringResource(R.string.admin_no_users),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -145,8 +147,8 @@ fun AdminScreen(
 
     if (createOpen) {
         AdminUserDialog(
-            title = "Nuevo usuario",
-            description = "La cuenta podrá iniciar sesión inmediatamente.",
+            title = stringResource(R.string.admin_new_user),
+            description = stringResource(R.string.admin_new_user_description),
             initialUsername = "",
             initialIsAdmin = false,
             isNew = true,
@@ -161,8 +163,8 @@ fun AdminScreen(
 
     editing?.let { user ->
         AdminUserDialog(
-            title = "Editar usuario",
-            description = "Cambia el nombre, la contraseña o el rol del usuario.",
+            title = stringResource(R.string.admin_edit_user),
+            description = stringResource(R.string.admin_edit_user_description),
             initialUsername = user.username,
             initialIsAdmin = user.isAdmin,
             isNew = false,
@@ -179,19 +181,19 @@ fun AdminScreen(
     deleting?.let { user ->
         AlertDialog(
             onDismissRequest = { deleting = null },
-            title = { Text("¿Eliminar usuario?") },
+            title = { Text(stringResource(R.string.admin_delete_title)) },
             text = {
-                Text("Se borrarán sus comidas, pesajes, plantillas y sesiones. Esta acción no se puede deshacer.")
+                Text(stringResource(R.string.admin_delete_body))
             },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.delete(user.id) { error -> if (error == null) deleting = null }
                 }) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { deleting = null }) { Text("Cancelar") }
+                TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -215,7 +217,7 @@ private fun UserRow(
                 Text(user.username, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                 if (isCurrent) {
                     Text(
-                        " (tú)",
+                        " " + stringResource(R.string.admin_you),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -238,7 +240,7 @@ private fun UserRow(
             }
             Spacer(Modifier.height(2.dp))
             Text(
-                "Desde ${formatMemberSince(user.createdAt)}",
+                stringResource(R.string.admin_member_since, formatMemberSince(user.createdAt)),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -246,7 +248,7 @@ private fun UserRow(
         IconButton(onClick = onEdit) {
             Icon(
                 Icons.Filled.Edit,
-                contentDescription = "Editar ${user.username}",
+                contentDescription = stringResource(R.string.action_edit) + " " + user.username,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
             )
@@ -255,7 +257,7 @@ private fun UserRow(
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Filled.Delete,
-                    contentDescription = "Eliminar ${user.username}",
+                    contentDescription = stringResource(R.string.action_delete) + " " + user.username,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp),
                 )
@@ -279,6 +281,8 @@ private fun AdminUserDialog(
     var password by remember { mutableStateOf("") }
     var isAdmin by remember(initialIsAdmin) { mutableStateOf(initialIsAdmin) }
     var error by remember { mutableStateOf<String?>(null) }
+    val usernameRequired = stringResource(R.string.admin_error_username)
+    val passwordTooShort = stringResource(R.string.admin_error_password)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -291,7 +295,7 @@ private fun AdminUserDialog(
             ) {
                 Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Column(Modifier.fillMaxWidth()) {
-                    FieldLabel("Usuario")
+                    FieldLabel(stringResource(R.string.login_username))
                     Spacer(Modifier.height(4.dp))
                     CompactField(
                         value = username,
@@ -302,7 +306,7 @@ private fun AdminUserDialog(
                     )
                 }
                 Column(Modifier.fillMaxWidth()) {
-                    FieldLabel(if (isNew) "Contraseña" else "Nueva contraseña (opcional)")
+                    FieldLabel(stringResource(if (isNew) R.string.login_password else R.string.admin_new_password_optional))
                     Spacer(Modifier.height(4.dp))
                     CompactField(
                         value = password,
@@ -310,7 +314,7 @@ private fun AdminUserDialog(
                             val sanitized = it.filterNot { c -> c == '\u0000' }
                             password = sanitized
                         },
-                        placeholder = "Mínimo 8 caracteres",
+                        placeholder = stringResource(R.string.admin_password_hint),
                         enabled = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -323,7 +327,7 @@ private fun AdminUserDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("Es administrador", style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.admin_is_admin), style = MaterialTheme.typography.bodyMedium)
                     }
                     Switch(
                         checked = isAdmin,
@@ -343,21 +347,21 @@ private fun AdminUserDialog(
         confirmButton = {
             TextButton(onClick = {
                 if (username.isBlank()) {
-                    error = "El usuario es obligatorio."
+                    error = usernameRequired
                     return@TextButton
                 }
                 if (isNew && password.length < 8) {
-                    error = "La contraseña debe tener al menos 8 caracteres."
+                    error = passwordTooShort
                     return@TextButton
                 }
                 error = null
                 onSubmit(username.trim(), password, if (editingSelf) null else isAdmin)
             }) {
-                Text("Guardar")
+                Text(stringResource(R.string.action_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }
@@ -365,7 +369,7 @@ private fun AdminUserDialog(
 private fun formatMemberSince(iso: String): String {
     return try {
         val odt = java.time.OffsetDateTime.parse(iso)
-        java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale("es", "ES"))
+        java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", appLocale())
             .format(odt)
     } catch (_: Exception) {
         iso.take(10)

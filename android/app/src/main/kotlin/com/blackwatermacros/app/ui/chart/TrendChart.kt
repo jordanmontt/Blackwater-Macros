@@ -1,5 +1,9 @@
 package com.blackwatermacros.app.ui.chart
 
+import com.blackwatermacros.app.R
+import androidx.compose.ui.res.stringResource
+import com.blackwatermacros.app.ui.formatDateShort
+import com.blackwatermacros.app.ui.formatNumberGrouped
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -28,8 +32,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.core.DataPoint
-import com.blackwatermacros.app.core.formatDateKeyShort
-import com.blackwatermacros.app.core.formatNumberEsGrouped
 import com.blackwatermacros.app.core.movingAverageByDays
 import com.blackwatermacros.app.core.round1
 import kotlin.math.roundToInt
@@ -52,6 +54,9 @@ fun TrendChart(
     val ringColor = MaterialTheme.colorScheme.background
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val surfaceColor = MaterialTheme.colorScheme.surface
+    val valueLabel = stringResource(R.string.chart_value)
+    val averageLabel = stringResource(R.string.chart_average)
+    val trendLabel = stringResource(R.string.chart_trend)
 
     val trend = movingAverageByDays(points, 7)
     val trendRows = points.mapIndexedNotNull { i, p ->
@@ -129,7 +134,7 @@ fun TrendChart(
                     strokeWidth = 1.dp.toPx(),
                 )
                 drawContext.canvas.nativeCanvas.drawText(
-                    formatNumberEsGrouped(vMin + (vMax - vMin) * t, 0),
+                    formatNumberGrouped(vMin + (vMax - vMin) * t, 0),
                     leftAxisWidth - 4.dp.toPx(),
                     yy + 5.dp.toPx(),
                     axisPaint,
@@ -185,7 +190,7 @@ fun TrendChart(
                 val labels = listOf(0, points.size / 2, points.size - 1).distinct().filter { it in points.indices }
                 labels.forEach { i ->
                     drawContext.canvas.nativeCanvas.drawText(
-                        formatDateKeyShort(points[i].date),
+                        formatDateShort(points[i].date),
                         x(i),
                         plotHeight - 2.dp.toPx(),
                         axisPaint.apply { textAlign = android.graphics.Paint.Align.CENTER },
@@ -203,9 +208,9 @@ fun TrendChart(
                 )
                 val row = points[si]
                 val lines = buildList {
-                    add(formatDateKeyShort(row.date))
-                    add("Valor: ${formatNumberEsGrouped(row.value, 1)} $unit")
-                    trendRows.getOrNull(si)?.let { add("Media: ${formatNumberEsGrouped(it.second, 1)} $unit") }
+                    add(formatDateShort(row.date))
+                    add("$valueLabel: ${formatNumberGrouped(row.value, 1)} $unit")
+                    trendRows.getOrNull(si)?.let { add("$averageLabel: ${formatNumberGrouped(it.second, 1)} $unit") }
                 }
                 val tooltipPaint = android.graphics.Paint().apply {
                     setColor(fillArgb)
@@ -246,9 +251,9 @@ fun TrendChart(
             Modifier.fillMaxWidth(),
             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
         ) {
-            LegendDot(color, "Valor")
+            LegendDot(color, valueLabel)
             Spacer(Modifier.width(12.dp))
-            LegendDot(trendColor, "Tendencia")
+            LegendDot(trendColor, trendLabel)
         }
     }
 }

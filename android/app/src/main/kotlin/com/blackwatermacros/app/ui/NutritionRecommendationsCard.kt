@@ -1,6 +1,7 @@
 package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -28,12 +29,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.blackwatermacros.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.blackwatermacros.app.core.CalorieRecommendation
 import com.blackwatermacros.app.core.Goal
-import com.blackwatermacros.app.core.ProteinRecommendation
-import com.blackwatermacros.app.core.formatNumberEs
 import kotlin.math.round
 
 /**
@@ -45,6 +45,8 @@ import kotlin.math.round
 fun NutritionRecommendationsCard(
     dailyCalories: Double,
     dailyProtein: Double,
+    onOpenSettings: () -> Unit = {},
+    onOpenWeight: () -> Unit = {},
     viewModel: RecommendationsViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -57,17 +59,10 @@ fun NutritionRecommendationsCard(
                 CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
             }
         }
-        RecommendationsUiState.NoWeight -> AppCard(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        ) {
-            Text(
-                text = "Registra tu peso para ver recomendaciones",
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        RecommendationsUiState.NoWeight ->
+            HintCard(stringResource(R.string.rec_need_weight), stringResource(R.string.rec_go_to_weight), onOpenWeight)
+        RecommendationsUiState.NeedsProfile ->
+            HintCard(stringResource(R.string.rec_need_profile), stringResource(R.string.rec_go_to_settings), onOpenSettings)
         is RecommendationsUiState.Ready -> {
             val ready = state as RecommendationsUiState.Ready
             val calorie = ready.calorie
@@ -79,17 +74,16 @@ fun NutritionRecommendationsCard(
                 Column(Modifier.fillMaxWidth().padding(16.dp)) {
                     if (calorie != null) {
                         RecommendationSection(
-                            title = "Recomendación de calorías",
+                            title = stringResource(R.string.rec_calories_title),
                             icon = Icons.Filled.Whatshot,
                             goal = calorie.goal,
-                            rangeValue = "${formatNumberEs(calorie.targetMin)} – ${formatNumberEs(calorie.targetMax)}",
-                            rangeUnit = "kcal/día",
-                            detail = "promedio estimado: ${formatNumberEs(calorie.target)} kcal/día",
+                            rangeValue = "${formatNumber(calorie.targetMin)} – ${formatNumber(calorie.targetMax)}",
+                            rangeUnit = stringResource(R.string.unit_kcal_day),
+                            detail = stringResource(R.string.rec_estimated_average, "${formatNumber(calorie.target)} ${stringResource(R.string.unit_kcal_day)}"),
                             current = dailyCalories,
                             rangeMin = calorie.targetMin,
                             rangeMax = calorie.targetMax,
-                            missingLabel = "te faltan {min}–{max} kcal",
-                            exceededLabel = "te pasaste de {min} kcal",
+                            barUnit = "kcal",
                         )
                     }
                     if (calorie != null && protein != null) {
@@ -97,21 +91,40 @@ fun NutritionRecommendationsCard(
                     }
                     if (protein != null) {
                         RecommendationSection(
-                            title = "Recomendación de proteína",
+                            title = stringResource(R.string.rec_protein_title),
                             icon = Icons.Filled.FitnessCenter,
                             goal = protein.goal,
-                            rangeValue = "${formatNumberEs(protein.bwRange.min)} – ${formatNumberEs(protein.bwRange.max)}",
-                            rangeUnit = "g/día",
-                            detail = "promedio estimado: ${formatNumberEs(protein.target)} g/día",
+                            rangeValue = "${formatNumber(protein.bwRange.min)} – ${formatNumber(protein.bwRange.max)}",
+                            rangeUnit = stringResource(R.string.unit_g_day),
+                            detail = stringResource(R.string.rec_estimated_average, "${formatNumber(protein.target)} ${stringResource(R.string.unit_g_day)}"),
                             current = dailyProtein,
                             rangeMin = protein.bwRange.min,
                             rangeMax = protein.bwRange.max,
-                            missingLabel = "te faltan {min}–{max} g",
-                            exceededLabel = "te pasaste de {min} g",
+                            barUnit = "g",
                         )
                     }
                 }
             }
+        }
+    }
+}
+
+/** A tappable explanation of what is missing, with a link to where to fix it. */
+@Composable
+private fun HintCard(message: String, action: String, onClick: () -> Unit) {
+    AppCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable(onClick = onClick)) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = message,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(text = action, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -127,8 +140,7 @@ internal fun RecommendationSection(
     current: Double,
     rangeMin: Double,
     rangeMax: Double,
-    missingLabel: String,
-    exceededLabel: String,
+    barUnit: String = "",
     showBar: Boolean = true,
 ) {
     Column {
@@ -138,7 +150,7 @@ internal fun RecommendationSection(
             Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             Spacer(Modifier.width(6.dp))
             Text(
-                "· ${goalLabel(goal)}",
+                "· ${stringResource(goal.labelRes())}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -165,7 +177,7 @@ internal fun RecommendationSection(
         )
         if (showBar) {
             Spacer(Modifier.height(10.dp))
-            IntakeBar(current, rangeMin, rangeMax, missingLabel, exceededLabel)
+            IntakeBar(current, rangeMin, rangeMax, barUnit)
         }
     }
 }
@@ -175,10 +187,9 @@ private fun IntakeBar(
     current: Double,
     rangeMin: Double,
     rangeMax: Double,
-    missingLabel: String,
-    exceededLabel: String,
+    unit: String,
 ) {
-    val status = intakeStatus(current, rangeMin, rangeMax, missingLabel, exceededLabel)
+    val status = intakeStatus(current, rangeMin, rangeMax, unit)
     Column {
         Text(status.label, style = MaterialTheme.typography.labelSmall, color = status.color)
         Spacer(Modifier.height(4.dp))
@@ -225,29 +236,18 @@ private fun androidx.compose.foundation.layout.BoxWithConstraintsScope.Tick(tota
 
 private data class Status(val label: String, val color: Color)
 
-private fun intakeStatus(
-    current: Double,
-    rangeMin: Double,
-    rangeMax: Double,
-    missingLabel: String,
-    exceededLabel: String,
-): Status {
-    return when {
-        current >= rangeMin && current <= rangeMax -> Status("en rango", Color(0xFF2F7D43))
-        current < rangeMin -> {
-            val missingMin = formatNumberEs(round(rangeMin - current))
-            val missingMax = formatNumberEs(round(rangeMax - current))
-            Status(missingLabel.replace("{min}", missingMin).replace("{max}", missingMax), Color(0xFFC8910A))
-        }
-        else -> {
-            val exceeded = formatNumberEs(round(current - rangeMax))
-            Status(exceededLabel.replace("{min}", exceeded), Color(0xFFB2561F))
-        }
-    }
+@Composable
+private fun intakeStatus(current: Double, rangeMin: Double, rangeMax: Double, unit: String): Status = when {
+    current in rangeMin..rangeMax -> Status(stringResource(R.string.rec_in_range), Color(0xFF2F7D43))
+    current < rangeMin -> Status(
+        stringResource(R.string.rec_missing, formatNumber(round(rangeMin - current)), formatNumber(round(rangeMax - current)), unit),
+        Color(0xFFC8910A),
+    )
+    else -> Status(stringResource(R.string.rec_exceeded, formatNumber(round(current - rangeMax)), unit), Color(0xFFB2561F))
 }
 
-private fun goalLabel(goal: Goal): String = when (goal) {
-    Goal.CUT -> "Definición"
-    Goal.MAINTAIN -> "Mantenimiento"
-    Goal.SURPLUS -> "Volumen"
+internal fun Goal.labelRes(): Int = when (this) {
+    Goal.CUT -> R.string.goal_cut
+    Goal.MAINTAIN -> R.string.goal_maintain
+    Goal.SURPLUS -> R.string.goal_surplus
 }

@@ -44,6 +44,16 @@ function memoryWeights(): WeightsRepository {
       rows.delete(id);
       return true;
     },
+    async upsert(userId, id, data: NewWeightData) {
+      const existing = rows.get(id);
+      if (existing && existing.userId !== userId) return null;
+      const now = new Date();
+      const row: WeightRow = existing
+        ? { ...existing, ...data, updatedAt: now }
+        : { id, userId, createdAt: now, updatedAt: now, ...data };
+      rows.set(id, row);
+      return row;
+    },
   };
 }
 

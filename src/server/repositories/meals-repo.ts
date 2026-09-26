@@ -26,6 +26,11 @@ export interface MealsRepository {
   update(userId: string, id: string, data: NewMealData): Promise<MealRow | null>;
   delete(userId: string, id: string): Promise<boolean>;
   reorder(userId: string, orderedIds: string[]): Promise<void>;
+  /**
+   * Create-or-replace with a client-generated id (offline sync). Keeps the stored
+   * `sortOrder` when none is given. Returns null if the id belongs to another user.
+   */
+  upsert(userId: string, id: string, data: NewMealData, sortOrder?: number): Promise<MealRow | null>;
 }
 
 export function createMealsRepository(db: AppDb): MealsRepository {
@@ -49,11 +54,7 @@ export function createMealsRepository(db: AppDb): MealsRepository {
       return rows[0] ?? null;
     },
     async create(userId, data) {
-      const nextOrder = await db
-        .select({ value: sql<number>`coalesce(max(${meals.sortOrder}) + 1, 0)` })
-        .from(meals)
-        .where(and(eq(meals.userId, userId), eq(meals.logDate, data.logDate)));
-      const sortOrder = nextOrder[0]?.value ?? 0;
+      const sortOrder = await nextSortOrder(db, userId, data.logDate);
       const rows = await db
         .insert(meals)
         .values({ ...data, userId, sortOrder })
@@ -85,5 +86,32 @@ export function createMealsRepository(db: AppDb): MealsRepository {
         }
       });
     },
+    async upsert(userId, id, data, sortOrder) {
+      const updated = await db
+        .update(meals)
+        .set({ ...data, ...(sortOrder !== undefined ? { sortOrder } : {}), updatedAt: new Date() })
+        .where(and(eq(meals.userId, userId), eq(meals.id, id)))
+        .returning();
+      if (updated[0]) return updated[0];
+      const inserted = await db
+        .insert(meals)
+        .values({
+          ...data,
+          id,
+          userId,
+          sortOrder: sortOrder ?? (await nextSortOrder(db, userId, data.logDate)),
+        })
+        .onConflictDoNothing({ target: meals.id })
+        .returning();
+      return inserted[0] ?? null;
+    },
   };
+}
+
+async function nextSortOrder(db: AppDb, userId: string, logDate: string): Promise<number> {
+  const rows = await db
+    .select({ value: sql<number>`coalesce(max(${meals.sortOrder}) + 1, 0)` })
+    .from(meals)
+    .where(and(eq(meals.userId, userId), eq(meals.logDate, logDate)));
+  return rows[0]?.value ?? 0;
 }

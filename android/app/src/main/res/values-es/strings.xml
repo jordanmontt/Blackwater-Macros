@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from the translation table; English is the default for any other phone language. -->
+<resources>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_ok">Aceptar</string>
+    <string name="action_back">Volver</string>
+    <string name="meal_new">Nueva comida</string>
+    <string name="meal_edit">Editar comida</string>
+    <string name="template_new">Nueva plantilla</string>
+    <string name="template_edit">Editar plantilla</string>
+    <string name="form_title">Título</string>
+    <string name="form_title_placeholder">Desayuno</string>
+    <string name="form_entry_mode_question">¿Cómo quieres introducir la nutrición?</string>
+    <string name="entry_mode_per_ingredient">Por ingrediente</string>
+    <string name="entry_mode_total_only">Solo total</string>
+    <string name="form_help_per_ingredient">Introduce las calorías, proteína, carbohidratos y grasa de cada ingrediente y se sumarán solas.</string>
+    <string name="form_help_total_only">Introduce únicamente el total de calorías, proteína, carbohidratos y grasa de la comida.</string>
+    <string name="form_ingredients">Ingredientes</string>
+    <string name="form_add_ingredient">Añadir ingrediente</string>
+    <string name="form_notes_optional">Notas (opcional)</string>
+    <string name="form_notes_placeholder">Notas</string>
+    <string name="ingredient_name_placeholder">4 huevos</string>
+    <string name="ingredient_quantity_placeholder">30 g</string>
+    <string name="unit_kcal">kcal</string>
+    <string name="macro_g_protein">g proteína</string>
+    <string name="macro_g_carbs">g carbohidratos</string>
+    <string name="macro_g_fat">g grasa</string>
+    <string name="total_calories">Calorías</string>
+    <string name="total_protein_g">Proteína (g)</string>
+    <string name="total_carbs_g">Carbohidratos (g)</string>
+    <string name="total_fat_g">Grasa (g)</string>
+    <string name="error_title_required">El título es obligatorio.</string>
+    <string name="error_ingredient_required">Añade al menos un ingrediente con nombre.</string>
+    <string name="error_invalid_number">Algunos números no son válidos.</string>
+    <string name="tab_meals">Comidas</string>
+    <string name="tab_weight">Peso</string>
+    <string name="tab_stats">Estadísticas</string>
+    <string name="tab_settings">Ajustes</string>
+    <string name="meal_add">Añadir comida</string>
+    <string name="meal_delete_title">¿Eliminar comida?</string>
+    <string name="meal_delete_body">Se borrará esta comida y sus ingredientes. Esta acción no se puede deshacer.</string>
+    <string name="meal_deleted">Comida eliminada</string>
+    <string name="meal_reorder">Reordenar comida</string>
+    <string name="meal_manual_total">Total manual</string>
+    <string name="meals_empty_day">Todavía no has registrado ninguna comida este día.</string>
+    <string name="template_apply">Aplicar plantilla</string>
+    <string name="template_applied">«%1$s» añadido a este día</string>
+    <string name="today">Hoy</string>
+    <string name="day_previous">Día anterior</string>
+    <string name="day_next">Día siguiente</string>
+    <string name="day_totals">Totales del día</string>
+    <string name="macro_protein">Proteína</string>
+    <string name="macro_carbs">Carbohidratos</string>
+    <string name="macro_fat">Grasa</string>
+    <string name="range_7d">7 días</string>
+    <string name="range_30d">30 días</string>
+    <string name="range_90d">90 días</string>
+    <string name="range_all">Todo</string>
+    <string name="methodology">Metodología</string>
+    <string name="stats_no_data">Todavía no hay registros de peso en este periodo.</string>
+    <string name="stats_weight_summary">Resumen de peso</string>
+    <string name="weight_current">Peso actual</string>
+    <string name="stats_current_trend">Tendencia actual</string>
+    <string name="body_fat_current">Grasa actual</string>
+    <string name="stats_total_change">Cambio total</string>
+    <string name="stats_weekly_rate">Ritmo semanal</string>
+    <string name="unit_kg_per_week">kg/semana</string>
+    <string name="stats_fat_change">Cambio grasa</string>
+    <string name="stats_weight_fat_chart">Evolución del peso y grasa corporal</string>
+    <string name="stats_weekly_average">Media semanal del peso</string>
+    <string name="stats_minimum">Mínimo:</string>
+    <string name="stats_maximum">Máximo:</string>
+    <string name="stats_macro_summary">Resumen de macros</string>
+    <string name="stats_avg_calories">Media de calorías</string>
+    <string name="stats_avg_protein">Media de proteína</string>
+    <string name="stats_avg_carbs">Media de carbohidratos</string>
+    <string name="stats_avg_fat">Media de grasa</string>
+    <string name="stats_peak_day">Día pico</string>
+    <string name="stats_daily_calories">Calorías diarias</string>
+    <string name="stats_daily_protein">Proteína diaria</string>
+    <string name="stats_daily_carbs">Carbohidratos diarios</string>
+    <string name="stats_daily_fat">Grasa diaria</string>
+    <string name="chart_value">Valor</string>
+    <string name="chart_average">Media</string>
+    <string name="chart_trend">Tendencia</string>
+    <string name="chart_weight_axis">Peso (kg)</string>
+    <string name="chart_fat_axis">Grasa (%)</string>
+    <string name="body_fat">Grasa corporal</string>
+    <string name="weight_add">Registrar peso</string>
+    <string name="weight_edit">Editar peso</string>
+    <string name="weight_delete_title">¿Eliminar registro?</string>
+    <string name="weight_delete_body">Este registro de peso se borrará permanentemente.</string>
+    <string name="weight_empty">Todavía no has registrado ningún peso.</string>
+    <string name="weight_change_7d">Cambio de peso (7 días)</string>
+    <string name="body_fat_change_7d">Cambio de grasa (7 días)</string>
+    <string name="body_fat_value">%1$s%% grasa</string>
+    <string name="weight_kg">Peso (kg)</string>
+    <string name="body_fat_pct">Grasa corporal (%)</string>
+    <string name="body_fat_placeholder">15 (opcional)</string>
+    <string name="weight_date">Fecha</string>
+    <string name="weight_time">Hora</string>
+    <string name="weight_note_optional">Nota (opcional)</string>
+    <string name="error_weight_range">Introduce un peso entre 20 y 400 kg.</string>
+    <string name="error_body_fat_range">La grasa corporal debe estar entre 3 y 60 %.</string>
+    <string name="account_title">Cuenta</string>
+    <string name="account_local_description">Tus datos se guardan solo en este teléfono. Si tienes una cuenta, inicia sesión para sincronizarlos con la versión web.</string>
+    <string name="account_login">Iniciar sesión</string>
+    <string name="account_connected_as">Conectado como %1$s</string>
+    <string name="sync_session_expired">La sesión ha caducado. Vuelve a iniciar sesión para seguir sincronizando.</string>
+    <string name="sync_in_progress">Sincronizando…</string>
+    <string name="sync_problem_server">El servidor tuvo un problema. Se reintentará automáticamente.</string>
+    <string name="sync_problem_rejected">El servidor rechazó un cambio. Se reintentará automáticamente.</string>
+    <string name="sync_problem_unexpected">No se pudo sincronizar. Se reintentará automáticamente.</string>
+    <string name="sync_offline">Sin conexión. Se sincronizará sola cuando vuelva la red.</string>
+    <string name="sync_done">Sincronizado %1$s</string>
+    <string name="sync_today_at">hoy a las %1$s</string>
+    <string name="sync_on_date_at">el %1$s a las %2$s</string>
+    <string name="sync_never">Aún no se ha sincronizado</string>
+    <string name="sync_now">Sincronizar</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="logging_out">Cerrando…</string>
+    <string name="logout_title">¿Cerrar sesión?</string>
+    <string name="appearance_title">Apariencia</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="goal_title">Objetivo deportivo</string>
+    <string name="goal_description">Define tu objetivo deportivo para calcular los rangos de proteína y calorías recomendadas.</string>
+    <string name="goal_cut">Definición</string>
+    <string name="goal_maintain">Mantenimiento</string>
+    <string name="goal_surplus">Volumen</string>
+    <string name="profile_title">Tu perfil</string>
+    <string name="profile_description">Define tu género, edad y actividad para estimar tus necesidades calóricas.</string>
+    <string name="profile_gender">Género</string>
+    <string name="gender_male">Hombre</string>
+    <string name="gender_female">Mujer</string>
+    <string name="profile_birth_year">Año de nacimiento</string>
+    <string name="profile_height">Altura (cm)</string>
+    <string name="profile_gym_days">Días de gimnasio por semana</string>
+    <string name="profile_gym_minutes">Duración de sesión (min)</string>
+    <string name="profile_walking_minutes">Caminata diaria (min)</string>
+    <string name="error_birth_year">Entre 1920 y 2010</string>
+    <string name="error_height">Entre 100 y 250 cm</string>
+    <string name="error_gym_days">Entre 0 y 7</string>
+    <string name="error_gym_minutes">Entre 0 y 300 min</string>
+    <string name="error_walking_minutes">Entre 0 y 480 min</string>
+    <string name="rec_calories_title">Recomendación de calorías</string>
+    <string name="rec_protein_title">Recomendación de proteína</string>
+    <string name="unit_kcal_day">kcal/día</string>
+    <string name="unit_g_day">g/día</string>
+    <string name="rec_estimated_average">promedio estimado: %1$s</string>
+    <string name="rec_bmr">Metabolismo basal (TMB): %1$s kcal/día</string>
+    <string name="rec_tdee">Gasto calórico diario estimado (TDEE): %1$s kcal/día</string>
+    <string name="rec_need_weight">Registra tu peso para ver recomendaciones</string>
+    <string name="rec_need_profile">Elige tu objetivo y completa tu perfil para ver recomendaciones</string>
+    <string name="rec_go_to_weight">Ir a Peso</string>
+    <string name="rec_go_to_settings">Ir a Ajustes</string>
+    <string name="rec_in_range">en rango</string>
+    <string name="rec_missing">te faltan %1$s–%2$s %3$s</string>
+    <string name="rec_exceeded">te pasaste de %1$s %2$s</string>
+    <string name="methodology_subtitle">Cómo se calculan las métricas</string>
+    <string name="admin_title">Administración</string>
+    <string name="admin_subtitle">Gestiona los usuarios de la aplicación.</string>
+    <string name="templates_title">Plantillas</string>
+    <string name="templates_empty">Aún no tienes plantillas guardadas.</string>
+    <string name="template_delete_title">¿Eliminar plantilla?</string>
+    <string name="template_delete_body">Se borrará esta plantilla. Esta acción no se puede deshacer.</string>
+    <string name="data_title">Tus datos</string>
+    <string name="data_description">Exporta o importa tus comidas y tu peso en CSV (el mismo formato que la versión web). Útil como copia de seguridad o para cambiar de teléfono.</string>
+    <string name="data_export_meals">Exportar comidas</string>
+    <string name="data_export_weights">Exportar peso</string>
+    <string name="data_import">Importar CSV</string>
+    <string name="data_meals_file_name">blackwater-comidas-%1$s.csv</string>
+    <string name="data_weights_file_name">blackwater-peso-%1$s.csv</string>
+    <string name="data_exported">Archivo guardado.</string>
+    <string name="data_unknown_file">Este archivo no es un CSV de comidas o de peso de Blackwater.</string>
+    <string name="data_failed">No se pudo leer o escribir el archivo.</string>
+    <string name="login_description">Sincroniza tus comidas y tu peso con la versión web. Las cuentas son por invitación.</string>
+    <string name="login_username">Usuario</string>
+    <string name="login_password">Contraseña</string>
+    <string name="login_submit">Entrar</string>
+    <string name="login_local_data_title">Ya tienes datos en este teléfono</string>
+    <string name="login_local_data_body">%1$s
+
+¿Quieres subirlos a la cuenta «%2$s» o descartarlos y usar solo los datos de la cuenta?</string>
+    <string name="login_local_data_upload">Subirlos a mi cuenta</string>
+    <string name="login_local_data_discard">Descartarlos</string>
+    <string name="login_error_missing">Introduce usuario y contraseña.</string>
+    <string name="login_error_credentials">Usuario o contraseña incorrectos.</string>
+    <string name="login_error_network">Problema de conexión. Inténtalo de nuevo.</string>
+    <string name="login_error_wrong_account">Este teléfono está vinculado a «%1$s». Cierra sesión antes de entrar con otra cuenta.</string>
+    <string name="login_error_server">Error del servidor (%1$d). Inténtalo más tarde.</string>
+    <string name="admin_users">Usuarios</string>
+    <string name="admin_new_user">Nuevo usuario</string>
+    <string name="admin_users_description">Crea y gestiona las cuentas de la aplicación.</string>
+    <string name="admin_no_users">Todavía no hay usuarios.</string>
+    <string name="admin_new_user_description">La cuenta podrá iniciar sesión inmediatamente.</string>
+    <string name="admin_edit_user">Editar usuario</string>
+    <string name="admin_edit_user_description">Cambia el nombre, la contraseña o el rol del usuario.</string>
+    <string name="admin_delete_title">¿Eliminar usuario?</string>
+    <string name="admin_delete_body">Se borrarán sus comidas, pesajes, plantillas y sesiones. Esta acción no se puede deshacer.</string>
+    <string name="admin_you">(tú)</string>
+    <string name="admin_member_since">Desde %1$s</string>
+    <string name="admin_new_password_optional">Nueva contraseña (opcional)</string>
+    <string name="admin_password_hint">Mínimo 8 caracteres</string>
+    <string name="admin_is_admin">Es administrador</string>
+    <string name="admin_error_username">El usuario es obligatorio.</string>
+    <string name="admin_error_password">La contraseña debe tener al menos 8 caracteres.</string>
+    <string name="meth_intro">Cómo se calculan cada una de las métricas que aparecen en Estadísticas, con las fórmulas exactas y las referencias en las que se basan.</string>
+    <string name="meth_scale_title">Peso en báscula vs tendencia</string>
+    <string name="meth_scale_body">El «peso actual» es tu última entrada registrada. La «tendencia actual» es el valor más reciente de la media móvil de 7 días. El «cambio total» compara la primera y la última entrada del rango seleccionado. El «mínimo» y el «máximo» son los valores extremos de tus entradas dentro del rango.</string>
+    <string name="meth_ma_title">Media móvil de 7 días (tendencia)</string>
+    <string name="meth_ma_window">W(d) = { entradas con fecha en [d − 6, d] }</string>
+    <string name="meth_ma_body">Se promedian todas tus entradas cuya fecha cae dentro de la ventana de 7 días que termina en d. Los días sin registro no cuentan ni se rellenan con ceros: si solo pesaste 3 veces esa semana, la media es de esas 3 entradas. Esto atenúa el ruido diario (agua, sal, contenido intestinal) manteniendo la señal real de grasa, que cambia despacio. Es la práctica habitual recomendada en la literatura de auto-pesaje y la base del concepto de «peso de tendencia» popularizado por The Hacker\'s Diet.</string>
+    <string name="meth_rate_title">Ritmo semanal (kg/semana)</string>
+    <string name="meth_rate_formula">ritmo = β × 7 [kg/semana]</string>
+    <string name="meth_rate_body">x son los días transcurridos desde la primera entrada del rango e y el peso registrado. La pendiente β se multiplica por 7 para expresarla por semana. La regresión usa tus entradas crudas del rango visible: captura mejor la dirección a largo plazo que comparar solo dos puntos concretos.</string>
+    <string name="meth_weekly_title">Media semanal del peso</string>
+    <string name="meth_weekly_body">Las semanas empiezan el lunes. Se hace la media aritmética de todas las entradas de cada semana; las semanas sin ninguna entrada no aparecen.</string>
+    <string name="meth_daily_title">Calorías, proteína, carbohidratos y grasa diarios</string>
+    <string name="meth_daily_body">El total de cada día es la suma de tus comidas de ese día (las calorías, proteína, carbohidratos y grasa se calculan al guardar, ya sea sumando ingredientes o tomando tu total manual). Los días sin comidas cuentan como 0: así los huecos reflejan honestamente la adherencia en lugar de desaparecer. La «media» es la media aritmética del rango, el «día pico» el valor máximo, y la línea de tendencia aplica exactamente la misma media móvil de 7 días descrita arriba.</string>
+    <string name="meth_protein_title">Recomendaciones de proteína diaria</string>
+    <string name="meth_protein_body">La cantidad de proteína que necesitas depende de tu objetivo, tu peso y tu composición corporal. La app calcula un rango diario multiplicando tu peso por un factor según tu objetivo.
+
+Mantener músculo (1.2–1.6 g/kg/día): suficiente para la mayoría de personas activas. Volumen (1.6–2.0 g/kg/día): por encima de 1.6 g/kg los beneficios adicionales empiezan a disminuir, pero hasta 2.0 cubre la variabilidad individual. Definición (1.6–2.2 g/kg de peso corporal): durante un déficit calórico la proteína ayuda a preservar músculo.
+
+La recomendación se calcula exclusivamente sobre el peso corporal total.</string>
+    <string name="meth_tdee_title">Estimación del gasto calórico diario (TDEE)</string>
+    <string name="meth_tdee_men">Hombres: TMB = (10 × peso_kg) + (6.25 × altura_cm) − (5 × edad) + 5</string>
+    <string name="meth_tdee_women">Mujeres: TMB = (10 × peso_kg) + (6.25 × altura_cm) − (5 × edad) − 161</string>
+    <string name="meth_tdee_total">TDEE = TMB × factor de actividad</string>
+    <string name="meth_tdee_body">El gasto calórico total se estima en dos pasos: primero se calcula el metabolismo basal (TMB) con la ecuación de Mifflin-St Jeor (1990), considerada la más precisa para personas no deportistas (Frankenfield et al. 2005, 82% de precisión dentro de ±10%). Luego se multiplica por un factor de actividad basado en la frecuencia del gimnasio, la duración de las sesiones y el tiempo de caminata diario.
+
+Los factores de actividad van de 1.2 (sedentario) a 1.9 (muy activo). La investigación muestra que la gente tiende a sobreestimar su nivel de actividad, por lo que los umbrales se calibran de forma conservadora.
+
+Definición: TDEE − 400 kcal (rango: −500 a −300). Mantenimiento: TDEE ± 100 kcal. Volumen: TDEE + 300 kcal (rango: +200 a +400).</string>
+    <string name="meth_references">Referencias</string>
+    <string name="data_delete_button">Borrar todos los datos de este teléfono</string>
+    <string name="data_delete_title">¿Borrar todos los datos?</string>
+    <string name="data_delete_body_local">Se borrarán para siempre de este teléfono todas las comidas, pesos, plantillas y tu perfil. Exporta un CSV antes si quieres una copia de seguridad.</string>
+    <string name="data_delete_body_account">Solo se borra la copia de este teléfono. Los datos de tu cuenta en el servidor no se tocan y se volverán a descargar en la próxima sincronización.</string>
+    <string name="data_delete_confirm">Borrar</string>
+    <string name="data_deleted">Datos borrados de este teléfono.</string>
+    <plurals name="ingredient_count">
+        <item quantity="one">%d ingrediente</item>
+        <item quantity="many">%d ingredientes</item>
+        <item quantity="other">%d ingredientes</item>
+    </plurals>
+    <plurals name="sync_pending">
+        <item quantity="one">%d cambio pendiente de subir</item>
+        <item quantity="many">%d cambios pendientes de subir</item>
+        <item quantity="other">%d cambios pendientes de subir</item>
+    </plurals>
+    <plurals name="logout_unsynced">
+        <item quantity="one">Tienes %d cambio sin sincronizar. Si cierras sesión ahora se perderá.</item>
+        <item quantity="many">Tienes %d cambios sin sincronizar. Si cierras sesión ahora se perderán.</item>
+        <item quantity="other">Tienes %d cambios sin sincronizar. Si cierras sesión ahora se perderán.</item>
+    </plurals>
+    <plurals name="data_imported_meals">
+        <item quantity="one">%d comida importada</item>
+        <item quantity="many">%d comidas importadas</item>
+        <item quantity="other">%d comidas importadas</item>
+    </plurals>
+    <plurals name="data_imported_weights">
+        <item quantity="one">%d registro de peso importado</item>
+        <item quantity="many">%d registros de peso importados</item>
+        <item quantity="other">%d registros de peso importados</item>
+    </plurals>
+    <plurals name="data_import_skipped">
+        <item quantity="one">%d ya existía</item>
+        <item quantity="many">%d ya existían</item>
+        <item quantity="other">%d ya existían</item>
+    </plurals>
+    <plurals name="data_import_invalid">
+        <item quantity="one">%d fila no se pudo leer</item>
+        <item quantity="many">%d filas no se pudieron leer</item>
+        <item quantity="other">%d filas no se pudieron leer</item>
+    </plurals>
+    <plurals name="local_meals">
+        <item quantity="one">%d comida</item>
+        <item quantity="many">%d comidas</item>
+        <item quantity="other">%d comidas</item>
+    </plurals>
+    <plurals name="local_weights">
+        <item quantity="one">%d registro de peso</item>
+        <item quantity="many">%d registros de peso</item>
+        <item quantity="other">%d registros de peso</item>
+    </plurals>
+    <plurals name="local_templates">
+        <item quantity="one">%d plantilla</item>
+        <item quantity="many">%d plantillas</item>
+        <item quantity="other">%d plantillas</item>
+    </plurals>
+    <plurals name="data_delete_unsynced">
+        <item quantity="one">%d cambio aún no se ha subido y se perderá.</item>
+        <item quantity="many">%d cambios aún no se han subido y se perderán.</item>
+        <item quantity="other">%d cambios aún no se han subido y se perderán.</item>
+    </plurals>
+</resources>

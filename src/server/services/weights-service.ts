@@ -47,6 +47,17 @@ export async function updateWeight(
   return row ? toWeightDto(row) : null;
 }
 
+/** Idempotent create-or-replace used by offline clients (client-generated id). */
+export async function upsertWeight(
+  repo: WeightsRepository,
+  userId: string,
+  id: string,
+  input: WeightInput,
+) {
+  const row = await repo.upsert(userId, id, toDomainData(input));
+  return row ? toWeightDto(row) : null;
+}
+
 export async function deleteWeight(repo: WeightsRepository, userId: string, id: string) {
   return repo.delete(userId, id);
 }
