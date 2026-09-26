@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Sync
@@ -47,6 +48,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -104,7 +106,7 @@ fun SettingsScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { CenteredTopAppBar(title = stringResource(R.string.tab_settings)) },
+        topBar = { CenteredTopAppBar(title = stringResource(R.string.tab_settings), leading = { TabHeaderLogo() }) },
     ) { innerPadding ->
         Column(
             Modifier
@@ -139,6 +141,7 @@ fun SettingsScreen(
             )
             DataCard(viewModel = viewModel, message = dataMessage)
             AppearanceCard(theme = theme, onThemeChange = viewModel::setTheme)
+            LanguageCard()
             LinkCard(
                 icon = Icons.Filled.Info,
                 title = stringResource(R.string.methodology),
@@ -547,5 +550,48 @@ private fun LinkCard(icon: ImageVector, title: String, subtitle: String, onClick
             }
             Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
+}
+
+@Composable
+private fun LanguageCard() {
+    val chosen = remember { chosenAppLanguage() }
+    var open by remember { mutableStateOf(false) }
+    val systemLabel = stringResource(R.string.language_system)
+    val currentLabel = AppLanguages.firstOrNull { it.first == chosen }?.second ?: systemLabel
+    LinkCard(
+        icon = Icons.Filled.Language,
+        title = stringResource(R.string.language_title),
+        subtitle = currentLabel,
+        onClick = { open = true },
+    )
+    if (open) {
+        AlertDialog(
+            onDismissRequest = { open = false },
+            title = { Text(stringResource(R.string.language_title)) },
+            text = {
+                Column {
+                    (listOf<Pair<String?, String>>(null to systemLabel) + AppLanguages).forEach { (tag, label) ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    open = false
+                                    if (tag != chosen) setAppLanguage(tag)
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(selected = tag == chosen, onClick = null)
+                            Spacer(Modifier.width(12.dp))
+                            Text(label, style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
     }
 }

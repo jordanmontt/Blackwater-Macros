@@ -247,6 +247,9 @@ Diät: TDEE − 400 kcal (Bereich: −500 bis −300). Erhalt: TDEE ± 100 kcal.
     <string name="data_deleted">Daten von diesem Telefon gelöscht.</string>
     <string name="sync_indicator_synced">Alles synchronisiert</string>
     <string name="sync_indicator_problem">Synchronisierung braucht Aufmerksamkeit</string>
+    <string name="ingredient_protein_short">%1$s g Eiw.</string>
+    <string name="language_title">Sprache</string>
+    <string name="language_system">Telefonsprache</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d Zutat</item>
         <item quantity="other">%d Zutaten</item>

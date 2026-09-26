@@ -700,9 +700,16 @@ app/src/main/kotlin/com/blackwatermacros/app/
 All UI text lives in `res/values*/strings.xml`: English (default, also the fallback for
 any other phone language), Spanish, French, Italian and German. The app follows the
 phone language; on Android 13+ it can also be changed per app in system settings
-(`generateLocaleConfig`). Dates and numbers use `ui/Format.kt` (not the es-ES formatters
+(`generateLocaleConfig`) or in Ajustes → Idioma (`setAppLanguage` in `ui/Format.kt`,
+AndroidX AppCompat per-app locales: the system setting on 13+, stored by AppCompat's
+`AppLocalesMetadataHolderService` before). Dates and numbers use `ui/Format.kt` (not the es-ES formatters
 of `:core`). `TranslationsTest` fails if a language misses a key or a placeholder. CSV
 column names stay Spanish on purpose (they are the web's file format).
+
+**Logo:** the web's 20 kg «BW» plate (`public/logo.png`) is the adaptive launcher icon
+(`mipmap-*/ic_launcher_foreground.png` on the paper background, plus a monochrome layer
+for themed icons), the splash icon, and `drawable-nodpi/logo_plate.png` in each tab
+header and on the login page.
 
 ### 14.4 Configuration
 

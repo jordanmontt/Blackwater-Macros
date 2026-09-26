@@ -247,6 +247,9 @@ Sèche : DEJ − 400 kcal (plage : −500 à −300). Maintien : DEJ ± 100 kcal
     <string name="data_deleted">Données supprimées de ce téléphone.</string>
     <string name="sync_indicator_synced">Tout est synchronisé</string>
     <string name="sync_indicator_problem">La synchronisation nécessite votre attention</string>
+    <string name="ingredient_protein_short">%1$s g prot.</string>
+    <string name="language_title">Langue</string>
+    <string name="language_system">Langue du téléphone</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d ingrédient</item>
         <item quantity="many">%d ingrédients</item>

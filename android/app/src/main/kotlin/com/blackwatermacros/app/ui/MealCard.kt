@@ -123,48 +123,14 @@ fun MealCard(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
-                            Text(
-                                text = ingredient.quantity ?: "",
-                                modifier = Modifier
-                                    .width(64.dp)
-                                    .padding(start = 6.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.End,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                            // Fixed-width, end-aligned columns so every row lines up whatever the text.
+                            IngredientCell(ingredient.quantity.orEmpty(), 52.dp)
                             if (showIngredientNumbers) {
-                                Text(
-                                    text = ingredient.calories?.let { "${formatNumber(it)} kcal" } ?: "",
-                                    modifier = Modifier
-                                        .width(64.dp)
-                                        .padding(start = 6.dp),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.End,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                IngredientCell(ingredient.calories?.let { "${formatNumber(it)} kcal" }.orEmpty(), 64.dp)
+                                IngredientCell(
+                                    ingredient.protein?.let { stringResource(R.string.ingredient_protein_short, formatNumber(it, 1)) }.orEmpty(),
+                                    76.dp,
                                 )
-                                Text(
-                                    text = ingredient.protein?.let { "${formatNumber(it, 1)} ${stringResource(R.string.macro_g_protein)}" } ?: "",
-                                    modifier = Modifier
-                                        .width(84.dp)
-                                        .padding(start = 6.dp),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.End,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                if (ingredient.carbs != null || ingredient.fat != null) {
-                                    Text(
-                                        text = "…",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.width(16.dp),
-                                    )
-                                }
                             }
                         }
                     }
@@ -233,4 +199,19 @@ private fun MacroBadge(text: String, filled: Boolean = false, modifier: Modifier
                 .padding(horizontal = 8.dp, vertical = 3.dp),
         )
     }
+}
+
+@Composable
+private fun IngredientCell(text: String, width: androidx.compose.ui.unit.Dp) {
+    // Widths grow with the system font size so large-text phones don't truncate.
+    val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+    Text(
+        text = text,
+        modifier = Modifier.width(width * fontScale).padding(start = 6.dp),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.End,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }

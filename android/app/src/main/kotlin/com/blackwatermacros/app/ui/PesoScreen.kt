@@ -72,7 +72,7 @@ fun PesoScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            CenteredTopAppBar(title = stringResource(R.string.tab_weight))
+            CenteredTopAppBar(title = stringResource(R.string.tab_weight), leading = { TabHeaderLogo() })
         },
         floatingActionButton = {
             FloatingActionButton(
