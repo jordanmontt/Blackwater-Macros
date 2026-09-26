@@ -35,6 +35,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.annotation.StringRes
 
 enum class AppTab(
@@ -149,15 +152,19 @@ private fun NavItem(
                         modifier = Modifier.size(22.dp),
                     )
                     Spacer(Modifier.height(2.dp))
-                    Text(
+                    // Shrinks long labels (e.g. «Statistiques» with large system fonts) instead of cutting them.
+                    val labelStyle = MaterialTheme.typography.labelSmall
+                    BasicText(
                         label,
                         modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = tint,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                        textAlign = TextAlign.Center,
+                        style = labelStyle.copy(
+                            color = tint,
+                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                            textAlign = TextAlign.Center,
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = labelStyle.fontSize),
                     )
                 }
             }

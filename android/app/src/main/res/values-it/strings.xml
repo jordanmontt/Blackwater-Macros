@@ -247,6 +247,9 @@ Definizione: TDEE − 400 kcal (intervallo: da −500 a −300). Mantenimento: T
     <string name="data_deleted">Dati eliminati da questo telefono.</string>
     <string name="sync_indicator_synced">Tutto sincronizzato</string>
     <string name="sync_indicator_problem">La sincronizzazione richiede attenzione</string>
+    <string name="ingredient_protein_short">%1$s g prot.</string>
+    <string name="language_title">Lingua</string>
+    <string name="language_system">Lingua del telefono</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d ingrediente</item>
         <item quantity="many">%d ingredienti</item>

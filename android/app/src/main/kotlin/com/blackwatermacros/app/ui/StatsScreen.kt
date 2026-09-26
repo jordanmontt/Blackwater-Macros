@@ -71,6 +71,7 @@ fun StatsScreen(
         topBar = {
             CenteredTopAppBar(
                 title = stringResource(R.string.tab_stats),
+                leading = { TabHeaderLogo() },
                 trailing = {
                     IconButton(onClick = onOpenMetodologia) {
                         Icon(

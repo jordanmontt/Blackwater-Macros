@@ -90,6 +90,8 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            AppLogo(size = 88.dp)
+            Spacer(Modifier.height(20.dp))
             AppCard(modifier = Modifier.widthIn(max = 400.dp)) {
                 Column(Modifier.padding(20.dp)) {
                     Text(

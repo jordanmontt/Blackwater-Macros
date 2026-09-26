@@ -14,6 +14,8 @@ composeActivity = "1.11.0"
 reorderable = "2.4.3"
 lifecycle = "2.9.2"
 coreKtx = "1.17.0"
+# Per-app language (LocaleManager on Android 13+, stored by AppCompat before).
+appcompat = "1.7.1"
 navCompose = "2.9.5"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
@@ -51,6 +53,7 @@ compose-foundation = { group = "androidx.compose.foundation", name = "foundation
 
 # AndroidX
 androidx-core = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "composeActivity" }
 androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }

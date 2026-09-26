@@ -126,6 +126,7 @@ fun HoyScreen(
         topBar = {
             CenteredTopAppBar(
                 title = stringResource(R.string.tab_meals),
+                leading = { TabHeaderLogo() },
                 trailing = { SyncIndicator(onClick = onOpenSettings) },
             )
         },

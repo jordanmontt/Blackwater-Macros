@@ -1,6 +1,8 @@
 package com.blackwatermacros.app.ui
 
 import android.text.format.DateFormat
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -16,12 +18,27 @@ import java.util.Locale
 private val SupportedLanguages = setOf("en", "es", "fr", "it", "de")
 
 /**
- * The locale the UI is shown in: the phone's, if we have a translation for it,
- * otherwise English (same fallback Android applies to the string resources).
+ * The locale the UI is shown in: the one chosen in Ajustes, else the phone's — if
+ * we have a translation for it, otherwise English (the string resources' fallback too).
  */
 fun appLocale(): Locale {
-    val phone = Locale.getDefault()
-    return if (phone.language in SupportedLanguages) phone else Locale.ENGLISH
+    val chosen = runCatching { AppCompatDelegate.getApplicationLocales()[0] }.getOrNull()
+    val locale = chosen ?: Locale.getDefault()
+    return if (locale.language in SupportedLanguages) locale else Locale.ENGLISH
+}
+
+/** Languages offered in Ajustes, as BCP-47 tags; each is shown in its own language. */
+val AppLanguages = listOf("en" to "English", "es" to "Español", "fr" to "Français", "it" to "Italiano", "de" to "Deutsch")
+
+/** The language picked in the app, or null when it follows the phone. */
+fun chosenAppLanguage(): String? =
+    AppCompatDelegate.getApplicationLocales().takeUnless { it.isEmpty }?.get(0)?.language
+
+/** Changes the app language (null = follow the phone); the screen is recreated in the new language. */
+fun setAppLanguage(tag: String?) {
+    AppCompatDelegate.setApplicationLocales(
+        if (tag == null) LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(tag),
+    )
 }
 
 private fun pattern(skeleton: String): DateTimeFormatter =

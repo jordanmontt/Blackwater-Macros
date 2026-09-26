@@ -248,6 +248,9 @@ Cut: TDEE − 400 kcal (range: −500 to −300). Maintain: TDEE ± 100 kcal. Bu
     <string name="data_deleted">Data deleted from this phone.</string>
     <string name="sync_indicator_synced">All changes synced</string>
     <string name="sync_indicator_problem">Sync needs attention</string>
+    <string name="ingredient_protein_short">%1$s g prot.</string>
+    <string name="language_title">Language</string>
+    <string name="language_system">Phone language</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d ingredient</item>
         <item quantity="other">%d ingredients</item>
