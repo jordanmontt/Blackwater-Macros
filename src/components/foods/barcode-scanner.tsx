@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { FoodProduct } from "@/lib/core/foods";
 import { lookupBarcode } from "@/lib/foods/foods-client";
-import { t } from "@/i18n";
+import { currentLanguage, t } from "@/i18n";
 
 type Status = "starting" | "scanning" | "cameraError" | "lookingUp" | "notFound" | "offline";
 
@@ -44,7 +44,7 @@ export function BarcodeScanner({ onFound }: { onFound: (product: FoodProduct) =>
   async function lookUp(value: string) {
     setStatus("lookingUp");
     try {
-      const product = await lookupBarcode(value);
+      const product = await lookupBarcode(value, currentLanguage());
       if (product) onFound(product);
       else setStatus("notFound");
     } catch {

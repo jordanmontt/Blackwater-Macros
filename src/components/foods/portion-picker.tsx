@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { formatNumber } from "@/i18n/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatNumberEs } from "@/lib/core/dates";
 import { scalePer100g } from "@/lib/core/foods";
 import type { FoodChoice } from "@/lib/foods/foods-client";
 import { normalizeDecimal } from "@/lib/utils";
@@ -26,8 +26,8 @@ export function PortionPicker({ choice, onAdd }: { choice: FoodChoice; onAdd: (g
         </p>
         <p className="text-xs text-muted-foreground tabular-nums">
           {formatTemplate(t.addFood.per100, {
-            kcal: formatNumberEs(choice.per100g.calories),
-            p: formatNumberEs(choice.per100g.protein, 1),
+            kcal: formatNumber(choice.per100g.calories),
+            p: formatNumber(choice.per100g.protein, 1),
           })}
         </p>
         {choice.incomplete ? <p className="mt-1 text-xs text-muted-foreground">{t.addFood.incomplete}</p> : null}
@@ -54,7 +54,7 @@ export function PortionPicker({ choice, onAdd }: { choice: FoodChoice; onAdd: (g
               className="rounded-full"
               onClick={() => setText(String(choice.servingGrams).replace(".", ","))}
             >
-              {formatTemplate(t.addFood.serving, { g: formatNumberEs(choice.servingGrams, 1) })}
+              {formatTemplate(t.addFood.serving, { g: formatNumber(choice.servingGrams, 1) })}
             </Button>
           ) : null}
         </div>
@@ -62,10 +62,10 @@ export function PortionPicker({ choice, onAdd }: { choice: FoodChoice; onAdd: (g
 
       <dl className="grid grid-cols-4 gap-2 rounded-xl border p-3 text-center" data-testid="portion-totals">
         {[
-          [t.hoy.calories, `${formatNumberEs(totals.calories)}`, "kcal"],
-          [t.hoy.protein, formatNumberEs(totals.protein, 1), "g"],
-          [t.hoy.carbs, formatNumberEs(totals.carbs, 1), "g"],
-          [t.hoy.fat, formatNumberEs(totals.fat, 1), "g"],
+          [t.hoy.calories, `${formatNumber(totals.calories)}`, "kcal"],
+          [t.hoy.protein, formatNumber(totals.protein, 1), "g"],
+          [t.hoy.carbs, formatNumber(totals.carbs, 1), "g"],
+          [t.hoy.fat, formatNumber(totals.fat, 1), "g"],
         ].map(([label, value, unit]) => (
           <div key={label}>
             <dt className="truncate text-[11px] text-muted-foreground">{label}</dt>

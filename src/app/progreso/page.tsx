@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { formatDateKeyLong, formatDateKeyShort, formatNumber } from "@/i18n/format";
 import Link from "next/link";
 import { InfoIcon, PencilIcon, WeightIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -33,7 +34,7 @@ import { api, ApiError } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import { useRecommendations } from "@/lib/use-recommendations";
-import { addDaysToKey, formatDateKeyLong, formatDateKeyShort, formatNumberEs, todayKey } from "@/lib/core/dates";
+import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import { round1 } from "@/lib/core/nutrition";
 import { macroAverages } from "@/lib/core/progress";
 import { movingAverageByDays, rangeToDays } from "@/lib/core/stats";
@@ -214,7 +215,7 @@ function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () =>
       </CardHeader>
       <CardContent className="space-y-3 px-4 pb-4">
         <p className="text-4xl font-semibold tabular-nums" data-testid="current-weight">
-          {w.currentWeightKg === null ? "—" : `${formatNumberEs(w.currentWeightKg, 1)} kg`}
+          {w.currentWeightKg === null ? "—" : `${formatNumber(w.currentWeightKg, 1)} kg`}
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <MiniStat label={t.progreso.trend} value={w.currentTrendKg} unit="kg" decimals={1} />
@@ -249,7 +250,7 @@ function MiniStat({
     <div className="rounded-lg border px-3 py-2">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p className="text-base font-semibold tabular-nums">
-        {value === null ? "—" : `${signed && value > 0 ? "+" : ""}${formatNumberEs(value, decimals)}`}
+        {value === null ? "—" : `${signed && value > 0 ? "+" : ""}${formatNumber(value, decimals)}`}
         {value === null ? null : <span className="ml-1 text-xs font-normal text-muted-foreground">{unit}</span>}
       </p>
     </div>
@@ -313,7 +314,7 @@ function CaloriesSection({ summary, calorieRec }: { summary: StatsSummary; calor
             ) : null}
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
-              formatter={(value) => (value === null || value === undefined ? "—" : formatNumberEs(Number(value)))}
+              formatter={(value) => (value === null || value === undefined ? "—" : formatNumber(Number(value)))}
               labelFormatter={(value) => formatDateKeyShort(String(value))}
             />
             <Line type="monotone" dataKey="calories" name={t.stats.dailyIntake} stroke="var(--chart-1)" strokeWidth={1.5} dot={{ r: 2 }} />
@@ -355,10 +356,10 @@ function MacrosCard({
   }
 
   const rows: { label: string; value: string; target: { min: number; max: number } | null }[] = [
-    { label: t.hoy.calories, value: `${formatNumberEs(averages.calories)} kcal`, target: calorieRange },
-    { label: t.hoy.protein, value: `${formatNumberEs(averages.protein)} g`, target: proteinRange },
-    { label: t.hoy.carbs, value: `${formatNumberEs(averages.carbs)} g`, target: null },
-    { label: t.hoy.fat, value: `${formatNumberEs(averages.fat)} g`, target: null },
+    { label: t.hoy.calories, value: `${formatNumber(averages.calories)} kcal`, target: calorieRange },
+    { label: t.hoy.protein, value: `${formatNumber(averages.protein)} g`, target: proteinRange },
+    { label: t.hoy.carbs, value: `${formatNumber(averages.carbs)} g`, target: null },
+    { label: t.hoy.fat, value: `${formatNumber(averages.fat)} g`, target: null },
   ];
 
   return (
@@ -381,8 +382,8 @@ function MacrosCard({
                 {row.target ? (
                   <span className="ml-2 text-xs text-muted-foreground tabular-nums">
                     {formatTemplate(t.progreso.target, {
-                      min: formatNumberEs(row.target.min),
-                      max: formatNumberEs(row.target.max),
+                      min: formatNumber(row.target.min),
+                      max: formatNumber(row.target.max),
                     })}
                   </span>
                 ) : null}
@@ -408,8 +409,8 @@ function MacrosCard({
         {measured ? (
           <p className="text-sm">
             {formatTemplate(t.progreso.measured, {
-              n: formatNumberEs(measured.tdee),
-              margin: formatNumberEs(measured.margin),
+              n: formatNumber(measured.tdee),
+              margin: formatNumber(measured.margin),
             })}
           </p>
         ) : null}
@@ -456,10 +457,10 @@ function WeightEntries({
             {[...entries].reverse().map((entry) => (
               <li key={entry.id} className="flex items-center gap-3 bg-card px-3 py-2.5">
                 <span className="font-medium tabular-nums">
-                  {formatNumberEs(entry.weightKg, 1)} kg
+                  {formatNumber(entry.weightKg, 1)} kg
                   {entry.bodyFatPct !== null && (
                     <span className="hidden text-muted-foreground min-[400px]:inline">
-                      {" "}· {formatNumberEs(entry.bodyFatPct, 1)}% grasa
+                      {" "}· {formatNumber(entry.bodyFatPct, 1)}% grasa
                     </span>
                   )}
                 </span>

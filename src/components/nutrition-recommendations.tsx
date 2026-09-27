@@ -1,10 +1,10 @@
 "use client";
 
 import { DumbbellIcon, FlameIcon } from "lucide-react";
+import { formatNumber } from "@/i18n/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import { useRecommendations } from "@/lib/use-recommendations";
-import { formatNumberEs } from "@/lib/core/dates";
 import type { Goal } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -32,14 +32,14 @@ function intakeStatus(
     return { statusLabel: inRangeLabel, statusColor: "text-green-600 dark:text-green-400" };
   }
   if (current < rangeMin) {
-    const missingMin = formatNumberEs(Math.round(rangeMin - current), 0);
-    const missingMax = formatNumberEs(Math.round(rangeMax - current), 0);
+    const missingMin = formatNumber(Math.round(rangeMin - current), 0);
+    const missingMax = formatNumber(Math.round(rangeMax - current), 0);
     return {
       statusLabel: formatTemplate(missingTemplate, { min: missingMin, max: missingMax }),
       statusColor: "text-yellow-600 dark:text-yellow-400",
     };
   }
-  const exceeded = formatNumberEs(Math.round(current - rangeMax), 0);
+  const exceeded = formatNumber(Math.round(current - rangeMax), 0);
   return {
     statusLabel: formatTemplate(exceededTemplate, { min: exceeded }),
     statusColor: "text-orange-600 dark:text-orange-400",
@@ -76,9 +76,9 @@ function IntakeBar({
       <div className="flex items-baseline justify-between gap-2 text-xs">
         <span className={statusColor}>{statusLabel}</span>
         <span className="shrink-0 tabular-nums text-muted-foreground">
-          <span className="font-semibold text-foreground">{formatNumberEs(Math.round(current), 0)}</span>
+          <span className="font-semibold text-foreground">{formatNumber(Math.round(current), 0)}</span>
           {" / "}
-          {formatNumberEs(rangeMin, 0)}–{formatNumberEs(rangeMax, 0)} {unit}
+          {formatNumber(rangeMin, 0)}–{formatNumber(rangeMax, 0)} {unit}
         </span>
       </div>
       <div
@@ -146,12 +146,12 @@ export function NutritionRecommendationsCard({
               </span>
             </div>
             <p className="text-2xl font-semibold tabular-nums">
-              {formatNumberEs(calorieRec.targetMin)} – {formatNumberEs(calorieRec.targetMax)}{" "}
+              {formatNumber(calorieRec.targetMin)} – {formatNumber(calorieRec.targetMax)}{" "}
               <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
             </p>
             <p className="text-xs text-muted-foreground">
               {formatTemplate(t.calorias.estimatedAverageValue, {
-                n: formatNumberEs(calorieRec.target),
+                n: formatNumber(calorieRec.target),
               })}{" "}
               {t.calorias.perDay}
             </p>
@@ -159,19 +159,19 @@ export function NutritionRecommendationsCard({
             <div className="space-y-0.5 text-xs text-muted-foreground">
               <p>
                 {t.calorias.bmr}:{" "}
-                <span className="whitespace-nowrap">{formatNumberEs(calorieRec.bmr)} {t.calorias.perDay}</span>
+                <span className="whitespace-nowrap">{formatNumber(calorieRec.bmr)} {t.calorias.perDay}</span>
               </p>
               <p>
                 {t.calorias.tdee}:{" "}
-                <span className="whitespace-nowrap">{formatNumberEs(calorieRec.tdee)} {t.calorias.perDay}</span>
+                <span className="whitespace-nowrap">{formatNumber(calorieRec.tdee)} {t.calorias.perDay}</span>
               </p>
               {measured ? (
                 <p>
                   {t.calorias.measuredTdee}:{" "}
                   <span className="whitespace-nowrap">
                     {formatTemplate(t.calorias.measuredTdeeValue, {
-                      n: formatNumberEs(measured.tdee),
-                      margin: formatNumberEs(measured.margin),
+                      n: formatNumber(measured.tdee),
+                      margin: formatNumber(measured.margin),
                     })}
                   </span>
                 </p>
@@ -215,13 +215,13 @@ export function NutritionRecommendationsCard({
             <p className="text-xs text-muted-foreground">
               {proteinRec.basis !== "bodyWeight"
                 ? formatTemplate(proteinRec.basis === "leanMass" ? t.protein.perKgLeanMass : t.protein.perKgReference, {
-                    min: formatNumberEs(proteinRec.perKg.min, 1),
-                    max: formatNumberEs(proteinRec.perKg.max, 1),
-                    kg: formatNumberEs(proteinRec.basisKg, 1),
+                    min: formatNumber(proteinRec.perKg.min, 1),
+                    max: formatNumber(proteinRec.perKg.max, 1),
+                    kg: formatNumber(proteinRec.basisKg, 1),
                   })
                 : formatTemplate(t.protein.perKg, {
-                    min: formatNumberEs(proteinRec.perKg.min, 1),
-                    max: formatNumberEs(proteinRec.perKg.max, 1),
+                    min: formatNumber(proteinRec.perKg.min, 1),
+                    max: formatNumber(proteinRec.perKg.max, 1),
                   })}
             </p>
             <div className="mt-auto pt-1">

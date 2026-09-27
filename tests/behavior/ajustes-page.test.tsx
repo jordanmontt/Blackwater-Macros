@@ -11,7 +11,7 @@ import { emptyCalorieProfile, templateDto } from "../helpers/repos";
  * Requisitos visibles en la pantalla "Ajustes":
  *  - cambia el tema (claro / oscuro / sistema),
  *  - enlaza a "Perfil" (objetivo y datos corporales viven allí),
- *  - exportar comidas y peso apunta a la API (CSV),
+ *  - exportar comidas y peso apunta a la API (CSV); importar un CSV lo lee y lo envía,
  *  - crea, edita y borra plantillas (el formulario es "@/components/meals/template-form"),
  *    en una sección plegada por defecto (con muchas plantillas la lista sería enorme),
  *  - cierra la sesión de forma explícita.
@@ -19,6 +19,9 @@ import { emptyCalorieProfile, templateDto } from "../helpers/repos";
 
 const routerMock = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }));
 const themeMock = vi.hoisted(() => ({ theme: "system", setTheme: vi.fn() }));
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
+
+vi.mock("sonner", () => ({ toast: toastMock }));
 
 const profile = (overrides: Partial<CalorieProfile> = {}): CalorieProfile => ({
   ...emptyCalorieProfile(),
@@ -56,9 +59,20 @@ vi.mock("@/lib/api", () => ({
     createTemplate: vi.fn(),
     updateTemplate: vi.fn(),
     logout: vi.fn(async () => ({ ok: true as const })),
+    importMeals: vi.fn(async () => ({ added: 0, skipped: 0 })),
+    importWeights: vi.fn(async () => ({ added: 1, skipped: 1 })),
   } satisfies Pick<
     typeof import("@/lib/api").api,
-    "session" | "listTemplates" | "listWeights" | "updateSettings" | "deleteTemplate" | "createTemplate" | "updateTemplate" | "logout"
+    | "session"
+    | "listTemplates"
+    | "listWeights"
+    | "updateSettings"
+    | "deleteTemplate"
+    | "createTemplate"
+    | "updateTemplate"
+    | "logout"
+    | "importMeals"
+    | "importWeights"
   >,
 }));
 
@@ -146,6 +160,32 @@ describe("pantalla Ajustes", () => {
 
     const weightsLink = screen.getByText(t.ajustes.exportWeights).closest("a");
     expect(weightsLink).toHaveAttribute("href", "/api/export/weights");
+  });
+
+  it("importar un CSV de peso lo lee, lo envía y resume el resultado", async () => {
+    const user = userEvent.setup();
+    render(<AjustesPage />);
+    await screen.findByText(t.ajustes.importCsv);
+
+    const csv = "fecha_hora,peso_kg,grasa_corporal_pct,nota\n2026-03-01T07:30:00Z,80.2,,\n2026-03-02T07:30:00Z,79.9,,\n2026-03-03T07:30:00Z,900,,\n";
+    await user.upload(screen.getByTestId("import-csv-input"), new File([csv], "peso.csv", { type: "text/csv" }));
+
+    await vi.waitFor(() => expect(toastMock.success).toHaveBeenCalled());
+    expect(vi.mocked(api.importWeights)).toHaveBeenCalledWith([
+      { measuredAt: "2026-03-01T07:30:00.000Z", weightKg: 80.2, bodyFatPct: null, note: null },
+      { measuredAt: "2026-03-02T07:30:00.000Z", weightKg: 79.9, bodyFatPct: null, note: null },
+    ]);
+    expect(toastMock.success).toHaveBeenCalledWith("1 pesajes importados · 1 ya estaban · 1 filas no válidas");
+  });
+
+  it("un CSV que no es de la app no envía nada", async () => {
+    const user = userEvent.setup();
+    render(<AjustesPage />);
+    await screen.findByText(t.ajustes.importCsv);
+    await user.upload(screen.getByTestId("import-csv-input"), new File(["nombre,apellido\nAna,Pérez"], "otro.csv"));
+    await vi.waitFor(() => expect(toastMock.error).toHaveBeenCalledWith(t.ajustes.importUnknown));
+    expect(vi.mocked(api.importWeights)).not.toHaveBeenCalled();
+    expect(vi.mocked(api.importMeals)).not.toHaveBeenCalled();
   });
 
   it("las plantillas empiezan plegadas y se despliegan al tocar el título", async () => {

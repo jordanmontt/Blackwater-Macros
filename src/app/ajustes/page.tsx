@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { formatNumber } from "@/i18n/format";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ChevronDownIcon, DownloadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, Trash2Icon, UserIcon } from "lucide-react";
+import { ChevronDownIcon, DownloadIcon, Loader2Icon, UploadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, Trash2Icon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,9 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { TemplateForm } from "@/components/meals/template-form";
+import { parseBackupCsv } from "@/lib/csv-import";
 import { AiSettingsCard } from "@/components/settings/ai-settings-card";
+import { LanguageCard } from "@/components/settings/language-card";
 import { api, ApiError } from "@/lib/api";
 import { exitDemoMode } from "@/lib/demo-store";
 import { useDemoMode } from "@/lib/use-demo-mode";
@@ -26,7 +29,6 @@ import { formatTemplate } from "@/i18n";
 import type { MealTemplateDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/lib/use-mounted";
-import { formatNumberEs } from "@/lib/core/dates";
 import { t } from "@/i18n";
 
 export default function AjustesPage() {
@@ -36,6 +38,8 @@ export default function AjustesPage() {
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MealTemplateDTO | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const importInput = useRef<HTMLInputElement>(null);
   const mounted = useMounted();
 
   const sessionRes = useCachedResource<
@@ -69,6 +73,29 @@ export default function AjustesPage() {
       router.refresh();
     } catch {
       toast.error(t.common.errorGeneric);
+    }
+  }
+
+  async function handleImport(file: File) {
+    setImporting(true);
+    try {
+      const parsed = parseBackupCsv(await file.text());
+      if (parsed.kind === "unknown") {
+        toast.error(t.ajustes.importUnknown);
+        return;
+      }
+      const result =
+        parsed.kind === "meals" ? await api.importMeals(parsed.meals) : await api.importWeights(parsed.weights);
+      const parts = [
+        formatTemplate(parsed.kind === "meals" ? t.ajustes.importedMeals : t.ajustes.importedWeights, { n: result.added }),
+      ];
+      if (result.skipped > 0) parts.push(formatTemplate(t.ajustes.importSkipped, { n: result.skipped }));
+      if (parsed.invalidRows > 0) parts.push(formatTemplate(t.ajustes.importInvalid, { n: parsed.invalidRows }));
+      toast.success(parts.join(" · "));
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : t.ajustes.importFailed);
+    } finally {
+      setImporting(false);
     }
   }
 
@@ -112,6 +139,8 @@ export default function AjustesPage() {
           </div>
         </CardContent>
       </Card>
+
+      <LanguageCard />
 
       <Card>
         <CardHeader className="pb-3">
@@ -214,16 +243,16 @@ export default function AjustesPage() {
                   </div>
                   <div className="mt-1.5 flex flex-wrap gap-1">
                     <Badge variant="secondary" className="tabular-nums text-[11px]">
-                      {formatNumberEs(template.resolvedCalories)} {t.hoy.kcalUnit}
+                      {formatNumber(template.resolvedCalories)} {t.hoy.kcalUnit}
                     </Badge>
                     <Badge variant="outline" className="tabular-nums text-[11px]">
-                      {formatNumberEs(template.resolvedProtein)} g · {t.hoy.protein}
+                      {formatNumber(template.resolvedProtein)} g · {t.hoy.protein}
                     </Badge>
                     <Badge variant="outline" className="tabular-nums text-[11px]">
-                      {formatNumberEs(template.resolvedCarbs)} g · {t.hoy.carbs}
+                      {formatNumber(template.resolvedCarbs)} g · {t.hoy.carbs}
                     </Badge>
                     <Badge variant="outline" className="tabular-nums text-[11px]">
-                      {formatNumberEs(template.resolvedFat)} g · {t.hoy.fat}
+                      {formatNumber(template.resolvedFat)} g · {t.hoy.fat}
                     </Badge>
                   </div>
                 </li>
@@ -252,7 +281,7 @@ export default function AjustesPage() {
           <CardTitle className="text-base">{t.ajustes.exportSection}</CardTitle>
           <CardDescription>{t.ajustes.exportHint}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2 sm:flex-row">
+        <CardContent className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             disabled={demoMode}
@@ -269,6 +298,22 @@ export default function AjustesPage() {
           >
             <DownloadIcon /> {t.ajustes.exportWeights}
           </Button>
+          <Button variant="outline" disabled={demoMode || importing} onClick={() => importInput.current?.click()}>
+            {importing ? <Loader2Icon className="animate-spin" /> : <UploadIcon />}
+            {importing ? t.ajustes.importing : t.ajustes.importCsv}
+          </Button>
+          <input
+            ref={importInput}
+            type="file"
+            accept=".csv,text/csv"
+            hidden
+            data-testid="import-csv-input"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) void handleImport(file);
+            }}
+          />
         </CardContent>
         {demoMode ? (
           <CardContent className="pt-0">

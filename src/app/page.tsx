@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { formatNumber } from "@/i18n/format";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { PlusIcon } from "lucide-react";
@@ -34,7 +35,6 @@ import { writeCache } from "@/lib/client-cache";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { todayKey } from "@/lib/core/dates";
 import { estimateToIngredients, type MealEstimate } from "@/lib/core/ai-schema";
-import { formatNumberEs } from "@/lib/core/dates";
 import type { IngredientInput, MealDTO, MealTemplateDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
 
@@ -192,7 +192,7 @@ export default function HoyPage() {
                 {t.hoy.calories}
               </p>
               <p className="text-base font-semibold tabular-nums sm:text-lg">
-                {formatNumberEs(totals.calories)}
+                {formatNumber(totals.calories)}
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.kcalUnit}</span>
               </p>
             </div>
@@ -201,7 +201,7 @@ export default function HoyPage() {
                 {t.hoy.protein}
               </p>
               <p className="text-base font-semibold tabular-nums sm:text-lg">
-                {formatNumberEs(totals.protein, 1)}
+                {formatNumber(totals.protein, 1)}
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.proteinUnit}</span>
               </p>
             </div>
@@ -210,7 +210,7 @@ export default function HoyPage() {
                 {t.hoy.carbs}
               </p>
               <p className="text-base font-semibold tabular-nums sm:text-lg">
-                {formatNumberEs(totals.carbs, 1)}
+                {formatNumber(totals.carbs, 1)}
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.gramUnit}</span>
               </p>
             </div>
@@ -219,7 +219,7 @@ export default function HoyPage() {
                 {t.hoy.fat}
               </p>
               <p className="text-base font-semibold tabular-nums sm:text-lg">
-                {formatNumberEs(totals.fat, 1)}
+                {formatNumber(totals.fat, 1)}
                 <span className="ml-1 text-xs font-normal text-muted-foreground">{t.hoy.gramUnit}</span>
               </p>
             </div>

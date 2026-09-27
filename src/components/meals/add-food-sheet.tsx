@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDateKeyShort, formatNumber } from "@/i18n/format";
 import { ArrowLeftIcon, CameraIcon, CopyIcon, PencilLineIcon, ScanBarcodeIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { foodToIngredient } from "@/lib/core/foods";
 import type { MealEstimate } from "@/lib/core/ai-schema";
 import { api } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
-import { addDaysToKey, formatDateKeyShort, formatNumberEs } from "@/lib/core/dates";
+import { addDaysToKey } from "@/lib/core/dates";
 import { copyMealPayload } from "@/lib/meal-payload";
 import type { IngredientInput, MealDTO, MealTemplateDTO } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
@@ -349,7 +350,7 @@ function CopyFromDay({
                 />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">{meal.title}</span>
                 <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-                  {formatNumberEs(meal.resolvedCalories)} kcal · {formatNumberEs(meal.resolvedProtein, 1)} g
+                  {formatNumber(meal.resolvedCalories)} kcal · {formatNumber(meal.resolvedProtein, 1)} g
                 </span>
               </label>
             </li>

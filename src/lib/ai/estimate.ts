@@ -1,4 +1,6 @@
 import type { AiImage } from "@/lib/core/ai-providers";
+import { currentLanguage } from "@/i18n";
+import { AI_LANGUAGE_NAMES } from "@/i18n/languages";
 import {
   buildMealEstimateSystemPrompt,
   buildMealEstimateUserText,
@@ -8,8 +10,10 @@ import {
 import { AiError, aiComplete } from "@/lib/ai/client";
 import { aiConfigOf, getAiSettings } from "@/lib/ai/settings";
 
-/** The web app is in Spanish; the model is told in English which language to answer in. */
-export const AI_LANGUAGE = "Spanish";
+/** The model is told in English which language to answer in: the app's language. */
+export function aiLanguage(): string {
+  return AI_LANGUAGE_NAMES[currentLanguage()];
+}
 
 /**
  * Photos and/or a description → a meal estimate for the review form. The
@@ -22,7 +26,7 @@ export async function estimateMeal(
   const text = await aiComplete(
     aiConfigOf(getAiSettings()),
     {
-      system: buildMealEstimateSystemPrompt(AI_LANGUAGE),
+      system: buildMealEstimateSystemPrompt(aiLanguage()),
       messages: [
         { role: "user", text: buildMealEstimateUserText(input.description, input.photos.length), images: input.photos },
       ],

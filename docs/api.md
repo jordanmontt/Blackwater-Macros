@@ -451,6 +451,23 @@ Success `200` returns the updated settings object.
 
 Auth required. Returns a `text/csv` attachment.
 
+### Import (web)
+
+`POST /api/import/meals` — body `{ "meals": MealInput[] }` (at most 20 000).
+`POST /api/import/weights` — body `{ "weights": WeightInput[] }` (at most 20 000).
+
+Auth required. The browser reads the exported CSV itself (`src/lib/csv-import.ts`) and
+sends the rows as JSON. The server adds what is new and skips what already exists
+(meals: same day, title, mode, ingredients, kcal and protein; weights: same instant and
+kilos), so importing a file twice changes nothing. Success `200`:
+
+```json
+{ "added": 12, "skipped": 3 }
+```
+
+`400` on an invalid body, `404` for another kind. Android imports locally
+(`CsvBackup`) and syncs as usual; it does not use this endpoint.
+
 ---
 
 ## Admin (admins only)

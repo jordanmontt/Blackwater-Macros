@@ -56,8 +56,10 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
   con fecha y hora autocompletadas).
 - **Página de metodología** (`/metodologia`): explica con fórmulas y referencias
   cómo se calcula cada métrica.
-- **Exportación CSV** de comidas y pesos (en Android también importación, con el
-  mismo formato que la web).
+- **Exportación e importación CSV** de comidas y pesos, con el mismo formato en la web
+  y en Android (sirve para pasar los datos de uno a otro; importar dos veces no duplica).
+- **Idiomas:** español, inglés, francés, italiano y alemán (Ajustes → Idioma; «Sistema»
+  sigue al navegador).
 
 ## Pila técnica
 
@@ -238,9 +240,9 @@ El detalle de cada capa está en [TECHNICAL.md](./TECHNICAL.md).
 ```
 src/
   app/                 Páginas (React) y rutas API (App Router)
-    api/               Backend serverless: meals, templates, weights, stats, export…
+    api/               Backend serverless: meals, templates, weights, stats, export, import…
   components/          Componentes de UI (shadcn/ui + propios)
-  i18n/es.ts           Textos en español centralizados (listo para más idiomas)
+  i18n/               Textos de la interfaz: es.ts (referencia), en, fr, it, de
   lib/                 Lógica del cliente (llamadas API, demo, caché)
     api.ts             Cliente HTTP hacia /api/*
     demo-api.ts, demo-store.ts   Modo demo (sin servidor, sessionStorage)

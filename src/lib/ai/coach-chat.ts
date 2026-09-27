@@ -5,7 +5,7 @@ import type { AiMessage } from "@/lib/core/ai-providers";
 import { buildCoachSystemPrompt } from "@/lib/core/coach";
 import { AiError, aiStream, type AiFailure } from "@/lib/ai/client";
 import { loadCoachContext } from "@/lib/ai/coach-data";
-import { AI_LANGUAGE } from "@/lib/ai/estimate";
+import { aiLanguage } from "@/lib/ai/estimate";
 import { browserChatStream } from "@/lib/ai/browser-model";
 import { aiConfigOf, getAiSettings } from "@/lib/ai/settings";
 
@@ -85,7 +85,7 @@ export async function sendCoachMessage(text: string): Promise<void> {
   try {
     const settings = getAiSettings();
     const context = settings.coachSeesData ? await loadCoachContext() : null;
-    const system = buildCoachSystemPrompt(AI_LANGUAGE, context);
+    const system = buildCoachSystemPrompt(aiLanguage(), context);
     const messages: AiMessage[] = [...history, { role: "user", text: question }];
     const stream =
       settings.coachEngine === "browser"

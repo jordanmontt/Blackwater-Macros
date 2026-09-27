@@ -1,12 +1,12 @@
 "use client";
 
 import { useSortable } from "@dnd-kit/sortable";
+import { formatNumber } from "@/i18n/format";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatNumberEs } from "@/lib/core/dates";
 import { formatTemplate } from "@/i18n";
 import type { MealDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
@@ -102,22 +102,22 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
                     <span className="flex shrink-0 flex-wrap justify-end gap-x-2.5 gap-y-0.5 tabular-nums text-muted-foreground sm:gap-x-3">
                       {ingredient.calories !== undefined ? (
                         <span className="whitespace-nowrap">
-                          {formatNumberEs(ingredient.calories)} {t.hoy.kcalUnit}
+                          {formatNumber(ingredient.calories)} {t.hoy.kcalUnit}
                         </span>
                       ) : null}
                       {ingredient.protein !== undefined ? (
                         <span className="whitespace-nowrap">
-                          {formatNumberEs(ingredient.protein)} g {t.hoy.protein}
+                          {formatNumber(ingredient.protein)} g {t.hoy.protein}
                         </span>
                       ) : null}
                       {ingredient.carbs !== undefined ? (
                         <span className="whitespace-nowrap">
-                          {formatNumberEs(ingredient.carbs)} g {t.hoy.carbs}
+                          {formatNumber(ingredient.carbs)} g {t.hoy.carbs}
                         </span>
                       ) : null}
                       {ingredient.fat !== undefined ? (
                         <span className="whitespace-nowrap">
-                          {formatNumberEs(ingredient.fat)} g {t.hoy.fat}
+                          {formatNumber(ingredient.fat)} g {t.hoy.fat}
                         </span>
                       ) : null}
                     </span>
@@ -138,16 +138,16 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
 
         <CardFooter className="flex-wrap gap-1">
           <Badge variant="secondary" className="tabular-nums text-[11px]">
-            {formatNumberEs(meal.resolvedCalories)} {t.hoy.kcalUnit}
+            {formatNumber(meal.resolvedCalories)} {t.hoy.kcalUnit}
           </Badge>
           <Badge variant="outline" className="tabular-nums text-[11px]">
-            {formatNumberEs(meal.resolvedProtein)} g · {t.hoy.protein}
+            {formatNumber(meal.resolvedProtein)} g · {t.hoy.protein}
           </Badge>
           <Badge variant="outline" className="tabular-nums text-[11px]">
-            {formatNumberEs(meal.resolvedCarbs)} g · {t.hoy.carbs}
+            {formatNumber(meal.resolvedCarbs)} g · {t.hoy.carbs}
           </Badge>
           <Badge variant="outline" className="tabular-nums text-[11px]">
-            {formatNumberEs(meal.resolvedFat)} g · {t.hoy.fat}
+            {formatNumber(meal.resolvedFat)} g · {t.hoy.fat}
           </Badge>
         </CardFooter>
       </Card>

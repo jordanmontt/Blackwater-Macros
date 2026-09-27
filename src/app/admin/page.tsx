@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatDateMedium } from "@/i18n/format";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeftIcon, PencilIcon, PlusIcon, ShieldIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -38,11 +39,6 @@ import { t } from "@/i18n";
 import type { AdminUserDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 
-const memberSinceFormatter = new Intl.DateTimeFormat("es-ES", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
 
 interface UserFormState {
   username: string;
@@ -225,7 +221,7 @@ export default function AdminPage() {
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           {t.admin.memberSince.replace(
                             "{date}",
-                            memberSinceFormatter.format(new Date(user.createdAt)),
+                            formatDateMedium(new Date(user.createdAt)),
                           )}
                         </p>
                       </div>

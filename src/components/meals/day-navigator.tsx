@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
+import { formatDateKeyLong } from "@/i18n/format";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { addDaysToKey, formatDateKeyLong, todayKey } from "@/lib/core/dates";
+import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import { t } from "@/i18n";
 
 interface DayNavigatorProps {
@@ -20,7 +21,7 @@ export function DayNavigator({ value, onChange }: DayNavigatorProps) {
       <Button
         variant="ghost"
         size="icon"
-        aria-label="Día anterior"
+        aria-label={t.common.previousDay}
         onClick={() => onChange(addDaysToKey(value, -1))}
       >
         <ChevronLeftIcon />
@@ -41,7 +42,7 @@ export function DayNavigator({ value, onChange }: DayNavigatorProps) {
       <Button
         variant="ghost"
         size="icon"
-        aria-label="Día siguiente"
+        aria-label={t.common.nextDay}
         onClick={() => onChange(addDaysToKey(value, 1))}
       >
         <ChevronRightIcon />

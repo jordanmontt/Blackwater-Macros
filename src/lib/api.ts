@@ -1,3 +1,4 @@
+import type { ImportedMeal, ImportedWeight } from "@/lib/csv-import";
 import type {
   AdminUserDTO,
   CalorieProfile,
@@ -206,6 +207,21 @@ export const api = {
       invalidate("templates");
       return result;
     });
+  },
+
+  /** CSV backup parsed in the browser (`lib/csv-import.ts`); the server skips duplicates. Not in demo mode. */
+  importMeals: async (meals: ImportedMeal[]) => {
+    const result = await request<{ added: number; skipped: number }>("/api/import/meals", jsonBody({ meals }));
+    invalidate("meals:");
+    invalidate("stats:");
+    return result;
+  },
+
+  importWeights: async (weights: ImportedWeight[]) => {
+    const result = await request<{ added: number; skipped: number }>("/api/import/weights", jsonBody({ weights }));
+    invalidate("weights");
+    invalidate("stats:");
+    return result;
   },
 
   listWeights: async () => {

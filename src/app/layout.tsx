@@ -7,7 +7,10 @@ import { PwaInstall } from "@/components/pwa-install";
 import { ThemeColorSync } from "@/components/theme-color-sync";
 import { OnboardingRedirect } from "@/components/onboarding-redirect";
 import { AuthRedirect } from "@/components/auth-redirect";
+import { cookies, headers } from "next/headers";
+import { LanguageGate } from "@/components/language-gate";
 import { t } from "@/i18n";
+import { DEFAULT_LANGUAGE, LANGUAGE_COOKIE, resolveLanguage } from "@/i18n/languages";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -37,10 +40,11 @@ export const viewport: Viewport = {
   themeColor: "#f5f4ef",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const language = resolveLanguage((await cookies()).get(LANGUAGE_COOKIE)?.value, (await headers()).get("accept-language"));
   return (
     <html
-      lang="es"
+      lang={language}
       suppressHydrationWarning
       className="h-full antialiased"
     >
@@ -51,14 +55,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <ThemeColorSync />
-          <DemoBanner />
-          <PwaInstall />
-          <AuthRedirect />
-          <OnboardingRedirect />
-          <div className="flex-1 pb-20 md:pb-6">{children}</div>
-          <AppNav />
-          <Toaster position="top-center" richColors />
+          <LanguageGate serverRendered={language === DEFAULT_LANGUAGE}>
+            <ThemeColorSync />
+            <DemoBanner />
+            <PwaInstall />
+            <AuthRedirect />
+            <OnboardingRedirect />
+            <div className="flex-1 pb-20 md:pb-6">{children}</div>
+            <AppNav />
+            <Toaster position="top-center" richColors />
+          </LanguageGate>
         </ThemeProvider>
       </body>
     </html>

@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatDateKeyShort, formatNumberEs } from "@/lib/core/dates";
+import { formatDateKeyShort, formatNumber } from "@/i18n/format";
 import { t } from "@/i18n";
 
 export interface WeightFatRow {
@@ -72,7 +72,7 @@ export function WeightFatChart({ data }: { data: WeightFatRow[] }) {
           formatter={(value: unknown, name: unknown) => {
             if (value === null || value === undefined) return "—";
             const isFat = name === t.stats.legendBodyFat;
-            return `${formatNumberEs(Number(value), 1)}${isFat ? "%" : " kg"}`;
+            return `${formatNumber(Number(value), 1)}${isFat ? "%" : " kg"}`;
           }}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />

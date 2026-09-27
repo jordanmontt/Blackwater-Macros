@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { formatNumber } from "@/i18n/format";
 import { SearchIcon, SparklesIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { formatNumberEs } from "@/lib/core/dates";
 import { searchGenericFoods, type FoodProduct, type GenericFood } from "@/lib/core/foods";
 import { isDemoMode } from "@/lib/demo-store";
 import {
@@ -14,7 +14,7 @@ import {
   recentFoods,
   type FoodChoice,
 } from "@/lib/foods/foods-client";
-import { formatTemplate, t } from "@/i18n";
+import { currentLanguage, formatTemplate, t } from "@/i18n";
 
 const ONLINE_MIN_CHARS = 3;
 const ONLINE_DEBOUNCE_MS = 450;
@@ -53,7 +53,7 @@ export function FoodSearch({
 
   const trimmed = query.trim();
   const genericMatches = useMemo(
-    () => (generic && trimmed ? searchGenericFoods(generic, trimmed, "es", 8) : []),
+    () => (generic && trimmed ? searchGenericFoods(generic, trimmed, currentLanguage(), 8) : []),
     [generic, trimmed],
   );
 
@@ -63,7 +63,7 @@ export function FoodSearch({
     if (onlineCache.has(trimmed.toLowerCase())) return;
     const timer = setTimeout(() => {
       api
-        .searchFoods(trimmed, "es")
+        .searchFoods(trimmed, currentLanguage())
         .then((products) => {
           onlineCache.set(trimmed.toLowerCase(), products);
           if (latest.current === trimmed) {
@@ -169,8 +169,8 @@ function ResultRow({ choice, onPick }: { choice: FoodChoice; onPick: (choice: Fo
         </span>
         <span className="text-xs text-muted-foreground tabular-nums">
           {formatTemplate(t.addFood.per100, {
-            kcal: formatNumberEs(choice.per100g.calories),
-            p: formatNumberEs(choice.per100g.protein, 1),
+            kcal: formatNumber(choice.per100g.calories),
+            p: formatNumber(choice.per100g.protein, 1),
           })}
         </span>
       </button>

@@ -33,7 +33,7 @@ src/
     api/                    # Route handlers; every folder = one endpoint family
       auth/login|logout|session/
       admin/users/
-      meals/[id]/ templates/[id]/ weights/[id]/ stats/ settings/ export/[kind]/
+      meals/[id]/ templates/[id]/ weights/[id]/ stats/ settings/ export/[kind]/ import/[kind]/
   proxy.ts                  # Edge gate: redirects to /login without session cookie
   server/                   # Backend-only code (never imported by client)
     db/schema.ts            # Drizzle tables + MealIngredient JSONB type + calorie_goal enum
@@ -59,7 +59,10 @@ src/
     core/                   # PURE algorithms, zero deps — single source of truth, ported to Kotlin
       types.ts dates.ts nutrition.ts stats.ts stats-builder.ts protein.ts calories.ts expenditure.ts csv.ts
     api.ts demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
-  i18n/es.ts                # ALL user-facing Spanish copy as a typed dictionary
+    csv-import.ts           # Reads the export's CSV (and Android's) back: parse, validate, import keys
+  i18n/es.ts                # ALL user-facing copy as a typed dictionary (Spanish = the reference)
+  i18n/en.ts fr.ts it.ts de.ts  # Same keys, same {placeholders} (tests/unit/i18n.test.ts)
+  i18n/languages.ts format.ts   # Language list + cookie/Accept-Language choice; locale-aware dates/numbers
 scripts/
   lib/env.ts                # .env/.env.local loader for scripts outside Next runtime
   create-user.ts             # Ops script (tsx): create / reset password
@@ -300,6 +303,7 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 | PUT `/api/settings` | ✓ | Update calorie profile (`CalorieProfile`) → `{calorieProfile}` |
 | GET `/api/stats?range=7d\|30d\|90d\|all&today=YYYY-MM-DD` | ✓ | Full `StatsSummary` DTO (weights, body fat, nutrition) |
 | GET `/api/export/meals.csv` · `/api/export/weights.csv` | ✓ | CSV download (BOM, es-friendly; weights includes `grasa_corporal_pct`) |
+| POST `/api/import/meals` · `/api/import/weights` | ✓ | `{meals: MealInput[]}` / `{weights: WeightInput[]}` (≤ 20 000) → `{added, skipped}`. The browser parses the CSV (`lib/csv-import.ts`); the server adds what is new and skips duplicates (same keys as Android's `CsvBackup`), so importing twice is harmless |
 
 Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchema`,
 `weightInputSchema` (includes optional `bodyFatPct`), `calorieProfileInputSchema`
@@ -326,7 +330,7 @@ overwrite.
 |---|---|---|
 | Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), meal list, delete confirm. The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
 | Progreso | `app/progreso/page.tsx` | Peso + Estadísticas merged (old URLs redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «N de M días registrados», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), link to Perfil, Metodología link, CSV export buttons, template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
+| Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), link to Perfil, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
@@ -367,7 +371,7 @@ delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
 - **Exit:** a persistent `DemoBanner` (rendered in `layout.tsx` on every app
   page) shows «Estás en modo demo…» with a **«Iniciar sesión»** button that calls
   `exitDemoMode()` (clears the cookie + storage) and returns to `/login`. The
-  Ajustes page also exposes the exit action and hides the CSV export card in demo
+  Ajustes page also exposes the exit action and disables CSV export and import in demo
   mode (those buttons target server endpoints that require a real session).
 - **Stats:** `api.stats()` in demo computes the `StatsSummary` via the shared
   `lib/core/stats-builder.ts` (see §7) — the exact same code the server service uses.
@@ -412,16 +416,36 @@ free-text quantity field is exempt — it holds strings like "30-40 g".
   (`todayKey()`). For stats, the client sends its `today` so the server anchors
   ranges correctly for each user.
 - Weights are **exact instants** (`TIMESTAMPTZ` ISO strings); the Progreso page groups
-  them by local day via string slice and renders with es-ES formatters
-  (`lib/core/dates.ts`: `formatDateKeyLong`, `formatTimestamp`, `nowDateTimeLocalValue`,
-  `parseLocalDateTime`).
+  them by local day via string slice and renders with the active language's formatters
+  (`i18n/format.ts`: `formatDateKeyLong`, `formatTimestamp`, `formatNumber`…; parsing stays in
+  `lib/core/dates.ts`: `nowDateTimeLocalValue`, `parseLocalDateTime`).
 
 ### i18n
 
-`src/i18n/es.ts` exports a single `t` object (`as const`). Every visible string
-lives there, including long prose (methodology page). Interpolation via
-`formatTemplate(t.key, { n })` replacing `{n}`. Adding UI text = add key + use it;
-the type system flags missing usage sites.
+Five languages, as on Android: Spanish (`es.ts`, the reference, `as const`), English,
+French («vous»), Italian and German. Every visible string lives in them, including long
+prose (methodology page). Interpolation via `formatTemplate(t.key, { n })`. The other
+dictionaries are typed `Dictionary` (the shape of `es.ts`), so a missing key fails the
+build; `tests/unit/i18n.test.ts` also checks list lengths and `{placeholders}`.
+
+**Choosing the language.** Ajustes → Idioma writes the `bw-lang` cookie (`es|en|fr|it|de`
+or `system`) and reloads. The root layout reads it (else Accept-Language, else Spanish;
+`resolveLanguage` in `languages.ts`) and writes `<html lang>`. In the browser,
+`i18n/index.ts` reads `<html lang>` once at module load and swaps the shared `t` in place
+(`Object.assign`), before any component or module-level constant reads it, so components
+keep importing `t` as before.
+
+**Rendering.** The server always renders Spanish. For another language `LanguageGate`
+renders nothing on the server and the app after mount, so there is no hydration mismatch
+(a blank frame on first paint, then the page in the right language). Reading cookies
+makes the layout dynamic, which it already was in practice (session checks).
+
+**Also per language:** dates and numbers (`i18n/format.ts`, `LOCALE_TAGS`), food search
+and barcode names (`currentLanguage()` → Open Food Facts `lc`), and the language the AI
+answers in (`aiLanguage()`). Stay Spanish on purpose: CSV column names (a file format) and
+server error messages (§14.7).
+
+Adding UI text = add the key to `es.ts` and the four others, then use it.
 
 ---
 
@@ -744,7 +768,7 @@ Gotchas learned the hard way:
 | New field on meals/templates/weights (synced) | DB column + zod schema + DTO (web); Android: wire DTO, Room entity **+ `Migration`** (bump `LocalDatabase` version; never destructive: local-only users have no other copy), mappers, `FakeServer`; add a round-trip case to `OfflineSyncTest` |
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in `i18n/es.ts`; proxy already protects it. Android: screen + route in `MainActivity`, strings in the 5 `strings.xml` |
 | New Android text | add the key to `res/values/strings.xml` (English) and `values-es/fr/it/de`; use `stringResource` / `pluralStringResource`. `TranslationsTest` checks keys and placeholders |
-| Second web language | copy `i18n/es.ts` → `en.ts`, export a dictionary selector (structure is ready, nothing else hardcodes Spanish) |
+| New web text | add the key to `i18n/es.ts` **and** `en/fr/it/de.ts` (the build fails otherwise); `tests/unit/i18n.test.ts` checks placeholders |
 | Change the logo | edit `scripts/logo/render.html`, run `scripts/logo/render-icons.sh` (writes every Android and web icon) |
 | Release the Android app | see §14.7 (signing + F-Droid metadata are not set up yet) |
 | Real migrations | switch from `db:push` to `db:generate` + `db:migrate` (both scripted already) once schema changes risk data loss |
@@ -919,4 +943,4 @@ yet; screens are verified manually on an emulator.
 - **Incremental sync:** every sync pulls the full lists — fine at personal scale; a
   `?since=` delta endpoint with server tombstones would be needed for large histories.
 - **Compose UI tests** for the main flows.
-- **Admin:** error messages returned by the server stay in Spanish.
+- **Server errors:** messages returned by the API (validation, admin) stay in Spanish in every web language.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { formatNumber } from "@/i18n/format";
 import Link from "next/link";
 import { ArrowLeftIcon, DumbbellIcon, FlameIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -21,7 +22,6 @@ import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 import { calculateCalorieRecommendation } from "@/lib/core/calories";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
-import { formatNumberEs } from "@/lib/core/dates";
 import { formatTemplate, t } from "@/i18n";
 
 const GOAL_LABELS: Record<Goal, string> = {
@@ -97,19 +97,19 @@ export default function PerfilPage() {
   function validateProfile(profile: CalorieProfile) {
     const errors: Record<string, string> = {};
     if (profile.birthYear !== null && (profile.birthYear < 1920 || profile.birthYear > 2010)) {
-      errors.birthYear = "El año debe estar entre 1920 y 2010";
+      errors.birthYear = t.perfil.errorBirthYear;
     }
     if (profile.heightCm !== null && (profile.heightCm < 100 || profile.heightCm > 250)) {
-      errors.heightCm = "La altura debe estar entre 100 y 250 cm";
+      errors.heightCm = t.perfil.errorHeight;
     }
     if (profile.gymDaysPerWeek !== null && (profile.gymDaysPerWeek < 0 || profile.gymDaysPerWeek > 7)) {
-      errors.gymDaysPerWeek = "Los días deben ser entre 0 y 7";
+      errors.gymDaysPerWeek = t.perfil.errorGymDays;
     }
     if (profile.gymSessionMinutes !== null && (profile.gymSessionMinutes < 0 || profile.gymSessionMinutes > 300)) {
-      errors.gymSessionMinutes = "La duración debe ser entre 0 y 300 min";
+      errors.gymSessionMinutes = t.perfil.errorGymMinutes;
     }
     if (profile.walkingMinutesPerDay !== null && (profile.walkingMinutesPerDay < 0 || profile.walkingMinutesPerDay > 480)) {
-      errors.walkingMinutesPerDay = "El tiempo debe ser entre 0 y 480 min";
+      errors.walkingMinutesPerDay = t.perfil.errorWalking;
     }
     return errors;
   }
@@ -327,34 +327,34 @@ export default function PerfilPage() {
                     <FlameIcon className="size-3.5" /> {t.calorias.target}
                   </p>
                   <p className="text-2xl font-semibold tabular-nums">
-                    {formatNumberEs(calorieRec.target)} <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
+                    {formatNumber(calorieRec.target)} <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatNumberEs(calorieRec.targetMin)} – {formatNumberEs(calorieRec.targetMax)} {t.calorias.perDay}
+                    {formatNumber(calorieRec.targetMin)} – {formatNumber(calorieRec.targetMax)} {t.calorias.perDay}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)}
+                    {t.calorias.bmr}: {formatNumber(calorieRec.bmr)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatTemplate(t.calorias.activityFactor, { n: formatNumberEs(calorieRec.activityFactor, 2) })}
+                    {formatTemplate(t.calorias.activityFactor, { n: formatNumber(calorieRec.activityFactor, 2) })}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)}
+                    {t.calorias.tdee}: {formatNumber(calorieRec.tdee)}
                   </p>
                   {measured ? (
                     <>
                       <p className="text-xs text-muted-foreground">
                         {t.calorias.measuredTdee}:{" "}
                         {formatTemplate(t.calorias.measuredTdeeValue, {
-                          n: formatNumberEs(measured.tdee),
-                          margin: formatNumberEs(measured.margin),
+                          n: formatNumber(measured.tdee),
+                          margin: formatNumber(measured.margin),
                         })}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {formatTemplate(t.calorias.measuredTdeeDetail, {
-                          intake: formatNumberEs(measured.avgIntake),
+                          intake: formatNumber(measured.avgIntake),
                           days: measured.loggedDays,
-                          rate: `${measured.weightChangePerWeek > 0 ? "+" : ""}${formatNumberEs(measured.weightChangePerWeek, 2)}`,
+                          rate: `${measured.weightChangePerWeek > 0 ? "+" : ""}${formatNumber(measured.weightChangePerWeek, 2)}`,
                         })}
                       </p>
                     </>
@@ -372,13 +372,13 @@ export default function PerfilPage() {
                     {proteinRec.range.min} – {proteinRec.range.max} g/día{" "}
                     {proteinRec.basis !== "bodyWeight"
                 ? formatTemplate(proteinRec.basis === "leanMass" ? t.protein.perKgLeanMass : t.protein.perKgReference, {
-                          min: formatNumberEs(proteinRec.perKg.min, 1),
-                          max: formatNumberEs(proteinRec.perKg.max, 1),
-                          kg: formatNumberEs(proteinRec.basisKg, 1),
+                          min: formatNumber(proteinRec.perKg.min, 1),
+                          max: formatNumber(proteinRec.perKg.max, 1),
+                          kg: formatNumber(proteinRec.basisKg, 1),
                         })
                       : formatTemplate(t.protein.perKg, {
-                          min: formatNumberEs(proteinRec.perKg.min, 1),
-                          max: formatNumberEs(proteinRec.perKg.max, 1),
+                          min: formatNumber(proteinRec.perKg.min, 1),
+                          max: formatNumber(proteinRec.perKg.max, 1),
                         })}
                   </p>
                 </div>
