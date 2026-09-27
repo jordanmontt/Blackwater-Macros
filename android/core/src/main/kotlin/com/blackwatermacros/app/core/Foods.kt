@@ -169,6 +169,64 @@ fun parseOffSearch(json: JsonElement): List<FoodProduct> {
 private val WORD_SPLIT = Regex("[^a-z0-9]+")
 
 /**
+ * Words that mean the same food in Spain and Latin America (normalized). The
+ * bundled names use the Spain variant; a query with any word of a group also
+ * matches the others. Same list as the web.
+ */
+val SPANISH_SYNONYMS: List<List<String>> = listOf(
+    listOf("platano", "banana", "banano", "cambur"),
+    listOf("patata", "papa"),
+    listOf("alubia", "judia", "frijol", "poroto", "habichuela"),
+    listOf("melocoton", "durazno"),
+    listOf("zumo", "jugo"),
+    listOf("maiz", "choclo", "elote"),
+    listOf("gamba", "camaron", "langostino"),
+    listOf("cacahuete", "cacahuate", "mani"),
+    listOf("aguacate", "palta"),
+    listOf("fresa", "frutilla"),
+    listOf("guisante", "arveja", "chicharo"),
+    listOf("calabacin", "zapallito", "calabacita"),
+    listOf("pimiento", "morron"),
+    listOf("albaricoque", "damasco", "chabacano"),
+    listOf("pina", "anana"),
+    listOf("bacon", "beicon", "tocino", "tocineta"),
+    listOf("boniato", "batata", "camote"),
+    listOf("remolacha", "betabel", "betarraga"),
+    listOf("col", "repollo"),
+    listOf("cerdo", "puerco", "chancho"),
+    listOf("ternera", "res", "vacuno", "vaca"),
+    listOf("magdalena", "muffin"),
+    listOf("pomelo", "toronja"),
+    listOf("sandia", "patilla"),
+    listOf("champinon", "hongo", "seta"),
+    listOf("tomate", "jitomate"),
+    listOf("refresco", "gaseosa", "soda"),
+    listOf("yogur", "yogurt", "yoghurt"),
+    listOf("galleta", "galletita"),
+    listOf("yuca", "mandioca"),
+    listOf("pavo", "guajolote"),
+    listOf("aceituna", "oliva"),
+    listOf("cereza", "guinda"),
+    listOf("nata", "crema"),
+)
+
+private val SYNONYMS_BY_WORD: Map<String, List<String>> =
+    SPANISH_SYNONYMS.flatMap { group -> group.map { it to group } }.toMap()
+
+/** What a query word may match: itself, its singular and the synonyms of either. */
+fun queryAlternatives(token: String): List<String> {
+    val forms = mutableListOf(token)
+    if (token.length >= 5 && token.endsWith("es")) forms += token.dropLast(2)
+    if (token.length >= 4 && token.endsWith("s")) forms += token.dropLast(1)
+    val result = linkedSetOf<String>()
+    for (form in forms) {
+        result += form
+        SYNONYMS_BY_WORD[form]?.let { result += it }
+    }
+    return result.toList()
+}
+
+/**
  * Searches the bundled generic foods in every language they have, ignoring case
  * and accents. Every word of the query must start a word of the name. Best
  * first: exact name, then names that start with the query, then the rest; names
@@ -176,7 +234,7 @@ private val WORD_SPLIT = Regex("[^a-z0-9]+")
  */
 fun searchGenericFoods(foods: List<GenericFood>, query: String, lang: FoodLang, limit: Int = 20): List<GenericFoodMatch> {
     val normalizedQuery = normalizeText(query)
-    val tokens = normalizedQuery.split(WORD_SPLIT).filter { it.isNotEmpty() }
+    val tokens = normalizedQuery.split(WORD_SPLIT).filter { it.isNotEmpty() }.map(::queryAlternatives)
     if (tokens.isEmpty()) return emptyList()
 
     data class Scored(val match: GenericFoodMatch, val score: Int, val length: Int)
@@ -188,7 +246,7 @@ fun searchGenericFoods(foods: List<GenericFood>, query: String, lang: FoodLang, 
             if (name.isEmpty()) continue
             val normalizedName = normalizeText(name)
             val words = normalizedName.split(WORD_SPLIT).filter { it.isNotEmpty() }
-            if (!tokens.all { token -> words.any { it.startsWith(token) } }) continue
+            if (!tokens.all { alternatives -> words.any { word -> alternatives.any { word.startsWith(it) } } }) continue
             val base = when {
                 normalizedName == normalizedQuery -> 0
                 normalizedName.startsWith(normalizedQuery) -> 1
@@ -207,3 +265,32 @@ fun searchGenericFoods(foods: List<GenericFood>, query: String, lang: FoodLang, 
         .take(limit)
         .map { it.match }
 }
+
+/**
+ * The bundled index (`assets/foods/generic.json`):
+ * `{ foods: [{ id, s: source, n: { es, en, fr, … }, v: [kcal, protein, carbs, fat] }] }`.
+ */
+fun parseGenericIndex(json: JsonElement): List<GenericFood> {
+    val index = json as? JsonObject ?: return emptyList()
+    val entries = index["foods"] as? JsonArray ?: return emptyList()
+    return entries.mapNotNull { entry ->
+        val food = entry as? JsonObject ?: return@mapNotNull null
+        val names = food["n"] as? JsonObject ?: return@mapNotNull null
+        val values = food["v"] as? JsonArray ?: return@mapNotNull null
+        if (values.size < 4) return@mapNotNull null
+        val (calories, protein, carbs, fat) = values.take(4).map { jsonNumber(it) ?: 0.0 }
+        val parsedNames = linkedMapOf<FoodLang, String>()
+        for ((code, name) in names) {
+            val lang = FoodLang.entries.firstOrNull { it.code == code } ?: continue
+            jsonText(name)?.let { parsedNames[lang] = it }
+        }
+        if (parsedNames.isEmpty()) return@mapNotNull null
+        GenericFood(
+            id = (food["id"] as? JsonPrimitive)?.content.orEmpty(),
+            source = (food["s"] as? JsonPrimitive)?.content.orEmpty(),
+            names = parsedNames,
+            per100g = Per100g(calories, protein, carbs, fat),
+        )
+    }
+}
+

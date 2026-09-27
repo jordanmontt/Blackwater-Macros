@@ -3,8 +3,10 @@ import {
   foodToIngredient,
   normalizeText,
   parseOffProduct,
+  parseGenericIndex,
   parseOffSearch,
   parseServingGrams,
+  queryAlternatives,
   scalePer100g,
   searchGenericFoods,
   type GenericFood,
@@ -109,7 +111,8 @@ describe("searchGenericFoods", () => {
 
   it("matches every word of the query at the start of a word, in any language", () => {
     expect(ids("yogur griego")).toEqual(["usda:1"]);
-    expect(ids("platano")).toEqual(["usda:3"]);
+    // «platano» also finds «Banana» through the Spanish synonyms.
+    expect(ids("platano")).toEqual(["usda:3", "ciqual:4"]);
     expect(ids("joghurt")).toEqual(["ch:2"]);
     expect(ids("gurt")).toEqual([]);
     expect(ids("   ")).toEqual([]);
@@ -126,3 +129,37 @@ describe("searchGenericFoods", () => {
     expect(searchGenericFoods(FOODS, "ban", "es", 1)).toHaveLength(1);
   });
 });
+
+describe("Spanish first: plurals and synonyms", () => {
+  it("expands a query word with its singular and Spain/Latin-America synonyms", () => {
+    expect(queryAlternatives("fresas")).toEqual(["fresas", "fresa", "frutilla"]);
+    expect(queryAlternatives("limones")).toEqual(["limones", "limon", "limone"]);
+    expect(queryAlternatives("papa")).toEqual(["papa", "patata"]);
+    expect(queryAlternatives("pollo")).toEqual(["pollo"]);
+  });
+
+  it("finds «patata» when searching «papas cocidas» and «plátano» when searching «banana»", () => {
+    const foods: GenericFood[] = [
+      { id: "a", source: "ch", names: { es: "Patata cocida", en: "Potato, boiled" }, per100g: { calories: 77, protein: 2, carbs: 17, fat: 0.1 } },
+      { id: "b", source: "ch", names: { es: "Papaya", en: "Papaya" }, per100g: { calories: 43, protein: 0.5, carbs: 11, fat: 0.3 } },
+      { id: "c", source: "ch", names: { es: "Plátano", en: "Banana" }, per100g: { calories: 89, protein: 1.1, carbs: 23, fat: 0.3 } },
+    ];
+    const ids = (query: string) => searchGenericFoods(foods, query, "es").map((m) => m.food.id);
+    expect(ids("papas cocidas")).toEqual(["a"]);
+    expect(ids("jugo")).toEqual([]);
+    expect(searchGenericFoods(foods, "banana", "es").map((m) => m.name)).toEqual(["Plátano"]);
+  });
+});
+
+describe("parseGenericIndex", () => {
+  it("reads the bundled index and skips broken entries", () => {
+    const json = JSON.parse(
+      `{"version":1,"foods":[{"id":"ch:1","s":"ch","n":{"es":"Manzana","en":"Apple, fresh","xx":"?"},"v":[52,0.3,11.4,0.2]},{"id":"ch:2","s":"ch","n":{},"v":[1,2,3,4]},{"id":"ch:3","n":{"es":"Sin valores"}}]}`,
+    );
+    expect(parseGenericIndex(json)).toEqual([
+      { id: "ch:1", source: "ch", names: { es: "Manzana", en: "Apple, fresh" }, per100g: { calories: 52, protein: 0.3, carbs: 11.4, fat: 0.2 } },
+    ]);
+    expect(parseGenericIndex(JSON.parse(`{"nope":1}`))).toEqual([]);
+  });
+});
+

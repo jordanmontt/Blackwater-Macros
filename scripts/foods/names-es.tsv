@@ -1,0 +1,3400 @@
+# Spanish names for the bundled generic foods (id<TAB>name). Reviewable by hand;
+# rebuild with: python3 scripts/foods/build_generic_index.py
+ch:10533	Agar-agar
+ch:10536	Sirope de agave
+ch:273	Almendra
+ch:14113	Bebida de almendra, natural
+ch:14131	Bebida de almendra, natural, enriquecida con calcio y vitaminas
+ch:278	Almendra tostada con sal
+ch:269	Almendra tostada, con sal
+ch:13398	Amaranto cocido (sin grasa ni sal)
+ch:13397	Amaranto crudo
+ch:868	Amaretti (duros)
+ch:14295	Amaretti (blandos)
+ch:10532	Pasta de anchoas
+ch:554	Queso Appenzeller, mín. 15 % MG
+ch:553	Queso Appenzeller, mín. 45 % MG
+ch:568	Zumo de manzana
+ch:1480	Tarta de manzana casera (masa de bizcocho)
+ch:1479	Tarta de manzana casera (hojaldre)
+ch:378	Manzana fresca
+ch:435	Manzana pelada, deshidratada
+ch:1049	Compota de manzana escurrida (sin azúcar)
+ch:627	Puré de manzana en conserva, azucarado
+ch:628	Puré de manzana en conserva, sin azúcar
+ch:621	Albaricoque en almíbar, escurrido
+ch:1482	Tarta de albaricoque casera (masa de bizcocho)
+ch:1481	Tarta de albaricoque casera (hojaldre)
+ch:14097	Albaricoque en conserva con edulcorante, escurrido
+ch:469	Orejones (albaricoque seco)
+ch:379	Albaricoque crudo
+ch:1051	Compota de albaricoque escurrida (sin azúcar)
+ch:13449	Corazones de alcachofa en conserva, escurridos
+ch:443	Espárrago (blanco o verde), crudo
+ch:1024	Espárrago (blanco o verde), al vapor (sin sal)
+ch:14162	Espárrago verde, crudo
+ch:14161	Espárrago blanco, crudo
+ch:380	Aguacate
+ch:704	Bacon para cocinar
+ch:707	Bacon crudo
+ch:845	Baguette
+ch:13455	Vinagre balsámico
+ch:1577	Bami goreng (fideos fritos indonesios)
+ch:741	Plátano deshidratado
+ch:740	Chips de plátano
+ch:381	Plátano
+ch:13937	Salsa barbacoa
+ch:739	Copos de cebada
+ch:1587	Risotto de cebada
+ch:464	Albahaca fresca
+ch:1248	Basler Leckerli (galleta suiza de Basilea)
+ch:473	Judía verde deshidratada
+ch:353	Judía verde cruda
+ch:12981	Bechamel casera
+ch:1103	Ternera (media, sin vísceras), cruda
+ch:1672	Estofado de ternera con salsa
+ch:14280	Steak tartar de ternera
+ch:13292	Ternera magra para cocido, cocida (sin grasa ni sal)
+ch:13291	Ternera con grasa para cocido, cocida (sin grasa ni sal)
+ch:36	Ternera magra para cocido, cruda
+ch:35	Ternera con grasa para cocido, cruda
+ch:1072	Pecho de ternera, cocido (sin grasa ni sal)
+ch:719	Pecho de ternera, crudo
+ch:37	Ternera troceada, cruda
+ch:13258	Entrecot de ternera a la plancha, al punto (sin grasa ni sal)
+ch:30	Entrecot de ternera, crudo
+ch:34	Redondo de ternera, crudo
+ch:13262	Solomillo de ternera al horno, al punto (sin grasa ni sal)
+ch:639	Solomillo de ternera, crudo
+ch:657	Hígado de ternera, crudo
+ch:6	Carne picada de ternera magra, cruda
+ch:13297	Carne picada de ternera, a la sartén (sin grasa ni sal)
+ch:14237	Carne picada de ternera, cruda
+ch:32	Chuletón de ternera, crudo
+ch:648	Ternera para guisar (gulash), cruda
+ch:38	Ternera para guisar, cruda
+ch:640	Escalope de ternera (tapa), crudo
+ch:638	Paleta de ternera (asado), cruda
+ch:1075	Paleta de ternera asada al horno, al punto (sin grasa ni sal)
+ch:1074	Paleta de ternera asada al horno, poco hecha (sin grasa ni sal)
+ch:1076	Paleta de ternera asada al horno, muy hecha (sin grasa ni sal)
+ch:656	Lengua de ternera, cruda
+ch:1183	Clara (cerveza con limón), media
+ch:817	Cerveza de cinco cereales
+ch:816	Cerveza lager
+ch:13420	Cerveza sin alcohol
+ch:451	Remolacha cruda
+ch:1019	Remolacha al vapor (sin sal)
+ch:359	Pimiento verde crudo
+ch:1017	Pimiento verde rehogado (sin grasa ni sal)
+ch:360	Pimiento rojo crudo
+ch:1018	Pimiento rojo rehogado (sin grasa ni sal)
+ch:851	Berlina (bollo relleno)
+ch:1211	Queso alpino de Berna
+ch:1212	Queso de Berna para lonchas
+ch:790	Embutido de lengua de Berna
+ch:1122	Frutos rojos (media), cocidos (sin azúcar)
+ch:1119	Frutos rojos (media), crudos
+ch:859	Biber (pan de especias relleno de almendra o avellana)
+ch:789	Bierwurst (embutido curado y ahumado de ternera y cerdo)
+ch:1198	Muesli Bircher preparado (sin azúcar)
+ch:862	Birnwegge (hojaldre con pera)
+ch:881	Galleta de Willisau
+ch:883	Tarta Selva Negra
+ch:778	Morcilla
+ch:452	Salsifí negro, crudo
+ch:1023	Salsifí negro, al vapor (sin sal)
+ch:1485	Tarta de moras casera (masa quebrada)
+ch:1596	Tarta de moras casera (masa de bizcocho)
+ch:1594	Tarta de moras casera (hojaldre)
+ch:383	Mora fresca
+ch:13395	Queso fresco batido, natural, bajo en grasa
+ch:1191	Queso azul (media)
+ch:14101	Arándano liofilizado
+ch:389	Arándano crudo
+ch:1697	Ensalada de carne cocida
+ch:668	Caldo de carne
+ch:665	Caldo de ave
+ch:664	Caldo de verduras
+ch:1460	Trenza de pan integral con mantequilla
+ch:820	Trenza de pan blanco con mantequilla
+ch:279	Nuez de Brasil
+ch:10446	Pan (media)
+ch:14109	Pan de molde oscuro o multicereales
+ch:827	Pan de molde blanco con mantequilla
+ch:826	Pan de molde blanco con aceite vegetal
+ch:825	Pan de molde integral
+ch:842	Panecillo (semiblanco)
+ch:843	Panecillo de San Galo (semiblanco)
+ch:14038	Panecillo con chocolate
+ch:844	Panecillo blanco
+ch:831	Pan de nueces
+ch:750	Pan rallado
+ch:705	Bresaola (cecina de ternera)
+ch:613	Queso brie, mín. 45 % MG
+ch:616	Queso brie, mín. 50 % MG
+ch:351	Brócoli crudo
+ch:1005	Brócoli al vapor (sin sal)
+ch:829	Pan moreno
+ch:14077	Pan moreno (con sal yodada)
+ch:864	Brunsli (galleta de chocolate) casera
+ch:1021	Coles de Bruselas al vapor (sin sal)
+ch:363	Coles de Bruselas crudas
+ch:420	Harina de trigo sarraceno
+ch:421	Trigo sarraceno pelado
+ch:14250	Hamburguesa de ternera casera, a la sartén (sin grasa)
+ch:1583	Hamburguesa de ternera casera, frita en aceite de colza
+ch:14115	Hamburguesa vegana de soja o guisante, cruda
+ch:901	Bizcocho de mantequilla
+ch:836	Cruasán de mantequilla
+ch:834	Cruasán integral de mantequilla
+ch:49	Mantequilla (a elegir)
+ch:191	Mantequilla ligera, 40 % grasa
+ch:60	Mantequilla de quesería
+ch:50	Mantequilla clarificada (ghee)
+ch:14297	Mantequilla con sal
+ch:448	Lechuga mantecosa, cruda
+ch:529	Suero de mantequilla
+ch:781	Salchicha de col
+ch:10582	Coles (media), cocidas (sin sal ni grasa)
+ch:1167	Coles (media), crudas
+ch:1176	Masa de bizcocho con mantequilla, cruda
+ch:906	Masa de bizcocho con grasa vegetal, cruda
+ch:13417	Masa de bizcocho integral con mantequilla, cruda
+ch:13416	Masa de bizcocho integral con grasa vegetal, cruda
+ch:877	Financier (pastelito de almendra)
+ch:916	Bizcocho de zanahoria
+ch:10486	Calimocho (vino tinto con cola)
+ch:622	Queso camembert, mín. 25 % MG
+ch:614	Queso camembert, mín. 45 % MG
+ch:619	Queso camembert, mín. 50 % MG
+ch:13486	Castaña confitada (marron glacé)
+ch:856	Piel de limón confitada
+ch:855	Piel de naranja confitada
+ch:953	Caramelo toffee
+ch:1644	Canelones de carne
+ch:1646	Canelones de espinacas y ricotta
+ch:14282	Alcaparras en vinagre
+ch:1121	Capuchino (sin cacao), sin azúcar
+ch:1692	Capuns (plato suizo de acelga y masa)
+ch:14060	Buñuelos de carnaval
+ch:566	Zumo de zanahoria
+ch:355	Zanahoria cruda
+ch:1002	Zanahoria al vapor (sin sal)
+ch:275	Anacardo
+ch:350	Coliflor cruda
+ch:1004	Coliflor al vapor (sin sal)
+ch:1660	Apio nabo rebozado en huevo (piccata)
+ch:1655	Apio nabo empanado en rodajas
+ch:357	Apio nabo crudo
+ch:1013	Apio nabo al vapor
+ch:366	Apio crudo
+ch:1026	Apio al vapor (sin sal)
+ch:13448	Barrita de cereales cubierta de chocolate
+ch:13488	Barrita de cereales sin cobertura ni relleno
+ch:14143	Bocaditos de cereales rellenos de chocolate y avellana
+ch:1696	Copos de cereales (media)
+ch:14153	Copos de trigo integral y arroz con chocolate
+ch:14154	Copos de trigo integral y arroz con frutos rojos
+ch:14138	Copos de trigo integral y arroz, naturales
+ch:1081	Cervelat (salchicha suiza)
+ch:376	Rebozuelo crudo
+ch:1038	Rebozuelo rehogado (sin grasa ni sal)
+ch:1569	Ensalada de queso y salchicha
+ch:1601	Tostadas de queso gratinadas
+ch:1196	Queso rallado
+ch:14152	Sustituto de queso de anacardo
+ch:14151	Sustituto de queso de aceite de coco y almidón
+ch:14024	Hamburguesa con queso
+ch:882	Tarta de cerezas de Zug
+ch:1546	Tarta de cerezas casera (masa de bizcocho)
+ch:1545	Tarta de cerezas casera (hojaldre)
+ch:394	Cereza cruda
+ch:1052	Compota de cerezas escurrida (sin azúcar)
+ch:14300	Puré de castañas
+ch:272	Castaña cruda
+ch:14301	Castaña asada
+ch:13457	Semillas de chía
+ch:1674	Pollo troceado al curry, casero
+ch:1070	Huevo de gallina duro
+ch:20	Pechuga de pollo con piel, cruda
+ch:22	Pechuga de pollo sin piel, cruda
+ch:13276	Pechuga de pollo a la plancha (filete o picada, sin grasa ni sal)
+ch:13310	Muslo de pollo con piel, asado (sin grasa ni sal)
+ch:24	Muslo de pollo con piel, crudo
+ch:26	Muslo de pollo sin piel, crudo
+ch:13309	Pollo entero con piel, asado (sin grasa ni sal)
+ch:711	Pollo entero con piel, crudo
+ch:13460	Hamburguesa de pollo
+ch:1059	Garbanzos cocidos (sin grasa ni sal)
+ch:439	Garbanzos secos
+ch:447	Endibia cruda
+ch:1006	Endibia al vapor (sin sal)
+ch:1648	Chili con carne
+ch:437	Col china cruda
+ch:1007	Col china rehogada (sin grasa ni sal)
+ch:374	Cebollino fresco
+ch:889	Bizcocho o magdalena de chocolate
+ch:14008	Galleta de chocolate
+ch:14214	Cacao soluble azucarado en polvo
+ch:14230	Coulant de chocolate
+ch:14035	Merengues de chocolate
+ch:14039	Merengues de chocolate con base de chocolate
+ch:14302	Mousse de chocolate casera
+ch:960	Cacao en polvo
+ch:807	Salsa de chocolate
+ch:196	Chocolate negro
+ch:197	Chocolate blanco
+ch:13322	Chuleta (media de ternera, cerdo y cordero), a la plancha (sin grasa ni sal)
+ch:1107	Chuleta (media de ternera, cerdo y cordero), cruda
+ch:14146	Carne vegetal desmenuzada de soja o guisante, cruda
+ch:867	Chräbeli (galleta de anís) casera
+ch:512	Sidra, 4 % vol.
+ch:513	Sidra, 6,2 % vol.
+ch:911	Canela
+ch:876	Estrellas de canela caseras
+ch:1126	Cítricos (media), crudos
+ch:1683	Salsa cóctel con mayonesa de colza, casera
+ch:14303	Macaron de coco
+ch:888	Macaron de coco casero
+ch:14220	Cacao con leche, azucarado
+ch:978	Cacao en polvo desgrasado, sin azúcar
+ch:581	Cacao en polvo, sin azúcar
+ch:284	Coco
+ch:14124	Bebida de coco, natural
+ch:14132	Bebida de coco, natural, enriquecida con calcio y vitaminas
+ch:601	Grasa de coco
+ch:13458	Leche de coco
+ch:13907	Agua de coco
+ch:742	Coco rallado deshidratado
+ch:13350	Filete de bacalao al vapor (sin grasa ni sal)
+ch:285	Bacalao crudo
+ch:69	Crema para café UHT
+ch:1188	Café con crema, sin azúcar
+ch:994	Café solo, sin azúcar
+ch:983	Café soluble en polvo
+ch:498	Refresco de cola azucarado
+ch:499	Refresco de cola con edulcorante
+ch:10353	Fiambres (media)
+ch:1573	Ensalada de col (coleslaw)
+ch:13388	Alubias (todas las variedades), cocidas (sin grasa ni sal)
+ch:13387	Alubias (todas las variedades), secas
+ch:526	Leche condensada azucarada
+ch:527	Leche evaporada sin azúcar
+ch:1118	Embutido curado cocido (media)
+ch:1116	Salchichas cocidas (media)
+ch:1113	Salchichas cocidas sin ahumar (media)
+ch:1112	Salchichas cocidas ahumadas (media)
+ch:51	Mantequilla para cocinar
+ch:715	Coppa (embutido curado de cerdo)
+ch:14290	Cordon bleu de pollo, frito
+ch:1650	Cordon bleu de escalope de cerdo, frito
+ch:1649	Cordon bleu de escalope de ternera, frito
+ch:14136	Bolitas de maíz crujientes con miel
+ch:14144	Copos de maíz azucarados
+ch:412	Aceite de germen de maíz
+ch:1619	Sémola de maíz (polenta), cocida
+ch:425	Sémola de maíz (polenta), seca
+ch:14298	Tortita de maíz, natural
+ch:940	Copos de maíz (cornflakes)
+ch:758	Cotechino (embutido de cerdo)
+ch:505	Queso cottage
+ch:1093	Cotto (jamón cocido italiano)
+ch:14191	Cuscús cocido (sin grasa ni sal)
+ch:64	Leche de vaca desnatada UHT
+ch:950	Galletas saladas (crackers)
+ch:987	Arándano rojo fresco
+ch:1195	Nata (media)
+ch:567	Queso crema, mín. 60 % MG
+ch:924	Milhojas de crema
+ch:65	Nata 35 % grasa, pasteurizada
+ch:66	Nata 35 % grasa, UHT
+ch:798	Nata mín. 45 % grasa, pasteurizada
+ch:67	Nata 25 % grasa, pasteurizada
+ch:68	Nata UHT
+ch:918	Pan crujiente integral
+ch:920	Pan crujiente integral con linaza
+ch:919	Pan crujiente integral con sésamo
+ch:10406	Cruasán (media)
+ch:913	Cruasán de hojaldre relleno de frutos secos
+ch:914	Cruasán de masa de levadura relleno de frutos secos
+ch:835	Cruasán tipo pretzel (con sal yodada)
+ch:14056	Sándwich mixto (croque monsieur)
+ch:491	Pepinillo en vinagre
+ch:354	Pepino crudo
+ch:1182	Hojaldre de requesón con mantequilla, crudo
+ch:1181	Hojaldre de requesón con grasa vegetal, crudo
+ch:13501	Requesón con fruta, azucarado
+ch:70	Requesón, mín. 40 % MG
+ch:71	Requesón, máx. 10 % MG
+ch:571	Requesón natural, semidesnatado
+ch:392	Grosella negra cruda
+ch:391	Grosella roja cruda
+ch:384	Dátil seco
+ch:487	Ciervo (media), crudo
+ch:12	Entrecot de ciervo, crudo
+ch:14233	Dónut con glaseado de chocolate
+ch:13419	Masa de tarte flambée (pizza alsaciana)
+ch:14208	Masa de tarte flambée (pizza alsaciana), horneada
+ch:709	Cecina suiza (carne seca de los Grisones, Valais o Tesino)
+ch:47	Agua potable (media Suiza)
+ch:10535	Dulce de leche
+ch:423	Sémola de trigo duro
+ch:14192	Trigo duro precocido, cocido (sin grasa ni sal)
+ch:14160	Edamame (soja verde) pelado, congelado
+ch:455	Boletus fresco
+ch:1040	Boletus rehogado (sin grasa ni sal)
+ch:517	Licor de huevo, 16,5 % vol.
+ch:411	Clara de huevo cruda
+ch:410	Yema de huevo cruda
+ch:290	Huevo crudo
+ch:1659	Berenjena rebozada en huevo (piccata)
+ch:1658	Berenjena empanada en rodajas
+ch:349	Berenjena cruda
+ch:1653	Berenjena al vapor (sin sal)
+ch:1003	Berenjena rehogada (sin grasa ni sal)
+ch:436	Saúco (baya) crudo
+ch:555	Queso emmental, mín. 45 % MG
+ch:467	Escarola cruda
+ch:13436	Bebida energética con cafeína, taurina y vitaminas, con edulcorante
+ch:13465	Bebida energética con cafeína, taurina y vitaminas, azucarada
+ch:14052	Escalope (media de ternera, cerdo y ave), empanado y frito
+ch:13319	Escalope (media de ternera, cerdo y ave), a la plancha (sin grasa ni sal)
+ch:1101	Escalope (media de ternera, cerdo y ave), crudo
+ch:1190	Café expreso con crema, sin azúcar
+ch:765	Perca crudo
+ch:13384	Leche de oveja
+ch:14066	Falafel (frito en aceite de colza)
+ch:1268	Pan de payés
+ch:352	Hinojo crudo
+ch:1008	Hinojo al vapor (sin sal)
+ch:1269	Masa madre
+ch:539	Queso feta de vaca
+ch:549	Queso feta de oveja o cabra
+ch:387	Higo seco
+ch:386	Higo fresco
+ch:13345	Filete de pescado (media) al vapor (sin grasa ni sal)
+ch:1098	Pescado (media), crudo
+ch:773	Palitos de pescado empanados y prefritos
+ch:1168	Palitos de pescado empanados, fritos en aceite de colza
+ch:1169	Palitos de pescado empanados, al horno (sin grasa)
+ch:414	Anchoas en aceite, escurridas
+ch:413	Sardinas en aceite, escurridas
+ch:760	Merluza cruda
+ch:415	Platija cruda
+ch:754	Carbonero crudo
+ch:757	Sardina cruda
+ch:755	Lenguado crudo
+ch:756	Atún crudo
+ch:13461	Hamburguesa de pescado
+ch:1185	Flat white (poca leche), sin azúcar
+ch:1186	Flat white (mucha leche), sin azúcar
+ch:1187	Flat white, sin azúcar
+ch:13405	Aceite de linaza prensado en frío
+ch:14007	Florentina (galleta de almendra y chocolate)
+ch:13351	Filete de platija al vapor (sin grasa ni sal)
+ch:481	Platija (flounder) cruda
+ch:1135	Harina (media)
+ch:1524	Crep salada rellena de champiñones
+ch:1525	Crep salada rellena de verduras
+ch:14266	Crep con manzana
+ch:1527	Crep con bacon
+ch:1523	Crep con queso
+ch:1526	Crep con jamón
+ch:1695	Crep con Nutella
+ch:1694	Crep con azúcar y canela
+ch:1522	Crep casera
+ch:1136	Harina blanca y semiblanca (media)
+ch:1475	Fondue moitié-moitié
+ch:797	Fondue de queso
+ch:1476	Fondue de queso con sidra
+ch:10450	Patatas fritas al horno, sin sal
+ch:10449	Patatas fritas en aceite de girasol, sin sal
+ch:818	Patatas fritas para horno, congeladas
+ch:1503	Tortilla francesa con bacon
+ch:1502	Tortilla francesa con queso
+ch:1501	Tortilla francesa con jamón
+ch:1500	Tortilla francesa
+ch:1504	Tarte flambée (pizza alsaciana), horneada
+ch:1515	Torrija sin azúcar
+ch:13926	Queso fresco de cabra para untar
+ch:1120	Fruta deshidratada (media)
+ch:775	Macedonia de frutas en almíbar, escurrida
+ch:777	Macedonia de frutas con edulcorante, escurrida
+ch:1130	Zumo de fruta (media), sin azúcar añadido
+ch:1131	Zumo de fruta diluido (60 % zumo, 40 % agua), sin azúcar
+ch:10456	Tarta de fruta casera (media)
+ch:10454	Tarta de fruta casera con masa de bizcocho (media)
+ch:10453	Tarta de fruta casera con hojaldre (media)
+ch:10455	Tarta de fruta con masa quebrada (media)
+ch:14270	Tartaleta de fruta
+ch:1124	Fruta cocida (media), sin azúcar
+ch:1123	Fruta cruda (media)
+ch:13281	Carne de caza (media), cocinada (sin grasa ni sal)
+ch:1125	Carne de caza (media), cruda
+ch:356	Ajo crudo
+ch:14002	Gazpacho
+ch:14239	Jengibre fresco
+ch:768	Glucosa
+ch:687	Cabra (media), cruda
+ch:528	Leche de cabra
+ch:400	Grosella espinosa cruda
+ch:483	Queso gorgonzola
+ch:684	Sopa de gulash
+ch:573	Zumo de uva
+ch:592	Aceite de pepita de uva
+ch:478	Uva blanca
+ch:388	Pomelo (blanco o rosa), crudo
+ch:669	Sopa de cebada de los Grisones
+ch:651	Salsa de asado oscura
+ch:650	Salsa de asado espesada
+ch:14068	Judía verde seca, remojada y al vapor (sin sal)
+ch:1009	Judía verde al vapor (sin sal)
+ch:14219	Guisantes congelados
+ch:369	Guisantes crudos
+ch:1010	Guisantes al vapor (sin sal)
+ch:1011	Guisantes en conserva, calentados (sin sal)
+ch:1034	Guisantes con zanahoria en conserva, calentados (sin sal)
+ch:815	Guisantes con zanahoria en conserva
+ch:630	Guisantes en conserva
+ch:530	Queso gruyère, mín. 45 % MG
+ch:14213	Picos de pan (grissini)
+ch:1272	Grittibänz (pan dulce suizo con forma de hombrecito)
+ch:653	Salsa de carne picada (boloñesa)
+ch:14292	Guacamole casero
+ch:13997	Guacamole envasado
+ch:753	Fletán del Atlántico, crudo
+ch:13446	Cruasán de jamón
+ch:691	Jamón cocido (york)
+ch:693	Jamón curado
+ch:14025	Hamburguesa doble
+ch:1193	Queso curado y semicurado, graso (media)
+ch:952	Caramelos duros
+ch:13329	Liebre (media), cocinada (sin grasa ni sal)
+ch:16	Lomo de liebre, crudo
+ch:486	Liebre fresca
+ch:686	Carne de liebre, cruda
+ch:270	Avellana
+ch:703	Crema de cacao y avellanas
+ch:903	Galleta de avellana
+ch:869	Macaron de avellana casero
+ch:14108	Aceite de avellana
+ch:14091	Aceite de cáñamo
+ch:666	Salsa holandesa
+ch:472	Miel de flores
+ch:1670	Estofado de caballo con salsa
+ch:13328	Solomillo de caballo a la plancha (sin grasa ni sal)
+ch:685	Solomillo de caballo, crudo
+ch:1590	Perrito caliente con ketchup y mostaza
+ch:14055	Hummus
+ch:652	Salsa cazadora
+ch:13960	Helado de palo con cobertura de chocolate
+ch:13959	Cucurucho de helado
+ch:694	Helado de fruta con leche
+ch:14206	Helado con sabor
+ch:804	Té helado azucarado
+ch:459	Lechuga iceberg, cruda
+ch:696	Mermelada
+ch:697	Mermelada light con edulcorante
+ch:951	Gominolas con esencia de fruta
+ch:13442	Tupinambo cocido (sin sal)
+ch:13441	Tupinambo crudo
+ch:583	Manteca de cacao
+ch:393	Caqui crudo
+ch:13400	Kale (col rizada) cruda
+ch:13401	Kale (col rizada) rehogada (sin sal ni grasa)
+ch:1572	Kebab en pan de pita
+ch:635	Kétchup
+ch:395	Kiwi
+ch:449	Colinabo crudo
+ch:1014	Colinabo al vapor (sin sal)
+ch:852	Bizcochos de soletilla
+ch:372	Canónigos crudos
+ch:1110	Cordero (media, sin vísceras), crudo
+ch:5	Chuleta de cordero, cruda (Suiza)
+ch:13273	Solomillo de cordero a la plancha, al punto (sin grasa ni sal)
+ch:675	Solomillo de cordero, crudo
+ch:17	Solomillo de cordero, crudo (Australia, Nueva Zelanda)
+ch:4	Pierna de cordero, cruda (Suiza, Nueva Zelanda)
+ch:18	Costillar de cordero, crudo (Australia, Nueva Zelanda)
+ch:1673	Estofado de cordero con salsa
+ch:13304	Pierna de cordero asada (sin grasa ni sal)
+ch:19	Cordero para guisar, crudo (Suiza)
+ch:1090	Landjäger (salchicha seca suiza)
+ch:1184	Latte macchiato, sin azúcar
+ch:1127	Ensalada de hoja (media), cruda
+ch:1164	Verduras de hoja (media, sin lechugas), hervidas (sin sal ni grasa)
+ch:1165	Verduras de hoja (media, sin lechugas), al vapor (sin sal)
+ch:1166	Verduras de hoja (media, sin lechugas), rehogadas (sin sal ni grasa)
+ch:14287	Lebkuchen (pan de especias)
+ch:358	Puerro crudo
+ch:1015	Puerro rehogado (sin grasa ni sal)
+ch:1134	Legumbres (media), cocidas (sin grasa ni sal)
+ch:1133	Legumbres (media), secas
+ch:10534	Crema de limón (lemon curd)
+ch:605	Zumo de limón
+ch:13951	Piel de limón
+ch:398	Limón
+ch:13386	Lentejas partidas, cocidas (sin grasa ni sal)
+ch:13385	Lentejas partidas, secas
+ch:1060	Lentejas, cocidas (sin grasa ni sal)
+ch:370	Lentejas, secas
+ch:531	Queso limburgués (munster)
+ch:277	Semillas de lino (linaza)
+ch:14286	Tarta Linzer (con mermelada de frambuesa)
+ch:13883	Lichi crudo
+ch:13320	Hígado (media de ternera y cerdo), a la plancha (sin grasa ni sal)
+ch:10377	Hígado (media de ternera y cerdo), crudo
+ch:776	Embutido de hígado
+ch:786	Luganighe (salchicha del Tesino)
+ch:1084	Carne de cerdo en conserva (luncheon meat)
+ch:832	Panecillo de pretzel (con sal yodada)
+ch:1083	Salchicha Lyoner
+ch:1092	Salchicha Lyoner de ave
+ch:1478	Macarrones alpinos (con patata y queso)
+ch:878	Magdalena de mantequilla
+ch:14117	Magdalena de aceite vegetal
+ch:426	Almidón de maíz (maicena)
+ch:13434	Bebida de malta con cacao enriquecida, en polvo
+ch:14050	Bebida de malta con cacao enriquecida, con leche
+ch:397	Mandarina
+ch:13884	Mango deshidratado
+ch:396	Mango
+ch:14054	Yuca cocida (sin sal)
+ch:13918	Yuca cruda
+ch:14093	Sirope de arce
+ch:898	Bizcocho marmolado
+ch:209	Margarina 35-40 % grasa
+ch:208	Margarina sin mantequilla, 70-80 % grasa
+ch:14288	Mazapán
+ch:866	Puré de patata instantáneo (con agua y mantequilla)
+ch:1519	Puré de patata con nata y mantequilla
+ch:863	Puré de patata con leche entera y mantequilla
+ch:1518	Puré de patata con leche semidesnatada y mantequilla
+ch:771	Mayonesa
+ch:1682	Mayonesa casera con aceite de colza
+ch:772	Mayonesa light
+ch:1111	Carne (media, sin vísceras), cruda
+ch:1664	Lasaña de carne
+ch:1582	Pastel de carne al horno, casero
+ch:13318	Carne troceada (media de ternera, cerdo y ave), a la plancha (sin grasa ni sal)
+ch:1104	Carne troceada (media de ternera, cerdo y ave), cruda
+ch:399	Melón cantalupo
+ch:14289	Merengue
+ch:879	Galleta de mantequilla milanesa casera
+ch:1194	Leche (media)
+ch:195	Chocolate con leche
+ch:642	Barrita de chocolate con leche rellena de frutos secos
+ch:643	Chocolate con leche con almendras, miel y turrón
+ch:612	Chocolate con leche con frutos secos
+ch:641	Chocolate con leche con pasas, frutos secos y almendras
+ch:654	Bombones de chocolate con leche rellenos de licor
+ch:655	Chocolate con leche relleno de crema (gianduja, turrón)
+ch:59	Leche semidesnatada pasteurizada
+ch:61	Leche semidesnatada UHT
+ch:13399	Leche semidesnatada 1,5 % grasa UHT
+ch:1586	Risotto de mijo
+ch:422	Mijo pelado
+ch:938	Copos de mijo integral
+ch:13317	Carne picada (media de ternera, cerdo y pollo), a la sartén (sin grasa ni sal)
+ch:1105	Carne picada (media de ternera, cerdo y pollo), cruda
+ch:14145	Sustituto vegano de carne picada de soja o guisante, crudo
+ch:14112	Carne vegetal de micoproteína (picada, trozos o filete), cruda
+ch:671	Minestrone
+ch:1087	Minipic (salchicha seca)
+ch:1053	Compota de ciruela mirabel escurrida (sin azúcar)
+ch:732	Melaza
+ch:761	Mejillón crudo
+ch:457	Colmenilla fresca
+ch:1039	Colmenilla rehogada (sin grasa ni sal)
+ch:819	Mortadela
+ch:717	Mostbröckli (cecina de ternera ahumada)
+ch:82	Mozzarella
+ch:14123	Muesli crujiente enriquecido con vitaminas y minerales
+ch:942	Muesli con frutas y frutos secos, azucarado
+ch:943	Muesli con frutas y frutos secos, sin azúcar
+ch:948	Muesli crujiente con chocolate
+ch:945	Muesli crujiente con frutas, azucarado
+ch:944	Muesli crujiente con frutos secos y semillas, azucarado
+ch:14104	Muesli crujiente azucarado (media)
+ch:1128	Setas (media), crudas
+ch:1129	Setas (media), rehogadas (sin grasa ni sal)
+ch:1585	Risotto de setas
+ch:683	Salsa de setas espesada
+ch:688	Crema de champiñones
+ch:629	Champiñones en conserva
+ch:375	Champiñón crudo
+ch:1037	Champiñones rehogados (sin grasa ni sal)
+ch:13977	Mejillones cocidos
+ch:13464	Mostaza
+ch:1579	Nasi goreng (arroz frito indonesio)
+ch:404	Nectarina
+ch:767	Cigala cruda
+ch:14148	Nuggets veganos de proteína vegetal, crudos
+ch:915	Rollo de nueces de masa de levadura
+ch:14294	Barritas de frutos secos
+ch:871	Barritas de frutos secos caseras
+ch:902	Tarta de nueces de Engadina
+ch:769	Salvado de avena
+ch:14114	Bebida de avena, natural
+ch:14130	Bebida de avena, natural, enriquecida con calcio y vitaminas
+ch:198	Copos de avena
+ch:591	Aceite de oliva
+ch:493	Aceituna negra
+ch:492	Aceituna verde en salmuera, escurrida
+ch:1616	Quiche de cebolla (masa de bizcocho)
+ch:1615	Quiche de cebolla (hojaldre)
+ch:368	Cebolla cruda
+ch:1036	Cebolla dorada (sin grasa ni sal)
+ch:1035	Cebolla rehogada (sin grasa ni sal)
+ch:576	Zumo de naranja
+ch:572	Néctar de naranja
+ch:405	Naranja
+ch:708	Aceite o grasa de palma
+ch:202	Panettone
+ch:779	Pantli (salchicha seca de ternera y cerdo)
+ch:13440	Papaya madura
+ch:663	Pimentón
+ch:482	Queso parmesano
+ch:373	Perejil fresco
+ch:13443	Chirivía cocida (sin sal)
+ch:13439	Chirivía cruda
+ch:986	Maracuyá (fruta de la pasión)
+ch:1063	Pasta sin huevo, cocida en agua con sal
+ch:800	Pasta sin huevo, seca
+ch:1611	Gratinado de pasta con jamón
+ch:1598	Ensalada de pasta con vinagreta francesa
+ch:1597	Ensalada de pasta con vinagreta italiana
+ch:1062	Pasta al huevo, cocida en agua con sal
+ch:799	Pasta al huevo, seca
+ch:13462	Pasta fresca rellena de carne, cocida
+ch:13498	Pasta fresca rellena de espinacas y ricotta, cocida (sin grasa ni sal)
+ch:13489	Pasta fresca rellena de espinacas y ricotta, cruda
+ch:13390	Guisantes secos partidos, cocidos (sin grasa ni sal)
+ch:13389	Guisantes secos partidos
+ch:624	Melocotón en almíbar, escurrido
+ch:625	Melocotón en conserva con edulcorante, escurrido
+ch:401	Melocotón amarillo
+ch:282	Cacahuete
+ch:751	Crema de cacahuete
+ch:681	Gusanitos de cacahuete
+ch:596	Aceite de cacahuete
+ch:14267	Cacahuete recubierto de chocolate
+ch:14092	Cacahuete tostado con sal
+ch:14238	Cacahuete tostado sin sal
+ch:620	Pera en almíbar, escurrida
+ch:562	Zumo de pera
+ch:1484	Tarta de pera casera (masa de bizcocho)
+ch:1483	Tarta de pera casera (hojaldre)
+ch:14098	Pera en conserva con edulcorante, escurrida
+ch:433	Pera deshidratada
+ch:382	Pera
+ch:1050	Compota de pera escurrida (sin azúcar)
+ch:429	Cebada perlada
+ch:14200	Cebada perlada cocida en agua con sal
+ch:494	Cebollitas en vinagre
+ch:787	Schüblig del campesino (salchicha suiza)
+ch:884	Galleta Petit Beurre con chocolate
+ch:463	Menta fresca
+ch:13459	Pesto verde
+ch:13447	Pesto rojo
+ch:14074	Galleta Petit Beurre
+ch:14067	Galleta Petit Beurre integral
+ch:416	Lucio crudo
+ch:283	Piñones
+ch:14094	Piña en su jugo, escurrida
+ch:14095	Piña en su jugo, sin escurrir
+ch:617	Piña en almíbar, escurrida
+ch:13880	Zumo de piña
+ch:14096	Piña en conserva con edulcorante, escurrida
+ch:377	Piña fresca
+ch:274	Pistacho
+ch:1533	Pizza calzone
+ch:907	Masa de pizza con aceite de oliva, cruda
+ch:14158	Masa de pizza con aceite de oliva, horneada
+ch:1534	Pizza hawaiana
+ch:1535	Pizza margarita
+ch:1539	Pizza cuatro quesos
+ch:1537	Pizza de jamón y champiñones
+ch:1538	Pizza de jamón
+ch:1536	Pizza de mascarpone y rúcula
+ch:1532	Pizza de atún
+ch:1540	Pizza de verduras
+ch:1530	Tarta de ciruela casera (masa de bizcocho)
+ch:1528	Tarta de ciruela casera (hojaldre)
+ch:474	Ciruela
+ch:1054	Compota de ciruela escurrida (sin azúcar)
+ch:10546	Polenta negra (maíz y trigo sarraceno), cocida
+ch:13882	Granada
+ch:12982	Patatas fritas de bolsa
+ch:424	Palomitas de maíz
+ch:1668	Cerdo rebozado en huevo (piccata)
+ch:1102	Cerdo (media, sin vísceras), crudo
+ch:594	Manteca de cerdo
+ch:1671	Estofado de cerdo con salsa
+ch:1085	Salchicha de cerdo para asar (bratwurst)
+ch:1086	Salchicha de cerdo
+ch:14089	Salchicha de cerdo a la parrilla (sin grasa ni sal)
+ch:13283	Chuleta de cerdo a la plancha (sin grasa ni sal)
+ch:8	Chuleta de cerdo, cruda
+ch:13285	Cerdo troceado a la plancha (sin grasa ni sal)
+ch:40	Cerdo troceado, crudo
+ch:1077	Aguja de cerdo asada al horno, al punto (sin grasa ni sal)
+ch:676	Aguja de cerdo para asar, cruda
+ch:1079	Aguja de cerdo asada al horno, muy hecha (sin grasa ni sal)
+ch:43	Redondo de cerdo, crudo
+ch:13269	Solomillo de cerdo a la plancha (sin grasa ni sal)
+ch:677	Solomillo de cerdo, crudo
+ch:692	Paleta de cerdo cocida
+ch:13289	Codillo de cerdo estofado (sin grasa ni sal)
+ch:678	Codillo de cerdo, crudo
+ch:689	Hígado de cerdo, crudo
+ch:701	Lomo de cerdo curado
+ch:42	Lomo de cerdo, crudo
+ch:7	Carne picada de cerdo, cruda
+ch:9	Cerdo para guisar, crudo
+ch:13270	Escalope de cerdo (tapa) a la plancha (sin grasa ni sal)
+ch:679	Escalope de cerdo (tapa), crudo
+ch:39	Costillas de cerdo, crudas
+ch:13284	Papada de cerdo a la plancha (sin grasa ni sal)
+ch:41	Papada de cerdo, cruda
+ch:1511	Gachas de avena con leche entera (sin azúcar)
+ch:1512	Gachas de avena con leche semidesnatada (sin azúcar)
+ch:516	Oporto, 18,5 % vol.
+ch:12983	Patatas fritas de bolsa bajas en grasa
+ch:860	Copos de puré de patata con leche en polvo y sal (instantáneo)
+ch:14197	Ñoquis de patata, cocidos
+ch:1516	Ensalada de patata con salsa de mayonesa y yogur
+ch:1517	Ensalada de patata con aceite y vinagre
+ch:497	Fécula de patata
+ch:14259	Patata nueva con piel, hervida (sin sal)
+ch:813	Patata pelada, cruda
+ch:1057	Patata pelada, al vapor (sin sal)
+ch:14258	Patata asada con piel (sin grasa ni sal)
+ch:1599	Gratén de patatas dauphinois
+ch:1600	Gratén de patatas saboyano
+ch:1100	Aves (media, sin vísceras), crudas
+ch:1109	Aves con piel (media), crudas
+ch:1108	Aves sin piel (media, sin vísceras), crudas
+ch:14296	Palitos de pretzel
+ch:558	Queso fundido en lonchas, 15 % MG
+ch:560	Queso fundido para untar, 15 % MG
+ch:559	Queso fundido en lonchas, 45 % MG
+ch:561	Queso fundido para untar, 45 % MG
+ch:563	Queso fundido en lonchas, 50 % MG
+ch:565	Queso fundido para untar, 50 % MG
+ch:1531	Tarta de ciruela pasa casera (masa de bizcocho)
+ch:1529	Tarta de ciruela pasa casera (hojaldre)
+ch:479	Ciruela damascena fresca
+ch:1056	Compota de ciruela damascena escurrida (sin azúcar)
+ch:475	Ciruela pasa
+ch:874	Palmera (galleta de hojaldre)
+ch:806	Natillas de caramelo
+ch:810	Natillas de chocolate
+ch:809	Natillas de vainilla
+ch:13445	Hojaldre con grasa vegetal, crudo
+ch:928	Palitos de hojaldre
+ch:904	Hojaldre casero con mantequilla, crudo
+ch:905	Hojaldre casero con grasa vegetal, crudo
+ch:14141	Cereales inflados con cacao o chocolate
+ch:14137	Arroz inflado crujiente
+ch:14139	Trigo inflado con miel o azúcar
+ch:1662	Calabaza rebozada en huevo (piccata)
+ch:13404	Aceite de pepita de calabaza
+ch:276	Pipas de calabaza
+ch:480	Calabaza cruda
+ch:1020	Calabaza al vapor (sin sal)
+ch:1541	Quiche lorraine (masa de bizcocho)
+ch:1542	Quiche lorraine (hojaldre)
+ch:1055	Membrillo cocido, escurrido (sin azúcar)
+ch:476	Membrillo fresco
+ch:13396	Quinoa cocida (sin sal ni grasa)
+ch:13394	Quinoa cruda
+ch:532	Queso raclette
+ch:458	Achicoria roja (radicchio), cruda
+ch:361	Rábano blanco crudo
+ch:456	Rabanito crudo
+ch:477	Pasas (uvas pasas, sultanas)
+ch:600	Aceite de colza
+ch:1069	Aceite de colza alto oleico
+ch:917	Galleta de mantequilla con mermelada
+ch:390	Frambuesa
+ch:1665	Pisto (ratatouille)
+ch:1117	Embutido curado crudo (media)
+ch:1114	Embutidos crudos (media)
+ch:1115	Embutidos crudos de curación interrumpida (media)
+ch:533	Queso reblochon
+ch:364	Lombarda cruda
+ch:1022	Lombarda rehogada (sin grasa ni sal)
+ch:1592	Tarta de grosella casera (masa quebrada)
+ch:1595	Tarta de grosella casera (masa de bizcocho)
+ch:1593	Tarta de grosella casera (hojaldre)
+ch:13477	Compota de ruibarbo azucarada
+ch:1548	Tarta de ruibarbo casera (masa de bizcocho)
+ch:1547	Tarta de ruibarbo casera (hojaldre)
+ch:362	Ruibarbo crudo
+ch:13450	Bebida de arroz, natural
+ch:14133	Bebida de arroz, natural, enriquecida con calcio
+ch:1065	Arroz vaporizado, cocido en agua con sal
+ch:419	Arroz vaporizado, crudo
+ch:1066	Arroz blanco, cocido en agua con sal
+ch:427	Arroz blanco, crudo
+ch:1514	Arroz con leche entera (sin azúcar)
+ch:1513	Arroz con leche semidesnatada (sin azúcar)
+ch:428	Arroz integral, crudo
+ch:1067	Arroz integral, cocido en agua con sal
+ch:14255	Risotto con queso, casero
+ch:10567	Risotto de tomate, casero
+ch:1584	Risotto sin queso
+ch:1189	Café ristretto con crema, sin azúcar
+ch:1675	Riz Casimir (arroz al curry con pollo y fruta)
+ch:1677	Riz Casimir (arroz al curry con ternera y fruta)
+ch:468	Rúcula cruda
+ch:28	Corzo para guisar, crudo
+ch:29	Escalope de corzo, crudo
+ch:13333	Jamón ahumado enrollado, cocido (sin grasa ni sal)
+ch:805	Rollmops (arenque en vinagre)
+ch:718	Rollschinken (jamón curado y ahumado)
+ch:441	Lechuga romana
+ch:1161	Raíces y tubérculos (media), hervidos (sin grasa ni sal)
+ch:1267	Raíces y tubérculos (media), crudos
+ch:1162	Raíces y tubérculos (media), al vapor (sin sal)
+ch:1163	Raíces y tubérculos (media), rehogados (sin grasa ni sal)
+ch:484	Queso roquefort
+ch:14269	Romero seco
+ch:462	Romero fresco
+ch:858	Rösti (patata rallada), sin cocinar
+ch:930	Biscote
+ch:929	Biscote integral
+ch:1607	Ensaladilla rusa
+ch:824	Pan de centeno del Valais
+ch:846	Pan de centeno con grano triturado
+ch:830	Pan de centeno de masa madre
+ch:749	Harina de centeno integral (tipo 1800)
+ch:752	Harina de centeno (tipo 1050)
+ch:748	Harina de centeno (tipo 815)
+ch:589	Aceite de cártamo
+ch:461	Salvia fresca
+ch:1201	Vinagreta francesa casera (aceite de colza)
+ch:1200	Aliño italiano casero (aceite de oliva)
+ch:14273	Salsa de yogur para ensalada, casera
+ch:13503	Aliño francés para ensalada
+ch:13502	Aliño italiano para ensalada
+ch:783	Salametti (mini salami)
+ch:1091	Salami
+ch:1094	Salami económico
+ch:13354	Filete de salmón de piscifactoría al vapor (sin grasa ni sal)
+ch:194	Salmón de piscifactoría, crudo
+ch:193	Salmón ahumado
+ch:210	Salmón salvaje, crudo
+ch:1089	Salsiz (embutido curado suizo)
+ch:14088	Sal del Himalaya
+ch:14087	Flor de sal
+ch:14086	Sal marina blanca, sin yodo ni flúor
+ch:1687	Saltimbocca frita en aceite de colza
+ch:10562	Samosa frita
+ch:1551	Bocadillo (baguette) de fiambre
+ch:1553	Bocadillo (baguette) de cecina
+ch:1557	Bocadillo (baguette) de jamón cocido
+ch:1505	Bocadillo (baguette) de carne en conserva
+ch:1561	Bocadillo (baguette) de mozzarella
+ch:1549	Bocadillo (baguette) de jamón serrano
+ch:1555	Bocadillo (baguette) de salami
+ch:1559	Bocadillo (baguette) de queso semicurado
+ch:1521	Bocadillo (baguette) de queso blando
+ch:1552	Sándwich de pan moreno con fiambre
+ch:1554	Sándwich de pan moreno con cecina
+ch:1558	Sándwich de pan moreno con jamón cocido
+ch:1506	Sándwich de pan moreno con carne en conserva
+ch:1562	Sándwich de pan moreno con mozzarella
+ch:1550	Sándwich de pan moreno con jamón serrano
+ch:1556	Sándwich de pan moreno con salami
+ch:1560	Sándwich de pan moreno con queso semicurado
+ch:1520	Sándwich de pan moreno con queso blando
+ch:13978	Sardinas en tomate, en conserva
+ch:780	Saucisson (salchichón)
+ch:13341	Saucisson cocido (sin grasa ni sal)
+ch:647	Chucrut
+ch:1568	Ensalada de salchicha
+ch:1088	Salchicha de Vaud
+ch:1080	Salchicha de ternera
+ch:14183	Salchicha de ternera a la parrilla (sin grasa ni sal)
+ch:14149	Salchicha vegana de tofu o proteína de soja
+ch:14150	Salchicha vegana de seitán o proteína de trigo
+ch:1543	Quiche de queso (masa de bizcocho)
+ch:1544	Quiche de queso (hojaldre)
+ch:454	Col de Milán (repollo rizado), cruda
+ch:1030	Col de Milán al vapor (sin sal)
+ch:552	Queso sbrinz
+ch:507	Schabziger (queso verde suizo)
+ch:1685	Bocadillo de escalope con salsa cóctel
+ch:1686	Bocadillo de escalope con salsa tártara
+ch:791	Schützenwurst (salchicha suiza)
+ch:1603	Huevos revueltos con hierbas
+ch:1605	Huevos revueltos con queso
+ch:1606	Huevos revueltos con jamón
+ch:1604	Huevos revueltos con champiñones
+ch:1602	Huevos revueltos
+ch:13466	Alga nori seca
+ch:1170	Semillas y frutos secos (media), sin sal
+ch:14118	Seitán
+ch:833	Pan semiblanco
+ch:14078	Pan semiblanco (con sal yodada)
+ch:1463	Panecillo blanco (semmeli)
+ch:14248	Sémola con leche azucarada
+ch:1510	Sémola con leche entera (sin azúcar)
+ch:1509	Sémola con leche semidesnatada (sin azúcar)
+ch:1508	Tortitas de sémola con leche entera
+ch:1507	Tortitas de sémola con leche semidesnatada
+ch:14107	Aceite de sésamo
+ch:280	Sésamo integral
+ch:408	Sésamo pelado
+ch:14281	Chalota cruda
+ch:1099	Marisco (media), crudo
+ch:515	Jerez, 18,5 % vol.
+ch:875	Galleta sablé de mantequilla casera
+ch:14044	Masa quebrada dulce con mantequilla, horneada
+ch:14043	Masa quebrada dulce con mantequilla, cruda
+ch:14045	Masa quebrada dulce con grasa vegetal, horneada
+ch:909	Masa quebrada dulce con grasa vegetal, cruda
+ch:1498	Cóctel de gambas
+ch:14293	Gambas peladas, cocidas
+ch:766	Gambas peladas, crudas (frescas o congeladas)
+ch:578	Leche desnatada en polvo
+ch:954	Caramelos blandos
+ch:1197	Queso blando (media, sin productos light)
+ch:13391	Queso blando, 45-54,9 % MG
+ch:631	Queso blando, 60 % MG
+ch:13392	Queso blando, mín. 55 % MG
+ch:485	Queso mascarpone
+ch:595	Refresco con sabor, azucarado
+ch:13924	Queso de cabra blando
+ch:10561	Samosa al horno
+ch:892	Sorbete de fruta
+ch:574	Nata agria (crème fraîche), 35 % grasa
+ch:575	Nata agria, 15 % grasa
+ch:14223	Bebida de soja con chocolate
+ch:13456	Salsa de soja
+ch:72	Bebida de soja, natural
+ch:14129	Bebida de soja, natural, enriquecida con calcio y vitaminas
+ch:996	Harina de soja desgrasada
+ch:995	Harina de soja integral
+ch:14147	Soja texturizada (trozos o picada), seca
+ch:603	Aceite de soja
+ch:466	Brotes de soja
+ch:1061	Soja cocida (sin grasa ni sal)
+ch:442	Soja seca
+ch:551	Vino espumoso, champán, cava
+ch:1399	Harina para spätzle
+ch:14180	Spätzle caseros, cocidos y escurridos
+ch:14198	Spätzle salteados (sin grasa ni sal)
+ch:14184	Spätzle salteados con mantequilla
+ch:1043	Harina de espelta fina (tipo 550)
+ch:1041	Harina de espelta semintegral (tipo 1100)
+ch:1042	Harina de espelta integral (tipo 1900)
+ch:14240	Espinacas a la crema
+ch:1566	Quiche de espinacas (masa de bizcocho)
+ch:1567	Quiche de espinacas (hojaldre)
+ch:365	Espinacas crudas
+ch:1025	Espinacas al vapor (sin sal)
+ch:646	Destilado 40 % vol. (vodka, ginebra)
+ch:518	Destilado de cereal 40 % vol. (whisky)
+ch:644	Kirsch (aguardiente de cereza)
+ch:520	Destilado de caña (ron)
+ch:519	Destilado de vino (coñac, brandy)
+ch:14207	Queso crema para untar (aprox. 20 % grasa), natural
+ch:14061	Rollito de primavera frito
+ch:1656	Calabacín empanado en rodajas
+ch:764	Calamar crudo
+ch:792	Schüblig de San Galo (salchicha)
+ch:570	Queso Saint-Paulin
+ch:385	Fresa
+ch:13418	Masa de strudel, cruda
+ch:465	Achicoria pan de azúcar, cruda
+ch:438	Tirabeque crudo
+ch:1012	Tirabeque al vapor (sin sal)
+ch:471	Azúcar moreno
+ch:470	Azúcar blanco
+ch:598	Aceite de girasol
+ch:1068	Aceite de girasol alto oleico, refinado
+ch:281	Pipas de girasol
+ch:770	Surimi
+ch:1033	Maíz dulce en conserva, calentado (sin sal)
+ch:632	Maíz dulce en conserva
+ch:633	Mazorquitas de maíz en vinagre
+ch:432	Maíz dulce crudo
+ch:1032	Maíz dulce al vapor
+ch:14262	Boniato asado (sin grasa ni sal)
+ch:13406	Boniato crudo
+ch:13407	Boniato al vapor (sin sal)
+ch:602	Suero de leche dulce
+ch:450	Acelga cruda
+ch:1016	Acelga al vapor (sin sal)
+ch:569	Sirope sin diluir
+ch:1132	Sirope diluido listo para beber (1:5,5)
+ch:762	Sal de mesa yodada
+ch:10457	Sal de mesa yodada y fluorada
+ch:634	Sal de mesa sin yodo ni flúor
+ch:1609	Tabulé (con bulgur)
+ch:1610	Tabulé (con cuscús)
+ch:1684	Salsa tártara casera con mayonesa de colza
+ch:14231	Tarta de limón
+ch:803	Té sin azúcar
+ch:14251	Tempeh natural
+ch:774	Paté de campaña
+ch:796	Paté de caza
+ch:495	Queso Tête de Moine
+ch:13956	Concentrado de zumo de pera
+ch:1496	Crep fina con bacon
+ch:1489	Crep fina con camembert
+ch:1495	Crep fina con jamón
+ch:1491	Crep fina con champiñones
+ch:1494	Crep fina con Nutella
+ch:1488	Crep fina con azúcar y canela
+ch:1493	Crep fina rellena de verduras
+ch:1487	Crep fina
+ch:460	Tomillo fresco
+ch:556	Queso tilsit de leche pasteurizada, mín. 45 % MG
+ch:557	Queso tilsit de leche cruda, mín. 45 % MG
+ch:14023	Tiramisú
+ch:14120	Tofu firme natural (cuajado con sal de calcio)
+ch:14119	Tofu firme natural (cuajado con nigari)
+ch:13437	Tofu firme natural (media)
+ch:14167	Tofu firme natural a la plancha (sin grasa ni sal)
+ch:13438	Tofu sedoso natural
+ch:14090	Tofu ahumado (media)
+ch:14168	Tofu ahumado a la plancha (sin grasa ni sal)
+ch:14122	Tofu ahumado (cuajado con sal de calcio)
+ch:14121	Tofu ahumado (cuajado con nigari)
+ch:564	Zumo de tomate
+ch:636	Concentrado de tomate
+ch:1618	Quiche de tomate (masa de bizcocho)
+ch:1617	Quiche de tomate (hojaldre)
+ch:667	Salsa de tomate
+ch:670	Sopa de tomate
+ch:13463	Tomate seco
+ch:13490	Tomate seco en aceite, escurrido
+ch:637	Tomate pelado en conserva
+ch:348	Tomate crudo
+ch:1027	Tomate rehogado (sin grasa ni sal)
+ch:615	Queso tomme
+ch:10378	Lengua (media de ternera y vaca), cruda
+ch:932	Nachos de maíz (tortilla chips)
+ch:289	Trucha cruda
+ch:13976	Trucha ahumada
+ch:13349	Trucha entera hervida (sin grasa ni sal)
+ch:418	Atún en aceite, escurrido
+ch:417	Atún al natural, escurrido
+ch:1613	Ensalada de atún con aceite y vinagre (atún al natural)
+ch:14291	Pechuga de pavo curada cocida, en lonchas
+ch:713	Pechuga de pavo (filete o picada), cruda
+ch:13275	Pechuga de pavo (filete o picada) a la plancha (sin grasa ni sal)
+ch:887	Tarta tirolesa
+ch:14003	Tzatziki
+ch:536	Queso Vacherin Fribourgeois
+ch:534	Queso Vacherin Mont d'Or
+ch:13413	Crema de vainilla casera
+ch:1106	Ternera lechal (media, sin vísceras), cruda
+ch:1676	Ternera lechal troceada al curry, casera
+ch:1667	Ternera lechal rebozada en huevo (piccata)
+ch:1669	Estofado de ternera lechal con salsa
+ch:13316	Escalope de ternera lechal a la plancha (sin grasa ni sal)
+ch:1681	Escalope de ternera lechal frito en aceite de colza
+ch:1071	Pecho de ternera lechal, cocido (sin grasa ni sal)
+ch:1	Pecho de ternera lechal, crudo
+ch:2	Chuleta de ternera lechal, cruda
+ch:13325	Ternera lechal troceada a la plancha (sin grasa ni sal)
+ch:13	Ternera lechal troceada, cruda
+ch:14	Redondo de ternera lechal, crudo
+ch:660	Solomillo de ternera lechal, crudo
+ch:3	Filete de solomillo de ternera lechal, crudo
+ch:673	Riñón de ternera, crudo
+ch:13377	Morcillo de ternera lechal estofado (sin grasa ni sal)
+ch:661	Morcillo de ternera lechal, crudo
+ch:10	Hígado de ternera lechal, crudo
+ch:11	Carne picada de ternera lechal, cruda
+ch:15	Ternera lechal para guisar, cruda
+ch:662	Escalope de ternera lechal (tapa), crudo
+ch:1073	Paleta de ternera lechal asada al horno (sin grasa ni sal)
+ch:658	Paleta de ternera lechal para asar, cruda
+ch:672	Mollejas de ternera, crudas
+ch:674	Lengua de ternera lechal, cruda
+ch:13324	Filete de ternera lechal a la plancha (sin grasa ni sal)
+ch:1580	Verduras gratinadas
+ch:1666	Lasaña de verduras
+ch:14193	Verduras (media), hervidas (sin sal ni grasa)
+ch:1152	Verduras (media), crudas
+ch:514	Vermut, 15 % vol.
+ch:1202	Vinagreta (con aceite de colza)
+ch:1693	Vinagre
+ch:1199	Aliño casero de aceite y vinagre (aceite de colza)
+ch:1680	Vitello tonnato con guarnición
+ch:1679	Vitello tonnato sin guarnición
+ch:14304	Barquillo relleno y bañado en chocolate
+ch:14016	Gofre fresco
+ch:271	Nuez
+ch:13402	Aceite de nuez
+ch:10542	Pasta de wasabi
+ch:371	Berro crudo
+ch:893	Polo de hielo
+ch:402	Sandía
+ch:822	Weggli (panecillo con mantequilla)
+ch:1273	Weisswurst (salchicha blanca de ternera)
+ch:431	Salvado de trigo
+ch:204	Harina de trigo panadera (tipo 550)
+ch:203	Harina de trigo semintegral (tipo 1100)
+ch:207	Harina de trigo semiblanca (tipo 720)
+ch:205	Harina de trigo blanca (tipo 400)
+ch:206	Harina de trigo integral (tipo 1700)
+ch:430	Germen de trigo
+ch:593	Aceite de germen de trigo
+ch:1588	Risotto de trigo
+ch:897	Almidón de trigo
+ch:939	Copos de trigo integral
+ch:734	Trigo blando en grano
+ch:823	Pan blanco
+ch:828	Pan blanco del Tesino
+ch:453	Repollo blanco crudo
+ch:1028	Repollo blanco al vapor (sin sal)
+ch:1029	Repollo blanco rehogado (sin grasa ni sal)
+ch:211	Corégono (pescado blanco de lago), crudo
+ch:585	Leche entera en polvo
+ch:14126	Leche entera 3,5 % grasa UHT
+ch:62	Leche entera pasteurizada
+ch:63	Leche entera UHT
+ch:1064	Pasta integral sin huevo, cocida en agua con sal
+ch:801	Pasta integral sin huevo, seca
+ch:802	Tortitas de arroz integral
+ch:14278	Tortitas de arroz integral con miel o fruta
+ch:14277	Tortitas de arroz integral con cobertura dulce
+ch:821	Pan integral de trigo
+ch:1082	Wienerli (salchicha tipo Viena)
+ch:14221	Wienerli (salchicha tipo Viena) en hojaldre
+ch:1589	Wienerli (salchicha tipo Viena), cocida
+ch:489	Jabalí crudo
+ch:509	Vino tinto, 12 % vol.
+ch:10477	Vino tinto, 13,5 % vol.
+ch:508	Vino tinto, 9 % vol.
+ch:510	Vino blanco, 11 % vol.
+ch:511	Vino blanco, 12,5 % vol.
+ch:10478	Vino blanco con gaseosa, seco
+ch:10479	Vino blanco con gaseosa, dulce
+ch:13939	Salsa Worcestershire
+ch:763	Levadura fresca de panadería
+ch:910	Masa dulce de levadura con mantequilla, cruda
+ch:1177	Masa dulce de levadura con grasa vegetal, cruda
+ch:839	Levadura seca
+ch:403	Ciruela amarilla
+ch:1192	Yogur azucarado (media)
+ch:58	Yogur bífidus natural
+ch:14135	Mantequilla de yogur
+ch:1612	Salsa de yogur (sin aceite)
+ch:590	Yogur de sabores desnatado, con edulcorante
+ch:52	Yogur natural
+ch:14174	Alternativa vegetal al yogur de almendra, con fruta o sabor, azucarada
+ch:14171	Alternativa vegetal al yogur de almendra, natural
+ch:14170	Alternativa vegetal al yogur de coco, natural
+ch:14172	Alternativa vegetal al yogur de coco, con fruta o sabor, azucarada
+ch:13451	Postre de soja natural (tipo yogur)
+ch:13452	Postre de soja natural (tipo yogur), enriquecido con calcio y vitaminas
+ch:13453	Postre de soja con fruta o sabor (tipo yogur), azucarado
+ch:13454	Postre de soja con fruta o sabor (tipo yogur), azucarado, enriquecido
+ch:14204	Yogur cremoso natural
+ch:14205	Yogur cremoso con fruta o sabor, azucarado
+ch:588	Yogur de frutas desnatado, con edulcorante
+ch:54	Yogur de chocolate
+ch:55	Yogur de avellana
+ch:587	Yogur desnatado
+ch:57	Yogur de moca
+ch:99	Yogur de moca ecológico
+ch:53	Yogur de fresa
+ch:56	Yogur de vainilla
+ch:759	Zampone (embutido italiano de cerdo)
+ch:506	Ziger blanco (requesón de suero)
+ch:1661	Calabacín rebozado en huevo (piccata)
+ch:1657	Calabacín empanado en rodajas
+ch:367	Calabacín crudo
+ch:1654	Calabacín al vapor (sin sal)
+ch:1031	Calabacín rehogado (sin grasa ni sal)
+ciqual:1000	Pastís (licor de anís)
+ciqual:1001	Aguardiente de fruta
+ciqual:1002	Ginebra
+ciqual:1003	Licor
+ciqual:1004	Ron
+ciqual:1005	Whisky
+ciqual:1008	Vodka
+ciqual:1010	Pastís diluido (1+5)
+ciqual:1014	Alcohol puro
+ciqual:1015	Vino de Marsala
+ciqual:1016	Marsala al huevo
+ciqual:1021	Licor de grosella negra (crème de cassis)
+ciqual:1023	Aguardiente de vino (tipo armañac o coñac)
+ciqual:1026	Sake (vino de arroz)
+ciqual:1027	Untable vegetal tipo queso, de soja, envasado
+ciqual:1028	Queso vegetal de anacardo, envasado
+ciqual:1029	Queso vegetal en lonchas o rallado, sin soja, envasado
+ciqual:1030	Fiambre vegetal tipo jamón cocido, envasado
+ciqual:1031	Paté vegetal, envasado
+ciqual:2000	Zumo de piña a base de concentrado
+ciqual:2004	Zumo de frutas (media)
+ciqual:2012	Zumo de naranja a base de concentrado
+ciqual:2014	Zumo de manzana a base de concentrado
+ciqual:2015	Zumo de pomelo a base de concentrado
+ciqual:2016	Zumo de uva exprimido
+ciqual:2019	Zumo de uva a base de concentrado
+ciqual:2026	Zumo de tomate con sal (3 g/L)
+ciqual:2027	Zumo de pomelo exprimido
+ciqual:2032	Zumo de tomate con sal (6 g/L)
+ciqual:2035	Zumo multifrutas exprimido
+ciqual:2053	Zumo de tomate exprimido (media)
+ciqual:2061	Néctar multifrutas
+ciqual:2070	Zumo de naranja exprimido
+ciqual:2072	Zumo de frutas exprimido (media)
+ciqual:2073	Zumo de piña exprimido
+ciqual:2074	Zumo de manzana exprimido
+ciqual:2075	Zumo de verduras (media)
+ciqual:2077	Zumo de frutas a base de concentrado (media)
+ciqual:4000	Tapioca cruda
+ciqual:4002	Patata pelada asada al horno
+ciqual:4003	Patata cocida
+ciqual:4004	Patatas fritas de bolsa, naturales o de sabores
+ciqual:4008	Patata pelada cruda
+ciqual:4011	Patata en conserva, escurrida
+ciqual:4013	Patatas noisette prefritas congeladas, crudas
+ciqual:4014	Patata al vapor envasada al vacío
+ciqual:4015	Patatas salteadas
+ciqual:4016	Copos de puré de patata con leche o nata
+ciqual:4017	Puré de patata de copos con leche entera y grasa
+ciqual:4018	Puré de patata con leche y mantequilla, sin sal
+ciqual:4019	Puré de patata de copos con leche semidesnatada y agua, sin sal
+ciqual:4020	Patatas dauphine congeladas, crudas
+ciqual:4021	Patatas dauphine congeladas, cocinadas
+ciqual:4022	Copos de puré de patata, naturales
+ciqual:4023	Patata nueva cruda
+ciqual:4025	Patatas gajo especiadas, congeladas, cocinadas
+ciqual:4026	Patata asada al horno
+ciqual:4027	Patatas en dados prefritas congeladas, cocinadas
+ciqual:4028	Patata de conservación pelada, cocida
+ciqual:4029	Patata temprana pelada, cocida
+ciqual:4030	Patatas fritas congeladas, al horno
+ciqual:4032	Patatas fritas congeladas, en freidora
+ciqual:4034	Patatas duquesa congeladas, cocinadas
+ciqual:4035	Patatas noisette prefritas congeladas, cocinadas
+ciqual:4036	Patatas salteadas en grasa de pato
+ciqual:4037	Patatas fritas de bolsa artesanas
+ciqual:4038	Patatas fritas de bolsa bajas en grasa
+ciqual:4039	Rösti o tortita de patata
+ciqual:4041	Aligot (puré de patata con queso tomme), envasado
+ciqual:4042	Patatas duquesa congeladas, crudas
+ciqual:4043	Patatas en dados prefritas congeladas, crudas
+ciqual:4044	Patatas fritas congeladas prefritas, para horno, crudas
+ciqual:4045	Patatas fritas congeladas prefritas, para microondas, crudas
+ciqual:4046	Patatas fritas congeladas prefritas, para freidora, crudas
+ciqual:4047	Puré de patata (media)
+ciqual:4048	Patata cocinada (media)
+ciqual:4090	Fécula de patata
+ciqual:4101	Boniato crudo
+ciqual:4102	Boniato cocinado
+ciqual:4103	Puré de boniato con nata
+ciqual:5004	Clara (cerveza con gaseosa)
+ciqual:5005	Clara envasada (<1 % vol.)
+ciqual:5007	Sidra dulce
+ciqual:5009	Cerveza de trigo
+ciqual:5021	Sidra semiseca
+ciqual:5022	Sidra aromatizada (frambuesa)
+ciqual:5030	Cerveza sin alcohol (<1,2 % vol.)
+ciqual:5214	Vino tinto
+ciqual:6001	Costilla de ternera, cruda
+ciqual:6002	Paleta de ternera, cruda
+ciqual:6003	Aguja de ternera, cruda
+ciqual:6100	Entrecot de ternera, parte magra, a la plancha
+ciqual:6101	Ternera estofada
+ciqual:6102	Contra de ternera, cruda
+ciqual:6103	Entrecot de ternera, crudo
+ciqual:6104	Contra de ternera, cocinada
+ciqual:6105	Lomo bajo de ternera asado al horno
+ciqual:6106	Redondo de ternera, crudo
+ciqual:6110	Lomo bajo de ternera a la plancha
+ciqual:6111	Lomo bajo de ternera, crudo
+ciqual:6116	Solomillo de ternera, crudo
+ciqual:6122	Costillar de ternera, crudo
+ciqual:6123	Costillar de ternera estofado
+ciqual:6130	Falda de ternera, cruda
+ciqual:6131	Falda de ternera a la plancha
+ciqual:6140	Carrillera de ternera, cruda
+ciqual:6141	Carrillera de ternera estofada o cocida
+ciqual:6150	Morcillo de ternera, crudo
+ciqual:6151	Morcillo de ternera cocido
+ciqual:6160	Tapa de ternera, cruda
+ciqual:6161	Tapa de ternera a la plancha
+ciqual:6162	Tapa de ternera asada al horno
+ciqual:6200	Filete de ternera a la plancha
+ciqual:6201	Filete de ternera, crudo
+ciqual:6202	Espaldilla de ternera, cruda
+ciqual:6204	Entraña de ternera, cruda
+ciqual:6205	Entraña de ternera a la plancha
+ciqual:6206	Cadera de ternera, cruda
+ciqual:6207	Cadera de ternera a la plancha
+ciqual:6208	Espaldilla de ternera a la plancha
+ciqual:6210	Rosbif asado al horno
+ciqual:6211	Vacío de ternera a la plancha
+ciqual:6212	Vacío de ternera, crudo
+ciqual:6214	Espaldilla de ternera asada al horno
+ciqual:6230	Ternera para guiso o cocido, cocinada
+ciqual:6231	Ternera para guiso o cocido, cruda
+ciqual:6240	Pescuezo de ternera, crudo
+ciqual:6241	Pescuezo de ternera estofado
+ciqual:6250	Carne picada de ternera 5 % grasa, cruda
+ciqual:6251	Carne picada de ternera 5 % grasa, cocinada
+ciqual:6252	Carne picada de ternera 10 % grasa, cruda
+ciqual:6253	Carne picada de ternera 10 % grasa, cocinada
+ciqual:6254	Carne picada de ternera 15 % grasa, cruda
+ciqual:6255	Carne picada de ternera 15 % grasa, cocinada
+ciqual:6256	Carne picada de ternera 20 % grasa, cruda
+ciqual:6257	Carne picada de ternera 20 % grasa, cocinada
+ciqual:6259	Carne picada de ternera cocinada (media)
+ciqual:6270	Llana de ternera, cruda
+ciqual:6271	Llana de ternera estofada o cocida
+ciqual:6310	Rabo de toro cocido
+ciqual:6311	Rabo de toro crudo
+ciqual:6510	Chuleta de ternera lechal, cruda
+ciqual:6511	Chuleta de ternera lechal a la plancha
+ciqual:6512	Lomo de ternera lechal salteado
+ciqual:6513	Lomo de ternera lechal, crudo
+ciqual:6520	Escalope de ternera lechal, cocinado
+ciqual:6521	Escalope de ternera lechal, crudo
+ciqual:6522	Babilla de ternera lechal, cruda
+ciqual:6523	Babilla de ternera lechal a la plancha
+ciqual:6524	Babilla de ternera lechal asada
+ciqual:6530	Solomillo de ternera lechal, crudo
+ciqual:6531	Solomillo de ternera lechal asado al horno
+ciqual:6535	Carne picada de ternera lechal 20 % grasa, cruda
+ciqual:6536	Carne picada de ternera lechal 15 % grasa, cruda
+ciqual:6540	Pecho de ternera lechal, crudo
+ciqual:6550	Asado de ternera lechal, crudo
+ciqual:6551	Asado de ternera lechal, cocinado
+ciqual:6560	Paleta de ternera lechal, cruda
+ciqual:6562	Paleta de ternera lechal a la plancha
+ciqual:6563	Paleta de ternera lechal estofada o cocida
+ciqual:6564	Carne de ternera lechal cocinada (media)
+ciqual:6580	Pata de ternera, cruda
+ciqual:6581	Morcillo de ternera lechal estofado o cocido
+ciqual:6582	Cabeza de ternera cocida
+ciqual:6583	Morcillo de ternera lechal, crudo
+ciqual:6584	Carne blanca cocinada (media)
+ciqual:6585	Carne roja cocinada (media)
+ciqual:6590	Pescuezo de ternera lechal, crudo
+ciqual:6591	Pescuezo de ternera lechal estofado o cocido
+ciqual:6900	Carne de caballo, cruda
+ciqual:6901	Filete de caballo, crudo
+ciqual:6902	Carne de caballo asada al horno
+ciqual:6903	Tapa de caballo, cruda
+ciqual:6904	Lomo bajo de caballo, crudo
+ciqual:6905	Entrecot de caballo, crudo
+ciqual:6906	Tapa de caballo a la plancha
+ciqual:6907	Lomo bajo de caballo a la plancha
+ciqual:6908	Entrecot de caballo a la plancha
+ciqual:6909	Lomo bajo de caballo asado al horno
+ciqual:6910	Tapa de caballo asada al horno
+ciqual:6999	Carne cocinada (media)
+ciqual:7000	Pan (media, CIQUAL)
+ciqual:7001	Pan, baguette
+ciqual:7002	Pan de masa madre (baguette o hogaza)
+ciqual:7004	Pan tostado casero
+ciqual:7007	Baguette sin sal
+ciqual:7010	Pan moreno (baguette u hogaza)
+ciqual:7012	Hogaza de pan, 400 g
+ciqual:7025	Pan (baguette u hogaza) de harina T55-T110
+ciqual:7100	Pan rústico (baguette u hogaza)
+ciqual:7110	Pan integral
+ciqual:7111	Pan de molde integral
+ciqual:7112	Pan de molde con salvado
+ciqual:7113	Pan de molde multicereales
+ciqual:7115	Pan de salvado
+ciqual:7125	Pan de centeno y trigo
+ciqual:7130	Pan sin gluten
+ciqual:7160	Pan sin sal
+ciqual:7170	Pan de panini
+ciqual:7180	Pan de pita
+ciqual:7200	Pan de molde
+ciqual:7201	Pan de molde sin corteza, envasado
+ciqual:7210	Pan de molde brioche, envasado
+ciqual:7225	Brioche o pan de Viena
+ciqual:7255	Pan multicereales de panadería
+ciqual:7256	Muffin inglés integral, envasado
+ciqual:7257	Muffin inglés, envasado
+ciqual:7258	Bagel
+ciqual:7259	Pan de hamburguesa o perrito, envasado
+ciqual:7260	Pan casero (harina para pan)
+ciqual:7261	Pan rústico casero (panificadora)
+ciqual:7262	Pan de hamburguesa o perrito integral, envasado
+ciqual:7263	Pretzel (bretzel)
+ciqual:7300	Biscote
+ciqual:7301	Biscote con huevo
+ciqual:7310	Biscote sin sal
+ciqual:7330	Biscote multicereales
+ciqual:7340	Biscote integral o rico en fibra
+ciqual:7351	Crackers de trigo
+ciqual:7352	Tortitas de arroz inflado integral
+ciqual:7353	Tortitas de cereales inflados
+ciqual:7400	Biscote de trigo en rebanadas
+ciqual:7403	Biscote con huevo en rebanadas, envasado
+ciqual:7407	Pan tostado sueco de trigo
+ciqual:7409	Pan tostado sueco con linaza
+ciqual:7410	Pan crujiente extrusionado
+ciqual:7420	Pan tostado sueco de trigo integral
+ciqual:7421	Pan tostado sueco con frutas
+ciqual:7425	Biscote multicereales en rebanadas
+ciqual:7431	Tostaditas para untar
+ciqual:7432	Picatostes naturales, envasados
+ciqual:7500	Pan rallado
+ciqual:7525	Picos o colines de pan
+ciqual:7600	Bollería (media)
+ciqual:7602	Cruasán
+ciqual:7615	Cruasán de panadería
+ciqual:7620	Cruasán de mantequilla de panadería
+ciqual:7650	Cruasán de almendras de panadería
+ciqual:7710	Bollo de leche de panadería
+ciqual:7711	Bollo de leche, envasado
+ciqual:7712	Bollo de leche con pepitas de chocolate, envasado
+ciqual:7720	Caracola de pasas
+ciqual:7730	Napolitana de chocolate de panadería
+ciqual:7733	Napolitana de chocolate, envasada
+ciqual:7735	Brioche con pepitas de chocolate, envasado
+ciqual:7737	Brioche relleno de chocolate
+ciqual:7738	Brioche relleno de fruta, envasado
+ciqual:7739	Brioche relleno de crema pastelera, envasado
+ciqual:7740	Brioche envasado
+ciqual:7741	Brioche
+ciqual:7742	Brioche de panadería
+ciqual:7744	Brioche navideño con fruta confitada, envasado
+ciqual:7745	Brioche de mantequilla
+ciqual:7811	Focaccia rellena
+ciqual:7812	Fougasse rellena
+ciqual:7813	Tortilla de maíz para rellenar
+ciqual:7814	Bizcocho salado (con queso, verduras, carne o pescado), envasado
+ciqual:7815	Tortilla de trigo (wrap) para rellenar
+ciqual:8000	Rillettes de cerdo
+ciqual:8001	Rillettes puras de cerdo
+ciqual:8010	Rillettes de Tours
+ciqual:8015	Rillettes de Le Mans
+ciqual:8025	Rillettes puras de oca
+ciqual:8026	Rillettes de pato
+ciqual:8030	Rillettes de oca
+ciqual:8040	Rillettes de ave
+ciqual:8059	Rillettes de cangrejo, envasadas
+ciqual:8080	Rillettes de pescado, envasadas
+ciqual:8081	Rillettes de salmón, envasadas
+ciqual:8082	Rillettes de atún, envasadas
+ciqual:8083	Rillettes de caballa, envasadas
+ciqual:8109	Confit de pato, muslo sin piel, recalentado
+ciqual:8110	Pato en conserva
+ciqual:8111	Magret de pato ahumado
+ciqual:8120	Hígado de cerdo en conserva
+ciqual:8125	Hígado de ave en conserva
+ciqual:8201	Paté a la pimienta verde
+ciqual:8211	Paté o terrina de campaña
+ciqual:8214	Paté bretón
+ciqual:8232	Terrina de pato
+ciqual:8240	Paté de conejo
+ciqual:8242	Terrina de conejo
+ciqual:8245	Paté de caza
+ciqual:8250	Paté de campaña con setas
+ciqual:8291	Terrina de pescado, envasada
+ciqual:8292	Terrina de marisco, envasada
+ciqual:8293	Taramasalata, envasada
+ciqual:8300	Paté de hígado de cerdo, calidad superior
+ciqual:8305	Paté de hígado de cerdo
+ciqual:8312	Mousse de hígado de cerdo, calidad superior
+ciqual:8313	Mousse de hígado de cerdo
+ciqual:8315	Mousse de pato
+ciqual:8316	Paté de hígado de ave
+ciqual:8321	Foie gras de pato entero, cocido
+ciqual:8323	Foie gras de pato, sin trozos
+ciqual:8324	Foie gras de pato, 30 % en trozos
+ciqual:8325	Foie gras de pato, 50 % en trozos
+ciqual:8326	Paté de hígado de oca
+ciqual:8328	Foie gras de pato crudo
+ciqual:8331	Bloc de foie gras (media)
+ciqual:8332	Paté (media)
+ciqual:8350	Galantina (media)
+ciqual:8373	Rollo de escalope de cerdo con pistachos
+ciqual:8391	Paté en croûte
+ciqual:8395	Jamón en hojaldre
+ciqual:8400	Queso de cabeza (cabeza de jabalí)
+ciqual:8406	Morro de cerdo en vinagreta
+ciqual:8429	Jamón con perejil en gelatina
+ciqual:8450	Morro de ternera
+ciqual:8500	Andouille (embutido de tripas)
+ciqual:8501	Andouille de Guéméné
+ciqual:8504	Andouillette recalentada en sartén
+ciqual:8512	Andouille de Vire
+ciqual:8550	Andouillette cruda
+ciqual:8551	Andouillette salteada
+ciqual:8552	Andouillette de Troyes, cruda
+ciqual:8601	Callos a la moda de Caen
+ciqual:8602	Callos a la moda de Caen, envasados
+ciqual:8612	Callos a la provenzal (con tomate)
+ciqual:8703	Morcilla refrigerada
+ciqual:8704	Morcilla salteada
+ciqual:8705	Morcilla negra o blanca salteada (media)
+ciqual:8803	Morcilla blanca trufada, cruda
+ciqual:8903	Quenelle de ternera en salsa
+ciqual:8910	Quenelle de ave, cruda
+ciqual:8912	Quenelle de ave en salsa
+ciqual:8932	Quenelle de pescado en salsa
+ciqual:8933	Quenelle de pescado, cruda
+ciqual:8937	Quenelle natural, cruda
+ciqual:9001	Espelta en grano, cruda
+ciqual:9003	Trigo khorasan (kamut)
+ciqual:9011	Trigo germinado, crudo
+ciqual:9060	Trigo duro en grano, crudo
+ciqual:9080	Trigo en grano precocido, crudo
+ciqual:9081	Trigo duro precocido en grano, cocido, sin sal
+ciqual:9082	Trigo duro precocido, cocido, en bolsa para microondas
+ciqual:9083	Trigo duro precocido en grano, cocido, para saltear
+ciqual:9085	Fideos asiáticos con sabor, cocidos
+ciqual:9086	Fideos asiáticos naturales, cocidos, sin sal
+ciqual:9100	Arroz crudo
+ciqual:9101	Arroz vaporizado, crudo
+ciqual:9102	Arroz integral, crudo
+ciqual:9103	Arroz integral, cocido, sin sal
+ciqual:9104	Arroz cocido, sin sal
+ciqual:9105	Arroz vaporizado, cocido, sin sal
+ciqual:9108	Arroz salvaje, crudo
+ciqual:9109	Arroz rojo, crudo
+ciqual:9110	Arroz rojo, cocido, sin sal
+ciqual:9111	Arroz salvaje, cocido, sin sal
+ciqual:9119	Arroz basmati, crudo
+ciqual:9121	Mezcla de arroces (blanco, integral, salvaje, rojo), cruda
+ciqual:9124	Arroz tailandés, cocido
+ciqual:9125	Arroz basmati, cocido
+ciqual:9200	Maíz en grano, crudo
+ciqual:9230	Palomitas de maíz con aceite, saladas
+ciqual:9231	Palomitas de maíz de aire, sin sal
+ciqual:9232	Palomitas de maíz con caramelo
+ciqual:9310	Avena en grano, cruda
+ciqual:9311	Copos de avena
+ciqual:9313	Copos de avena cocidos en agua
+ciqual:9320	Cebada en grano, cruda
+ciqual:9321	Cebada perlada, cruda
+ciqual:9322	Cebada perlada cocida en agua, sin sal
+ciqual:9330	Mijo en grano
+ciqual:9331	Mijo cocido, sin sal
+ciqual:9340	Quinoa cruda
+ciqual:9341	Quinoa cocida en agua, sin sal
+ciqual:9345	Amaranto crudo
+ciqual:9360	Sorgo en grano, crudo
+ciqual:9380	Trigo sarraceno en grano, crudo
+ciqual:9390	Centeno en grano, crudo
+ciqual:9410	Harina de trigo tipo 110
+ciqual:9415	Harina de trigo integral tipo 150
+ciqual:9435	Harina de trigo tipo 65
+ciqual:9436	Harina de trigo panadera tipo 55
+ciqual:9437	Harina de trigo con levadura (bizcocho)
+ciqual:9440	Harina de trigo repostería tipo 55
+ciqual:9445	Harina de trigo tipo 80
+ciqual:9480	Harina de espelta
+ciqual:9510	Almidón de maíz (maicena)
+ciqual:9520	Harina de arroz
+ciqual:9530	Harina de centeno tipo 170
+ciqual:9532	Harina de centeno tipo 85
+ciqual:9533	Harina de centeno tipo 130
+ciqual:9540	Harina de trigo sarraceno
+ciqual:9545	Harina de maíz
+ciqual:9550	Harina de cebada
+ciqual:9555	Harina de mijo
+ciqual:9580	Harina de garbanzo
+ciqual:9610	Sémola de trigo duro, cruda
+ciqual:9611	Sémola cocida
+ciqual:9612	Mezcla de cereales y legumbres, cruda
+ciqual:9614	Polenta precocida, seca
+ciqual:9615	Polenta cocida, sin sal
+ciqual:9621	Salvado de trigo
+ciqual:9640	Salvado de avena
+ciqual:9641	Salvado de maíz
+ciqual:9643	Salvado de arroz
+ciqual:9647	Salvado (media)
+ciqual:9660	Germen de trigo
+ciqual:9681	Cuscús seco
+ciqual:9683	Cuscús cocido, sin sal
+ciqual:9690	Bulgur crudo
+ciqual:9691	Bulgur cocido, sin sal
+ciqual:9810	Pasta seca, cruda
+ciqual:9811	Pasta cocida, sin sal
+ciqual:9815	Pasta fresca al huevo, cruda
+ciqual:9816	Pasta fresca al huevo, cocida, sin sal
+ciqual:9821	Pasta seca al huevo, cruda
+ciqual:9822	Pasta seca al huevo, cocida, sin sal
+ciqual:9824	Pasta sin gluten, cocida, sin sal
+ciqual:9863	Fideos asiáticos con sabor, deshidratados
+ciqual:9870	Pasta integral seca, cruda
+ciqual:9871	Pasta integral cocida, sin sal
+ciqual:9874	Pasta sin gluten, cruda
+ciqual:9875	Pasta de arroz y maíz sin gluten, cocida
+ciqual:9876	Pasta de lenteja sin gluten, cocida
+ciqual:9900	Fideos de arroz, secos
+ciqual:9901	Fideos de arroz, cocidos, sin sal
+ciqual:9902	Fideos de soja, secos
+ciqual:9903	Fideos de soja, cocidos, sin sal
+ciqual:10001	Calamar crudo
+ciqual:10002	Calamares a la romana
+ciqual:10003	Vieira con coral, cruda
+ciqual:10004	Vieira con coral, cocinada
+ciqual:10005	Carne de cangrejo en conserva, escurrida
+ciqual:10006	Gambas cocidas
+ciqual:10007	Gambas o langostinos cocidos
+ciqual:10008	Caracol crudo
+ciqual:10009	Bogavante cocido
+ciqual:10010	Bogavante crudo
+ciqual:10011	Ostra cruda
+ciqual:10012	Gambas empanadas fritas
+ciqual:10013	Mejillones cocidos
+ciqual:10014	Mejillón común crudo
+ciqual:10015	Langosta cruda
+ciqual:10016	Sepia cruda
+ciqual:10017	Almeja cruda
+ciqual:10018	Pulpo crudo
+ciqual:10019	Bígaro crudo
+ciqual:10020	Bígaro cocido
+ciqual:10021	Gambas o langostinos crudos
+ciqual:10022	Langosta cocida
+ciqual:10023	Buñuelos de gambas
+ciqual:10024	Cigala cruda
+ciqual:10025	Cangrejo cocido
+ciqual:10026	Mejillón mediterráneo crudo
+ciqual:10027	Almejas cocidas
+ciqual:10028	Mejillones en conserva, escurridos
+ciqual:10030	Cangrejo de río crudo
+ciqual:10031	Cangrejo de río cocido
+ciqual:10035	Ostra del Pacífico cruda
+ciqual:10036	Ostra europea cruda
+ciqual:10037	Calamar cocido
+ciqual:10038	Gambas congeladas crudas
+ciqual:10039	Cangrejo crudo
+ciqual:10041	Oreja de mar (abulón) cruda
+ciqual:10042	Caracoles con mantequilla de perejil, cocinados
+ciqual:10043	Marisco (media, CIQUAL)
+ciqual:10045	Vieira sin coral, cruda
+ciqual:10048	Vieira americana o canadiense sin coral, cruda
+ciqual:10049	Vieira de Perú sin coral, cruda
+ciqual:10059	Gamba rosada de profundidad, cruda
+ciqual:10079	Pulpo cocido
+ciqual:10080	Marisco cocido congelado
+ciqual:10081	Mejillones en salsa de tomate, en conserva, escurridos
+ciqual:10082	Mejillones al vino blanco con chalota
+ciqual:10083	Mejillones rellenos (mantequilla, ajo y perejil), envasados
+ciqual:10084	Calamares fritos o a la plancha con aceite
+ciqual:10099	Caracoles cocinados sin grasa
+ciqual:11000	Ajo fresco
+ciqual:11001	Caldo de carne deshidratado (pastilla)
+ciqual:11002	Perifollo fresco
+ciqual:11003	Cebolleta o cebollino fresco
+ciqual:11004	Pepinillos en vinagre
+ciqual:11005	Curry en polvo
+ciqual:11006	Jengibre en polvo
+ciqual:11007	Gelatina en polvo o láminas
+ciqual:11008	Kétchup envasado
+ciqual:11009	Levadura nutricional
+ciqual:11013	Mostaza
+ciqual:11014	Perejil fresco
+ciqual:11015	Pimienta negra molida
+ciqual:11017	Sal blanca (marina o de roca), sin enriquecer
+ciqual:11018	Vinagre
+ciqual:11019	Pimienta blanca molida
+ciqual:11021	Mostaza en grano
+ciqual:11023	Ajo en polvo
+ciqual:11024	Perejil seco
+ciqual:11025	Canela molida
+ciqual:11026	Cilantro en grano
+ciqual:11027	Menta fresca (hierbabuena)
+ciqual:11029	Menta seca
+ciqual:11032	Albahaca seca
+ciqual:11033	Albahaca fresca
+ciqual:11034	Mejorana seca
+ciqual:11035	Orégano seco
+ciqual:11036	Romero seco
+ciqual:11037	Salvia seca
+ciqual:11038	Tomillo seco
+ciqual:11039	Azafrán
+ciqual:11042	Comino en grano
+ciqual:11044	Sal de apio
+ciqual:11048	Nuez moscada
+ciqual:11049	Pimentón
+ciqual:11052	Clavo de olor
+ciqual:11053	Laurel en hoja
+ciqual:11056	Mezcla de cuatro especias
+ciqual:11058	Sal blanca yodada
+ciqual:11060	Hierbas provenzales secas
+ciqual:11061	Semillas de amapola
+ciqual:11062	Ajedrea seca
+ciqual:11064	Alcaravea en grano
+ciqual:11065	Extracto de vainilla alcohólico
+ciqual:11066	Semillas de hinojo
+ciqual:11068	Romero fresco
+ciqual:11069	Salvia fresca
+ciqual:11070	Tomillo fresco
+ciqual:11074	Jengibre fresco
+ciqual:11075	Cardamomo molido
+ciqual:11077	Fenogreco en grano
+ciqual:11080	Hierbas frescas (media)
+ciqual:11081	Especias (media)
+ciqual:11082	Sal marina pura, sin enriquecer
+ciqual:11083	Sal marina gris, sin enriquecer
+ciqual:11088	Pimienta de cayena
+ciqual:11089	Cúrcuma molida
+ciqual:11091	Vinagre balsámico
+ciqual:11092	Estragón fresco
+ciqual:11093	Eneldo fresco
+ciqual:11094	Cilantro fresco
+ciqual:11096	Sal blanca yodada y fluorada
+ciqual:11097	Pepinillos en salsa agridulce
+ciqual:11098	Extracto de vainilla acuoso
+ciqual:11100	Salsa barbacoa envasada
+ciqual:11104	Salsa de soja envasada
+ciqual:11132	Salsa de curry envasada
+ciqual:11169	Fondo de ternera deshidratado
+ciqual:11170	Salsa vasca o de tomate con pimientos, envasada
+ciqual:11171	Fondo de ave deshidratado
+ciqual:11172	Pastilla de caldo de pescado
+ciqual:11174	Caldo de ave deshidratado (pastilla)
+ciqual:11175	Gelatina al madeira, deshidratada
+ciqual:11176	Gelatina al madeira
+ciqual:11179	Pesto envasado
+ciqual:11194	Salsa de pescado (nuoc mam), envasada
+ciqual:11215	Caviar de tomate (puré de tomate aliñado)
+ciqual:11217	Salsa para rollitos de primavera (nuoc mam)
+ciqual:11219	Salsa boloñesa vegetal
+ciqual:11220	Vinagre de vino tinto
+ciqual:11300	Salsa de chocolate envasada
+ciqual:11304	Fondo de ternera envasado
+ciqual:11306	Ajo asado
+ciqual:11307	Ajo salteado sin grasa
+ciqual:11506	Edulcorante de aspartamo en pastillas
+ciqual:11507	Bicarbonato sódico
+ciqual:12001	Queso camembert de vaca
+ciqual:12003	Queso de pasta blanda y corteza enmohecida (tipo camembert)
+ciqual:12006	Queso camembert de leche cruda
+ciqual:12008	Queso doble crema de corteza enmohecida (aprox. 30 % grasa)
+ciqual:12009	Queso tipo camembert light (5-11 % grasa)
+ciqual:12010	Queso coulommiers de vaca
+ciqual:12012	Queso tipo coulommiers light (aprox. 11 % grasa)
+ciqual:12013	Queso tipo camembert light (aprox. 5 % grasa)
+ciqual:12020	Queso brie de vaca
+ciqual:12021	Queso brie de Meaux
+ciqual:12022	Queso brie de Melun
+ciqual:12025	Queso carré de l'Est
+ciqual:12028	Queso chaource
+ciqual:12029	Queso maroilles industrial
+ciqual:12030	Queso maroilles artesano
+ciqual:12031	Queso neufchâtel
+ciqual:12033	Queso triple crema (aprox. 40 % grasa)
+ciqual:12034	Queso de pasta blanda y corteza lavada (media)
+ciqual:12035	Queso de corteza lavada light (aprox. 13 % grasa)
+ciqual:12036	Queso maroilles
+ciqual:12037	Queso livarot
+ciqual:12038	Queso époisses
+ciqual:12039	Queso munster
+ciqual:12040	Queso langres
+ciqual:12042	Queso pont-l'évêque
+ciqual:12045	Queso reblochon
+ciqual:12047	Queso de corteza lavada de leche pasteurizada (tipo vieux pané)
+ciqual:12049	Queso saint-marcellin
+ciqual:12050	Queso blando de corteza lavada y enmohecida
+ciqual:12051	Queso vacherin o mont d'or
+ciqual:12052	Queso saint-félicien
+ciqual:12060	Queso tipo feta de vaca
+ciqual:12063	Queso tipo feta de vaca en aceite y especias
+ciqual:12064	Queso boulette d'Avesnes
+ciqual:12066	Queso feta DOP
+ciqual:12100	Queso curado (media)
+ciqual:12105	Queso beaufort
+ciqual:12110	Queso comté
+ciqual:12112	Queso abondance
+ciqual:12113	Queso gruyère francés IGP
+ciqual:12114	Queso gruyère de vaca
+ciqual:12115	Queso emmental de vaca
+ciqual:12116	Queso tipo emmental light
+ciqual:12118	Queso emmental rallado
+ciqual:12119	Queso Ossau-Iraty de oveja
+ciqual:12120	Queso parmesano de vaca
+ciqual:12121	Queso fontina
+ciqual:12123	Queso grana padano
+ciqual:12300	Queso fundido en lonchas
+ciqual:12310	Quesitos (queso fundido en porciones, aprox. 20 % grasa)
+ciqual:12315	Queso fresco untable en tarrina (aprox. 25 % grasa)
+ciqual:12320	Queso fundido doble crema (aprox. 31 % grasa)
+ciqual:12325	Cancoillotte (queso fundido)
+ciqual:12500	Queso roquefort de oveja
+ciqual:12519	Queso fourme de Montbrison
+ciqual:12520	Queso azul de vaca
+ciqual:12521	Queso azul de Auvernia
+ciqual:12522	Queso fourme d'Ambert
+ciqual:12523	Queso azul de los Causses
+ciqual:12524	Queso gorgonzola
+ciqual:12526	Queso azul de Gex (del Jura)
+ciqual:12527	Queso azul de Bresse
+ciqual:12528	Queso azul de Bresse light (aprox. 15 % grasa)
+ciqual:12705	Queso semicurado tipo maasdam light (aprox. 14 % grasa)
+ciqual:12716	Queso provolone
+ciqual:12720	Queso semicurado con corteza de cera
+ciqual:12722	Queso cantal semicurado
+ciqual:12723	Queso cantal, salers o laguiole
+ciqual:12725	Queso salers
+ciqual:12726	Queso cheddar
+ciqual:12729	Queso edam
+ciqual:12735	Queso mimolette tierno
+ciqual:12736	Queso gouda
+ciqual:12737	Queso mimolette semicurado
+ciqual:12738	Queso mimolette curado
+ciqual:12740	Queso mimolette
+ciqual:12741	Queso semicurado tipo maasdam (aprox. 27 % grasa)
+ciqual:12742	Queso mimolette extracurado
+ciqual:12743	Queso morbier
+ciqual:12747	Queso de oveja de los Pirineos
+ciqual:12748	Queso saint-nectaire industrial
+ciqual:12749	Queso raclette de vaca
+ciqual:12751	Queso saint-nectaire de granja
+ciqual:12752	Queso saint-nectaire
+ciqual:12755	Queso saint-paulin (semicurado)
+ciqual:12758	Queso tomme de vaca
+ciqual:12759	Queso tomme de montaña o de Saboya
+ciqual:12760	Queso tomme light (aprox. 13 % grasa)
+ciqual:12761	Queso asiago
+ciqual:12762	Queso corso de oveja de pasta blanda
+ciqual:12763	Queso tomme des Bauges DOP
+ciqual:12801	Queso de cabra de leche cruda
+ciqual:12802	Queso de cabra de leche pasteurizada
+ciqual:12803	Queso de cabra
+ciqual:12807	Queso de cabra de leche cruda
+ciqual:12810	Queso de cabra semiseco
+ciqual:12812	Rulo de queso de cabra
+ciqual:12813	Rulo de queso de cabra light
+ciqual:12814	Queso de cabra de pasta blanda, leche pasteurizada
+ciqual:12815	Queso de cabra seco
+ciqual:12820	Queso de cabra de corteza enmohecida (tipo camembert)
+ciqual:12824	Queso de oveja de corteza enmohecida (tipo camembert)
+ciqual:12827	Queso de oveja semicurado
+ciqual:12828	Requesón de suero de oveja
+ciqual:12830	Queso chabichou (cabra)
+ciqual:12831	Queso pélardon (cabra)
+ciqual:12832	Queso crottin de cabra de leche cruda
+ciqual:12833	Queso crottin de cabra
+ciqual:12834	Queso crottin de Chavignol
+ciqual:12836	Queso picodon (cabra)
+ciqual:12839	Queso Pouligny-Saint-Pierre (cabra)
+ciqual:12842	Queso Sainte-Maure (cabra)
+ciqual:12845	Queso Selles-sur-Cher (cabra)
+ciqual:12846	Queso chevrot (cabra)
+ciqual:12847	Queso rocamadour (cabra)
+ciqual:12848	Queso valençay (cabra)
+ciqual:12999	Queso (media)
+ciqual:13000	Albaricoque sin hueso, crudo
+ciqual:13001	Orejones sin hueso
+ciqual:13002	Piña, pulpa, cruda
+ciqual:13004	Aguacate, pulpa
+ciqual:13005	Plátano, pulpa
+ciqual:13008	Cereza sin hueso, cruda
+ciqual:13009	Limón, pulpa
+ciqual:13012	Higo crudo
+ciqual:13014	Fresa cruda
+ciqual:13015	Frambuesa cruda
+ciqual:13016	Maracuyá, pulpa y semillas
+ciqual:13018	Granada, pulpa y semillas
+ciqual:13019	Grosella roja cruda
+ciqual:13021	Kiwi, pulpa y semillas
+ciqual:13023	Lichi, pulpa
+ciqual:13024	Clementina o mandarina, pulpa
+ciqual:13025	Mango, pulpa
+ciqual:13026	Melón cantalupo, pulpa
+ciqual:13027	Ciruela mirabel cruda
+ciqual:13028	Arándano crudo
+ciqual:13029	Mora cruda
+ciqual:13033	Aceitunas verdes en salmuera
+ciqual:13034	Naranja, pulpa
+ciqual:13035	Papaya, pulpa
+ciqual:13036	Sandía, pulpa
+ciqual:13038	Compota de manzana
+ciqual:13040	Pomelo, pulpa
+ciqual:13041	Ciruela claudia cruda
+ciqual:13042	Ciruela pasa
+ciqual:13044	Uva blanca cruda
+ciqual:13046	Uvas pasas
+ciqual:13051	Mezcla de fruta tropical deshidratada azucarada
+ciqual:13066	Caqui, pulpa
+ciqual:13067	Lima, pulpa
+ciqual:13086	Manzana golden, pulpa
+ciqual:13101	Uva chasselas
+ciqual:13108	Compota de frutas variadas
+ciqual:13109	Compota de frutas variadas, baja en azúcar
+ciqual:13121	Manzana Granny Smith, pulpa
+ciqual:13122	Manzana Granny Smith con piel
+ciqual:13131	Aceitunas negras en aceite (estilo griego)
+ciqual:13148	Nectarina amarilla con piel
+ciqual:13149	Nectarina blanca con piel
+ciqual:13151	Compota de manzana baja en azúcar
+ciqual:13153	Puré de frutas sin azúcar añadido
+ciqual:13178	Arándanos rojos deshidratados azucarados
+ciqual:13184	Aceituna (media)
+ciqual:13185	Compota de frutas (con o sin azúcar reducido)
+ciqual:13187	Puré de manzana sin azúcar añadido
+ciqual:13188	Pera conferencia, pulpa
+ciqual:13189	Pera williams, pulpa
+ciqual:13190	Manzana chanteclerc, pulpa
+ciqual:13191	Manzana gala, pulpa
+ciqual:13192	Manzana pink lady, pulpa
+ciqual:13193	Melocotón de pulpa blanca con piel
+ciqual:13194	Melocotón de pulpa blanca, pulpa
+ciqual:13195	Melocotón amarillo, pulpa
+ciqual:13200	Mango José de La Reunión, pulpa
+ciqual:13201	Piña Queen Victoria de La Reunión, pulpa
+ciqual:13202	Papaya Colombo de La Reunión, pulpa
+ciqual:13620	Manzana golden con piel
+ciqual:13621	Uva moscatel tinta
+ciqual:13623	Orejones rehidratados (35-45 % agua)
+ciqual:13734	Pera en almíbar ligero, escurrida
+ciqual:13999	Fruta (media)
+ciqual:14000	Corzo asado al horno
+ciqual:14002	Jabalí crudo
+ciqual:14003	Jabalí asado al horno
+ciqual:14004	Carne de liebre cruda
+ciqual:14005	Corzo crudo
+ciqual:14006	Ciervo crudo
+ciqual:14007	Ciervo asado al horno
+ciqual:14008	Carne de caza cocinada (media)
+ciqual:15018	Mezcla de frutos secos salados y pasas
+ciqual:15049	Mezcla de frutos secos sin sal y pasas
+ciqual:15054	Anacardo tostado sin sal
+ciqual:15055	Anacardo tostado en seco sin sal
+ciqual:15201	Pasta de almendra o mazapán, envasado
+ciqual:16030	Manteca de cacao
+ciqual:16040	Aceite o grasa de coco
+ciqual:16060	Aceite o grasa de coco refinado
+ciqual:16080	Grasa vegetal sólida para freír
+ciqual:16110	Manteca de karité
+ciqual:16128	Aceite para freír
+ciqual:16129	Aceite de palma
+ciqual:16150	Aceite de palma refinado
+ciqual:16200	Grasa de palmiste
+ciqual:16400	Mantequilla 82 % grasa, sin sal
+ciqual:16402	Mantequilla 80 % grasa, con poca sal
+ciqual:16403	Mantequilla 80 % grasa, con sal
+ciqual:16404	Mantequilla 82 % grasa, sin sal, fácil de untar
+ciqual:16410	Mantequilla light 60-62 % grasa, sin sal
+ciqual:16411	Mantequilla light 60-62 % grasa, con poca sal
+ciqual:16412	Mantequilla para untar baja en grasa (media)
+ciqual:16413	Mantequilla semisalada (media)
+ciqual:16414	Mantequilla sin sal (media)
+ciqual:16415	Mantequilla light 39-41 % grasa, sin sal
+ciqual:16520	Manteca de cerdo
+ciqual:16530	Tocino crudo
+ciqual:16540	Grasa de pollo
+ciqual:16550	Grasa de pato
+ciqual:16560	Grasa de oca
+ciqual:16570	Grasa de pavo
+ciqual:16614	Margarina 80 % grasa, con sal
+ciqual:16615	Margarina 80 % grasa, sin sal
+ciqual:16616	Margarina 70 % grasa, sin sal
+ciqual:16654	Margarina de girasol 60 % grasa, sin sal
+ciqual:16712	Materia grasa láctea para untar 25 %, sin sal
+ciqual:16713	Materia grasa láctea para untar 20 %, sin sal
+ciqual:16719	Margarina light para untar, sin sal
+ciqual:16725	Grasa para untar sin sal (media)
+ciqual:16733	Margarina light para untar 30-40 %, sin sal
+ciqual:16734	Margarina light para untar 30-40 %, con poca sal
+ciqual:16736	Margarina light para untar 30-40 %, sin sal, rica en omega 3
+ciqual:16737	Margarina light para untar 50-63 %, sin sal, rica en omega 3
+ciqual:16738	Margarina light 50-63 %, con poca sal
+ciqual:16739	Margarina light para untar 50-63 %, sin sal, con esteroles vegetales
+ciqual:16740	Margarina light para untar 50-63 %, con poca sal, rica en omega 3
+ciqual:16741	Margarina light para untar 50-63 %, sin sal
+ciqual:16742	Margarina light para untar 30-40 %, con poca sal, con esteroles vegetales
+ciqual:16743	Grasa mixta (vegetal y animal) 50-63 %
+ciqual:16744	Grasa mixta (vegetal y animal) 50-63 %, con poca sal
+ciqual:16745	Grasa mixta para untar 30-40 %
+ciqual:16746	Grasa mixta para untar 30-40 %, con poca sal
+ciqual:17001	Aceite vegetal (media)
+ciqual:17020	Aceite de hueso de albaricoque
+ciqual:17030	Aceite de almendra
+ciqual:17040	Aceite de cacahuete
+ciqual:17100	Aceite de aguacate
+ciqual:17110	Aceite de germen de trigo
+ciqual:17126	Aceite de cártamo
+ciqual:17130	Aceite de colza
+ciqual:17170	Aceite de algodón
+ciqual:17180	Aceite de linaza
+ciqual:17190	Aceite de maíz
+ciqual:17210	Aceite de avellana
+ciqual:17220	Aceite de nuez
+ciqual:17270	Aceite de oliva virgen extra
+ciqual:17325	Aceite de semilla de amapola
+ciqual:17350	Aceite de pepita de uva
+ciqual:17390	Aceite de salvado de arroz
+ciqual:17400	Aceite de sésamo
+ciqual:17420	Aceite de soja
+ciqual:17440	Aceite de girasol
+ciqual:17630	Aceite de hígado de bacalao
+ciqual:17640	Aceite de sardina
+ciqual:17645	Aceite de salmón
+ciqual:17650	Aceite de arenque
+ciqual:17700	Mezcla de aceites vegetales
+ciqual:17701	Mezcla de aceite de oliva y de semillas
+ciqual:17900	Aceite de argán
+ciqual:17999	Aceite de parafina
+ciqual:18003	Café molido
+ciqual:18004	Café de cafetera, sin azúcar
+ciqual:18005	Café soluble en polvo
+ciqual:18008	Agua embotellada (media)
+ciqual:18009	Agua embotellada de mineralización débil
+ciqual:18011	Agua de coco
+ciqual:18017	Sirope azucarado para diluir
+ciqual:18018	Refresco de cola azucarado
+ciqual:18019	Refresco con gas de frutas (10-50 % zumo), azucarado
+ciqual:18020	Té infusionado, sin azúcar
+ciqual:18022	Infusión, sin azúcar
+ciqual:18025	Kombucha envasada
+ciqual:18026	Refresco con gas sin zumo, azucarado
+ciqual:18041	Leche o crema de coco
+ciqual:18044	Agua mineral embotellada (media)
+ciqual:18045	Agua mineral sin gas
+ciqual:18046	Agua mineral con gas
+ciqual:18048	Refresco con gas de frutas, azucarado
+ciqual:18059	Concentrado para diluir sin azúcar con edulcorantes (sirope 0 %)
+ciqual:18060	Refresco de cola sin azúcar con edulcorantes
+ciqual:18062	Té frío sin gas (media)
+ciqual:18063	Refresco de cola (media)
+ciqual:18066	Agua del grifo
+ciqual:18067	Refresco de cola azucarado sin cafeína
+ciqual:18068	Refresco de cola sin azúcar, con edulcorantes y cafeína
+ciqual:18069	Café descafeinado soluble en polvo
+ciqual:18070	Café descafeinado de cafetera, sin azúcar
+ciqual:18071	Café expreso, sin azúcar
+ciqual:18072	Café descafeinado soluble preparado, sin azúcar
+ciqual:18073	Café soluble preparado, sin azúcar
+ciqual:18075	Té frío con sabor, azucarado
+ciqual:18076	Té en hoja
+ciqual:18100	Cacao en polvo soluble, sin azúcar
+ciqual:18101	Cacao en polvo para bebidas, azucarado
+ciqual:18104	Cacao soluble azucarado preparado con leche semidesnatada
+ciqual:18106	Cacao soluble azucarado enriquecido, preparado con leche semidesnatada
+ciqual:18107	Bebida de almendra sin azúcar, sin enriquecer, envasada
+ciqual:18110	Bebida de almendra azucarada, enriquecida con calcio, envasada
+ciqual:18150	Mezcla de achicoria y café soluble en polvo
+ciqual:18151	Café con leche o capuchino, sin azúcar
+ciqual:18152	Achicoria soluble en polvo
+ciqual:18153	Achicoria con café soluble preparada con leche semidesnatada, sin azúcar
+ciqual:18154	Té negro infusionado, sin azúcar
+ciqual:18155	Té verde infusionado, sin azúcar
+ciqual:18156	Té oolong infusionado, sin azúcar
+ciqual:18160	Café con leche o capuchino soluble en polvo
+ciqual:18161	Achicoria soluble preparada con leche semidesnatada, sin azúcar
+ciqual:18162	Achicoria con café soluble preparada con agua, sin azúcar
+ciqual:18163	Capuchino con chocolate soluble en polvo
+ciqual:18167	Cacao en polvo azucarado, enriquecido con vitaminas y minerales
+ciqual:18168	Cacao en polvo azucarado, enriquecido con vitaminas
+ciqual:18220	Concentrado de limón o lima sin azúcar, para diluir
+ciqual:18343	Zumo de frutas con leche
+ciqual:18430	Agua embotellada
+ciqual:18900	Bebida de soja natural, envasada
+ciqual:18901	Bebida de soja natural enriquecida con calcio, envasada
+ciqual:18902	Bebida de soja con sabor, azucarada, envasada
+ciqual:18903	Bebida de soja con sabor, enriquecida con calcio, envasada
+ciqual:18904	Bebida de arroz natural, envasada
+ciqual:18905	Bebida de avena natural, envasada
+ciqual:18906	Bebida de castaña natural, envasada
+ciqual:18907	Bebida de coco natural, envasada
+ciqual:19021	Leche entera en polvo
+ciqual:19023	Leche entera UHT
+ciqual:19024	Leche entera pasteurizada
+ciqual:19026	Leche evaporada entera sin azúcar
+ciqual:19027	Leche condensada entera azucarada
+ciqual:19037	Leche 1,2 % grasa enriquecida con vitamina D, UHT
+ciqual:19038	Leche 1,2 % grasa multivitaminada, UHT
+ciqual:19039	Leche UHT (media)
+ciqual:19041	Leche semidesnatada UHT
+ciqual:19042	Leche semidesnatada pasteurizada
+ciqual:19044	Leche semidesnatada en polvo
+ciqual:19050	Leche desnatada UHT
+ciqual:19051	Leche desnatada pasteurizada
+ciqual:19054	Leche desnatada en polvo
+ciqual:19060	Leche semidesnatada sin lactosa
+ciqual:19122	Batido de chocolate semidesnatado, enriquecido
+ciqual:19127	Batido de fresa semidesnatado, con vitamina D
+ciqual:19200	Leche de cabra entera UHT
+ciqual:19201	Leche de cabra semidesnatada UHT
+ciqual:19202	Leche de cabra entera cruda
+ciqual:19225	Leche de yegua entera
+ciqual:19250	Leche de oveja entera
+ciqual:19402	Nata (media, CIQUAL)
+ciqual:19410	Nata espesa 30 % grasa, refrigerada
+ciqual:19415	Nata líquida 30 % grasa, UHT
+ciqual:19420	Nata montada en spray, UHT
+ciqual:19430	Nata líquida light 15-20 % grasa, UHT
+ciqual:19431	Nata espesa light 15-20 % grasa, refrigerada
+ciqual:19433	Nata ligera 4-8 % grasa
+ciqual:19501	Queso quark natural o con fruta (media)
+ciqual:19508	Yogur líquido o leche fermentada con sabor, azucarado
+ciqual:19530	Queso fresco untable 30-40 % grasa, con ajo y finas hierbas
+ciqual:19535	Yogur líquido o leche fermentada con fruta, azucarado
+ciqual:19539	Leche fermentada con bífidus, con sabor, azucarada
+ciqual:19542	Leche fermentada con bífidus, con fruta, azucarada
+ciqual:19546	Leche fermentada con bífidus, natural
+ciqual:19550	Yogur griego de oveja
+ciqual:19553	Yogur de oveja con sabor, azucarado
+ciqual:19556	Yogur de cabra natural (aprox. 5 % grasa)
+ciqual:19559	Yogur desnatado de sabores, con edulcorante
+ciqual:19575	Yogur de sabores azucarado
+ciqual:19580	Yogur cremoso con virutas de chocolate, azucarado
+ciqual:19581	Yogur desnatado con fruta, con edulcorante
+ciqual:19587	Yogur con fruta, azucarado
+ciqual:19589	Yogur cremoso con fruta, azucarado
+ciqual:19590	Mozzarella de vaca
+ciqual:19591	Mozzarella de búfala
+ciqual:19593	Yogur natural
+ciqual:19594	Yogur natural desnatado
+ciqual:19598	Yogur natural cremoso
+ciqual:19599	Yogur natural azucarado
+ciqual:19600	Yogur natural (media)
+ciqual:19624	Yogur natural o de frutas (media)
+ciqual:19628	Yogur de frutas (media)
+ciqual:19641	Queso fresco escurrido (aprox. 6 % grasa)
+ciqual:19644	Queso fresco batido natural, 0 % grasa
+ciqual:19646	Queso fresco batido natural (aprox. 3 % grasa)
+ciqual:19649	Queso fresco batido cremoso (aprox. 8 % grasa)
+ciqual:19661	Petit suisse con fruta, 2-3 % grasa
+ciqual:19664	Petit suisse natural (aprox. 4 % grasa)
+ciqual:19666	Petit suisse natural (aprox. 9 % grasa)
+ciqual:19667	Petit suisse de frutas, enriquecido con calcio y vitamina D
+ciqual:19669	Yogur alto en proteína con capa de fruta
+ciqual:19671	Yogur de frutas o sabores 0 % grasa (media)
+ciqual:19672	Yogur de frutas o sabores con grasa (media)
+ciqual:19673	Natillas bajas en grasa, refrigeradas
+ciqual:19674	Flan de huevo, refrigerado
+ciqual:19675	Yogur de frutas o sabores con edulcorante (media)
+ciqual:19676	Yogur de frutas o sabores azucarado (media)
+ciqual:19677	Yogur de frutas o sabores azucarado, con grasa (media)
+ciqual:19679	Flan con caramelo, refrigerado
+ciqual:19682	Yogur de frutas o sabores (media)
+ciqual:19685	Panna cotta, refrigerada
+ciqual:19688	Bizcocho borracho (baba al ron), envasado
+ciqual:19689	Tarta de queso, envasada
+ciqual:19692	Postre de soja con fruta, azucarado, enriquecido con calcio
+ciqual:19693	Postre de soja natural, sin enriquecer
+ciqual:19694	Postre de soja natural, enriquecido con calcio
+ciqual:19695	Postre de soja con fruta, azucarado, sin enriquecer
+ciqual:19696	Postre de soja con almendras
+ciqual:19698	Tiramisú envasado
+ciqual:19801	Leche fermentada para beber, desnatada (kéfir)
+ciqual:19805	Leche fermentada para beber, entera (kéfir)
+ciqual:19852	Mousse de castaña, envasada
+ciqual:20003	Remolacha cocida
+ciqual:20004	Acelga cruda
+ciqual:20005	Acelga cocida
+ciqual:20007	Zanahoria en conserva, escurrida
+ciqual:20008	Zanahoria cocida
+ciqual:20009	Zanahoria cruda
+ciqual:20010	Setas (todas), crudas
+ciqual:20011	Setas en conserva, escurridas
+ciqual:20014	Lombarda cruda
+ciqual:20016	Coliflor cruda
+ciqual:20017	Coliflor cocida
+ciqual:20019	Pepino con piel, crudo
+ciqual:20020	Calabacín con piel, crudo
+ciqual:20021	Calabacín con piel, cocido
+ciqual:20023	Apio en rama, crudo
+ciqual:20026	Endibia cruda
+ciqual:20028	Hinojo crudo
+ciqual:20030	Judía verde cocida
+ciqual:20036	Guisantes en conserva, escurridos
+ciqual:20039	Puerro crudo
+ciqual:20045	Rabanito crudo
+ciqual:20047	Tomate crudo
+ciqual:20048	Tomate pelado en conserva, escurrido
+ciqual:20050	Tupinambo cocido
+ciqual:20051	Menestra de verduras en conserva, escurrida
+ciqual:20055	Apio nabo crudo
+ciqual:20056	Champiñón crudo
+ciqual:20062	Judías verdes en conserva, escurridas
+ciqual:20066	Maíz dulce en conserva, escurrido
+ciqual:20068	Concentrado de tomate en conserva
+ciqual:20070	Judías verdes congeladas, crudas
+ciqual:20071	Judías verdes congeladas, cocidas
+ciqual:20074	Alcachofa al vapor
+ciqual:20078	Apio en rama en conserva, escurrido
+ciqual:20079	Champiñones en conserva, escurridos
+ciqual:20085	Pimiento verde crudo
+ciqual:20087	Pimiento rojo crudo
+ciqual:20089	Rábano negro crudo
+ciqual:20093	Guisantes con zanahoria en conserva, escurridos
+ciqual:20097	Chalota cruda
+ciqual:20099	Canónigos crudos
+ciqual:20101	Verduras variadas congeladas, crudas
+ciqual:20102	Champiñones hervidos
+ciqual:20103	Rebozuelo crudo
+ciqual:20105	Colmenilla cruda
+ciqual:20114	Seta de ostra cruda
+ciqual:20116	Repollo blanco crudo
+ciqual:20122	Coliflor congelada, cocida
+ciqual:20123	Lechuga batavia cruda
+ciqual:20125	Champiñones salteados sin grasa
+ciqual:20126	Habas de Lima crudas
+ciqual:20133	Chirivía cocida
+ciqual:20155	Corazones de alcachofa en conserva, escurridos
+ciqual:20156	Fondos de alcachofa en conserva, escurridos
+ciqual:20159	Oronja (amanita de los césares) cruda
+ciqual:20160	Boletus crudo
+ciqual:20161	Champiñón silvestre crudo
+ciqual:20168	Pimiento amarillo crudo
+ciqual:20169	Tomate triturado en conserva
+ciqual:20170	Puré de tomate en conserva
+ciqual:20172	Tomate cherry
+ciqual:20181	Chirivía cruda
+ciqual:20192	Tomate corazón de buey
+ciqual:20196	Tupinambo crudo
+ciqual:20198	Brotes de bambú crudos
+ciqual:20209	Zanahoria congelada, cocida
+ciqual:20210	Pepino sin piel, crudo
+ciqual:20211	Seta shiitake seca
+ciqual:20212	Seta shiitake cocinada
+ciqual:20216	Tirabeque cocido
+ciqual:20228	Champiñones congelados, crudos
+ciqual:20236	Puerro congelado, crudo
+ciqual:20238	Cebolla morada cruda
+ciqual:20239	Cebolla amarilla cruda
+ciqual:20256	Tomate seco en aceite
+ciqual:20258	Puré de verduras variadas
+ciqual:20261	Puré de zanahoria
+ciqual:20262	Salteado de verduras sin setas, congelado
+ciqual:20263	Verduras para sopa congeladas, crudas
+ciqual:20268	Doble concentrado de tomate
+ciqual:20270	Brotes de espinaca crudos
+ciqual:20271	Menestra de verduras congelada, cruda
+ciqual:20276	Tomate redondo crudo
+ciqual:20277	Espárrago blanco cocido
+ciqual:20288	Cogollo de lechuga crudo
+ciqual:20289	Tomate asado con piel
+ciqual:20290	Romanesco cocido
+ciqual:20291	Calabaza hokkaido estofada
+ciqual:20292	Calabaza cacahuete cocida
+ciqual:20293	Alubia coco cocida
+ciqual:20295	Lechuga hoja de roble cruda
+ciqual:20296	Bok choy al vapor (La Reunión)
+ciqual:20297	Chayote pelado al vapor (La Reunión)
+ciqual:20298	Puré de zanahoria con nata
+ciqual:20299	Espárrago verde cocido
+ciqual:20300	Berenjena asada con piel
+ciqual:20301	Acelga cocida en agua (hoja y penca)
+ciqual:20302	Brócoli cocido al dente
+ciqual:20303	Brócoli cocido tierno
+ciqual:20304	Brócoli al vapor
+ciqual:20305	Zanahoria cocida al dente
+ciqual:20306	Zanahoria cocida tierna
+ciqual:20307	Zanahoria al vapor
+ciqual:20308	Repollo blanco cocido
+ciqual:20309	Coles de Bruselas cocidas
+ciqual:20310	Lombarda estofada
+ciqual:20311	Col verde cocida
+ciqual:20312	Coliflor al vapor
+ciqual:20313	Calabacín asado con piel
+ciqual:20314	Apio en rama estofado
+ciqual:20315	Apio nabo cocido
+ciqual:20316	Endibia asada
+ciqual:20317	Hinojo estofado
+ciqual:20318	Judía amarilla cocida
+ciqual:20320	Judía verde cocida en agua
+ciqual:20321	Nabo cocido
+ciqual:20322	Cebolla blanca o amarilla salteada sin grasa
+ciqual:20323	Cebolleta salteada sin grasa
+ciqual:20324	Cebolla morada salteada sin grasa
+ciqual:20325	Chirivía estofada
+ciqual:20326	Guisantes cocidos
+ciqual:20327	Puerro cocido
+ciqual:20328	Pimiento amarillo salteado sin grasa
+ciqual:20329	Pimiento rojo salteado sin grasa
+ciqual:20330	Pimiento verde salteado sin grasa
+ciqual:20331	Calabaza hokkaido cocida
+ciqual:20332	Calabaza asada
+ciqual:20333	Salsifí cocido
+ciqual:20334	Tomate asado
+ciqual:20335	Chalota a la plancha sin grasa
+ciqual:20336	Espinacas cocidas
+ciqual:20337	Salchicha vegetal de tofu (vegana)
+ciqual:20338	Salchicha vegetal de tofu (no vegana)
+ciqual:20496	Verduras para cuscús congeladas, crudas
+ciqual:20499	Verdura cocinada (media)
+ciqual:20500	Habas cocidas
+ciqual:20502	Alubias blancas cocidas
+ciqual:20503	Alubias rojas cocidas
+ciqual:20507	Garbanzos cocidos
+ciqual:20513	Frijoles flageolet cocidos
+ciqual:20584	Tomate en rama
+ciqual:20587	Lentejas verdes cocidas
+ciqual:20590	Crosne (alcachofa china) cocido
+ciqual:20591	Proteína de soja texturizada rehidratada
+ciqual:20900	Harina de soja
+ciqual:20901	Soja en grano
+ciqual:20904	Tofu natural
+ciqual:20906	Tofu sedoso
+ciqual:20911	Postre de soja con sabor, azucarado, enriquecido con calcio
+ciqual:20912	Tofu ahumado
+ciqual:20917	Tempeh
+ciqual:20921	Postre de soja con sabor, azucarado, sin enriquecer
+ciqual:20922	Postre vegetal (almendra, avena, cáñamo, coco, arroz) con sabor, azucarado
+ciqual:20923	Postre vegetal sin soja (coco, arroz) con fruta, enriquecido con calcio
+ciqual:20924	Almíbar ligero de peras en conserva
+ciqual:20984	Alga wakame seca
+ciqual:20985	Lechuga de mar (ulva) seca
+ciqual:20986	Kombu de azúcar (Saccharina) seca
+ciqual:20987	Alga nori (Porphyra) seca
+ciqual:20988	Alga dulse seca
+ciqual:20990	Alga kombu seca
+ciqual:20991	Alga laminaria (Laminaria digitata) seca
+ciqual:20992	Espagueti de mar seco
+ciqual:20993	Alga gracilaria seca
+ciqual:20994	Fucus seco
+ciqual:20995	Lechuga de mar (Enteromorpha) seca
+ciqual:20996	Musgo de Irlanda (Chondrus crispus) seco
+ciqual:20998	Alga ascophyllum seca
+ciqual:20999	Wakame atlántica (Alaria) seca
+ciqual:21001	Carne de carnero cruda
+ciqual:21003	Paleta de carnero cruda
+ciqual:21004	Pata de oveja cruda
+ciqual:21005	Cabeza de oveja cruda
+ciqual:21006	Pierna de carnero cruda
+ciqual:21500	Chuleta de cordero cruda
+ciqual:21501	Chuleta de cordero a la parrilla
+ciqual:21502	Pierna de cordero cruda
+ciqual:21503	Pierna de cordero asada al horno
+ciqual:21504	Paletilla de cordero cruda
+ciqual:21505	Paletilla de cordero magra, cruda
+ciqual:21506	Paletilla de cordero asada al horno
+ciqual:21507	Paletilla de cordero magra, asada al horno
+ciqual:21508	Cuello de cordero estofado o cocido
+ciqual:21509	Chuleta de riñonada de cordero a la plancha
+ciqual:21512	Chuleta de palo de cordero a la plancha
+ciqual:21513	Silla de cordero magra, asada al horno
+ciqual:21514	Cuello de cordero crudo
+ciqual:21515	Silla de cordero cruda
+ciqual:21516	Chuleta de riñonada de cordero cruda
+ciqual:21517	Chuleta de palo de cordero cruda
+ciqual:21518	Pierna de cordero a la plancha
+ciqual:21519	Pierna de cordero estofada
+ciqual:21520	Silla de cordero a la plancha
+ciqual:21521	Chuleta de cordero cruda (media)
+ciqual:21522	Chuleta de cordero cocinada (media)
+ciqual:21523	Carne de cordero cocinada (media)
+ciqual:21524	Chuleta de cordero a la parrilla (media)
+ciqual:21525	Chuleta de aguja de cordero cruda
+ciqual:21800	Cabrito crudo
+ciqual:21801	Cabrito cocinado
+ciqual:22000	Huevo crudo
+ciqual:22001	Clara de huevo cruda
+ciqual:22002	Yema de huevo cruda
+ciqual:22003	Yema de huevo en polvo
+ciqual:22004	Clara de huevo en polvo
+ciqual:22008	Clara de huevo cocida
+ciqual:22009	Yema de huevo cocida
+ciqual:22010	Huevo duro
+ciqual:22011	Huevo escalfado
+ciqual:22013	Huevo en polvo
+ciqual:22014	Huevo pasado por agua
+ciqual:22050	Huevo de codorniz crudo
+ciqual:22060	Huevo de pato crudo
+ciqual:22070	Huevo de oca crudo
+ciqual:22080	Huevo de pavo crudo
+ciqual:22501	Huevo frito con sal
+ciqual:22502	Huevos revueltos con grasa
+ciqual:22505	Huevo a la plancha sin grasa
+ciqual:22506	Tortilla de queso
+ciqual:22507	Tortilla de beicon (lardones)
+ciqual:22508	Tortilla de champiñones
+ciqual:22509	Tortilla de finas hierbas
+ciqual:22510	Tortilla de patatas con cebolla, envasada
+ciqual:22511	Tortilla con verduras, queso y carne
+ciqual:23032	Brownie
+ciqual:23402	Base de pizza fina, cruda
+ciqual:23410	Masa quebrada, cruda
+ciqual:23412	Masa quebrada, horneada
+ciqual:23414	Masa quebrada de mantequilla, cruda
+ciqual:23415	Masa quebrada de mantequilla congelada, cruda
+ciqual:23416	Masa quebrada de mantequilla, horneada
+ciqual:23420	Hojaldre, crudo
+ciqual:23421	Hojaldre congelado, crudo
+ciqual:23422	Hojaldre horneado
+ciqual:23424	Hojaldre de mantequilla, crudo
+ciqual:23425	Hojaldre de mantequilla congelado, crudo
+ciqual:23426	Hojaldre de mantequilla, horneado
+ciqual:23430	Masa filo horneada, sin grasa
+ciqual:23440	Masa sablé, cruda
+ciqual:23442	Masa sablé, horneada
+ciqual:23444	Masa sablé de mantequilla, cruda
+ciqual:23445	Masa filo cruda
+ciqual:23446	Masa sablé de mantequilla congelada, cruda
+ciqual:23448	Masa sablé de mantequilla, horneada
+ciqual:23467	Chouquettes (buñuelos de viento con azúcar)
+ciqual:23472	Profiteroles con helado de vainilla y chocolate
+ciqual:23474	Profiteroles con crema y chocolate, envasados
+ciqual:23480	Empanadilla de manzana (chausson)
+ciqual:23481	Tarta de manzana normanda (con crema)
+ciqual:23534	Sémola con pasas y caramelo, refrigerada
+ciqual:23535	Sémola con leche en conserva
+ciqual:23536	Arroz con leche con caramelo, refrigerado
+ciqual:23849	Barquillo fino relleno de miel, envasado
+ciqual:23880	Buñuelo o berlina natural
+ciqual:23881	Berlina rellena de mermelada
+ciqual:23884	Berlina rellena de fruta, envasada
+ciqual:23885	Berlina rellena de chocolate, envasada
+ciqual:23909	Plum cake de frutas, envasado
+ciqual:24041	Galleta de desayuno con cereales, enriquecida
+ciqual:24055	Galleta con frutos secos
+ciqual:24056	Florentina (galleta de almendra con chocolate)
+ciqual:24313	Barquillo natural o de vainilla, envasado
+ciqual:24615	Galleta fina de almendra (teja)
+ciqual:24616	Galleta fina con fruta
+ciqual:24678	Bizcocho con cobertura de fruta, envasado
+ciqual:25001	Blanqueta de ternera
+ciqual:25002	Guiso de alubias blancas en conserva
+ciqual:25003	Chucrut con guarnición, envasado
+ciqual:25009	Pastel de carne y puré (hachis parmentier), envasado
+ciqual:25010	Lentejas con panceta, envasadas
+ciqual:25013	Cocido de carne con verduras (pot-au-feu), envasado
+ciqual:25019	Raviolis de carne con tomate, en conserva
+ciqual:25020	Suflé de queso
+ciqual:25029	Cuscús con cordero
+ciqual:25031	Paella
+ciqual:25033	Ternera a la borgoñona
+ciqual:25037	Gratinado de pescado o marisco, envasado
+ciqual:25038	Gratinado de pescado y gambas, envasado
+ciqual:25043	Cuscús con carne o pollo, light, envasado
+ciqual:25057	Patatas salteadas con beicon o pollo, envasadas
+ciqual:25058	Pato en salsa, envasado
+ciqual:25063	Conejo a la mostaza, envasado
+ciqual:25065	Ternera guisada con zanahorias
+ciqual:25071	Potaje de col con salchicha (potée)
+ciqual:25077	Salmón con salsa de acedera, envasado
+ciqual:25081	Lasaña o canelones de carne (boloñesa)
+ciqual:25085	Pasta a la boloñesa (espaguetis, tallarines)
+ciqual:25086	Pescado a la bordelesa, envasado
+ciqual:25088	Arroz tres delicias
+ciqual:25089	Cordon bleu de ternera con jamón y queso, envasado
+ciqual:25098	Guiso de alubias blancas con cerdo, en conserva
+ciqual:25099	Guiso de alubias blancas con pato u oca (cassoulet), en conserva
+ciqual:25103	Tomates rellenos
+ciqual:25106	Repollo relleno, envasado
+ciqual:25107	Cuscús con pescado
+ciqual:25108	Samosas, envasadas
+ciqual:25110	Dim sum de gambas al vapor
+ciqual:25111	Chili con carne, envasado
+ciqual:25121	Gallo al vino tinto
+ciqual:25122	Pasta gratinada al horno
+ciqual:25123	Musaka
+ciqual:25124	Estofado de cordero con patatas y verduras
+ciqual:25125	Rollito de ternera relleno (paupiette)
+ciqual:25126	Rollito de ave relleno (paupiette)
+ciqual:25127	Cuscús real (con varias carnes), envasado
+ciqual:25128	Pescado blanco a la provenzal (con tomate), envasado
+ciqual:25131	Lasaña o canelones de verduras, envasados
+ciqual:25135	Pasta a la carbonara (espaguetis, tallarines)
+ciqual:25137	Tartiflette (patatas con queso reblochon), envasada
+ciqual:25138	Cuscús con pollo
+ciqual:25139	Lasaña o canelones de pescado, envasados
+ciqual:25140	Pescado blanco a la florentina (con espinacas), envasado
+ciqual:25141	Pescado blanco con mejillones y vino blanco, envasado
+ciqual:25142	Pescado blanco a la mostaza, envasado
+ciqual:25143	Pescado blanco con salsa de champiñones, envasado
+ciqual:25145	Pescado blanco con salsa de estragón, envasado
+ciqual:25146	Pescado blanco con salsa de acedera, envasado
+ciqual:25149	Pasta fresca rellena de queso (raviolis), cocida
+ciqual:25150	Cuscús con verduras, envasado
+ciqual:25151	Pescado o marisco en hojaldre
+ciqual:25152	Cuscús con carne, envasado
+ciqual:25154	Brandada o pastel de pescado con puré, envasado
+ciqual:25155	Pasta fresca rellena de queso y verduras, cocida, envasada
+ciqual:25157	Pasta fresca rellena de carne (raviolis boloñesa), cruda, envasada
+ciqual:25158	Pasta fresca rellena de carne (raviolis boloñesa), cocida, envasada
+ciqual:25159	Tajín de cordero
+ciqual:25163	Albóndigas de ternera cocinadas
+ciqual:25164	Osobuco
+ciqual:25169	Especialidad china o empanadillas, envasadas
+ciqual:25172	Carne en salsa (media)
+ciqual:25173	Escalope de ternera lechal empanado, cocinado
+ciqual:25174	Pollo al curry con leche de coco
+ciqual:25175	Molojía (guiso de yute con ternera), casero
+ciqual:25181	Pasta fresca rellena de queso (raviolis), cruda, envasada
+ciqual:25182	Pasta fresca rellena de queso y verduras, cruda, envasada
+ciqual:25183	Fideos salteados con gambas
+ciqual:25184	Arroz blanco con pollo, cocinado, envasado
+ciqual:25185	Arroz blanco con verduras y carne, envasado
+ciqual:25186	Albóndigas de cerdo y ternera (estilo sueco), envasadas
+ciqual:25187	Risotto de verduras, envasado
+ciqual:25188	Risotto de marisco, envasado
+ciqual:25189	Risotto de quesos, envasado
+ciqual:25190	Pollo a la vasca, envasado
+ciqual:25192	Raviolis de verduras con tomate, en conserva
+ciqual:25193	Pasta fresca rellena de verduras, cocida, envasada
+ciqual:25194	Albóndigas de ternera y cordero (kefta), crudas, envasadas
+ciqual:25195	Pastel de pato con puré (parmentier), envasado
+ciqual:25198	Pasta con salsa de queso, envasada
+ciqual:25200	Paleta de cerdo a la mostaza, envasada
+ciqual:25201	Lengua de ternera con salsa de madeira, envasada
+ciqual:25203	Pasta fresca rellena de verduras, cruda, envasada
+ciqual:25204	Tajín de pollo, envasado
+ciqual:25205	Chop suey de cerdo o pollo, envasado
+ciqual:25207	Cerdo al caramelo, envasado
+ciqual:25210	Salmón relleno, envasado
+ciqual:25211	Albóndigas de ternera en salsa de tomate, envasadas
+ciqual:25213	Rollito de ternera relleno al horno, envasado
+ciqual:25216	Pasta rellena (raviolis), cocida
+ciqual:25217	Hojas de parra rellenas de arroz (dolmas), escurridas
+ciqual:25218	Lasaña o canelones de verduras, cocinados
+ciqual:25219	Lasaña o canelones de verduras y queso de cabra, cocinados
+ciqual:25220	Chucrut sin guarnición, cocido, escurrido
+ciqual:25223	Hamburguesa o bocaditos de soja y trigo (veganos)
+ciqual:25224	Hamburguesa o bocaditos de soja y trigo (no veganos)
+ciqual:25225	Nuggets de trigo (sin soja)
+ciqual:25226	Nuggets de soja y trigo (no veganos)
+ciqual:25227	Nuggets de soja y trigo (veganos)
+ciqual:25228	Escalope vegetal de soja y trigo (no vegano)
+ciqual:25229	Escalope vegetal de soja y trigo (vegano)
+ciqual:25230	Cordon bleu vegetal de soja, trigo y queso
+ciqual:25231	Raviolis rellenos de tofu con tomate
+ciqual:25232	Salchicha vegetal de trigo o seitán
+ciqual:25233	Hamburguesa de cereales con queso (sin soja)
+ciqual:25234	Hamburguesa de cereales con verduras (sin soja)
+ciqual:25399	Caracoles en hojaldre, envasados
+ciqual:25401	Hojaldre de queso
+ciqual:25402	Hojaldre de carne, envasado
+ciqual:25403	Perrito caliente, envasado
+ciqual:25404	Pizza margarita envasada
+ciqual:25405	Quiche lorraine envasada
+ciqual:25409	Crep rellena de jamón, envasada
+ciqual:25410	Crep o galette de trigo sarraceno con queso, jamón y bechamel, envasada
+ciqual:25411	Crep o galette con champiñones y bechamel, envasada
+ciqual:25412	Volován de carne, ave o quenelle
+ciqual:25413	Hamburguesa de comida rápida
+ciqual:25414	Hamburguesa con queso de comida rápida
+ciqual:25415	Hamburguesa doble con queso de comida rápida
+ciqual:25416	Hamburguesa de pescado de comida rápida
+ciqual:25417	Tarta de verduras, envasada
+ciqual:25418	Cruasán relleno de jamón
+ciqual:25419	Rollito de primavera
+ciqual:25420	Rollito de primavera frito (nem)
+ciqual:25428	Kebab en pan de pita con verduras
+ciqual:25429	Bocadillo de kebab con verduras
+ciqual:25431	Bocadillo de atún con tomate, lechuga y mayonesa
+ciqual:25433	Buñuelos de pescado caribeños (acras)
+ciqual:25434	Panini de jamón serrano, mozzarella y tomate
+ciqual:25435	Pizza de jamón y queso, envasada
+ciqual:25437	Buñuelos de queso (gougères)
+ciqual:25438	Brick relleno (gambas, verduras, pollo o carne), casero
+ciqual:25444	Tarta de queso salada, envasada
+ciqual:25454	Tarta provenzal, envasada
+ciqual:25456	Sushi o maki de pescado o marisco
+ciqual:25457	Pizza boloñesa, envasada
+ciqual:25459	Burritos
+ciqual:25460	Fajitas
+ciqual:25462	Pizza de chorizo o salami, envasada
+ciqual:25463	Pizza de marisco, envasada
+ciqual:25464	Pizza de salmón, envasada
+ciqual:25468	Pizza de queso de cabra y beicon, envasada
+ciqual:25472	Pizza de verduras o cuatro estaciones, envasada
+ciqual:25475	Bocadillo de huevo duro con tomate, lechuga y mantequilla
+ciqual:25476	Bocadillo de pollo con tomate, lechuga y mayonesa
+ciqual:25477	Pizza de queso y champiñones, envasada
+ciqual:25478	Pizza cuatro quesos, envasada
+ciqual:25479	Ñoquis de sémola, cocidos
+ciqual:25485	Bocadillo de jamón y emmental, envasado
+ciqual:25488	Bocadillo de salmón ahumado con mantequilla
+ciqual:25490	Bocadillo de atún, maíz y verduras, envasado
+ciqual:25502	Hamburguesa de pollo de comida rápida
+ciqual:25503	Volován de pescado y marisco
+ciqual:25504	Brocheta de ave
+ciqual:25505	Brocheta de ternera
+ciqual:25506	Brocheta de carnes variadas
+ciqual:25508	Hojaldre de jamón y queso
+ciqual:25509	Preparado para fondue saboyana (queso, vino), envasado
+ciqual:25510	Ñoquis de patata, cocidos
+ciqual:25511	Verduras rellenas (sin tomate)
+ciqual:25512	Nuggets de pollo
+ciqual:25513	Pan bagnat (bocadillo redondo de atún, anchoa y aceitunas)
+ciqual:25516	Pizza (media)
+ciqual:25517	Bocadillo de jamón cocido con mantequilla
+ciqual:25518	Bocadillo de camembert con mantequilla
+ciqual:25519	Bocadillo de paté con pepinillos
+ciqual:25520	Bocadillo de salchichón con mantequilla
+ciqual:25521	Bocadillo de jamón, emmental y mantequilla
+ciqual:25522	Bocadillo o sándwich (media)
+ciqual:25523	Canapés variados, envasados
+ciqual:25525	Salsa de tomate para pizza
+ciqual:25528	Pizza de cebolla, anchoas y aceitunas, envasada
+ciqual:25529	Tarta de cebolla, envasada
+ciqual:25530	Bocadillo vegetal con mayonesa
+ciqual:25531	Bocadillo de pavo con tomate, lechuga y mayonesa
+ciqual:25532	Bocadillo de huevo con tomate, lechuga y mayonesa
+ciqual:25533	Bocadillo de cerdo con tomate, lechuga y mayonesa
+ciqual:25535	Bocadillo de merguez con kétchup y mostaza
+ciqual:25536	Bocadillo de salami con mantequilla
+ciqual:25537	Carpaccio de salmón marinado
+ciqual:25538	Carpaccio de ternera marinado
+ciqual:25539	Brocheta de pescado
+ciqual:25540	Brocheta de gambas
+ciqual:25541	Brocheta de cordero
+ciqual:25542	Croque madame (sándwich de jamón y queso con huevo)
+ciqual:25543	Bocadillo de baguette (media)
+ciqual:25544	Sándwich de pan de molde variado, envasado
+ciqual:25546	Jamón y queso empanados
+ciqual:25547	Sándwich mixto a la plancha, envasado
+ciqual:25548	Pizza de jamón, queso y champiñones, envasada
+ciqual:25549	Crep o galette con queso y bechamel, envasada
+ciqual:25550	Tarte flambée (con nata y beicon), envasada
+ciqual:25551	Buñuelos de carne, ave o pescado, caseros, crudos
+ciqual:25552	Crep o galette con queso, jamón, champiñones y bechamel, envasada
+ciqual:25553	Tarta de puerro, envasada
+ciqual:25555	Tarta de salmón, envasada
+ciqual:25557	Brick de huevo, casero
+ciqual:25558	Brick de ternera
+ciqual:25559	Brick de patata, casero
+ciqual:25560	Pastel de cerdo al riesling, envasado
+ciqual:25561	Tarta de tomate, envasada
+ciqual:25562	Crep o galette completa (huevo, jamón y queso), envasada
+ciqual:25564	Tarta de vieiras, envasada
+ciqual:25565	Yakitori (brochetas japonesas con salsa)
+ciqual:25566	Brocheta de cerdo, cruda
+ciqual:25568	Pastela de pollo, envasada
+ciqual:25570	Pizza de beicon, cebolla y queso, envasada
+ciqual:25571	Falafel
+ciqual:25572	Crep o galette con vieiras, envasada
+ciqual:25573	Tarta salada (media)
+ciqual:25574	Sándwich integral de jamón, verduras y queso, envasado
+ciqual:25575	Sándwich integral de atún, verduras y mayonesa, envasado
+ciqual:25576	Sándwich integral de jamón y queso, envasado
+ciqual:25577	Sándwich integral de pollo, verduras y mayonesa, envasado
+ciqual:25578	Hojaldre salado (media)
+ciqual:25579	Ñoquis cocidos (media)
+ciqual:25580	Volován relleno (media)
+ciqual:25581	Crep o galette con champiñones y bechamel, cocinada
+ciqual:25582	Rollito de primavera de pollo, cocinado
+ciqual:25583	Rollito de primavera de cerdo, cocinado
+ciqual:25584	Rollito de primavera de gambas o cangrejo, cocinado
+ciqual:25585	Brocheta de ternera con verduras, cocinada
+ciqual:25586	Brocheta de ave con verduras, cocinada
+ciqual:25587	Pastel de pato con puré, cocinado, envasado
+ciqual:25589	Albóndiga vegetal de trigo o soja
+ciqual:25590	Falafel envasado
+ciqual:25591	Hamburguesa vegetal de lentejas, soja y verduras
+ciqual:25592	Hamburguesa vegetal de seitán y verduras
+ciqual:25593	Hamburguesa vegetal de trigo y soja (vegana)
+ciqual:25594	Hamburguesa vegetal de trigo y soja (no vegana)
+ciqual:25595	Hamburguesa vegetal de soja y queso
+ciqual:25596	Hamburguesa vegetal de soja y verduras
+ciqual:25597	Hamburguesa vegetal de soja, queso y verduras
+ciqual:25598	Seitán
+ciqual:25600	Apio nabo con salsa remoulade, envasado
+ciqual:25608	Tabulé envasado
+ciqual:25609	Ensalada de patata piamontesa, envasada
+ciqual:25610	Morro de ternera en vinagreta
+ciqual:25616	Ensalada de verduras sin aliño (media)
+ciqual:25623	Tarta de queso maroilles, envasada
+ciqual:25625	Crep o galette de pescado o marisco, envasada
+ciqual:25629	Ensalada vegetal de bulgur o quinoa, envasada
+ciqual:25635	Lasaña o canelones de queso de cabra y espinacas, envasados
+ciqual:25900	Sopa de lentejas, envasada
+ciqual:25901	Sopa de pollo y verduras, envasada
+ciqual:25903	Sopa de verduras variadas, envasada
+ciqual:25904	Sopa de pescado o marisco, envasada
+ciqual:25905	Sopa de verduras deshidratada, preparada
+ciqual:25907	Crema de puerro y patata (vichyssoise), envasada
+ciqual:25908	Sopa de pollo con fideos, envasada
+ciqual:25909	Caldo de carne y verduras deshidratado, preparado
+ciqual:25910	Sopa de cebolla, envasada
+ciqual:25912	Crema de setas, envasada
+ciqual:25913	Crema de zanahoria, envasada
+ciqual:25914	Sopa de tomate, envasada
+ciqual:25915	Chorba (sopa de carne y trigo verde)
+ciqual:25916	Minestrone envasado
+ciqual:25917	Sopa al pistou deshidratada, preparada
+ciqual:25918	Caldo de carne y verduras deshidratado (pastilla)
+ciqual:25919	Sopa de pescado deshidratada, preparada
+ciqual:25923	Sopa asiática con fideos deshidratada, preparada
+ciqual:25924	Sopa marroquí deshidratada, preparada
+ciqual:25925	Crema de puerro y patata deshidratada, preparada
+ciqual:25928	Sopa de pollo y verduras deshidratada, preparada
+ciqual:25930	Caldo de carne deshidratado, preparado
+ciqual:25932	Crema de espárragos deshidratada, preparada
+ciqual:25933	Sopa de tomate con fideos, envasada
+ciqual:25934	Sopa de cereales y verduras deshidratada, preparada
+ciqual:25935	Sopa de tomate deshidratada, preparada
+ciqual:25936	Crema de setas deshidratada, preparada
+ciqual:25942	Sopa de cebolla deshidratada, preparada
+ciqual:25945	Crema de calabaza, envasada
+ciqual:25947	Caldo de ave deshidratado, preparado
+ciqual:25948	Caldo de verduras deshidratado, preparado
+ciqual:25949	Sopa de tomate con fideos deshidratada, preparada
+ciqual:25950	Sopa de pollo con fideos deshidratada, preparada
+ciqual:25953	Sopa al pistou, envasada
+ciqual:25954	Crema de calabaza deshidratada, preparada
+ciqual:25955	Sopa asiática con fideos, envasada
+ciqual:25956	Minestrone deshidratado, preparado
+ciqual:25957	Crema de berros deshidratada, preparada
+ciqual:25958	Crema de berros, envasada
+ciqual:25962	Crema de verduras con queso, envasada
+ciqual:25963	Crema de verduras verdes, envasada
+ciqual:25964	Crema de verduras verdes deshidratada, preparada
+ciqual:25965	Crema de guisantes secos, envasada
+ciqual:25967	Gazpacho envasado
+ciqual:25968	Crema de espárragos, envasada
+ciqual:25969	Sopa (media)
+ciqual:25970	Caldo de carne y verduras con grasa, deshidratado
+ciqual:25971	Caldo de carne y verduras desgrasado, deshidratado
+ciqual:25972	Sopa de miso deshidratada, preparada
+ciqual:25995	Caballa a la plancha en conserva, escurrida
+ciqual:25996	Salmón cocinado (media)
+ciqual:25997	Bacalao cocinado (media)
+ciqual:25998	Filete de arenque ahumado
+ciqual:25999	Anchoas enrolladas con alcaparras, escurridas
+ciqual:26000	Filetes de anchoa en aceite, escurridos
+ciqual:26001	Lubina americana cruda
+ciqual:26002	Platija empanada frita
+ciqual:26003	Platija al vapor
+ciqual:26004	Huevas de lompo
+ciqual:26005	Caviar
+ciqual:26006	Abadejo de Alaska crudo
+ciqual:26008	Eglefino al vapor
+ciqual:26009	Fletán del Atlántico crudo
+ciqual:26010	Arenque marinado o rollmops
+ciqual:26011	Arenque crudo
+ciqual:26012	Arenque frito
+ciqual:26013	Arenque ahumado
+ciqual:26014	Arenque a la plancha
+ciqual:26015	Carbonero cocinado
+ciqual:26016	Mendo limón empanado frito
+ciqual:26017	Mendo limón al vapor
+ciqual:26018	Rape crudo
+ciqual:26019	Caballa al horno
+ciqual:26020	Caballa frita
+ciqual:26021	Bacaladilla (merlán) frita
+ciqual:26022	Bacaladilla (merlán) al vapor
+ciqual:26023	Bacalao al horno
+ciqual:26024	Bacalao salado, desalado y cocido
+ciqual:26025	Bacalao al vapor
+ciqual:26026	Mújol al horno
+ciqual:26027	Sardinas en tomate, en conserva, escurridas
+ciqual:26028	Croquetas, buñuelos o nuggets de pescado fritos
+ciqual:26029	Pescado empanado congelado, crudo
+ciqual:26030	Pescado empanado frito
+ciqual:26031	Raya al horno
+ciqual:26033	Pintarroja cocinada
+ciqual:26034	Sardinas en aceite, escurridas
+ciqual:26035	Sardinas en salsa de tomate, escurridas
+ciqual:26036	Salmón de piscifactoría crudo
+ciqual:26037	Salmón ahumado
+ciqual:26038	Salmón al vapor
+ciqual:26039	Atún al natural en conserva, escurrido
+ciqual:26040	Sardinas en aceite de oliva, escurridas
+ciqual:26041	Atún al horno
+ciqual:26042	Rodaballo salvaje crudo
+ciqual:26043	Bacalao crudo
+ciqual:26044	Merluza cruda
+ciqual:26046	Surimi (palitos de cangrejo)
+ciqual:26047	Carbonero congelado crudo
+ciqual:26048	Filete de merluza congelado, crudo
+ciqual:26051	Caballa cruda
+ciqual:26052	Raya cruda
+ciqual:26053	Atún crudo
+ciqual:26054	Pescado en salsa, congelado
+ciqual:26055	Platija cruda
+ciqual:26056	Huevas de bacalao ahumadas
+ciqual:26057	Limanda cruda
+ciqual:26058	Lenguado crudo
+ciqual:26059	Lenguado al vapor
+ciqual:26060	Lenguado al horno
+ciqual:26061	Lenguado cocido
+ciqual:26062	Lenguado frito
+ciqual:26063	Cabracho crudo
+ciqual:26064	Atún de aleta amarilla (rabil) crudo
+ciqual:26065	Sardina cruda
+ciqual:26068	Listado (bonito tropical) crudo
+ciqual:26069	Atún rojo crudo
+ciqual:26072	Lubina cruda
+ciqual:26073	Raya cocida en caldo corto
+ciqual:26074	Pintarroja cruda
+ciqual:26075	Lubina atlántica cruda
+ciqual:26076	Bonito del norte (atún blanco) crudo
+ciqual:26077	Bonito del norte cocido a presión
+ciqual:26079	Boquerón crudo
+ciqual:26080	Dorada salvaje cruda
+ciqual:26081	Rape a la plancha
+ciqual:26082	Pez espada crudo
+ciqual:26083	Eperlano crudo
+ciqual:26084	Gallo (pescado) crudo
+ciqual:26085	Salmonete crudo
+ciqual:26086	Filetes de caballa en tomate, escurridos
+ciqual:26087	Caballa ahumada
+ciqual:26088	Dorada de piscifactoría cruda
+ciqual:26090	Eglefino ahumado
+ciqual:26091	Mújol crudo
+ciqual:26092	Trucha marina cruda
+ciqual:26093	Pez espada al horno
+ciqual:26094	Rodaballo al horno
+ciqual:26095	Bacaladilla (merlán) cruda
+ciqual:26096	Filetes de caballa a la mostaza, escurridos
+ciqual:26097	Filetes de caballa al vino blanco, escurridos
+ciqual:26098	Bacalao salado seco
+ciqual:26099	Chopa cruda
+ciqual:26100	Boga cruda
+ciqual:26101	Bonito crudo
+ciqual:26102	Estornino crudo
+ciqual:26103	Dentón crudo
+ciqual:26104	Pez de San Pedro crudo
+ciqual:26106	Arete (pescado) crudo
+ciqual:26107	Corvallo crudo
+ciqual:26108	Capelán crudo
+ciqual:26109	Besugo crudo
+ciqual:26110	Salmonete al vapor
+ciqual:26111	Salema cruda
+ciqual:26113	Jurel crudo
+ciqual:26119	Salmón en conserva, escurrido
+ciqual:26120	Merluza estofada
+ciqual:26122	Eglefino crudo
+ciqual:26123	Caballa en salmuera, escurrida
+ciqual:26124	Bacaladilla (merlán) empanada
+ciqual:26126	Eglefino a la plancha
+ciqual:26127	Congrio crudo
+ciqual:26128	Granadero crudo
+ciqual:26129	Abadejo crudo
+ciqual:26130	Maruca cruda
+ciqual:26133	Faneca cruda
+ciqual:26134	Carbonero crudo
+ciqual:26135	Mendo limón crudo
+ciqual:26136	Sardinas a la plancha
+ciqual:26140	Pescado cocinado (media)
+ciqual:26141	Hígado de bacalao crudo
+ciqual:26142	Hígado de bacalao en conserva, escurrido
+ciqual:26146	Pargo crudo
+ciqual:26147	Pargo cocinado
+ciqual:26148	Cabracho al vapor
+ciqual:26152	Abadejo de Alaska ahumado
+ciqual:26153	Pez sable crudo
+ciqual:26154	Fletán negro crudo
+ciqual:26157	Jurel caballa (jack) crudo
+ciqual:26159	Chicharro ojón crudo
+ciqual:26161	Salmón salvaje crudo
+ciqual:26162	Tiburón crudo
+ciqual:26166	Aguja (pescado) cruda
+ciqual:26168	Lompo crudo
+ciqual:26170	Brema de río cruda
+ciqual:26171	Salvelino ártico crudo
+ciqual:26172	Perro del norte (pescado lobo) crudo
+ciqual:26173	Espadín crudo
+ciqual:26174	Rodaballo crudo
+ciqual:26175	Corégono crudo
+ciqual:26177	Anchoas en salazón
+ciqual:26178	Mero crudo
+ciqual:26179	Bonito del norte en aceite de oliva, escurrido
+ciqual:26180	Atún entero en aceite de girasol, escurrido
+ciqual:26181	Atún claro en salmuera, escurrido
+ciqual:26186	Caballa marinada
+ciqual:26187	Boquerones en vinagre, envasados
+ciqual:26192	Abadejo cocinado
+ciqual:26194	Maruca azul cruda
+ciqual:26200	Lenguado de cola (tonguesole) crudo
+ciqual:26201	Rodaballo de piscifactoría crudo
+ciqual:26205	Lubina salvaje mediterránea cruda
+ciqual:26206	Lubina de piscifactoría cruda
+ciqual:26208	Rape negro crudo
+ciqual:26210	Gallineta nórdica cruda
+ciqual:26211	Salmón de piscifactoría al microondas
+ciqual:26213	Granadero crudo (media)
+ciqual:26214	Granadero azul crudo
+ciqual:26217	Salmón de piscifactoría cocido
+ciqual:26219	Bejel (rubio) crudo
+ciqual:26222	Chopa al horno
+ciqual:26229	Salmón a la plancha
+ciqual:26230	Salmón de piscifactoría al horno
+ciqual:26231	Filetes de sardina sin espinas en aceite de oliva, escurridos
+ciqual:26232	Arenque ahumado en aceite
+ciqual:26233	Merluza del Cabo cruda
+ciqual:26234	Maruca cocinada
+ciqual:26235	Jurel magro (primavera y verano), crudo
+ciqual:26236	Jurel graso (otoño e invierno), crudo
+ciqual:26237	Arenque magro crudo
+ciqual:26238	Arenque graso crudo
+ciqual:26239	Surimi relleno de queso
+ciqual:26240	Pejerrey (pescadito para freír), crudo
+ciqual:26241	Filete de tintorera sin piel, crudo
+ciqual:26242	Atún desmigado en tomate, escurrido
+ciqual:26243	Atún con tomate en conserva
+ciqual:26244	Filete de salmonete con piel congelado, crudo
+ciqual:26245	Atún desmigado en aceite de girasol, escurrido
+ciqual:26247	Fletán negro al vapor
+ciqual:26248	Lenguado a la parrilla
+ciqual:26249	Pescado blanco sin piel, cocinado
+ciqual:26250	Pescado blanco de mar sin piel, cocinado
+ciqual:26256	Crep de jamón y champiñones con salsa de queso, deshidratada, preparada
+ciqual:26259	Ensalada de col con salsa (coleslaw), envasada
+ciqual:26264	Ñoquis de patata, crudos
+ciqual:26265	Ñoquis de sémola, crudos
+ciqual:26266	Cruasán de jamón y queso, envasado
+ciqual:26267	Tarta de queso de cabra y espinacas, envasada
+ciqual:26268	Empanada de calamar en salsa de tomate picante, envasada
+ciqual:26270	Pizza de atún, envasada
+ciqual:26271	Pizza kebab, envasada
+ciqual:26272	Pizza de pollo, envasada
+ciqual:26273	Pizza de raclette o tartiflette con beicon, envasada
+ciqual:26274	Pizza de jamón curado, envasada
+ciqual:26275	Huevas de salmón
+ciqual:26999	Anguila cocinada (media)
+ciqual:27000	Anguila al horno
+ciqual:27001	Anguila cocida
+ciqual:27002	Lucio al horno
+ciqual:27003	Carpa de piscifactoría cruda
+ciqual:27004	Carpa al horno
+ciqual:27005	Perca al horno
+ciqual:27006	Trucha al horno
+ciqual:27007	Trucha al vapor
+ciqual:27008	Trucha de piscifactoría cruda
+ciqual:27009	Trucha arcoíris de piscifactoría cruda
+ciqual:27010	Perca cruda
+ciqual:27011	Lucio crudo
+ciqual:27012	Esturión crudo
+ciqual:27014	Trucha arcoíris de piscifactoría al horno
+ciqual:27015	Trucha arcoíris de piscifactoría al vapor
+ciqual:27016	Anguila cruda
+ciqual:27017	Pez gato crudo
+ciqual:27018	Filetes de panga cocinados
+ciqual:27019	Tilapia cruda
+ciqual:27021	Trucha asalmonada cruda
+ciqual:27023	Lota cruda
+ciqual:27024	Lucioperca cruda
+ciqual:27025	Perca del Nilo cruda
+ciqual:27029	Trucha de piscifactoría ahumada
+ciqual:27030	Lubina al horno
+ciqual:27031	Dorada al horno
+ciqual:28001	Paleta de cerdo cruda
+ciqual:28002	Panceta de cerdo cruda
+ciqual:28003	Lomo de cerdo crudo
+ciqual:28004	Codillo de cerdo crudo
+ciqual:28007	Lomo de cerdo cocinado
+ciqual:28009	Paleta de cerdo cruda
+ciqual:28010	Paleta de cerdo cocinada
+ciqual:28100	Chuleta de cerdo cruda
+ciqual:28101	Chuleta de cerdo a la parrilla
+ciqual:28102	Filete de pierna de cerdo, crudo
+ciqual:28103	Filete de pierna de cerdo, cocinado
+ciqual:28104	Costillar de cerdo crudo
+ciqual:28105	Costillar de cerdo cocinado
+ciqual:28201	Solomillo de cerdo magro, crudo
+ciqual:28202	Solomillo de cerdo asado
+ciqual:28203	Solomillo de cerdo (filet mignon), cocinado
+ciqual:28204	Solomillo de cerdo (filet mignon), crudo
+ciqual:28205	Carne de cerdo cocinada (media)
+ciqual:28300	Asado de cerdo crudo
+ciqual:28301	Asado de cerdo cocinado
+ciqual:28302	Lomo de cerdo crudo
+ciqual:28400	Costillas de cerdo crudas
+ciqual:28401	Costillas de cerdo estofadas
+ciqual:28451	Lomo de cerdo asado al horno
+ciqual:28460	Escalope de jamón fresco de cerdo, crudo
+ciqual:28461	Escalope de jamón fresco de cerdo, cocinado
+ciqual:28470	Tocino de lomo sin corteza, crudo
+ciqual:28471	Papada de cerdo sin corteza, cruda
+ciqual:28472	Paleta de cerdo (parte baja) limpia, cruda
+ciqual:28473	Pierna de cerdo limpia, cruda
+ciqual:28474	Contra de jamón fresco limpia, cruda
+ciqual:28475	Recortes de cerdo 90/10, crudos
+ciqual:28476	Recortes de cerdo 80/20, crudos
+ciqual:28477	Paleta de cerdo (parte alta) limpia, cruda
+ciqual:28479	Panceta de cerdo sin falda, cruda
+ciqual:28480	Cinta de lomo de cerdo, cruda
+ciqual:28501	Taquitos de beicon (lardones), crudos
+ciqual:28502	Panceta ahumada cruda
+ciqual:28503	Bresaola
+ciqual:28504	Taquitos de beicon (lardones), cocinados
+ciqual:28505	Corned beef en conserva
+ciqual:28530	Oreja de cerdo en salazón
+ciqual:28540	Manitas de cerdo en salazón
+ciqual:28550	Panceta en salazón
+ciqual:28700	Jamón fresco de cerdo para cocinar o asar
+ciqual:28720	Taquitos de beicon ahumado, crudos
+ciqual:28725	Taquitos de beicon ahumado, cocinados
+ciqual:28727	Bacon de lomo
+ciqual:28800	Jamón curado
+ciqual:28801	Jamón curado ahumado
+ciqual:28802	Jamón serrano sin grasa ni corteza
+ciqual:28803	Jamón cocido ahumado
+ciqual:28804	Jamón curado ahumado bajo en grasa
+ciqual:28811	Jamón de Bayona
+ciqual:28812	Jamón serrano
+ciqual:28844	Jamón de Parma
+ciqual:28845	Jamón serrano
+ciqual:28850	Coppa
+ciqual:28858	Panceta curada
+ciqual:28860	Cecina de los Grisones (carne de ternera seca)
+ciqual:28900	Jamón cocido extra
+ciqual:28901	Jamón cocido extra con corteza
+ciqual:28902	Jamón cocido extra sin corteza
+ciqual:28905	Jamón braseado con hueso
+ciqual:28906	Jamón cocido extra sin corteza ni grasa
+ciqual:28907	Jamón cocido extra reducido en sal
+ciqual:28910	Jamón cocido de primera
+ciqual:28911	Paleta cocida de primera
+ciqual:28912	Jamón cocido de primera con corteza
+ciqual:28913	Jamón cocido de primera sin corteza ni grasa
+ciqual:28917	Contra de jamón cocida
+ciqual:28922	Jamón en taquitos, rallado o picado
+ciqual:28924	Paleta cocida estándar sin corteza ni grasa
+ciqual:28925	Jamón cocido estilo París sin corteza ni grasa
+ciqual:28927	Carne picada de ave
+ciqual:28929	Fiambre de ave en taquitos o picado
+ciqual:28960	Codillo de jamón cocido
+ciqual:28963	Fiambre de pollo en lonchas
+ciqual:28964	Fiambre de pavo en lonchas
+ciqual:28976	Ave asada curada, cocinada
+ciqual:29209	Bebida de soja con zumo de frutas, envasada
+ciqual:30005	Salchicha chipolata cocinada
+ciqual:30011	Salchicha de Toulouse cocinada
+ciqual:30050	Carne de salchicha cruda
+ciqual:30051	Carne de salchicha pura de cerdo, cruda
+ciqual:30052	Carne de salchicha de cerdo y ternera, cruda
+ciqual:30104	Salchicha de Morteau
+ciqual:30105	Salchicha de Montbéliard
+ciqual:30108	Salchicha de Morteau cocida
+ciqual:30110	Salchicha de Toulouse cruda
+ciqual:30115	Salchicha chipolata fina, cruda
+ciqual:30130	Salchicha de ave de charcutería
+ciqual:30131	Salchicha de ave
+ciqual:30134	Salchicha de Frankfurt
+ciqual:30150	Merguez cruda
+ciqual:30155	Merguez de ternera y cordero, cocinada
+ciqual:30156	Merguez de ternera y cordero, cruda
+ciqual:30176	Embutido de hígado
+ciqual:30181	Picada de soja
+ciqual:30300	Salchichón
+ciqual:30301	Salchichón puro de cerdo
+ciqual:30302	Salchichón puro de cerdo extra
+ciqual:30304	Salchichón rosette
+ciqual:30309	Salchicha seca
+ciqual:30311	Salchichón con nueces o avellanas
+ciqual:30315	Chorizo
+ciqual:30316	Chorizo curado
+ciqual:30317	Chorizo en lonchas grandes (tipo sarta)
+ciqual:30350	Salami
+ciqual:30351	Salami puro de cerdo
+ciqual:30352	Salami de cerdo y ternera
+ciqual:30366	Salami danés
+ciqual:30700	Salchicha al ajo
+ciqual:30701	Salchicha cocida pura de cerdo
+ciqual:30705	Salchicha de París
+ciqual:30706	Salchicha de París ahumada
+ciqual:30707	Salchicha en brioche, cocinada
+ciqual:30730	Cervelat (salchicha cocida)
+ciqual:30731	Cervelat de Obernai (Alsacia)
+ciqual:30732	Cervelat puro de cerdo con ajo
+ciqual:30742	Salchicha de Estrasburgo
+ciqual:30746	Salchichas cóctel
+ciqual:30764	Salchicha de jamón
+ciqual:30780	Salchicha (media)
+ciqual:30789	Mortadela
+ciqual:30790	Mortadela pura de cerdo
+ciqual:30791	Mortadela de cerdo y ternera
+ciqual:30797	Mortadela con pistachos pura de cerdo
+ciqual:30900	Embutidos y fiambres (media)
+ciqual:30999	Mermelada (media)
+ciqual:31000	Barrita de chocolate con galleta
+ciqual:31001	Barrita cubierta de chocolate sin galleta
+ciqual:31002	Barrita de coco cubierta de chocolate
+ciqual:31004	Tableta de chocolate con leche
+ciqual:31006	Mermelada o confitura (media)
+ciqual:31007	Chicle con azúcar
+ciqual:31012	Chocolatina con relleno lácteo
+ciqual:31014	Gominola de fruta (pâte de fruit)
+ciqual:31020	Chocolate con leche sin azúcar con edulcorantes
+ciqual:31023	Castaña glaseada (marron glacé)
+ciqual:31024	Mermelada de fresa
+ciqual:31027	Fruta confitada
+ciqual:31030	Chocolate negro sin azúcar con edulcorantes
+ciqual:31035	Helado cubierto de chocolate
+ciqual:31037	Mermelada de albaricoque
+ciqual:31039	Mermelada de naranja amarga
+ciqual:31041	Grageas de chocolate (tipo lacasitos)
+ciqual:31042	Cacahuetes con chocolate y azúcar
+ciqual:31047	Gelificante para mermelada
+ciqual:31054	Chicle sin azúcar
+ciqual:31068	Mermelada de arándanos
+ciqual:31070	Chocolate negro con frutos secos o pasas
+ciqual:31071	Tableta de chocolate con frutos secos
+ciqual:31074	Chocolate negro más de 70 % cacao
+ciqual:31087	Edulcorante de estevia
+ciqual:31092	Turrón de melón y almendra sobre oblea
+ciqual:31095	Jalea de grosella roja
+ciqual:31098	Toblerone (chocolate con leche y turrón)
+ciqual:31100	Barrita de cereales con leche, enriquecida
+ciqual:31101	Barrita de cereales con fruta, enriquecida
+ciqual:31102	Barrita de cereales con chocolate, enriquecida
+ciqual:31104	Barrita de cereales baja en calorías
+ciqual:31106	Barrita de cereales con chocolate
+ciqual:31109	Polen parcialmente seco
+ciqual:31110	Mermelada baja en azúcar
+ciqual:31111	Polen fresco
+ciqual:31113	Barrita de cereales con fruta
+ciqual:31114	Barrita de cereales con almendra o avellana
+ciqual:31120	Barrita de chocolate
+ciqual:31121	Chicle (media)
+ciqual:32000	Cereales de trigo inflado con miel o caramelo, enriquecidos
+ciqual:32001	Cereales de desayuno con chocolate, sin relleno, enriquecidos
+ciqual:32002	Cereales de desayuno ricos en fibra, enriquecidos
+ciqual:32003	Cereales de desayuno azucarados (media)
+ciqual:32004	Muesli (media)
+ciqual:32005	Copos de maíz naturales, enriquecidos
+ciqual:32006	Arroz inflado de desayuno, enriquecido
+ciqual:32008	Cereales ricos en fibra con chocolate, enriquecidos
+ciqual:32009	Copos de trigo con chocolate, enriquecidos
+ciqual:32011	Copos de trigo con chocolate, sin enriquecer
+ciqual:32012	Arroz inflado con chocolate, sin enriquecer
+ciqual:32013	Cereales con chocolate, sin relleno, sin enriquecer
+ciqual:32014	Copos de maíz naturales, sin enriquecer
+ciqual:32016	Cereales rellenos de chocolate o crema de avellana, enriquecidos
+ciqual:32017	Cereales rellenos de chocolate o crema de avellana
+ciqual:32018	Cereales rellenos (no de chocolate), enriquecidos
+ciqual:32021	Cereales dietéticos naturales o con miel, enriquecidos
+ciqual:32022	Cereales dietéticos con chocolate, enriquecidos
+ciqual:32023	Cereales dietéticos con fruta, enriquecidos
+ciqual:32025	Cereales dietéticos con frutos secos, enriquecidos
+ciqual:32028	Cereales dietéticos con chocolate, sin enriquecer
+ciqual:32029	Cereales dietéticos con fruta, sin enriquecer
+ciqual:32030	Cereales dietéticos naturales, sin enriquecer
+ciqual:32031	Cereales de desayuno azucarados enriquecidos (media)
+ciqual:32032	Cereales de desayuno azucarados sin enriquecer (media)
+ciqual:32107	Copos de maíz azucarados, sin enriquecer
+ciqual:32108	Muesli crujiente con fruta y semillas, sin enriquecer
+ciqual:32109	Muesli crujiente con chocolate, sin enriquecer
+ciqual:32110	Muesli de copos (tipo Bircher) con fruta, enriquecido
+ciqual:32111	Muesli crujiente con fruta, enriquecido
+ciqual:32112	Muesli crujiente con chocolate, enriquecido
+ciqual:32113	Muesli de copos (tipo Bircher) con fruta, sin azúcar
+ciqual:32115	Trigo inflado con chocolate, enriquecido
+ciqual:32116	Cereales muy ricos en fibra, enriquecidos
+ciqual:32121	Copos de maíz azucarados, enriquecidos
+ciqual:32123	Copos de trigo con nueces, avellanas o almendras, enriquecidos
+ciqual:32128	Muesli de copos (tipo Bircher)
+ciqual:32129	Maíz inflado con miel, sin enriquecer
+ciqual:32130	Trigo khorasan integral inflado
+ciqual:32131	Arroz inflado con chocolate, enriquecido
+ciqual:32133	Maíz inflado con miel, enriquecido
+ciqual:32134	Cereales integrales inflados, enriquecidos
+ciqual:32135	Mezcla de cereales inflados o extrusionados, enriquecida
+ciqual:32138	Muesli de copos (tipo Bircher) con fruta, sin enriquecer
+ciqual:32139	Muesli de copos enriquecido (media)
+ciqual:32140	Copos de avena precocidos, crudos
+ciqual:32141	Muesli de copos sin enriquecer (media)
+ciqual:34000	Conejo estofado
+ciqual:34001	Conejo crudo
+ciqual:34002	Conejo cocinado
+ciqual:34003	Conejo de monte crudo
+ciqual:34004	Conejo de monte cocinado
+ciqual:34500	Ancas de rana crudas
+ciqual:36000	Gallina con piel, cruda
+ciqual:36001	Gallina sin piel, cruda
+ciqual:36002	Muslo de pollo con piel, crudo
+ciqual:36003	Carne de pollo cruda
+ciqual:36004	Muslo de pollo con piel, asado
+ciqual:36005	Pollo con piel, asado
+ciqual:36006	Muslo de pollo sin piel, asado
+ciqual:36007	Pollo de raza blanca con piel, crudo
+ciqual:36008	Pollo de corral con piel, crudo
+ciqual:36014	Muslo de gallina para guisar, crudo
+ciqual:36016	Pollo con piel, crudo
+ciqual:36017	Pechuga de pollo sin piel, cruda
+ciqual:36018	Pechuga de pollo sin piel, cocinada
+ciqual:36019	Contramuslo de pollo, crudo
+ciqual:36020	Pollo eviscerado sin menudillos, crudo
+ciqual:36022	Jamoncito de pollo, crudo
+ciqual:36023	Alitas de pollo con piel, crudas
+ciqual:36024	Muslo de pollo sin piel, crudo
+ciqual:36027	Nuggets de pollo empanados
+ciqual:36029	Pechuga de pollo con piel, cruda
+ciqual:36030	Muslo de pollo sin piel, cocido
+ciqual:36031	Muslo de pollo con piel, cocido
+ciqual:36032	Pechuga de pollo con piel, asada
+ciqual:36033	Alitas de pollo con piel, asadas
+ciqual:36035	Alitas de pollo marinadas, asadas
+ciqual:36036	Escalope de pavo empanado
+ciqual:36037	Muslo de pollo con piel, crudo, ecológico
+ciqual:36038	Muslo de pollo con piel, crudo, label rouge
+ciqual:36039	Pechuga de pollo sin piel, cruda, ecológica
+ciqual:36040	Pechuga de pollo sin piel, cruda, label rouge
+ciqual:36041	Pechuga de pollo sin piel, cocinada, ecológica
+ciqual:36050	Capón con piel, crudo
+ciqual:36051	Capón con piel, asado
+ciqual:36100	Codorniz con piel, cruda
+ciqual:36101	Codorniz sin piel, cruda
+ciqual:36102	Codorniz con piel, cocinada
+ciqual:36200	Pato con piel, asado
+ciqual:36201	Carne de pato, cruda
+ciqual:36202	Carne de pato, asada
+ciqual:36203	Muslo de pato con piel, crudo
+ciqual:36204	Pato con piel, crudo
+ciqual:36205	Magret de pato a la sartén
+ciqual:36206	Pechuga de pato (magret)
+ciqual:36300	Pavo con piel, crudo
+ciqual:36301	Carne de pavo, cruda
+ciqual:36302	Carne de pavo, asada
+ciqual:36304	Escalope de pavo, crudo
+ciqual:36305	Muslo de pavo con piel, crudo
+ciqual:36306	Escalope de pavo a la plancha con sal
+ciqual:36307	Muslo de pavo sin piel, crudo
+ciqual:36308	Escalope de pavo al horno
+ciqual:36310	Ala de pavo, cruda
+ciqual:36318	Escalope de pavo a la milanesa (empanado)
+ciqual:36401	Carne de faisán, cruda
+ciqual:36402	Carne de faisán, asada
+ciqual:36403	Faisán con piel, crudo
+ciqual:36500	Carne de oca, cruda
+ciqual:36501	Oca con piel, cruda
+ciqual:36502	Carne de oca, asada
+ciqual:36503	Oca con piel, asada
+ciqual:36600	Pichón crudo
+ciqual:36602	Pichón asado
+ciqual:36603	Caza de pluma cocinada (media)
+ciqual:36700	Pintada cruda
+ciqual:36702	Pechuga de pintada, cruda
+ciqual:36703	Muslo de pintada, crudo
+ciqual:36800	Carne de avestruz, cruda
+ciqual:36801	Carne de avestruz, cocinada
+ciqual:36900	Ave cocinada (media)
+ciqual:37000	Salsa de nata para base de pizza
+ciqual:37001	Base de pizza, cruda
+ciqual:37002	Salsa de tomate para base de pizza
+ciqual:38104	Chips de gamba (pan de gambas)
+ciqual:38105	Nachos o chips de maíz
+ciqual:38106	Snacks inflados de patata
+ciqual:38107	Mini pretzels o palitos salados
+ciqual:38108	Snacks inflados de patata y soja
+ciqual:38399	Snacks salados
+ciqual:38400	Snacks inflados de maíz, sin cacahuete
+ciqual:38401	Galletitas saladas rellenas o cubiertas de queso
+ciqual:38402	Galletitas saladas naturales
+ciqual:38403	Galletitas saladas bajas en grasa
+ciqual:38404	Snacks inflados de maíz con cacahuete
+ciqual:38405	Snacks salados de patata
+ciqual:38406	Cacahuetes recubiertos (tipo japonés)
+ciqual:38407	Snacks salados de hojaldre
+ciqual:38408	Crep crujiente de queso, envasada
+ciqual:38500	Picatostes con ajo, hierbas o cebolla, envasados
+ciqual:39001	Batido de comida rápida
+ciqual:39200	Natillas de chocolate, refrigeradas
+ciqual:39206	Mousse de chocolate (con leche), refrigerada
+ciqual:39209	Crema con caramelo, refrigerada
+ciqual:39210	Mousse de chocolate, envasada
+ciqual:39211	Crema de huevo (tarrito de chocolate, vainilla u otro sabor), refrigerada
+ciqual:39212	Arroz con leche, refrigerado
+ciqual:39213	Crema catalana (crème brûlée), refrigerada
+ciqual:39214	Natillas de vainilla en conserva
+ciqual:39215	Isla flotante, refrigerada
+ciqual:39216	Clafoutis de frutas, envasado
+ciqual:39218	Sémola con leche, refrigerada
+ciqual:39220	Copa de frutas liejesa, envasada
+ciqual:39228	Mousse de frutas, refrigerada
+ciqual:39229	Natillas de vainilla, refrigeradas
+ciqual:39230	Natillas refrigeradas (media)
+ciqual:39232	Pastel de arroz con leche, en conserva
+ciqual:39234	Coulant de chocolate, envasado (refrigerado)
+ciqual:39235	Mousse con nata montada (chocolate, café, caramelo o vainilla), refrigerada
+ciqual:39236	Torrija
+ciqual:39246	Natillas de café, refrigeradas
+ciqual:39247	Natillas de caramelo, refrigeradas
+ciqual:39248	Mousse de chocolate vegetal, envasada
+ciqual:39400	Ponche de huevo sin alcohol
+ciqual:39401	Melocotón melba (con helado de vainilla y frambuesa)
+ciqual:39502	Tarta helada con merengue (tipo vacherin)
+ciqual:39503	Polo de helado con cobertura de chocolate
+ciqual:39505	Natillas en conserva (media)
+ciqual:39506	Natillas de chocolate en conserva
+ciqual:39511	Natillas refrigeradas o en conserva (media)
+ciqual:39512	Copa de helado tipo sundae
+ciqual:39516	Tarta helada de hojaldre para compartir
+ciqual:39518	Tarta Alaska (omelette norvégienne)
+ciqual:39519	Pera Bella Helena (con helado de vainilla y chocolate)
+ciqual:39529	Nougat glacé (turrón helado)
+ciqual:39530	Limón o naranja helados (sorbete)
+ciqual:39532	Copa de helado de café o chocolate con nata
+ciqual:39533	Tronco helado
+ciqual:39534	Copa de helado tipo melba o Bella Helena
+ciqual:39700	Crema ligera de vainilla, envasada
+ciqual:39710	Crema pastelera
+ciqual:40002	Sesos de cordero, crudos
+ciqual:40003	Sesos de cordero, cocinados
+ciqual:40004	Sesos de cerdo, estofados
+ciqual:40005	Sesos de cerdo, crudos
+ciqual:40006	Sesos de ternera, crudos
+ciqual:40007	Sesos de ternera, cocinados
+ciqual:40052	Corazón de vaca, crudo
+ciqual:40053	Corazón de vaca, cocinado
+ciqual:40054	Corazón de pollo, crudo
+ciqual:40055	Corazón de pavo, crudo
+ciqual:40056	Corazón de pollo, cocinado
+ciqual:40057	Corazón de pavo, cocinado
+ciqual:40058	Corazón de cordero, crudo
+ciqual:40059	Corazón de cordero, cocinado
+ciqual:40060	Corazón de cerdo, crudo
+ciqual:40062	Corazón de ternera, crudo
+ciqual:40102	Hígado de cordero, crudo
+ciqual:40103	Hígado de cordero, cocinado
+ciqual:40104	Hígado de vaca joven, crudo
+ciqual:40105	Hígado de vaca joven, cocinado
+ciqual:40106	Hígado de ternera, crudo
+ciqual:40107	Hígado de ternera, cocinado
+ciqual:40108	Hígado de ave, crudo
+ciqual:40109	Hígado de ave, cocinado
+ciqual:40110	Hígado de conejo, crudo
+ciqual:40111	Hígado de pollo, crudo
+ciqual:40113	Hígado de cerdo, cocinado
+ciqual:40115	Hígado de pavo, crudo
+ciqual:40116	Hígado de pollo, cocinado
+ciqual:40118	Hígado de pavo, cocinado
+ciqual:40119	Hígado de cerdo, crudo
+ciqual:40120	Hígado de oca, crudo
+ciqual:40121	Hígado de pato, crudo
+ciqual:40201	Lengua de ternera, cocinada
+ciqual:40202	Lengua de vaca, cruda
+ciqual:40203	Lengua de vaca, cocinada
+ciqual:40204	Lengua de ternera, cruda
+ciqual:40205	Lengua de cerdo, cruda
+ciqual:40207	Lengua de cordero, cruda
+ciqual:40302	Mollejas de cordero, crudas
+ciqual:40303	Mollejas de cordero, cocinadas
+ciqual:40304	Mollejas de ternera, crudas
+ciqual:40305	Mollejas de ternera salteadas
+ciqual:40401	Riñones cocinados (media)
+ciqual:40402	Riñón de vaca, crudo
+ciqual:40403	Riñón de vaca, cocinado
+ciqual:40404	Riñón de cerdo, crudo
+ciqual:40405	Riñón de cerdo, cocinado
+ciqual:40406	Riñones de cordero estofados
+ciqual:40407	Riñones de cordero, crudos
+ciqual:40408	Riñones de ternera salteados
+ciqual:40409	Riñón de ternera, crudo
+ciqual:40502	Callos de ternera, crudos
+ciqual:40600	Sangre de vaca, cruda
+ciqual:40601	Casquería cocinada (media)
+ciqual:40700	Mollejas de pollo (molleja de ave), crudas
+ciqual:40701	Mollejas de pato en conserva
+ciqual:42000	Sustitutivo de comida bajo en calorías, tipo natillas
+ciqual:42003	Sustitutivo de comida bajo en calorías, listo para beber
+ciqual:42004	Sustitutivo de comida en polvo con leche desnatada
+ciqual:42005	Sustitutivo de comida en polvo con leche desnatada, tipo batido
+ciqual:42200	Lecitina de soja
+ciqual:51500	Molojía en polvo (hojas de yute secas)
+ciqual:51510	Frik (trigo verde partido), crudo
+ciqual:51511	Frik (trigo verde partido), cocido, sin sal
+ciqual:51550	Masa filo (khatfa), envasada
+ciqual:53101	Plátano macho cocido
+ciqual:53200	Taro crudo
+ciqual:53201	Taro cocido
+ciqual:53502	Ñame pelado, crudo
+ciqual:53503	Ñame pelado, cocido
+ciqual:54031	Yuca cruda
+ciqual:54034	Yuca cocida
+ciqual:54500	Fruta del pan cruda
+ciqual:96778	Base de pizza horneada
+ciqual:96781	Almidón de arroz

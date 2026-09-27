@@ -104,7 +104,8 @@ class FoodsTest {
     @Test
     fun matchesEveryWordAtTheStartOfAWordInAnyLanguage() {
         assertThat(ids("yogur griego")).containsExactly("usda:1")
-        assertThat(ids("platano")).containsExactly("usda:3")
+        // «platano» also finds «Banana» through the Spanish synonyms.
+        assertThat(ids("platano")).containsExactly("usda:3", "ciqual:4").inOrder()
         assertThat(ids("joghurt")).containsExactly("ch:2")
         assertThat(ids("gurt")).isEmpty()
         assertThat(ids("   ")).isEmpty()
@@ -122,4 +123,39 @@ class FoodsTest {
         assertThat(ids("ban")).containsExactly("usda:3", "ciqual:4").inOrder()
         assertThat(searchGenericFoods(foods, "ban", FoodLang.ES, 1)).hasSize(1)
     }
+
+    // --- Spanish first: plurals and synonyms ---
+
+    @Test
+    fun expandsAQueryWordWithItsSingularAndSynonyms() {
+        assertThat(queryAlternatives("fresas")).containsExactly("fresas", "fresa", "frutilla").inOrder()
+        assertThat(queryAlternatives("limones")).containsExactly("limones", "limon", "limone").inOrder()
+        assertThat(queryAlternatives("papa")).containsExactly("papa", "patata").inOrder()
+        assertThat(queryAlternatives("pollo")).containsExactly("pollo")
+    }
+
+    @Test
+    fun findsPatataForPapasCocidasAndPlatanoForBanana() {
+        val list = listOf(
+            GenericFood("a", "ch", linkedMapOf(FoodLang.ES to "Patata cocida", FoodLang.EN to "Potato, boiled"), Per100g(77.0, 2.0, 17.0, 0.1)),
+            GenericFood("b", "ch", linkedMapOf(FoodLang.ES to "Papaya", FoodLang.EN to "Papaya"), Per100g(43.0, 0.5, 11.0, 0.3)),
+            GenericFood("c", "ch", linkedMapOf(FoodLang.ES to "Plátano", FoodLang.EN to "Banana"), Per100g(89.0, 1.1, 23.0, 0.3)),
+        )
+        fun ids(query: String) = searchGenericFoods(list, query, FoodLang.ES).map { it.food.id }
+        assertThat(ids("papas cocidas")).containsExactly("a")
+        assertThat(ids("jugo")).isEmpty()
+        assertThat(searchGenericFoods(list, "banana", FoodLang.ES).map { it.name }).containsExactly("Plátano")
+    }
+
+    // --- parseGenericIndex ---
+
+    @Test
+    fun readsTheBundledIndexAndSkipsBrokenEntries() {
+        val index = json("""{"version":1,"foods":[{"id":"ch:1","s":"ch","n":{"es":"Manzana","en":"Apple, fresh","xx":"?"},"v":[52,0.3,11.4,0.2]},{"id":"ch:2","s":"ch","n":{},"v":[1,2,3,4]},{"id":"ch:3","n":{"es":"Sin valores"}}]}""")
+        assertThat(parseGenericIndex(index)).containsExactly(
+            GenericFood("ch:1", "ch", linkedMapOf(FoodLang.ES to "Manzana", FoodLang.EN to "Apple, fresh"), Per100g(52.0, 0.3, 11.4, 0.2)),
+        )
+        assertThat(parseGenericIndex(json("""{"nope":1}"""))).isEmpty()
+    }
 }
+

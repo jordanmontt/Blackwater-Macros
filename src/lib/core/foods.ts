@@ -161,10 +161,73 @@ export function parseOffSearch(json: unknown): FoodProduct[] {
 const WORD_SPLIT = /[^a-z0-9]+/;
 
 /**
+ * Words that mean the same food in Spain and Latin America (normalized: no
+ * accents, lowercase). The bundled names use the Spain variant; a query with
+ * any word of a group also matches the others.
+ */
+export const SPANISH_SYNONYMS: string[][] = [
+  ["platano", "banana", "banano", "cambur"],
+  ["patata", "papa"],
+  ["alubia", "judia", "frijol", "poroto", "habichuela"],
+  ["melocoton", "durazno"],
+  ["zumo", "jugo"],
+  ["maiz", "choclo", "elote"],
+  ["gamba", "camaron", "langostino"],
+  ["cacahuete", "cacahuate", "mani"],
+  ["aguacate", "palta"],
+  ["fresa", "frutilla"],
+  ["guisante", "arveja", "chicharo"],
+  ["calabacin", "zapallito", "calabacita"],
+  ["pimiento", "morron"],
+  ["albaricoque", "damasco", "chabacano"],
+  ["pina", "anana"],
+  ["bacon", "beicon", "tocino", "tocineta"],
+  ["boniato", "batata", "camote"],
+  ["remolacha", "betabel", "betarraga"],
+  ["col", "repollo"],
+  ["cerdo", "puerco", "chancho"],
+  ["ternera", "res", "vacuno", "vaca"],
+  ["magdalena", "muffin"],
+  ["pomelo", "toronja"],
+  ["sandia", "patilla"],
+  ["champinon", "hongo", "seta"],
+  ["tomate", "jitomate"],
+  ["refresco", "gaseosa", "soda"],
+  ["yogur", "yogurt", "yoghurt"],
+  ["galleta", "galletita"],
+  ["yuca", "mandioca"],
+  ["pavo", "guajolote"],
+  ["aceituna", "oliva"],
+  ["cereza", "guinda"],
+  ["nata", "crema"],
+];
+
+const SYNONYMS_BY_WORD = new Map<string, string[]>();
+for (const group of SPANISH_SYNONYMS) for (const word of group) SYNONYMS_BY_WORD.set(word, group);
+
+/**
+ * What a query word may match: itself, its singular («fresas» → «fresa»,
+ * «limones» → «limon») and the synonyms of either.
+ */
+export function queryAlternatives(token: string): string[] {
+  const forms = [token];
+  if (token.length >= 5 && token.endsWith("es")) forms.push(token.slice(0, -2));
+  if (token.length >= 4 && token.endsWith("s")) forms.push(token.slice(0, -1));
+  const result = new Set<string>();
+  for (const form of forms) {
+    result.add(form);
+    for (const synonym of SYNONYMS_BY_WORD.get(form) ?? []) result.add(synonym);
+  }
+  return [...result];
+}
+
+
+/**
  * Searches the bundled generic foods in every language they have, ignoring case
- * and accents. Every word of the query must start a word of the name. Best
- * first: exact name, then names that start with the query, then the rest; names
- * in the app language win ties, then shorter names.
+ * and accents. Every word of the query (or its singular or a Spanish synonym,
+ * see `queryAlternatives`) must start a word of the name. Best first: exact
+ * name, then names that start with the query, then the rest; names in the app
+ * language win ties, then shorter names.
  */
 export function searchGenericFoods(
   foods: GenericFood[],
@@ -173,7 +236,7 @@ export function searchGenericFoods(
   limit = 20,
 ): GenericFoodMatch[] {
   const normalizedQuery = normalizeText(query);
-  const tokens = normalizedQuery.split(WORD_SPLIT).filter(Boolean);
+  const tokens = normalizedQuery.split(WORD_SPLIT).filter(Boolean).map(queryAlternatives);
   if (tokens.length === 0) return [];
 
   const scored: { match: GenericFoodMatch; score: number; length: number }[] = [];
@@ -183,7 +246,7 @@ export function searchGenericFoods(
       if (!name) continue;
       const normalizedName = normalizeText(name);
       const words = normalizedName.split(WORD_SPLIT).filter(Boolean);
-      if (!tokens.every((token) => words.some((word) => word.startsWith(token)))) continue;
+      if (!tokens.every((alternatives) => words.some((word) => alternatives.some((alt) => word.startsWith(alt))))) continue;
       const base = normalizedName === normalizedQuery ? 0 : normalizedName.startsWith(normalizedQuery) ? 1 : 2;
       const score = base * 2 + (nameLang === lang ? 0 : 1);
       if (best === null || score < best) best = score;
@@ -201,3 +264,30 @@ export function searchGenericFoods(
   );
   return scored.slice(0, limit).map((entry) => entry.match);
 }
+
+/**
+ * The bundled index (`public/foods/generic.json`, Android `assets/foods/generic.json`,
+ * built by `scripts/foods/build_generic_index.py`):
+ * `{ foods: [{ id, s: source, n: { es, en, fr, … }, v: [kcal, protein, carbs, fat] }] }`.
+ */
+export function parseGenericIndex(json: unknown): GenericFood[] {
+  const index = asRecord(json);
+  if (!index || !Array.isArray(index.foods)) return [];
+  const foods: GenericFood[] = [];
+  for (const entry of index.foods) {
+    const food = asRecord(entry);
+    const names = asRecord(food?.n);
+    const values = food?.v;
+    if (!food || !names || !Array.isArray(values) || values.length < 4) continue;
+    const [calories, protein, carbs, fat] = values.map((value) => toNumber(value) ?? 0);
+    const parsedNames: Partial<Record<FoodLang, string>> = {};
+    for (const [lang, name] of Object.entries(names)) {
+      const text = toText(name);
+      if (text && (lang === "es" || lang === "en" || lang === "fr" || lang === "de" || lang === "it")) parsedNames[lang] = text;
+    }
+    if (Object.keys(parsedNames).length === 0) continue;
+    foods.push({ id: String(food.id), source: String(food.s ?? ""), names: parsedNames, per100g: { calories, protein, carbs, fat } });
+  }
+  return foods;
+}
+
