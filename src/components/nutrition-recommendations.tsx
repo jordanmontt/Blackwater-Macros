@@ -173,7 +173,7 @@ export function NutritionRecommendationsCard({
     <Card>
       <CardContent className="grid gap-4 px-4 pb-4 sm:grid-cols-2">
         {calorieRec ? (
-          <section className="space-y-2.5">
+          <section className="flex flex-col gap-2.5">
             <div className="flex items-center gap-1.5 text-sm font-medium">
               <FlameIcon className="size-4" /> {t.calorias.recommendationTitle}
               <span className="text-xs font-normal text-muted-foreground">
@@ -193,31 +193,36 @@ export function NutritionRecommendationsCard({
             {/* Where the target comes from (same breakdown as Ajustes → Perfil). */}
             <div className="space-y-0.5 text-xs text-muted-foreground">
               <p>
-                {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)} {t.calorias.perDay}
+                {t.calorias.bmr}:{" "}
+                <span className="whitespace-nowrap">{formatNumberEs(calorieRec.bmr)} {t.calorias.perDay}</span>
               </p>
               <p>
-                {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)} {t.calorias.perDay}
+                {t.calorias.tdee}:{" "}
+                <span className="whitespace-nowrap">{formatNumberEs(calorieRec.tdee)} {t.calorias.perDay}</span>
               </p>
             </div>
-            <IntakeBar
-              current={dailyCalories}
-              rangeMin={calorieRec.targetMin}
-              rangeMax={calorieRec.targetMax}
-              unit={t.hoy.kcalUnit}
-              {...intakeStatus(
-                dailyCalories,
-                calorieRec.targetMin,
-                calorieRec.targetMax,
-                t.calorias.missingCalories,
-                t.calorias.exceededCalories,
-                t.calorias.inRange,
-              )}
-            />
+            {/* mt-auto: both columns' bars sit at the bottom, aligned side by side on desktop. */}
+            <div className="mt-auto pt-1">
+              <IntakeBar
+                current={dailyCalories}
+                rangeMin={calorieRec.targetMin}
+                rangeMax={calorieRec.targetMax}
+                unit={t.hoy.kcalUnit}
+                {...intakeStatus(
+                  dailyCalories,
+                  calorieRec.targetMin,
+                  calorieRec.targetMax,
+                  t.calorias.missingCalories,
+                  t.calorias.exceededCalories,
+                  t.calorias.inRange,
+                )}
+              />
+            </div>
           </section>
         ) : null}
 
         {proteinRec ? (
-          <section className="space-y-2.5">
+          <section className="flex flex-col gap-2.5">
             <div className="flex items-center gap-1.5 text-sm font-medium">
               <DumbbellIcon className="size-4" /> {t.protein.recommendationTitle}
               <span className="text-xs font-normal text-muted-foreground">
@@ -229,28 +234,30 @@ export function NutritionRecommendationsCard({
               <span className="text-sm font-normal text-muted-foreground">g/día</span>
             </p>
             <p className="text-xs text-muted-foreground">
+              {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} g/día
+            </p>
+            <p className="text-xs text-muted-foreground">
               {formatTemplate(t.protein.perKg, {
                 min: proteinRec.bwPerKg.min,
                 max: proteinRec.bwPerKg.max,
               })}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} g/día
-            </p>
-            <IntakeBar
-              current={dailyProtein}
-              rangeMin={proteinRec.bwRange.min}
-              rangeMax={proteinRec.bwRange.max}
-              unit="g"
-              {...intakeStatus(
-                dailyProtein,
-                proteinRec.bwRange.min,
-                proteinRec.bwRange.max,
-                t.protein.missingProtein,
-                t.protein.exceededProtein,
-                t.protein.inRange,
-              )}
-            />
+            <div className="mt-auto pt-1">
+              <IntakeBar
+                current={dailyProtein}
+                rangeMin={proteinRec.bwRange.min}
+                rangeMax={proteinRec.bwRange.max}
+                unit="g"
+                {...intakeStatus(
+                  dailyProtein,
+                  proteinRec.bwRange.min,
+                  proteinRec.bwRange.max,
+                  t.protein.missingProtein,
+                  t.protein.exceededProtein,
+                  t.protein.inRange,
+                )}
+              />
+            </div>
           </section>
         ) : null}
       </CardContent>
