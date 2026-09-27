@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
@@ -88,6 +89,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onOpenLogin: () -> Unit,
     onOpenProfile: () -> Unit,
+    onOpenAi: () -> Unit,
     onOpenMetodologia: () -> Unit,
     onOpenAdmin: () -> Unit,
     viewModel: SettingsViewModel = viewModel(),
@@ -126,6 +128,12 @@ fun SettingsScreen(
                 title = stringResource(R.string.profile_title),
                 subtitle = stringResource(R.string.profile_link_subtitle),
                 onClick = onOpenProfile,
+            )
+            LinkCard(
+                icon = Icons.Filled.AutoAwesome,
+                title = stringResource(R.string.ai_title),
+                subtitle = stringResource(R.string.ai_link_subtitle),
+                onClick = onOpenAi,
             )
             TemplatesCard(
                 templates = templates,

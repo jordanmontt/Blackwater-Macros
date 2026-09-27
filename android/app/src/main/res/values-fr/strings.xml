@@ -341,4 +341,40 @@
         <item quantity="many">%d modifications n\'ont pas encore été envoyées et seront perdues.</item>
         <item quantity="other">%d modifications n\'ont pas encore été envoyées et seront perdues.</item>
     </plurals>
+
+    <!-- AI settings (phase 5) -->
+    <string name="ai_title">Intelligence artificielle</string>
+    <string name="ai_link_subtitle">Photos de repas et coach : fournisseur et clé API</string>
+    <string name="ai_description">Estime les macros d\'une photo et répond dans le coach. Votre clé est gardée uniquement sur ce téléphone (chiffrée, sans sauvegarde) et va directement au fournisseur, jamais à notre serveur.</string>
+    <string name="ai_provider">Fournisseur</string>
+    <string name="ai_provider_gemini">Google Gemini (clé gratuite)</string>
+    <string name="ai_provider_openai">OpenAI (ChatGPT)</string>
+    <string name="ai_provider_anthropic">Anthropic (Claude)</string>
+    <string name="ai_provider_openrouter">OpenRouter</string>
+    <string name="ai_provider_custom">Autre compatible OpenAI (Ollama, LM Studio…)</string>
+    <string name="ai_api_key">Clé API</string>
+    <string name="ai_api_key_optional">Clé API (si le serveur en demande une)</string>
+    <string name="ai_show_key">Afficher la clé</string>
+    <string name="ai_hide_key">Masquer la clé</string>
+    <string name="ai_model">Modèle</string>
+    <string name="ai_model_hint">Laissez vide pour utiliser %1$s.</string>
+    <string name="ai_base_url">Adresse du serveur</string>
+    <string name="ai_base_url_hint">L\'adresse compatible OpenAI, terminée par /v1 (p. ex. http://192.168.1.10:11434/v1 pour Ollama sur votre ordinateur).</string>
+    <string name="ai_local_hint">Un modèle sur votre propre ordinateur est privé, mais généralement moins précis que le cloud.</string>
+    <string name="ai_test">Tester</string>
+    <string name="ai_testing">Test…</string>
+    <string name="ai_test_ok">Ça marche. Vous pouvez utiliser les photos et le coach.</string>
+    <string name="ai_free_key_title">Comment obtenir une clé Google gratuite</string>
+    <string name="ai_free_key_steps">1. Ouvrez aistudio.google.com/api-keys et connectez-vous avec votre compte Google.\n2. Appuyez sur «Create API key».\n3. Copiez-la et collez-la ici.</string>
+    <string name="ai_free_key_open">Ouvrir AI Studio</string>
+    <string name="ai_free_key_privacy">Avec la clé gratuite, Google peut utiliser vos photos et questions pour améliorer ses produits, sauf dans l\'EEE, en Suisse et au Royaume-Uni.</string>
+    <string name="ai_coach_sees_data">Le coach peut voir mes données</string>
+    <string name="ai_coach_sees_data_hint">Chaque question envoie un résumé : profil, repas des 14 derniers jours et poids.</string>
+    <string name="ai_error_not_configured">Configurez l\'IA dans Réglages.</string>
+    <string name="ai_error_invalid_key">La clé n\'est pas valide ou n\'a pas l\'autorisation.</string>
+    <string name="ai_error_quota">Vous avez atteint la limite du fournisseur. Attendez un peu ou vérifiez votre offre.</string>
+    <string name="ai_error_not_found">Le fournisseur ne trouve pas ce modèle. Vérifiez son nom.</string>
+    <string name="ai_error_offline">Connexion impossible. Vérifiez votre connexion ou l\'adresse du serveur.</string>
+    <string name="ai_error_empty">L\'IA n\'a pas répondu. Réessayez.</string>
+    <string name="ai_error_provider">Le fournisseur a renvoyé une erreur. Réessayez.</string>
 </resources>

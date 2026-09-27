@@ -14,7 +14,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 2 | Progress tab (merge Peso + Estadísticas) | ☑ | ☑ | #12 |
 | 3 | New «Añadir comida» flow: sheet, review form, copy from another day, manual | ☑ | ☑ | #12 |
 | 4 | Food search + barcode (Open Food Facts + bundled generic foods) | ☑ | ☑ | #12 |
-| 5 | AI settings + AI client (cloud providers, keys, test) | ☐ | ☐ | |
+| 5 | AI settings + AI client (cloud providers, keys, test) | ☑ | ☑ | #12 |
 | 6 | Photo logging with AI (+ text estimate) | ☐ | ☐ | |
 | 7 | Coach tab | ☐ | ☐ | |
 | 8 | Onboarding (first launch) | ☐ | ☐ | |
@@ -47,6 +47,10 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
 - 2026-09-27 — User created a free Gemini key at https://aistudio.google.com/api-keys (that is
   the URL the guide must use). The key is entered by the user in the app (phase 5); it must
   never be pasted into chat, committed, or put in fixtures. Tests use recorded/mock responses.
+- 2026-09-27 — Phase 5 done (one commit). Verified on the emulator: a fake key against the
+  real Gemini endpoint shows «La clave no es válida» (400 + API_KEY_INVALID), the key is
+  stored encrypted in `ai_settings.xml` and survives a restart; web card checked at phone
+  size. Next: phase 6 (photos), then 7 (Coach).
 
 ---
 
@@ -365,14 +369,20 @@ Spanish product names preferred, and the review form shows the Spanish name.
       tests passed (noted in `src/lib/core/README.md`).
 
 ### Phase 5 — AI settings + client
-- [ ] Provider abstraction + Gemini, OpenAI-compatible, Anthropic implementations
+- [x] Provider abstraction + Gemini, OpenAI-compatible, Anthropic implementations
       (non-streaming JSON for estimates, streaming for chat). Android: OkHttp SSE; web: fetch
       streams (Anthropic browser header `anthropic-dangerous-direct-browser-access: true`).
-- [ ] Key storage: Android Keystore-backed encrypted prefs, excluded in
+- [x] Key storage: Android Keystore-backed encrypted prefs, excluded in
       `data_extraction_rules.xml`/`backup_rules.xml`; web `localStorage`.
-- [ ] Ajustes → IA card (§4.4) with «Probar» and the free-key guide. Android strings ×5.
-- [ ] Tests: request building + response parsing per provider against recorded fixtures
+- [x] Ajustes → IA card (§4.4) with «Probar» and the free-key guide. Android strings ×5.
+- [x] Tests: request building + response parsing per provider against recorded fixtures
       (MockWebServer / mocked fetch). Never call real providers in tests.
+- Done as: pure `core/ai-providers.ts` + Kotlin `AiProviders.kt` (byte-identical bodies);
+  web `lib/ai/{settings,client}.ts` + `components/settings/ai-settings-card.tsx`; Android
+  `data/ai/{AiSettingsStore,AiClient}.kt`, `ui/AiSettings{Screen,ViewModel}.kt` (own screen
+  from Ajustes, `FreeKeyGuide` reusable by onboarding). One key/model per provider. The
+  «Nube / Dispositivo» selectors are not shown yet: only the cloud exists until phases 9/10.
+  Default models: `gemini-flash-latest`, `gpt-5-mini`, `claude-haiku-4-5`, `openrouter/auto`.
 
 ### Phase 6 — Photo logging
 - [ ] Photo screen (§4.1): camera (Android `TakePicture` into cache file, deleted after

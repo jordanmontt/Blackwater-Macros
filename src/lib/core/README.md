@@ -32,6 +32,7 @@ specification for both platforms — each assertion maps 1:1 to a Kotlin JUnit t
 | `calories.ts`      | BMR (Mifflin-St Jeor), factorial activity level (PAL), calorie targets |
 | `expenditure.ts`   | Measured TDEE from intake and weight trend, with its 95 % margin (`estimateExpenditure`, `fitWeightTrend`) |
 | `foods.ts`         | Portion scaling, Open Food Facts parsing, search in the bundled generic foods |
+| `ai-providers.ts`  | Cloud AI request bodies and answer parsing per provider (Gemini, OpenAI-compatible, Anthropic), error kinds |
 | `ai-schema.ts`     | AI answer → meal estimate (tolerant JSON parsing, validation) → ingredient rows |
 | `progress.ts`      | Macro averages over logged days (Progreso tab)                       |
 | `coach.ts`         | Weight projection, the coach's data summary and system prompt         |

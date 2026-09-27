@@ -557,6 +557,28 @@ rest of the calorie profile.
   form; inside the form «Buscar alimento» appends more. Recent picks: `localStorage`
   (web) / SharedPreferences (Android), 20 max.
 
+## 8.6 AI providers and keys
+
+- **Pure part** (`core/ai-providers.ts` = Kotlin `AiProviders.kt`, byte-identical request
+  bodies, mirrored tests): `buildAiRequest` for Gemini (`x-goog-api-key`, JSON mode, SSE
+  streaming), OpenAI-compatible chat completions (OpenAI, OpenRouter, any `…/v1` server
+  such as Ollama/LM Studio; OpenAI gets `max_completion_tokens`, the rest `max_tokens`) and
+  Anthropic (`anthropic-dangerous-direct-browser-access` so the browser can call it);
+  `parseAiResponse`, `parseAiStreamLine`, `aiErrorKind` (Gemini answers a wrong key with
+  400 + `API_KEY_INVALID`). Default models (editable): `gemini-flash-latest`,
+  `gpt-5-mini`, `claude-haiku-4-5`, `openrouter/auto`.
+- **Transport**: web `lib/ai/client.ts` (`fetch`, streams read line by line), Android
+  `data/ai/AiClient.kt` (OkHttp). Both call the provider **directly**: the Blackwater
+  server never sees keys, photos or questions. Errors become `AiFailure` kinds with a
+  user message (`t.ai.errors`, `ai_error_*`).
+- **Settings** (one key + model per provider, base URL, «El coach puede ver mis datos»):
+  web `lib/ai/settings.ts` in `localStorage["bw:ai"]` (per browser), card
+  `components/settings/ai-settings-card.tsx` in Ajustes; Android `data/ai/AiSettingsStore.kt`
+  in the `ai_settings` prefs with the keys AES-GCM-encrypted by an Android Keystore key,
+  the file excluded from backups and device transfer (`res/xml/backup_rules.xml`,
+  `data_extraction_rules.xml`); screen Ajustes → Inteligencia artificial (`AiSettingsScreen`).
+- Tests never call a real provider: mocked `fetch` (web) / MockWebServer (Android).
+
 ---
 
 ## 9. React conventions in this repo

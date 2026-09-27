@@ -12,6 +12,8 @@ import com.blackwatermacros.app.data.AppPreferences
 import com.blackwatermacros.app.data.ApiClient
 import com.blackwatermacros.app.data.ApiService
 import com.blackwatermacros.app.data.AppRepository
+import com.blackwatermacros.app.data.ai.AiClient
+import com.blackwatermacros.app.data.ai.AiSettingsStore
 import com.blackwatermacros.app.data.foods.GenericFoodsStore
 import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
 import com.blackwatermacros.app.data.foods.RecentFoods
@@ -45,6 +47,10 @@ object AppGraph {
         private set
     lateinit var recentFoods: RecentFoods
         private set
+    lateinit var aiSettings: AiSettingsStore
+        private set
+    lateinit var ai: AiClient
+        private set
 
     fun init(context: Context) {
         val baseUrl = BuildConfig.API_BASE_URL.let { if (it.endsWith("/")) it else "$it/" }
@@ -58,6 +64,8 @@ object AppGraph {
         genericFoods = GenericFoodsStore.fromAssets(context)
         openFoodFacts = OpenFoodFactsClient.create()
         recentFoods = RecentFoods(context)
+        aiSettings = AiSettingsStore(context)
+        ai = AiClient.create()
         accounts = AccountController(
             account = account,
             repository = repository,

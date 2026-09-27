@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.blackwatermacros.app.ui.AdminScreen
+import com.blackwatermacros.app.ui.AiSettingsScreen
 import com.blackwatermacros.app.ui.AppTab
 import com.blackwatermacros.app.ui.BlackwaterShapes
 import com.blackwatermacros.app.ui.BlackwaterTypography
@@ -189,12 +190,16 @@ private fun AppNavHost(
                 modifier = Modifier.padding(innerPadding),
                 onOpenLogin = { navController.navigate("login") },
                 onOpenProfile = { navController.navigate("perfil") },
+                onOpenAi = { navController.navigate("ia") },
                 onOpenMetodologia = { navController.navigate("metodologia") },
                 onOpenAdmin = { navController.navigate("admin") },
             )
         }
         composable("perfil") {
             ProfileScreen(onBack = { navController.popBackStack() })
+        }
+        composable("ia") {
+            AiSettingsScreen(onBack = { navController.popBackStack() })
         }
         composable("metodologia") {
             MethodologyScreen(onBack = { navController.popBackStack() })

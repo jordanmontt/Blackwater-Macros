@@ -330,4 +330,40 @@
         <item quantity="one">%d Änderung wurde noch nicht hochgeladen und geht verloren.</item>
         <item quantity="other">%d Änderungen wurden noch nicht hochgeladen und gehen verloren.</item>
     </plurals>
+
+    <!-- AI settings (phase 5) -->
+    <string name="ai_title">Künstliche Intelligenz</string>
+    <string name="ai_link_subtitle">Essensfotos und Coach: Anbieter und API-Schlüssel</string>
+    <string name="ai_description">Schätzt die Makros eines Fotos und antwortet im Coach. Dein Schlüssel wird nur auf diesem Telefon gespeichert (verschlüsselt, ohne Backup) und geht direkt an den Anbieter, nie an unseren Server.</string>
+    <string name="ai_provider">Anbieter</string>
+    <string name="ai_provider_gemini">Google Gemini (kostenloser Schlüssel)</string>
+    <string name="ai_provider_openai">OpenAI (ChatGPT)</string>
+    <string name="ai_provider_anthropic">Anthropic (Claude)</string>
+    <string name="ai_provider_openrouter">OpenRouter</string>
+    <string name="ai_provider_custom">Anderer OpenAI-kompatibler (Ollama, LM Studio…)</string>
+    <string name="ai_api_key">API-Schlüssel</string>
+    <string name="ai_api_key_optional">API-Schlüssel (falls der Server einen braucht)</string>
+    <string name="ai_show_key">Schlüssel anzeigen</string>
+    <string name="ai_hide_key">Schlüssel verbergen</string>
+    <string name="ai_model">Modell</string>
+    <string name="ai_model_hint">Leer lassen, um %1$s zu verwenden.</string>
+    <string name="ai_base_url">Serveradresse</string>
+    <string name="ai_base_url_hint">Die OpenAI-kompatible Adresse, endet auf /v1 (z. B. http://192.168.1.10:11434/v1 für Ollama auf deinem Computer).</string>
+    <string name="ai_local_hint">Ein Modell auf deinem eigenen Computer ist privat, aber meist ungenauer als die Cloud.</string>
+    <string name="ai_test">Testen</string>
+    <string name="ai_testing">Wird getestet…</string>
+    <string name="ai_test_ok">Funktioniert. Du kannst Fotos und den Coach nutzen.</string>
+    <string name="ai_free_key_title">So bekommst du einen kostenlosen Google-Schlüssel</string>
+    <string name="ai_free_key_steps">1. Öffne aistudio.google.com/api-keys und melde dich mit deinem Google-Konto an.\n2. Tippe auf «Create API key».\n3. Kopiere ihn und füge ihn hier ein.</string>
+    <string name="ai_free_key_open">AI Studio öffnen</string>
+    <string name="ai_free_key_privacy">Mit dem kostenlosen Schlüssel darf Google deine Fotos und Fragen zur Verbesserung seiner Produkte nutzen, außer im EWR, in der Schweiz und im Vereinigten Königreich.</string>
+    <string name="ai_coach_sees_data">Der Coach darf meine Daten sehen</string>
+    <string name="ai_coach_sees_data_hint">Mit jeder Frage wird eine Zusammenfassung gesendet: Profil, Mahlzeiten der letzten 14 Tage und Gewicht.</string>
+    <string name="ai_error_not_configured">Richte die KI in den Einstellungen ein.</string>
+    <string name="ai_error_invalid_key">Der Schlüssel ist ungültig oder hat keine Berechtigung.</string>
+    <string name="ai_error_quota">Du hast das Limit des Anbieters erreicht. Warte etwas oder prüfe deinen Tarif.</string>
+    <string name="ai_error_not_found">Der Anbieter findet dieses Modell nicht. Prüfe den Modellnamen.</string>
+    <string name="ai_error_offline">Keine Verbindung möglich. Prüfe deine Verbindung oder die Serveradresse.</string>
+    <string name="ai_error_empty">Die KI hat nicht geantwortet. Versuche es erneut.</string>
+    <string name="ai_error_provider">Der Anbieter hat einen Fehler gemeldet. Versuche es erneut.</string>
 </resources>

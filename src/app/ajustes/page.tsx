@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { TemplateForm } from "@/components/meals/template-form";
+import { AiSettingsCard } from "@/components/settings/ai-settings-card";
 import { api, ApiError } from "@/lib/api";
 import { exitDemoMode } from "@/lib/demo-store";
 import { useDemoMode } from "@/lib/use-demo-mode";
@@ -126,6 +127,8 @@ export default function AjustesPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <AiSettingsCard />
 
       <Card>
         <CardHeader className="pb-3">

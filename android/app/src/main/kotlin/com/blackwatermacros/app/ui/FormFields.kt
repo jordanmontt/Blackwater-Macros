@@ -34,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blackwatermacros.app.R
@@ -145,6 +147,8 @@ fun CompactField(
     leadingIcon: (@Composable () -> Unit)? = null,
     /** Overrides the text/decimal keyboard (e.g. digits only for a barcode). */
     keyboardType: KeyboardType? = null,
+    /** Dots instead of the text (API keys). */
+    secret: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
     BasicTextField(
@@ -156,7 +160,11 @@ fun CompactField(
         textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp),
         // Default caret is black: invisible on the dark theme.
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType ?: if (decimal) KeyboardType.Decimal else KeyboardType.Text),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType ?: if (secret) KeyboardType.Password else if (decimal) KeyboardType.Decimal else KeyboardType.Text,
+            autoCorrectEnabled = if (secret || keyboardType == KeyboardType.Uri) false else null,
+        ),
+        visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
         decorationBox = { innerTextField ->
             Row(
                 Modifier

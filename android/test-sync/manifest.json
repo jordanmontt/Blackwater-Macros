@@ -60,6 +60,11 @@
       "source": "src/lib/core/coach.ts",
       "ts": "tests/unit/coach.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/CoachTest.kt"
+    },
+    {
+      "source": "src/lib/core/ai-providers.ts",
+      "ts": "tests/unit/ai-providers.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/AiProvidersTest.kt"
     }
   ]
 }
