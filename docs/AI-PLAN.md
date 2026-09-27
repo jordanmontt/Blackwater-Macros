@@ -9,7 +9,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 
 | # | Phase | Web | Android | PR |
 |---|-------|-----|---------|----|
-| 0 | Plan + decisions confirmed | — | — | |
+| 0 | Plan + decisions confirmed | ☑ | ☑ | branch `ai-features` |
 | 1 | Core foundations (pure TS + Kotlin) | ☐ | ☐ | |
 | 2 | Progress tab (merge Peso + Estadísticas) | ☐ | ☐ | |
 | 3 | New «Añadir comida» flow: sheet, review form, copy from another day, manual | ☐ | ☐ | |
@@ -29,6 +29,8 @@ session budget is tight (`ai/<n>a-web`, `ai/<n>b-android`).
 ## Log
 
 - 2026-09-27 — Plan written (branch `ai-features`). Methodology v2 (PR #10) merged before.
+- 2026-09-27 — Decisions D6, D7, D9 confirmed by the user (see §2). Checked: Swiss FCDB terms
+  allow nutrition-diary apps with attribution; CIQUAL is Etalab 2.0; BEDCA has no reuse licence.
 - 2026-09-27 — User created a free Gemini key at https://aistudio.google.com/api-keys (that is
   the URL the guide must use). The key is entered by the user in the app (phase 5); it must
   never be pasted into chat, committed, or put in fixtures. Tests use recorded/mock responses.
@@ -64,10 +66,10 @@ phase (ask once, record the answer here).
 | D3 | Chat history | ✅ Memory only: lost when the app/tab is closed. «Nueva conversación» clears it. |
 | D4 | AI providers (cloud) | Google Gemini (recommended, free key), OpenAI, Anthropic Claude, OpenRouter, «Otro (compatible con OpenAI)» with base URL (covers Ollama / LM Studio). Model name prefilled per provider, editable. Verify current model ids at implementation time. |
 | D5 | Where each AI feature runs | Two selectors in Ajustes → IA: **Fotos:** Nube / Dispositivo; **Coach:** Nube / Dispositivo. All four combinations allowed (cheap to support once both engines exist). |
-| D6 | On-device model (Android) | Gemma 4 E2B `.litertlm` (~2.6 GB, needs ~6 GB RAM, arm64) via LiteRT-LM, downloaded on demand from Hugging Face (`litert-community/gemma-4-E2B-it-litert-lm`). Same stack as Chompass (on F-Droid). Clear warnings: size, Wi-Fi, RAM, «menos preciso que la nube». ❓ Confirm image input works with E2B; if not, on-device = Coach only and photos say «requiere la nube». |
-| D7 | Food databases | Open Food Facts (barcode + online text search, ODbL, attribution required) + a **bundled offline generic-foods index** (USDA FoodData Central Foundation + SR Legacy, public domain/CC0). ❓ Also bundle the Swiss Food Composition Database (names in de/fr/it/en) if its licence allows redistribution. |
+| D6 | On-device model (Android) | Gemma 4 E2B `.litertlm` (~2.6 GB, needs ~6 GB RAM, arm64) via LiteRT-LM, downloaded on demand from Hugging Face (`litert-community/gemma-4-E2B-it-litert-lm`). Same stack as Chompass (on F-Droid). Clear warnings: size, Wi-Fi, RAM, «menos preciso que la nube». ✅ If image input does not work with E2B, on-device = **Coach only** and the photo selector shows «Las fotos requieren la nube». |
+| D7 | Food databases | ✅ **Only open databases, the more the better; the app's focus is Spanish.** Online: Open Food Facts (barcode + text search, ODbL, attribution). Bundled offline generic index built from: USDA FoodData Central Foundation + SR Legacy (CC0, en), **CIQUAL** (ANSES, Licence Ouverte/Etalab 2.0, fr/en), **Swiss Food Composition Database** (FSVO: free incl. nutrition-diary apps, source must be acknowledged; de/fr/it/en). **BEDCA (Spain) excluded:** no reuse licence. Because no open DB has Spanish names, the build script adds `name_es` for the most common ~1,000 generic foods (one-time AI translation, committed as reviewable data). Credit every source in the UI and in Metodología. |
 | D8 | Averages in Progreso | Averages over **logged days only**, with «N de M días registrados» (consistent with the measured expenditure). Drop «pico» and «Media semanal del peso» cards. |
-| D9 | Local AI on the web | Web «local» = the «Otro (compatible con OpenAI)» provider pointed at a local server (Ollama/LM Studio). ❓ In-browser models (WebLLM + WebGPU, 1–2 GB download, text only) only if the user wants it: phase 10. |
+| D9 | Local AI on the web | ✅ Yes, **low effort**: in-browser model with WebLLM (`@mlc-ai/web-llm`) for the **Coach only**, one small model (~0.5–1 GB, pick from WebLLM's prebuilt list at implementation), shown only when the browser has WebGPU (works on some phones, not all — the user also uses the web from the phone, so it must degrade gracefully to «no disponible en este navegador»). Size warning before download. The «Otro (compatible con OpenAI)» provider also covers Ollama/LM Studio. No time on anything beyond that. |
 | D10 | Keys on the web | `localStorage` of that browser (per device; re-enter on another browser). Browser calls the provider directly (no proxy through our server). |
 | D11 | Coach data sharing | The Coach sends a compact summary of your data with each question (see §6). Toggle in Ajustes → IA «El coach puede ver mis datos» (default on). |
 | D12 | Onboarding | Shown once on first launch (Android) / first login with an incomplete profile (web). «Iniciar sesión» is the first option on Android. |
@@ -232,11 +234,15 @@ Flag: `AppPreferences.onboardingDone` (Android), `localStorage` (web). «Ver tut
   - Licence: ODbL → attribution «Datos de Open Food Facts» in the search/barcode UI and in
     Metodología.
 - **Generic foods index** (bundled, offline): `scripts/foods/build-generic-index.ts` downloads
-  USDA FDC Foundation + SR Legacy, keeps `{id, name, kcal, protein, carbs, fat}` per 100 g for a
-  curated subset (~2–8k rows), writes `public/foods/generic.json` (web) and
-  `android/app/src/main/assets/foods/generic.json`. Names are English → search matches English
-  and the Swiss DB (if D7 confirmed) adds de/fr/it; Spanish queries rely on OFF + «Estimar con
-  IA». Size budget ≤ 1.5 MB gzip.
+  USDA FDC Foundation + SR Legacy, CIQUAL and the Swiss Food Composition Database, keeps
+  `{id, source, names: {en, es?, fr?, de?, it?}, kcal, protein, carbs, fat}` per 100 g for a
+  curated subset, writes `public/foods/generic.json` (web) and
+  `android/app/src/main/assets/foods/generic.json`. Spanish: `names.es` for the ~1,000 most
+  common foods, translated once by the script (AI) and committed so it can be reviewed and
+  fixed by hand; search matches all name languages, accent-insensitive. Spanish products also
+  come from OFF; anything else → «Estimar con IA». Size budget ≤ 2 MB gzip. Licences/credits:
+  USDA (CC0), CIQUAL (Etalab 2.0, «Source : Anses, Table Ciqual»), Swiss FCDB («Swiss Food
+  Composition Database, FSVO»), OFF (ODbL).
 - Pure helpers in core (`foods.ts`): `scalePer100g(n, grams)`, `parseOffProduct(json)`,
   `parseServingGrams("30 g")`, `normalizeQuery()`; mirrored in Kotlin with tests.
 
@@ -347,9 +353,11 @@ browser (demo mode: «Explorar datos de demo» on /login). New Android strings g
       once.
 - [ ] F-Droid: confirm LiteRT-LM is acceptable (Chompass precedent) before merging.
 
-### Phase 10 — Local AI on the web (only if D9 says so)
-- [ ] WebLLM (`@mlc-ai/web-llm`), WebGPU check, model download with progress/size warning,
-      Coach only.
+### Phase 10 — Local AI on the web (low effort, D9)
+- [ ] WebLLM (`@mlc-ai/web-llm`, loaded lazily so it does not weigh on the normal bundle),
+      `navigator.gpu` check, one small model, download with progress + size warning, Coach
+      only. Hidden/disabled with a one-line reason when WebGPU is missing (common on phones).
+      Timebox: one session; if it fights back, ship without it and note it here.
 
 ### Phase 11 — Docs & release
 - [ ] TECHNICAL.md (new modules, AI section, Progress tab), README features, api.md unchanged
@@ -364,7 +372,7 @@ browser (demo mode: «Explorar datos de demo» on /login). New Android strings g
 |------|------------|
 | AI returns malformed JSON / wrong numbers | Core parser (tolerant + validation), always land in the editable review form, never auto-save. |
 | OFF rate limits / CORS | Debounce, cache, generic index offline; optional thin proxy route. |
-| Spanish food names not in USDA | OFF (multilingual) + «Estimar con IA»; Swiss DB (D7) for de/fr/it. |
+| No open DB with Spanish names | One-time translated `names.es` for common generic foods + OFF (has Spanish products) + «Estimar con IA». |
 | On-device model too big/slow | Optional, warnings, feature-level selector, cloud default. |
 | Keys leaking | Never logged, never synced, excluded from backup, masked in UI; web warns it's stored in this browser. |
 | Scope creep | Principles §1; each phase ships alone; stop and ask before adding anything not listed. |
@@ -378,3 +386,6 @@ browser (demo mode: «Explorar datos de demo» on /login). New Android strings g
   https://openfoodfacts.github.io/openfoodfacts-server/api/
 - Gemini API terms (unpaid data use; EEA/CH/UK exception): https://ai.google.dev/gemini-api/terms
 - LiteRT-LM Android (Kotlin ≥ 2.2, `.litertlm` models): https://ai.google.dev/edge/litert-lm/android
+- Swiss Food Composition Database terms: https://naehrwertdaten.ch/en/downloads/ ·
+  https://opendata.swiss/en/dataset/naehrwerte_lebensmittel
+- BEDCA has no reuse licence (open-data request): https://datos.gob.es/en/solicitud-de-datos/base-de-datos-bedca
