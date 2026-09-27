@@ -43,7 +43,9 @@ When porting these algorithms to Kotlin:
 - Date arithmetic uses `java.time.LocalDate` / `java.time.LocalDateTime`
   (`dates.ts`, `stats.ts`).
 - es-ES formatting uses `java.text.NumberFormat` / `java.time.format.DateTimeFormatter`
-  with `Locale("es", "ES")` (`dates.ts`).
+  with `Locale("es", "ES")` (`dates.ts`), to mirror the web exactly. The Android UI
+  does **not** use these formatters for display: it formats in the app language
+  with `android/app/.../ui/Format.kt`.
 - Clock reads are injected rather than called internally (e.g. `todayKey`).
 - The existing unit tests in `tests/unit/` are the specification to port.
 
@@ -58,4 +60,4 @@ Kotlin `*Test.kt` (and its implementation), and vice-versa.**
 Forgetting one side is caught automatically: `android/test-sync/manifest.json`
 pairs each TS spec with its Kotlin test, and `npm run core:sync-check` warns
 locally / **fails CI** when only one side of a pair changed. See
-`docs/ANDROID-PLAN.md`.
+`docs/ANDROID-TEST-SPEC.md` §1.

@@ -1,5 +1,5 @@
 {
-  "comment": "Pairs each pure-algorithm TypeScript spec with its Kotlin JUnit mirror. Option A contract: BOTH sides must change together. See docs/ANDROID-PLAN.md and docs/ANDROID-TEST-SPEC.md.",
+  "comment": "Pairs each pure-algorithm TypeScript spec with its Kotlin JUnit mirror. Option A contract: BOTH sides must change together. See docs/ANDROID-TEST-SPEC.md §1.",
   "specs": [
     {
       "source": "src/lib/core/nutrition.ts",
