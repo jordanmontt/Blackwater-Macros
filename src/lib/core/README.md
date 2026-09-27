@@ -44,6 +44,9 @@ specification for both platforms — each assertion maps 1:1 to a Kotlin JUnit t
 
 - JSON (Open Food Facts, AI answers) is read as `kotlinx.serialization.json`
   element trees — no compiler plugin in `:core`.
+- Regexes run on Android's ICU engine, not the JVM's: avoid JVM-only syntax such as
+  the `(?U)` flag (it crashes on the phone while JVM tests pass). Spell Unicode
+  classes out explicitly.
 - Numbers printed into text use `plainNumber()` so Kotlin writes «80» and «70.3»
   exactly like JS `String(n)`.
 

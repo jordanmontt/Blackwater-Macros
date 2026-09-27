@@ -20,6 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,6 +34,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,12 +54,27 @@ import com.blackwatermacros.app.core.addDaysToKey
 import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.TemplateDTO
+import com.blackwatermacros.app.data.WireIngredient
+import com.blackwatermacros.app.data.foods.FoodChoice
+import com.blackwatermacros.app.core.foodToIngredient
+import com.blackwatermacros.app.ui.foods.AddFoodViewModel
+import com.blackwatermacros.app.ui.foods.BarcodeLookup
+import com.blackwatermacros.app.ui.foods.BarcodeView
+import com.blackwatermacros.app.ui.foods.FoodSearchView
+import com.blackwatermacros.app.ui.foods.PortionView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.Flow
+
+private enum class AddFoodView { MENU, COPY, SEARCH, BARCODE, PORTION }
 
 /**
  * «Añadir comida» (web `AddFoodSheet`): every way to add food to [day].
- * Escribir a mano opens the review form; Copiar de otro día and the templates
- * add meals directly (the caller offers Undo). Swipe down or tap outside closes it.
+ * Buscar and Código de barras pick a food and its portion and hand it over
+ * ([onFoodPicked]) for the review form; Escribir a mano opens that form empty;
+ * Copiar de otro día and the templates add meals directly (the caller offers
+ * Undo). [pickOnly]: opened from the review form to add one more food, so only
+ * Buscar and Código are offered. Swipe down or tap outside closes it.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -68,8 +86,23 @@ fun AddFoodSheet(
     onManual: () -> Unit,
     /** Adds meals with this content to [day]; the message is for the Undo snackbar. */
     onAdd: (sources: List<MealFormValue>, message: String) -> Unit,
+    onFoodPicked: (WireIngredient) -> Unit = {},
+    pickOnly: Boolean = false,
+    foods: AddFoodViewModel = viewModel(),
 ) {
-    var copying by rememberSaveable { mutableStateOf(false) }
+    var view by rememberSaveable { mutableStateOf(AddFoodView.MENU) }
+    var back by rememberSaveable { mutableStateOf(AddFoodView.MENU) }
+    var choice by remember { mutableStateOf<FoodChoice?>(null) }
+    val searchState by foods.state.collectAsStateWithLifecycle()
+    val barcode by foods.barcode.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { foods.reset() }
+    LaunchedEffect(barcode) {
+        val found = barcode as? BarcodeLookup.Found ?: return@LaunchedEffect
+        choice = found.choice
+        back = AddFoodView.BARCODE
+        view = AddFoodView.PORTION
+        foods.clearBarcode()
+    }
     val copiedMessage = stringResource(R.string.add_food_copied, formatDateShort(day))
     val templateAppliedMessage = stringResource(R.string.template_applied)
 
@@ -85,27 +118,46 @@ fun AddFoodSheet(
                 .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (copying) {
-                    IconButton(onClick = { copying = false }) {
+                if (view != AddFoodView.MENU) {
+                    IconButton(onClick = { view = if (view == AddFoodView.PORTION) back else AddFoodView.MENU }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }
                 Text(
-                    stringResource(if (copying) R.string.add_food_copy else R.string.add_food_title),
+                    stringResource(
+                        when (view) {
+                            AddFoodView.MENU -> R.string.add_food_title
+                            AddFoodView.COPY -> R.string.add_food_copy
+                            AddFoodView.SEARCH -> R.string.food_search
+                            AddFoodView.BARCODE -> R.string.food_barcode
+                            AddFoodView.PORTION -> R.string.food_portion_title
+                        },
+                    ),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
             Spacer(Modifier.height(12.dp))
 
-            if (!copying) {
+            when (view) {
+            AddFoodView.MENU -> {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    BigSource(Icons.Filled.Search, stringResource(R.string.food_search), stringResource(R.string.food_search_hint), Modifier.weight(1f)) {
+                        view = AddFoodView.SEARCH
+                    }
+                    BigSource(Icons.Filled.QrCodeScanner, stringResource(R.string.food_barcode), stringResource(R.string.food_barcode_hint), Modifier.weight(1f)) {
+                        view = AddFoodView.BARCODE
+                    }
+                }
+                if (!pickOnly) {
+                Spacer(Modifier.height(8.dp))
                 SourceRow(Icons.Filled.EditNote, stringResource(R.string.add_food_manual), stringResource(R.string.add_food_manual_hint)) {
                     onDismiss()
                     onManual()
                 }
                 Spacer(Modifier.height(8.dp))
                 SourceRow(Icons.Filled.ContentCopy, stringResource(R.string.add_food_copy), stringResource(R.string.add_food_copy_hint)) {
-                    copying = true
+                    view = AddFoodView.COPY
                 }
                 if (templates.isNotEmpty()) {
                     Spacer(Modifier.height(16.dp))
@@ -126,13 +178,48 @@ fun AddFoodSheet(
                         }
                     }
                 }
-            } else {
-                CopyFromDay(targetDay = day, mealsOn = mealsOn) { meals ->
-                    onDismiss()
-                    onAdd(meals.map { it.toFormValue() }, copiedMessage)
                 }
             }
+            AddFoodView.COPY -> CopyFromDay(targetDay = day, mealsOn = mealsOn) { meals ->
+                onDismiss()
+                onAdd(meals.map { it.toFormValue() }, copiedMessage)
+            }
+            AddFoodView.SEARCH -> FoodSearchView(searchState, foods::setQuery) {
+                choice = it
+                back = AddFoodView.SEARCH
+                view = AddFoodView.PORTION
+            }
+            AddFoodView.BARCODE -> BarcodeView(barcode, foods::lookUpBarcode)
+            AddFoodView.PORTION -> choice?.let { picked ->
+                PortionView(picked) { grams ->
+                    foods.remember(picked)
+                    val ingredient = foodToIngredient(picked.name, picked.per100g, grams)
+                    onDismiss()
+                    onFoodPicked(
+                        WireIngredient(ingredient.name, ingredient.quantity, ingredient.calories, ingredient.protein, ingredient.carbs, ingredient.fat),
+                    )
+                }
+            }
+            }
         }
+    }
+}
+
+@Composable
+private fun BigSource(icon: ImageVector, label: String, hint: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(12.dp)
+    Column(
+        modifier
+            .clip(shape)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(26.dp))
+        Spacer(Modifier.height(4.dp))
+        Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+        Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

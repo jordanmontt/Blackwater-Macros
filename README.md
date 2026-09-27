@@ -19,6 +19,12 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
   escribir a mano, **copiar de otro día** (eliges el día y las comidas; con «Deshacer»)
   o aplicar una plantilla. Los paneles se cierran deslizando hacia abajo y, si has
   escrito algo, preguntan antes de descartarlo.
+- **Buscar alimentos y código de barras**: 3.275 alimentos genéricos con nombre en
+  español incluidos en la app (funcionan sin conexión; entiende «banana», «papa»,
+  «jugo»…) y los productos de Open Food Facts; escanea el código del envase (o
+  escríbelo). Eliges la cantidad y la comida queda lista para revisar y guardar.
+  Datos abiertos: Swiss Food Composition Database (FSVO), Ciqual (Anses) y Open Food
+  Facts (ODbL).
 - **Recomendaciones** de calorías (TMB, nivel de actividad calculado a partir de tus días
   de gimnasio y minutos de caminata, TDEE, rango según objetivo) y de proteína (por
   masa magra en definición si registras tu % de grasa), con barras de progreso de lo

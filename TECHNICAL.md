@@ -50,6 +50,7 @@ src/
     ui/*                    # shadcn/ui primitives (Base UI based)
     meals/*                 # DayNavigator, MealCard, MealForm (review form), AddFoodSheet («Añadir comida»)
     ui/sheet.tsx            # Bottom sheet on phones (drag down / outside / Esc closes), dialog from sm
+    foods/*                 # FoodSearch, PortionPicker, BarcodeScanner (search / barcode in «Añadir comida»)
     nutrition-recommendations.tsx  # Merged calorie + protein recommendations card (Comidas page)
     weight-fat-chart.tsx          # Combined weight (kg) + body fat (%) chart with trend line
     demo-banner.tsx         # Persistent "demo mode" banner + exit to login
@@ -531,6 +532,33 @@ rest of the calorie profile.
 
 ---
 
+## 8.5 Foods: offline generic index, Open Food Facts, barcode
+
+- **Bundled index** `public/foods/generic.json` = Android `assets/foods/generic.json`, built
+  by `scripts/foods/build_generic_index.py` (Python stdlib; downloads to
+  `scripts/foods/.cache/`) from the Swiss Food Composition Database and CIQUAL 2020
+  (baby food and brand mineral waters left out). **Spanish first**: every food has a
+  Spanish name from `scripts/foods/names-es.tsv` (reviewable by hand; foods with a
+  repeated Spanish name are dropped, Swiss first). Rebuild after editing the TSV.
+- **Search** (`core/foods.ts` `searchGenericFoods`): every query word (or its singular, or
+  a Spain/Latin-America synonym from `SPANISH_SYNONYMS`) must start a word of the name;
+  exact name > starts with > rest, whole-word matches first, app-language names first.
+- **Open Food Facts**: web barcode lookups go straight from the browser (the product
+  API allows CORS); web text search goes through `GET /api/foods/search` (signed-in
+  pass-through; Search-a-licious has no CORS; demo mode has no online search). Android
+  calls both directly with a `BlackwaterMacros/<version>` User-Agent
+  (`data/foods/OpenFoodFactsClient.kt`). Limits ~10 searches/min/IP → debounce + cache.
+- **Barcode**: web uses the browser `BarcodeDetector` or the `barcode-detector` ponyfill
+  (zxing-wasm; the `.wasm` is copied to `public/wasm/` by `scripts/copy-zxing-wasm.mjs`
+  before dev/build — never loaded from a CDN). Android: CameraX + zxing-cpp
+  (`CAMERA` permission asked on first use; typing the code always works). Frames are
+  analysed in memory and never stored.
+- A picked food + grams becomes one ingredient row (`foodToIngredient`) in the review
+  form; inside the form «Buscar alimento» appends more. Recent picks: `localStorage`
+  (web) / SharedPreferences (Android), 20 max.
+
+---
+
 ## 9. React conventions in this repo
 
 ESLint enforces `react-hooks/set-state-in-effect` — no synchronous setState inside
@@ -738,7 +766,8 @@ app/src/main/kotlin/com/blackwatermacros/app/
   ui/
     HoyScreen/ViewModel, MealCard           # Comidas: day navigator, totals, recommendations,
                                             #   reorderable meals, undo delete/add
-    AddFoodSheet.kt                         # «Añadir comida»: manual, copy from another day, templates
+    AddFoodSheet.kt                         # «Añadir comida»: search, barcode, manual, copy, templates
+    foods/AddFoodViewModel.kt, FoodViews.kt # search (generic + Open Food Facts), portion, CameraX + zxing-cpp scanner
     MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue, toCopyRequest) +
                                             #   validation; swipe-to-close asks before discarding edits
     NutritionRecommendationsCard.kt, RecommendationsViewModel.kt  # calorie/protein card + intake bars

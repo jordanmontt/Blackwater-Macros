@@ -142,6 +142,9 @@ fun CompactField(
     decimal: Boolean = false,
     readOnly: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
+    leadingIcon: (@Composable () -> Unit)? = null,
+    /** Overrides the text/decimal keyboard (e.g. digits only for a barcode). */
+    keyboardType: KeyboardType? = null,
 ) {
     var focused by remember { mutableStateOf(false) }
     BasicTextField(
@@ -153,7 +156,7 @@ fun CompactField(
         textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp),
         // Default caret is black: invisible on the dark theme.
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-        keyboardOptions = KeyboardOptions(keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Text),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType ?: if (decimal) KeyboardType.Decimal else KeyboardType.Text),
         decorationBox = { innerTextField ->
             Row(
                 Modifier
@@ -162,6 +165,10 @@ fun CompactField(
                     .padding(start = 12.dp, end = if (trailingIcon != null && readOnly) 6.dp else 12.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                if (leadingIcon != null) {
+                    leadingIcon()
+                    Spacer(Modifier.width(8.dp))
+                }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                     if (value.isEmpty()) Placeholder(placeholder)
                     innerTextField()

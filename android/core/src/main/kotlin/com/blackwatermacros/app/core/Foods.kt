@@ -79,7 +79,8 @@ fun parseServingGrams(text: String?): Double? {
 }
 
 private val MARKS = Regex("\\p{Mn}+")
-private val SPACES = Regex("(?U)\\s+")
+// Explicit Unicode spaces (like JS \s): Android's ICU regex rejects the JVM-only `(?U)` flag.
+private val SPACES = Regex("[\\s\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000\\uFEFF]+")
 
 /** Lowercase, without accents and with single spaces: «Yogúr  Griego» → «yogur griego». */
 fun normalizeText(text: String): String =

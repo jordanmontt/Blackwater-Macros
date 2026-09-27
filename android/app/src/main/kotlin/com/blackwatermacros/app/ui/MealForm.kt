@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -124,6 +125,10 @@ fun MealFormSheet(
     onDismiss: () -> Unit,
     onSubmit: (MealFormValue) -> Unit,
     prefilled: Boolean = false,
+    /** «Buscar alimento» in the form (opens search / barcode to add one more food). */
+    onSearchFood: (() -> Unit)? = null,
+    /** A food picked while the form is open; appended once per id. */
+    appendRequest: Pair<Long, WireIngredient>? = null,
 ) {
     var dirty by remember { mutableStateOf(prefilled) }
     var confirmDiscard by remember { mutableStateOf(false) }
@@ -155,6 +160,8 @@ fun MealFormSheet(
                 onCancel = ::requestDismiss,
                 onSubmit = onSubmit,
                 onDirtyChange = { dirty = it || prefilled },
+                onSearchFood = onSearchFood,
+                appendRequest = appendRequest,
             )
         }
     }
@@ -185,6 +192,8 @@ private fun MealFormFields(
     onCancel: () -> Unit,
     onSubmit: (MealFormValue) -> Unit,
     onDirtyChange: (Boolean) -> Unit = {},
+    onSearchFood: (() -> Unit)? = null,
+    appendRequest: Pair<Long, WireIngredient>? = null,
 ) {
     val totalOnly = initial?.entryMode == WireEntryMode.TOTAL_ONLY
     var mode by rememberSaveable { mutableStateOf(initial?.entryMode ?: WireEntryMode.PER_INGREDIENT) }
@@ -205,6 +214,19 @@ private fun MealFormFields(
         )
     }
     var errorRes by rememberSaveable { mutableStateOf<Int?>(null) }
+
+    // A food picked from search/barcode while the form is open joins the list,
+    // replacing the empty starter row.
+    var appliedAppend by remember { mutableStateOf<Long?>(null) }
+    LaunchedEffect(appendRequest?.first) {
+        val (id, ingredient) = appendRequest ?: return@LaunchedEffect
+        if (id == appliedAppend) return@LaunchedEffect
+        appliedAppend = id
+        mode = WireEntryMode.PER_INGREDIENT
+        val draft = ingredient.toDraft()
+        ingredients = if (ingredients.size == 1 && ingredients[0] == IngredientDraft()) listOf(draft) else ingredients + draft
+        if (title.isBlank()) title = ingredient.name
+    }
 
     val initialState = remember { FormSnapshot(mode, title, notes, ingredients, totals) }
     val dirty = FormSnapshot(mode, title, notes, ingredients, totals) != initialState
@@ -286,10 +308,19 @@ private fun MealFormFields(
                 )
                 Spacer(Modifier.height(8.dp))
             }
-            OutlinedButton(onClick = { ingredients = ingredients + IngredientDraft() }) {
-                Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.form_add_ingredient))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { ingredients = ingredients + IngredientDraft() }) {
+                    Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.form_add_ingredient))
+                }
+                if (onSearchFood != null) {
+                    OutlinedButton(onClick = onSearchFood) {
+                        Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.food_search_food))
+                    }
+                }
             }
         } else {
             MacroTotalGrid(values = totals, onValue = { i, v -> totals = totals.toMutableList().apply { set(i, v) } })

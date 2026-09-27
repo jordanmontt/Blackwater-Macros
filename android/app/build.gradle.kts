@@ -92,6 +92,11 @@ dependencies {
 
     implementation(libs.work.runtime)
 
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
+    implementation(libs.zxing.cpp)
+
     coreLibraryDesugaring(libs.android.jdk.desugaring)
 
     testImplementation(libs.junit)

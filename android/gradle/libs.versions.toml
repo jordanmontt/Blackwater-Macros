@@ -27,6 +27,10 @@ coroutinesAndroid = "1.10.2"
 # Background sync that runs when the network is back, even with the app closed (no GMS).
 work = "2.10.3"
 
+# Camera + barcodes (FOSS, no Play Services): CameraX and zxing-cpp.
+camerax = "1.4.2"
+zxingCpp = "2.3.0"
+
 # Test
 junit = "4.13.2"
 truth = "1.4.4"
@@ -87,6 +91,10 @@ android-jdk-desugaring = { group = "com.android.tools", name = "desugar_jdk_libs
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "mockwebserver" }
+camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+zxing-cpp = { group = "io.github.zxing-cpp", name = "android", version.ref = "zxingCpp" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-test-core = { group = "androidx.test", name = "core-ktx", version.ref = "androidxTestCore" }

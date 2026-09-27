@@ -13,7 +13,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 1 | Core foundations (pure TS + Kotlin) | ☑ | ☑ | #12 |
 | 2 | Progress tab (merge Peso + Estadísticas) | ☑ | ☑ | #12 |
 | 3 | New «Añadir comida» flow: sheet, review form, copy from another day, manual | ☑ | ☑ | #12 |
-| 4 | Food search + barcode (Open Food Facts + bundled generic foods) | ☐ | ☐ | |
+| 4 | Food search + barcode (Open Food Facts + bundled generic foods) | ☑ | ☑ | #12 |
 | 5 | AI settings + AI client (cloud providers, keys, test) | ☐ | ☐ | |
 | 6 | Photo logging with AI (+ text estimate) | ☐ | ☐ | |
 | 7 | Coach tab | ☐ | ☐ | |
@@ -40,6 +40,10 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
 - 2026-09-27 — Phase 3 done (one commit). Verified on the emulator (swipe closes an empty
   form, asks with edits, copy + undo) and in the browser at phone size (drag closes the
   sheet). Next: phase 4, Spanish first (see phase 4 notes).
+- 2026-09-27 — Phase 4 done in three commits (data/core, web, Android). Verified in the
+  browser (Spanish search, portion) and on the emulator (search, append from the form,
+  camera prompt, typed barcode → real OFF product). User asked to continue with phases 5,
+  6 and 7 in the same PR.
 - 2026-09-27 — User created a free Gemini key at https://aistudio.google.com/api-keys (that is
   the URL the guide must use). The key is entered by the user in the app (phase 5); it must
   never be pasted into chat, committed, or put in fixtures. Tests use recorded/mock responses.
@@ -346,13 +350,19 @@ synonyms (plátano/banana, patata/papa, judías/frijoles/porotos, melocotón/dur
 zumo/jugo, maíz/choclo, gambas/camarones…), Open Food Facts is queried with `langs=es` and
 Spanish product names preferred, and the review form shows the Spanish name.
 
-- [ ] Generic index build script + generated files (committed) + attribution.
-- [ ] OFF client (web fetch; Android OkHttp with User-Agent), rate-limit/debounce, in-memory
-      cache.
-- [ ] Search screen with portion step; recent foods (local).
-- [ ] Barcode: Android CameraX + zxing-cpp (`CAMERA` permission, requested on first use);
-      web `BarcodeDetector` with zxing-wasm polyfill. Portion step shared with search.
-- [ ] Tests: parsing with fixtures (core), MockWebServer for OFF (Android), mocked fetch (web).
+- [x] Generic index: Swiss FCDB + CIQUAL (USDA left out: 7.8k verbose English names are
+      noise for Spanish search; OFF covers products), 3,275 foods, all with a Spanish name
+      (`scripts/foods/names-es.tsv`, translated once and reviewable). Credits in the search UI.
+- [x] OFF client (web: browser for barcode, `/api/foods/search` pass-through for text search;
+      Android: OkHttp with User-Agent), debounce + per-query cache.
+- [x] Search screen with portion step; recent foods (local); «Buscar alimento» inside the
+      review form appends.
+- [x] Barcode: Android CameraX 1.4.2 + zxing-cpp 2.3.0 (`CAMERA`, asked on first use; typing
+      works too); web `BarcodeDetector` or zxing-wasm ponyfill with self-hosted `.wasm`.
+- [x] Tests: core (synonyms, plurals, index, localized names), web behavior
+      (`add-food-search`, `routes-foods`), Android `FoodSourcesTest`.
+- Lesson: Kotlin core regexes run on Android ICU — `(?U)` crashed on the phone although JVM
+      tests passed (noted in `src/lib/core/README.md`).
 
 ### Phase 5 — AI settings + client
 - [ ] Provider abstraction + Gemini, OpenAI-compatible, Anthropic implementations

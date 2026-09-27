@@ -61,6 +61,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.TemplateDTO
+import com.blackwatermacros.app.data.WireEntryMode
+import com.blackwatermacros.app.data.WireIngredient
 import kotlin.math.roundToLong
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
@@ -89,6 +91,10 @@ fun HoyScreen(
 
     var formOpen by remember { mutableStateOf(false) }
     var addOpen by remember { mutableStateOf(false) }
+    // Search / barcode: a new pre-filled meal, or one more food for the open form.
+    var pickOnly by remember { mutableStateOf(false) }
+    var reviewInitial by remember { mutableStateOf<MealFormValue?>(null) }
+    var appendRequest by remember { mutableStateOf<Pair<Long, WireIngredient>?>(null) }
     var editingMeal by remember { mutableStateOf<MealDTO?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -144,7 +150,10 @@ fun HoyScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { addOpen = true },
+                onClick = {
+                    pickOnly = false
+                    addOpen = true
+                },
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary,
             ) {
@@ -180,7 +189,10 @@ fun HoyScreen(
                             totals = totals,
                             onOpenProfile = onOpenProfile,
                             onOpenWeight = onOpenWeight,
-                            onAdd = { addOpen = true },
+                            onAdd = {
+                                pickOnly = false
+                                addOpen = true
+                            },
                         )
                     } else {
                         MealList(
@@ -212,26 +224,49 @@ fun HoyScreen(
             onDismiss = { addOpen = false },
             onManual = {
                 editingMeal = null
+                reviewInitial = null
                 formOpen = true
             },
             onAdd = ::addMeals,
+            onFoodPicked = { ingredient ->
+                if (pickOnly) {
+                    appendRequest = System.nanoTime() to ingredient
+                } else {
+                    editingMeal = null
+                    appendRequest = null
+                    reviewInitial = MealFormValue(
+                        ingredient.name, null, WireEntryMode.PER_INGREDIENT, listOf(ingredient), null, null, null, null,
+                    )
+                    formOpen = true
+                }
+            },
+            pickOnly = pickOnly,
         )
     }
 
     if (formOpen) {
         val editing = editingMeal
+        fun closeForm() {
+            formOpen = false
+            editingMeal = null
+            // A pending item or pre-filled draft belongs to the form that just closed.
+            reviewInitial = null
+            appendRequest = null
+        }
         MealFormSheet(
             heading = stringResource(if (editing != null) R.string.meal_edit else R.string.meal_new),
-            initial = editing?.toFormValue(),
-            onDismiss = {
-                formOpen = false
-                editingMeal = null
-            },
+            initial = editing?.toFormValue() ?: reviewInitial,
+            prefilled = editing == null && reviewInitial != null,
+            onDismiss = ::closeForm,
             onSubmit = { value ->
                 viewModel.saveMeal(editing?.id, value.toMealRequest(day))
-                formOpen = false
-                editingMeal = null
+                closeForm()
             },
+            onSearchFood = {
+                pickOnly = true
+                addOpen = true
+            },
+            appendRequest = appendRequest,
         )
     }
 
