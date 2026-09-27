@@ -71,7 +71,6 @@ fun StatsScreen(
         topBar = {
             CenteredTopAppBar(
                 title = stringResource(R.string.tab_stats),
-                leading = { TabHeaderLogo() },
                 trailing = {
                     IconButton(onClick = onOpenMetodologia) {
                         Icon(
@@ -186,10 +185,8 @@ private fun SectionTitle(title: String) {
 @Composable
 private fun WeightSummaryCard(summary: StatsSummary) {
     SectionTitle(stringResource(R.string.stats_weight_summary))
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         val w = summary.weight
         Column(Modifier.padding(16.dp)) {
@@ -290,10 +287,8 @@ private fun mergeWeightFatRows(summary: StatsSummary): List<WeightFatRow> {
 @Composable
 private fun WeeklyAveragesCard(summary: StatsSummary) {
     SectionTitle(stringResource(R.string.stats_weekly_average))
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             summary.weeklyWeightAvg.forEachIndexed { i, week ->
@@ -339,10 +334,8 @@ private fun NutritionSection(summary: StatsSummary) {
         return
     }
     SectionTitle(stringResource(R.string.stats_macro_summary))
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth()) {
@@ -415,10 +408,8 @@ private fun ChartSection(
     value: (DailyNutritionPoint) -> Double,
 ) {
     SectionTitle(title)
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             TrendChart(

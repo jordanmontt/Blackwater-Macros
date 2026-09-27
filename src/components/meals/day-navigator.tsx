@@ -25,7 +25,14 @@ export function DayNavigator({ value, onChange }: DayNavigatorProps) {
       >
         <ChevronLeftIcon />
       </Button>
-      <div className="flex min-w-0 flex-col items-center px-1">
+      {/* Double-click (double-tap on phones) the date to jump back to today. */}
+      <div
+        className="flex min-w-0 cursor-default touch-manipulation select-none flex-col items-center rounded-md px-1"
+        data-testid="day-navigator-date"
+        onDoubleClick={() => {
+          if (!isToday) onChange(today);
+        }}
+      >
         <span className="truncate text-sm font-medium">{formatDateKeyLong(value)}</span>
         {isToday ? (
           <span className="text-xs text-primary">{t.common.today}</span>

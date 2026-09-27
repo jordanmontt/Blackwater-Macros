@@ -134,8 +134,8 @@ fun WeightFatChart(
                     detectTapGestures { offset ->
                         val n = data.size
                         if (n > 0) {
-                            val plotLeftPx = 34.dp.toPx()
-                            val rightPx = if (pctRows.isNotEmpty()) 30.dp.toPx() else 6.dp.toPx()
+                            val plotLeftPx = 44.dp.toPx()
+                            val rightPx = if (pctRows.isNotEmpty()) 40.dp.toPx() else 6.dp.toPx()
                             val plotRightPx = size.width - rightPx
                             val plotWidthPx = plotRightPx - plotLeftPx
                             val frac = ((offset.x - plotLeftPx) / plotWidthPx).coerceIn(0f, 1f)
@@ -149,22 +149,22 @@ fun WeightFatChart(
             val plotHeight = size.height
             val plotTop = 48.dp.toPx()
             val labelBaseline = 14.dp.toPx()
-            val leftAxisWidth = 34.dp.toPx()
-            val rightAxisWidth = if (pctRows.isNotEmpty()) 30.dp.toPx() else 6.dp.toPx()
+            val leftAxisWidth = 44.dp.toPx()
+            val rightAxisWidth = if (pctRows.isNotEmpty()) 40.dp.toPx() else 6.dp.toPx()
             val plotLeft = leftAxisWidth
             val plotRight = chartWidth - rightAxisWidth
             val plotWidth = plotRight - plotLeft
-            val plotBottom = plotHeight - 18.dp.toPx()
+            val plotBottom = plotHeight - 24.dp.toPx()
 
             val fillArgb = labelColor.toArgb()
             val axisPaint = android.graphics.Paint().apply {
                 color = fillArgb
-                textSize = 18f
+                textSize = AxisTextSize.toPx()
                 textAlign = android.graphics.Paint.Align.RIGHT
             }
             val axisTitlePaint = android.graphics.Paint().apply {
                 color = fillArgb
-                textSize = 18f
+                textSize = AxisTextSize.toPx()
                 textAlign = android.graphics.Paint.Align.RIGHT
             }
 
@@ -196,9 +196,9 @@ fun WeightFatChart(
                         path = path,
                         color = color,
                         style = if (dash != null) {
-                            Stroke(width = 2f, pathEffect = PathEffect.dashPathEffect(dash))
+                            Stroke(width = 2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(dash))
                         } else {
-                            Stroke(width = 2f)
+                            Stroke(width = 2.dp.toPx())
                         },
                     )
                 }
@@ -210,7 +210,7 @@ fun WeightFatChart(
             val pctTicks = niceTicks(pctMin, pctMax, pctStep)
             val rightTickPaint = android.graphics.Paint().apply {
                 color = fillArgb
-                textSize = 18f
+                textSize = AxisTextSize.toPx()
                 textAlign = android.graphics.Paint.Align.LEFT
             }
             weightTicks.forEach { w ->
@@ -246,11 +246,12 @@ fun WeightFatChart(
                 axisTitlePaint,
             )
             if (pctRows.isNotEmpty()) {
+                // Right-aligned to the edge so the title never runs off the card.
                 drawContext.canvas.nativeCanvas.drawText(
                     fatAxis,
-                    plotRight + 5.dp.toPx(),
+                    chartWidth,
                     24.dp.toPx(),
-                    rightTickPaint,
+                    android.graphics.Paint(rightTickPaint).apply { textAlign = android.graphics.Paint.Align.RIGHT },
                 )
             }
 
@@ -301,10 +302,10 @@ fun WeightFatChart(
                 }
                 val tooltipPaint = android.graphics.Paint().apply {
                     color = labelColor.toArgb()
-                    textSize = 20f
+                    textSize = TooltipTextSize.toPx()
                     textAlign = android.graphics.Paint.Align.LEFT
                 }
-                val lineH = 26f
+                val lineH = tooltipPaint.textSize * 1.4f
                 val pad = 10.dp.toPx()
                 val tw = lines.maxOf { tooltipPaint.measureText(it) } + pad * 2
                 val th = lineH * lines.size + pad

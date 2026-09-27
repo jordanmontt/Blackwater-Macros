@@ -2,6 +2,7 @@ package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.blackwatermacros.app.core.CalorieRecommendation
 import com.blackwatermacros.app.core.Goal
 import kotlin.math.round
 
@@ -85,6 +87,9 @@ fun NutritionRecommendationsCard(
                             rangeMax = calorie.targetMax,
                             barUnit = "kcal",
                         )
+                        // Same breakdown as Perfil: where the target comes from.
+                        Spacer(Modifier.height(6.dp))
+                        CalorieBreakdown(calorie)
                     }
                     if (calorie != null && protein != null) {
                         Spacer(Modifier.height(16.dp))
@@ -250,4 +255,16 @@ internal fun Goal.labelRes(): Int = when (this) {
     Goal.CUT -> R.string.goal_cut
     Goal.MAINTAIN -> R.string.goal_maintain
     Goal.SURPLUS -> R.string.goal_surplus
+}
+
+@Composable
+private fun CalorieBreakdown(calorie: CalorieRecommendation) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        listOf(
+            stringResource(R.string.rec_bmr, formatNumber(calorie.bmr)),
+            stringResource(R.string.rec_tdee, formatNumber(calorie.tdee)),
+        ).forEach {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.blackwatermacros.app.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -154,9 +155,8 @@ internal val BlackwaterTypography = Typography(
 internal fun MaterialTheme.fieldShape() = FieldShape
 
 /**
- * Standard tonal card used across the app. Uses a subtle surface-container
- * tone (instead of a flat surface) with very low elevation for a calm,
- * modern, Firefox-like card look.
+ * Standard card used across the app: a surface-container tone one step
+ * above the background, a hairline outline and no shadow.
  */
 @Composable
 internal fun AppCard(
@@ -166,9 +166,11 @@ internal fun AppCard(
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            // A step above the background plus a hairline border, so cards read as cards in both themes.
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         shape = CardShape,
         content = content,
     )

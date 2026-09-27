@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeftIcon, PencilIcon, PlusIcon, ShieldIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
-import { Logo } from "@/components/logo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -159,7 +158,6 @@ export default function AdminPage() {
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 md:pt-6">
       <header className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Logo size="header" priority />
           <h1 className="text-lg font-semibold">{t.admin.title}</h1>
         </div>
         <Button

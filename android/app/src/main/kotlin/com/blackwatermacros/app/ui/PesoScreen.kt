@@ -72,7 +72,7 @@ fun PesoScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            CenteredTopAppBar(title = stringResource(R.string.tab_weight), leading = { TabHeaderLogo() })
+            CenteredTopAppBar(title = stringResource(R.string.tab_weight))
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -191,12 +191,10 @@ private fun PesoContent(
 
 @Composable
 private fun SummaryCard(summary: PesoSummary) {
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
@@ -213,7 +211,7 @@ private fun SummaryCard(summary: PesoSummary) {
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 MiniStatCell(stringResource(R.string.weight_change_7d), summary.changeWeight7d, "kg", Modifier.weight(1f))
-                MiniStatCell(stringResource(R.string.body_fat_current), summary.currentBodyFatPct, "%", Modifier.weight(1f))
+                MiniStatCell(stringResource(R.string.body_fat_current), summary.currentBodyFatPct, "%", Modifier.weight(1f), signed = false)
                 MiniStatCell(stringResource(R.string.body_fat_change_7d), summary.changeFat7d, "%", Modifier.weight(1f))
             }
         }
@@ -221,7 +219,7 @@ private fun SummaryCard(summary: PesoSummary) {
 }
 
 @Composable
-private fun MiniStatCell(label: String, value: Double?, unit: String, modifier: Modifier = Modifier) {
+private fun MiniStatCell(label: String, value: Double?, unit: String, modifier: Modifier = Modifier, signed: Boolean = true) {
     Column(
         modifier
             .background(
@@ -245,7 +243,7 @@ private fun MiniStatCell(label: String, value: Double?, unit: String, modifier: 
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     buildString {
-                        if (value > 0) append("+")
+                        if (signed && value > 0) append("+")
                         append(formatNumber(value, 1))
                     },
                     style = MaterialTheme.typography.titleMedium,
@@ -271,12 +269,10 @@ private fun MiniStatCell(label: String, value: Double?, unit: String, modifier: 
 
 @Composable
 private fun ChartCard(summary: PesoSummary) {
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(

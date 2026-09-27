@@ -91,4 +91,11 @@ describe("tarjetas de recomendación", () => {
     expect(exceeded.textContent).toMatch(/te pasaste de \d+ kcal/);
     expect(exceeded.textContent).not.toMatch(/te pasaste de \d+–\d+ kcal/);
   });
+
+  it("explica de dónde sale el objetivo: metabolismo basal y gasto diario (TDEE)", async () => {
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+
+    expect(await screen.findByText((content) => content.startsWith("Metabolismo basal (TMB):"))).toBeInTheDocument();
+    expect(screen.getByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"))).toBeInTheDocument();
+  });
 });

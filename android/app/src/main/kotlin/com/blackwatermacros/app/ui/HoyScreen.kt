@@ -50,6 +50,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -126,7 +129,6 @@ fun HoyScreen(
         topBar = {
             CenteredTopAppBar(
                 title = stringResource(R.string.tab_meals),
-                leading = { TabHeaderLogo() },
                 trailing = { SyncIndicator(onClick = onOpenSettings) },
             )
         },
@@ -401,7 +403,14 @@ private fun DayNavigator(
         IconButton(onClick = onPrev) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = stringResource(R.string.day_previous))
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Double-tap the date to jump back to today from any other day.
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .pointerInput(onToday) { detectTapGestures(onDoubleTap = { onToday() }) }
+                .padding(horizontal = 8.dp, vertical = 2.dp),
+        ) {
             Text(
                 text = caption,
                 style = MaterialTheme.typography.titleSmall,

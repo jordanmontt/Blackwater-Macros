@@ -708,8 +708,12 @@ column names stay Spanish on purpose (they are the web's file format).
 
 **Logo:** the web's 20 kg «BW» plate (`public/logo.png`) is the adaptive launcher icon
 (`mipmap-*/ic_launcher_foreground.png` on the paper background, plus a monochrome layer
-for themed icons), the splash icon, and `drawable-nodpi/logo_plate.png` in each tab
-header and on the login page.
+for themed icons), the splash icon, and `drawable-nodpi/logo_plate.png` on the login
+page. Tab headers have no logo (same on the web).
+
+**Comidas date:** double-tap the date to jump back to today (web: double-click /
+double-tap, `touch-manipulation` so phones deliver it). The calorie recommendation card
+shows the BMR and TDEE lines on both platforms.
 
 ### 14.4 Configuration
 
