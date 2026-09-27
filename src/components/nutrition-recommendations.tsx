@@ -10,6 +10,7 @@ import { calculateCalorieRecommendation } from "@/lib/core/calories";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
 import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
+import { cn } from "@/lib/utils";
 
 const GOAL_LABELS: Record<Goal, string> = {
   cut: t.calorias.goalCut,
@@ -60,43 +61,63 @@ function intakeStatus(
   };
 }
 
+/**
+ * Progress towards the daily target. The outlined track is what is left, the
+ * solid fill is what was eaten (orange once past the target), and the two
+ * markers crossing the bar are the target range. The numbers above say it in
+ * words: eaten / target.
+ */
 function IntakeBar({
   current,
   rangeMin,
   rangeMax,
+  unit,
   statusLabel,
   statusColor,
 }: {
   current: number;
   rangeMin: number;
   rangeMax: number;
+  unit: string;
   statusLabel: string;
   statusColor: string;
 }) {
-  const pct = rangeMax > 0 ? (current / rangeMax) * 100 : 0;
-  const barPct = Math.min(Math.max(pct, 0), 100);
-  const zoneLeft = rangeMax > 0 ? (rangeMin / rangeMax) * 100 : 0;
-  const zoneWidth = rangeMax > 0 ? ((rangeMax - rangeMin) / rangeMax) * 100 : 0;
+  // Leave room past the target so going over is visible on the bar.
+  const scaleMax = rangeMax > 0 ? rangeMax * 1.1 : 1;
+  const toPct = (v: number) => Math.min(Math.max((v / scaleMax) * 100, 0), 100);
+  const over = current > rangeMax;
   return (
     <div className="space-y-1.5">
-      <p className={`text-xs ${statusColor}`}>{statusLabel}</p>
-      <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className="absolute inset-y-0 bg-primary/15"
-          style={{ left: `${zoneLeft}%`, width: `${zoneWidth}%` }}
-        />
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-primary transition-all"
-          style={{ width: `${barPct}%` }}
-        />
-        <div
-          className="absolute inset-y-0 w-0.5 bg-muted-foreground/40"
-          style={{ left: `${zoneLeft}%` }}
-        />
-        <div
-          className="absolute inset-y-0 w-0.5 bg-muted-foreground/40"
-          style={{ left: `${Math.min(zoneLeft + zoneWidth, 100)}%` }}
-        />
+      <div className="flex items-baseline justify-between gap-2 text-xs">
+        <span className={statusColor}>{statusLabel}</span>
+        <span className="shrink-0 tabular-nums text-muted-foreground">
+          <span className="font-semibold text-foreground">{formatNumberEs(Math.round(current), 0)}</span>
+          {" / "}
+          {formatNumberEs(rangeMin, 0)}–{formatNumberEs(rangeMax, 0)} {unit}
+        </span>
+      </div>
+      <div
+        className="relative h-4"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(rangeMax)}
+        aria-valuenow={Math.round(current)}
+        aria-label={statusLabel}
+      >
+        <div className="absolute inset-x-0 top-1/2 h-2.5 -translate-y-1/2 overflow-hidden rounded-full border border-border bg-muted">
+          <div
+            data-testid="intake-fill"
+            className={cn("h-full rounded-full transition-all", over ? "bg-tertiary" : "bg-primary")}
+            style={{ width: `${toPct(current)}%` }}
+          />
+        </div>
+        {[rangeMin, rangeMax].map((mark) => (
+          <div
+            key={mark}
+            className="absolute inset-y-0 w-0.5 -translate-x-1/2 rounded-full bg-foreground/80"
+            style={{ left: `${toPct(mark)}%` }}
+          />
+        ))}
       </div>
     </div>
   );
@@ -182,6 +203,7 @@ export function NutritionRecommendationsCard({
               current={dailyCalories}
               rangeMin={calorieRec.targetMin}
               rangeMax={calorieRec.targetMax}
+              unit={t.hoy.kcalUnit}
               {...intakeStatus(
                 dailyCalories,
                 calorieRec.targetMin,
@@ -219,6 +241,7 @@ export function NutritionRecommendationsCard({
               current={dailyProtein}
               rangeMin={proteinRec.bwRange.min}
               rangeMax={proteinRec.bwRange.max}
+              unit="g"
               {...intakeStatus(
                 dailyProtein,
                 proteinRec.bwRange.min,

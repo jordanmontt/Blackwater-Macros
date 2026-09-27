@@ -106,4 +106,16 @@ describe("tarjetas de recomendación", () => {
     // TDEE aparece antes que el estado de la barra en el orden del documento.
     expect(tdee.compareDocumentPosition(missing) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
+
+  it("la barra muestra lo consumido frente al objetivo y cambia de color al pasarse", async () => {
+    const { rerender } = render(<NutritionRecommendationsCard dailyCalories={1200} dailyProtein={50} />);
+    const bars = await screen.findAllByRole("progressbar");
+    expect(bars[0]).toHaveAttribute("aria-valuenow", "1200");
+    expect(screen.getAllByTestId("intake-fill")[0].className).toContain("bg-primary");
+    // "consumido / mínimo–máximo kcal" en palabras, además de la barra
+    expect(screen.getByText((_, el) => el?.tagName === "SPAN" && /^1\.?200 \/ [\d.]+–[\d.]+ kcal$/.test(el.textContent ?? ""))).toBeInTheDocument();
+
+    rerender(<NutritionRecommendationsCard dailyCalories={4000} dailyProtein={50} />);
+    expect(screen.getAllByTestId("intake-fill")[0].className).toContain("bg-tertiary");
+  });
 });
