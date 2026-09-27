@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blackwatermacros.app.R
@@ -198,6 +199,7 @@ fun CompactTextArea(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String? = null,
+    minHeight: Dp = 72.dp,
 ) {
     var focused by remember { mutableStateOf(false) }
     BasicTextField(
@@ -209,7 +211,7 @@ fun CompactTextArea(
         decorationBox = { innerTextField ->
             Box(
                 Modifier
-                    .defaultMinSize(minHeight = 72.dp)
+                    .defaultMinSize(minHeight = minHeight)
                     .fieldBackground(enabled = true, focused = focused)
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 contentAlignment = Alignment.TopStart,

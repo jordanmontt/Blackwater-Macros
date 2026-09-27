@@ -585,6 +585,12 @@ rest of the calorie profile.
   in memory (web canvas → data URL; Android `PhotoCodec`) and dropped after the call.
   Android camera photos go through a temporary `cache/ai-photos/` file (FileProvider scoped
   to that folder) deleted right after reading; the folder is also wiped at app start.
+- **Coach** (tab `/coach`, Android `CoachScreen`): streamed chat kept in memory only (web
+  module state, Android activity-scoped ViewModel). Each question sends
+  `buildCoachSystemPrompt(language, buildCoachContext(input))`, the input read fresh from the
+  same data as the Comidas card (profile, targets, measured expenditure, 4 weeks of meals,
+  60 days of weigh-ins); with «El coach puede ver mis datos» off the data is neither read
+  nor sent. The last 20 good turns go along as history.
 
 ---
 

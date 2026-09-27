@@ -3,6 +3,7 @@ export const t = {
   nav: {
     hoy: "Comidas",
     progreso: "Progreso",
+    coach: "Coach",
     ajustes: "Ajustes",
   },
   auth: {
@@ -344,6 +345,30 @@ export const t = {
       openrouter: "OpenRouter",
       custom: "tu servidor",
     },
+  },
+  coach: {
+    title: "Coach",
+    intro: "Pregunta sobre comida, tu dieta o tu progreso.",
+    examples: [
+      "¿Cuál será mi peso en 30 días?",
+      "¿Como demasiado?",
+      "¿Qué como hoy para llegar a mis calorías?",
+      "¿Qué ceno?",
+      "¿Cuántos macros tienen 3 plátanos?",
+      "Evalúa mi dieta de esta semana",
+    ],
+    placeholder: "Escribe tu pregunta…",
+    send: "Enviar",
+    stop: "Detener",
+    newChat: "Nueva conversación",
+    you: "Tú",
+    thinking: "Pensando…",
+    disclaimer: "El coach puede equivocarse. No es consejo médico.",
+    engine: "{provider} · nube",
+    noData: "Sin acceso a tus datos (Ajustes → IA).",
+    notConfigured: "Configura la IA para usar el coach. Con una clave gratis de Google basta.",
+    configure: "Configurar la IA",
+    memoryOnly: "La conversación no se guarda: se borra al cerrar la página.",
   },
   photo: {
     title: "Foto",

@@ -16,7 +16,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 4 | Food search + barcode (Open Food Facts + bundled generic foods) | ☑ | ☑ | #12 |
 | 5 | AI settings + AI client (cloud providers, keys, test) | ☑ | ☑ | #12 |
 | 6 | Photo logging with AI (+ text estimate) | ☑ | ☑ | #12 |
-| 7 | Coach tab | ☐ | ☐ | |
+| 7 | Coach tab | ☑ | ☑ | #12 |
 | 8 | Onboarding (first launch) | ☐ | ☐ | |
 | 9 | On-device AI (Android: LiteRT-LM + Gemma 4) | — | ☐ | |
 | 10 | Local AI on the web (optional, see D9) | ☐ | — | |
@@ -57,6 +57,9 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
   no es válida» with «Escribir a mano». The success path is covered by tests with recorded
   answers (no real key used). Lesson: `BitmapFactory.decodeStream` with `inJustDecodeBounds`
   returns null by design — do not treat that as failure.
+- 2026-09-27 — Phase 7 done (one commit). Emulator + browser: examples, a question with the
+  fake key shows «La clave no es válida», the Android conversation survives tab switches.
+  Next: phase 8 (onboarding).
 
 ---
 
@@ -409,9 +412,15 @@ Spanish product names preferred, and the review form shows the Spanish name.
   tolerant and the prompt carries the shape.
 
 ### Phase 7 — Coach
-- [ ] Coach tab UI (§4.3), in-memory chat state, streaming, examples, not-configured state.
-- [ ] Context from `buildCoachContext`; D11 toggle.
-- [ ] Tests: context content (core), chat reducer, mocked engine streaming.
+- [x] Coach tab UI (§4.3), in-memory chat state, streaming, examples, not-configured state.
+- [x] Context from `buildCoachContext`; D11 toggle.
+- [x] Tests: context content (core), chat reducer, mocked engine streaming.
+- Done as: web `app/coach/page.tsx`, `lib/ai/coach-chat.ts` (module-memory store,
+  `historyForModel`: last 20 turns, failed/empty answers and their questions left out,
+  starts with the user), `lib/ai/coach-data.ts` (profile, targets, measured expenditure,
+  4 weeks of meals, 60 days of weigh-ins, read fresh per question); Android `CoachScreen`,
+  `CoachViewModel` (activity-scoped: survives tab switches, gone when the app closes). Answers
+  render minimal Markdown (bullets, **bold**). 4 tabs: Comidas · Progreso · Coach · Ajustes.
 
 ### Phase 8 — Onboarding
 - [ ] Android: 4-step flow (§4.5), shown when `onboardingDone` is false; login path reuses

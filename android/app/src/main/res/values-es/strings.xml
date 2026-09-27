@@ -404,4 +404,31 @@
     <string name="photo_confidence_high">alta</string>
     <string name="photo_estimate_query">Estimar «%1$s» con IA</string>
     <string name="ai_error_unreadable">La IA no devolvió una estimación válida. Inténtalo de nuevo o escríbelo a mano.</string>
+
+    <!-- Coach (phase 7) -->
+    <string name="tab_coach">Coach</string>
+    <string name="coach_intro">Pregunta sobre comida, tu dieta o tu progreso.</string>
+    <string name="coach_placeholder">Escribe tu pregunta…</string>
+    <string name="coach_send">Enviar</string>
+    <string name="coach_stop">Detener</string>
+    <string name="coach_new_chat">Nueva conversación</string>
+    <string name="coach_thinking">Pensando…</string>
+    <string name="coach_disclaimer">El coach puede equivocarse. No es consejo médico.</string>
+    <string name="coach_engine">%1$s · nube</string>
+    <string name="coach_no_data">Sin acceso a tus datos (Ajustes → IA).</string>
+    <string name="coach_not_configured">Configura la IA para usar el coach. Con una clave gratis de Google basta.</string>
+    <string name="coach_memory_only">La conversación no se guarda: se borra al cerrar la app.</string>
+    <string name="ai_short_gemini">Gemini</string>
+    <string name="ai_short_openai">OpenAI</string>
+    <string name="ai_short_anthropic">Claude</string>
+    <string name="ai_short_openrouter">OpenRouter</string>
+    <string name="ai_short_custom">tu servidor</string>
+    <string-array name="coach_examples">
+        <item>¿Cuál será mi peso en 30 días?</item>
+        <item>¿Como demasiado?</item>
+        <item>¿Qué como hoy para llegar a mis calorías?</item>
+        <item>¿Qué ceno?</item>
+        <item>¿Cuántos macros tienen 3 plátanos?</item>
+        <item>Evalúa mi dieta de esta semana</item>
+    </string-array>
 </resources>

@@ -394,4 +394,31 @@
     <string name="photo_confidence_high">high</string>
     <string name="photo_estimate_query">Estimate «%1$s» with AI</string>
     <string name="ai_error_unreadable">The AI did not return a valid estimate. Try again or write it by hand.</string>
+
+    <!-- Coach (phase 7) -->
+    <string name="tab_coach">Coach</string>
+    <string name="coach_intro">Ask about food, your diet or your progress.</string>
+    <string name="coach_placeholder">Type your question…</string>
+    <string name="coach_send">Send</string>
+    <string name="coach_stop">Stop</string>
+    <string name="coach_new_chat">New conversation</string>
+    <string name="coach_thinking">Thinking…</string>
+    <string name="coach_disclaimer">The coach can be wrong. Not medical advice.</string>
+    <string name="coach_engine">%1$s · cloud</string>
+    <string name="coach_no_data">No access to your data (Settings → AI).</string>
+    <string name="coach_not_configured">Set up AI to use the coach. A free Google key is enough.</string>
+    <string name="coach_memory_only">The conversation is not saved: it is gone when you close the app.</string>
+    <string name="ai_short_gemini">Gemini</string>
+    <string name="ai_short_openai">OpenAI</string>
+    <string name="ai_short_anthropic">Claude</string>
+    <string name="ai_short_openrouter">OpenRouter</string>
+    <string name="ai_short_custom">your server</string>
+    <string-array name="coach_examples">
+        <item>What will I weigh in 30 days?</item>
+        <item>Am I eating too much?</item>
+        <item>What should I eat today to reach my calories?</item>
+        <item>What should I have for dinner?</item>
+        <item>How many macros do 3 bananas have?</item>
+        <item>Review my diet this week</item>
+    </string-array>
 </resources>

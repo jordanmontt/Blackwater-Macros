@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, SettingsIcon, TrendingUpIcon } from "lucide-react";
+import { HomeIcon, MessageCircleIcon, SettingsIcon, TrendingUpIcon } from "lucide-react";
 import { t } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/", label: t.nav.hoy, icon: HomeIcon },
   { href: "/progreso", label: t.nav.progreso, icon: TrendingUpIcon },
+  { href: "/coach", label: t.nav.coach, icon: MessageCircleIcon },
   { href: "/ajustes", label: t.nav.ajustes, icon: SettingsIcon },
 ];
 

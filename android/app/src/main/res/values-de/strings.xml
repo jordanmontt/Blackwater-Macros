@@ -393,4 +393,31 @@
     <string name="photo_confidence_high">hoch</string>
     <string name="photo_estimate_query">«%1$s» mit KI schätzen</string>
     <string name="ai_error_unreadable">Die KI hat keine gültige Schätzung geliefert. Versuche es erneut oder gib sie von Hand ein.</string>
+
+    <!-- Coach (phase 7) -->
+    <string name="tab_coach">Coach</string>
+    <string name="coach_intro">Frag nach Essen, deiner Ernährung oder deinem Fortschritt.</string>
+    <string name="coach_placeholder">Schreib deine Frage…</string>
+    <string name="coach_send">Senden</string>
+    <string name="coach_stop">Stoppen</string>
+    <string name="coach_new_chat">Neue Unterhaltung</string>
+    <string name="coach_thinking">Denkt nach…</string>
+    <string name="coach_disclaimer">Der Coach kann sich irren. Keine medizinische Beratung.</string>
+    <string name="coach_engine">%1$s · Cloud</string>
+    <string name="coach_no_data">Kein Zugriff auf deine Daten (Einstellungen → KI).</string>
+    <string name="coach_not_configured">Richte die KI ein, um den Coach zu nutzen. Ein kostenloser Google-Schlüssel reicht.</string>
+    <string name="coach_memory_only">Die Unterhaltung wird nicht gespeichert: Sie ist weg, wenn du die App schließt.</string>
+    <string name="ai_short_gemini">Gemini</string>
+    <string name="ai_short_openai">OpenAI</string>
+    <string name="ai_short_anthropic">Claude</string>
+    <string name="ai_short_openrouter">OpenRouter</string>
+    <string name="ai_short_custom">dein Server</string>
+    <string-array name="coach_examples">
+        <item>Wie viel wiege ich in 30 Tagen?</item>
+        <item>Esse ich zu viel?</item>
+        <item>Was esse ich heute, um meine Kalorien zu erreichen?</item>
+        <item>Was esse ich zu Abend?</item>
+        <item>Wie viele Makros haben 3 Bananen?</item>
+        <item>Bewerte meine Ernährung dieser Woche</item>
+    </string-array>
 </resources>

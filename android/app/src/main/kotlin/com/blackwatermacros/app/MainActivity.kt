@@ -29,6 +29,7 @@ import com.blackwatermacros.app.ui.AppTab
 import com.blackwatermacros.app.ui.BlackwaterShapes
 import com.blackwatermacros.app.ui.BlackwaterTypography
 import com.blackwatermacros.app.ui.BottomNavBar
+import com.blackwatermacros.app.ui.CoachScreen
 import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
 import com.blackwatermacros.app.ui.MethodologyScreen
@@ -118,6 +119,7 @@ class MainActivity : AppCompatActivity() {
 private val AllTabRoutes = setOf(
     AppTab.HOY.route,
     AppTab.PROGRESO.route,
+    AppTab.COACH.route,
     AppTab.AJUSTES.route,
 )
 
@@ -183,6 +185,12 @@ private fun AppNavHost(
         composable(AppTab.PROGRESO.route) {
             ProgressScreen(
                 onOpenMetodologia = { navController.navigate("metodologia") },
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
+        composable(AppTab.COACH.route) {
+            CoachScreen(
+                onOpenAiSettings = { navController.navigate("ia") },
                 modifier = Modifier.padding(innerPadding),
             )
         }

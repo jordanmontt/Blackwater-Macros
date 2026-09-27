@@ -79,5 +79,5 @@ internal fun recommend(
 }
 
 /** The local calendar day of an ISO instant ("2026-03-01T07:30:00Z" → "2026-03-01"). */
-private fun localDateKey(instant: String): String? =
+internal fun localDateKey(instant: String): String? =
     runCatching { Instant.parse(instant).atZone(ZoneId.systemDefault()).toLocalDate().toString() }.getOrNull()

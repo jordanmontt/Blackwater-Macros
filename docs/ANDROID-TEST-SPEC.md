@@ -59,6 +59,7 @@ Robolectric, no emulator needed).
 | `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, 404/unknown, errors, Spanish search, User-Agent) against MockWebServer; the bundled index loads with Spanish names; recent foods |
 | `data/ai/AiClientTest.kt` | AI client against MockWebServer (every provider host redirected, never a real call): «Probar», whole and streamed answers, error kinds; keys stored encrypted per provider and restored; the AI prefs are excluded from every backup |
 | `data/ai/MealEstimatorTest.kt` | «Foto»: photos + description become one JSON-mode request (mirrors `add-food-photo.test.tsx`), an answer without a meal is «unreadable», the language told to the model, photo downscale size, the camera FileProvider only reaches the temporary folder |
+| `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`) with a real in-memory Room DB and MockWebServer: streamed answer with the local data summary, conversation history until «Nueva conversación», failures not resent, no data without permission; `historyForModel`; Markdown bullets/bold |
 | `ui/ProgressLogicTest.kt` | Progreso numbers: one period for everything, macro averages over logged days (+ split, targets), weigh-ins of the period |
 | `ui/ValidationTest.kt` | Meal form, weight and profile limits (same as `src/server/validation.ts`); recommendation states, latest body fat for protein, measured expenditure from meals + weigh-ins; sync indicator states |
 | `ui/TranslationsTest.kt` | Every language has every string and plural with the same placeholders |

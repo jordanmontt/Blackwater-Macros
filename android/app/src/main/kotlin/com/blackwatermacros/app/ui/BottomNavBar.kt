@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -55,6 +57,12 @@ enum class AppTab(
         labelRes = R.string.tab_progress,
         selectedIcon = Icons.AutoMirrored.Filled.TrendingUp,
         unselectedIcon = Icons.AutoMirrored.Outlined.TrendingUp,
+    ),
+    COACH(
+        route = "coach",
+        labelRes = R.string.tab_coach,
+        selectedIcon = Icons.AutoMirrored.Filled.Chat,
+        unselectedIcon = Icons.AutoMirrored.Outlined.Chat,
     ),
     AJUSTES(
         route = "ajustes",

@@ -404,4 +404,31 @@
     <string name="photo_confidence_high">élevée</string>
     <string name="photo_estimate_query">Estimer «%1$s» avec l\'IA</string>
     <string name="ai_error_unreadable">L\'IA n\'a pas renvoyé d\'estimation valide. Réessayez ou saisissez-la à la main.</string>
+
+    <!-- Coach (phase 7) -->
+    <string name="tab_coach">Coach</string>
+    <string name="coach_intro">Posez vos questions sur l\'alimentation, votre régime ou vos progrès.</string>
+    <string name="coach_placeholder">Écrivez votre question…</string>
+    <string name="coach_send">Envoyer</string>
+    <string name="coach_stop">Arrêter</string>
+    <string name="coach_new_chat">Nouvelle conversation</string>
+    <string name="coach_thinking">Réflexion…</string>
+    <string name="coach_disclaimer">Le coach peut se tromper. Ce n\'est pas un avis médical.</string>
+    <string name="coach_engine">%1$s · cloud</string>
+    <string name="coach_no_data">Sans accès à vos données (Réglages → IA).</string>
+    <string name="coach_not_configured">Configurez l\'IA pour utiliser le coach. Une clé Google gratuite suffit.</string>
+    <string name="coach_memory_only">La conversation n\'est pas enregistrée : elle disparaît à la fermeture de l\'app.</string>
+    <string name="ai_short_gemini">Gemini</string>
+    <string name="ai_short_openai">OpenAI</string>
+    <string name="ai_short_anthropic">Claude</string>
+    <string name="ai_short_openrouter">OpenRouter</string>
+    <string name="ai_short_custom">votre serveur</string>
+    <string-array name="coach_examples">
+        <item>Combien pèserai-je dans 30 jours ?</item>
+        <item>Est-ce que je mange trop ?</item>
+        <item>Que manger aujourd\'hui pour atteindre mes calories ?</item>
+        <item>Que manger ce soir ?</item>
+        <item>Combien de macros dans 3 bananes ?</item>
+        <item>Évalue mon alimentation de la semaine</item>
+    </string-array>
 </resources>
