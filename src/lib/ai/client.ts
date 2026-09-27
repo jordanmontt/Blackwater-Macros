@@ -14,7 +14,7 @@ import {
  * the key and the photos only travel to the provider the user chose.
  */
 
-export type AiFailure = AiErrorKind | "not_configured" | "offline" | "empty";
+export type AiFailure = AiErrorKind | "not_configured" | "offline" | "empty" | "unreadable";
 
 export class AiError extends Error {
   readonly kind: AiFailure;

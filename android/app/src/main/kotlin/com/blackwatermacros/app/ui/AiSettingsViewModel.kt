@@ -33,6 +33,7 @@ fun AiFailure.messageRes(): Int = when (this) {
     AiFailure.NOT_FOUND -> R.string.ai_error_not_found
     AiFailure.OFFLINE -> R.string.ai_error_offline
     AiFailure.EMPTY -> R.string.ai_error_empty
+    AiFailure.UNREADABLE -> R.string.ai_error_unreadable
     AiFailure.PROVIDER -> R.string.ai_error_provider
 }
 

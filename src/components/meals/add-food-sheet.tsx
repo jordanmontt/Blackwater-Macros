@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeftIcon, CopyIcon, PencilLineIcon, ScanBarcodeIcon, SearchIcon } from "lucide-react";
+import { ArrowLeftIcon, CameraIcon, CopyIcon, PencilLineIcon, ScanBarcodeIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { DayNavigator } from "@/components/meals/day-navigator";
 import { BarcodeScanner } from "@/components/foods/barcode-scanner";
 import { FoodSearch } from "@/components/foods/food-search";
+import { PhotoEstimate } from "@/components/foods/photo-estimate";
 import { PortionPicker } from "@/components/foods/portion-picker";
 import { productChoice, rememberFood, type FoodChoice } from "@/lib/foods/foods-client";
 import { foodToIngredient } from "@/lib/core/foods";
+import type { MealEstimate } from "@/lib/core/ai-schema";
 import { api } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { addDaysToKey, formatDateKeyShort, formatNumberEs } from "@/lib/core/dates";
@@ -18,7 +20,7 @@ import { copyMealPayload } from "@/lib/meal-payload";
 import type { IngredientInput, MealDTO, MealTemplateDTO } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 
-type View = "menu" | "copy" | "search" | "barcode" | "portion";
+type View = "menu" | "copy" | "search" | "barcode" | "portion" | "photo";
 
 /**
  * «Añadir comida»: every way to add food to `day`. Buscar and Código de barras
@@ -35,6 +37,7 @@ export function AddFoodSheet({
   onManual,
   onAdded,
   onFoodPicked,
+  onEstimate,
   pickOnly = false,
 }: {
   open: boolean;
@@ -46,11 +49,15 @@ export function AddFoodSheet({
   onAdded: () => void | Promise<unknown>;
   /** A food and portion picked from search or a barcode. */
   onFoodPicked: (ingredient: IngredientInput) => void;
+  /** The AI estimated a meal from photos or a description. */
+  onEstimate: (estimate: MealEstimate) => void;
   pickOnly?: boolean;
 }) {
   const [view, setView] = useState<View>("menu");
   const [choice, setChoice] = useState<FoodChoice | null>(null);
   const [back, setBack] = useState<View>("menu");
+  /** Set when the photo view was opened by «Estimar “…” con IA» from search. */
+  const [estimateQuery, setEstimateQuery] = useState<string | null>(null);
 
   function pick(next: FoodChoice, from: View) {
     setChoice(next);
@@ -63,6 +70,7 @@ export function AddFoodSheet({
     if (!next) {
       setView("menu");
       setChoice(null);
+      setEstimateQuery(null);
     }
     onOpenChange(next);
   }
@@ -73,6 +81,7 @@ export function AddFoodSheet({
     search: t.addFood.search,
     barcode: t.addFood.barcode,
     portion: t.addFood.portionTitle,
+    photo: t.photo.title,
   };
 
   /** Creates the meals, closes the sheet and offers Undo. */
@@ -109,7 +118,10 @@ export function AddFoodSheet({
             variant="ghost"
             size="icon-sm"
             aria-label={t.addFood.back}
-            onClick={() => setView(view === "portion" ? back : "menu")}
+            onClick={() => {
+              setView(view === "portion" ? back : view === "photo" && estimateQuery !== null ? "search" : "menu");
+              setEstimateQuery(null);
+            }}
           >
             <ArrowLeftIcon />
           </Button>
@@ -118,7 +130,13 @@ export function AddFoodSheet({
     >
       {view === "menu" ? (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
+            <BigSourceButton
+              icon={<CameraIcon />}
+              label={t.photo.title}
+              hint={t.photo.hint}
+              onClick={() => setView("photo")}
+            />
             <BigSourceButton
               icon={<SearchIcon />}
               label={t.addFood.search}
@@ -174,7 +192,30 @@ export function AddFoodSheet({
           ) : null}
         </div>
       ) : view === "search" ? (
-        <FoodSearch onPick={(next) => pick(next, "search")} />
+        <FoodSearch
+          onPick={(next) => pick(next, "search")}
+          onEstimateQuery={(query) => {
+            setEstimateQuery(query);
+            setView("photo");
+          }}
+        />
+      ) : view === "photo" ? (
+        <PhotoEstimate
+          key={estimateQuery ?? ""}
+          autoDescription={estimateQuery}
+          onEstimate={(estimate) => {
+            changeOpen(false);
+            onEstimate(estimate);
+          }}
+          onManual={
+            pickOnly
+              ? undefined
+              : () => {
+                  changeOpen(false);
+                  onManual();
+                }
+          }
+        />
       ) : view === "barcode" ? (
         <BarcodeScanner onFound={(product) => pick(productChoice(product), "barcode")} />
       ) : view === "portion" && choice ? (
@@ -218,11 +259,11 @@ function BigSourceButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-center gap-1 rounded-xl border bg-primary/5 px-3 py-4 text-center transition-colors hover:bg-accent [&_svg]:size-6 [&_svg]:text-primary"
+      className="flex flex-col items-center gap-1 rounded-xl border bg-primary/5 px-2 py-4 text-center transition-colors hover:bg-accent [&_svg]:size-6 [&_svg]:text-primary"
     >
       {icon}
       <span className="text-sm font-medium">{label}</span>
-      <span className="text-xs text-muted-foreground">{hint}</span>
+      <span className="text-[11px] leading-tight text-muted-foreground">{hint}</span>
     </button>
   );
 }

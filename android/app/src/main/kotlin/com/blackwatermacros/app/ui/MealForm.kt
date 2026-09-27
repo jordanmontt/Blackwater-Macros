@@ -2,7 +2,9 @@ package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
@@ -127,8 +130,10 @@ fun MealFormSheet(
     prefilled: Boolean = false,
     /** «Buscar alimento» in the form (opens search / barcode to add one more food). */
     onSearchFood: (() -> Unit)? = null,
-    /** A food picked while the form is open; appended once per id. */
-    appendRequest: Pair<Long, WireIngredient>? = null,
+    /** Foods picked while the form is open; appended once per id. */
+    appendRequest: Pair<Long, List<WireIngredient>>? = null,
+    /** A line above the form, e.g. «Estimación de la IA (confianza media): revisa las cantidades». */
+    notice: String? = null,
 ) {
     var dirty by remember { mutableStateOf(prefilled) }
     var confirmDiscard by remember { mutableStateOf(false) }
@@ -162,6 +167,7 @@ fun MealFormSheet(
                 onDirtyChange = { dirty = it || prefilled },
                 onSearchFood = onSearchFood,
                 appendRequest = appendRequest,
+                notice = notice,
             )
         }
     }
@@ -193,7 +199,8 @@ private fun MealFormFields(
     onSubmit: (MealFormValue) -> Unit,
     onDirtyChange: (Boolean) -> Unit = {},
     onSearchFood: (() -> Unit)? = null,
-    appendRequest: Pair<Long, WireIngredient>? = null,
+    appendRequest: Pair<Long, List<WireIngredient>>? = null,
+    notice: String? = null,
 ) {
     val totalOnly = initial?.entryMode == WireEntryMode.TOTAL_ONLY
     var mode by rememberSaveable { mutableStateOf(initial?.entryMode ?: WireEntryMode.PER_INGREDIENT) }
@@ -219,13 +226,13 @@ private fun MealFormFields(
     // replacing the empty starter row.
     var appliedAppend by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(appendRequest?.first) {
-        val (id, ingredient) = appendRequest ?: return@LaunchedEffect
-        if (id == appliedAppend) return@LaunchedEffect
+        val (id, picked) = appendRequest ?: return@LaunchedEffect
+        if (id == appliedAppend || picked.isEmpty()) return@LaunchedEffect
         appliedAppend = id
         mode = WireEntryMode.PER_INGREDIENT
-        val draft = ingredient.toDraft()
-        ingredients = if (ingredients.size == 1 && ingredients[0] == IngredientDraft()) listOf(draft) else ingredients + draft
-        if (title.isBlank()) title = ingredient.name
+        val drafts = picked.map { it.toDraft() }
+        ingredients = if (ingredients.size == 1 && ingredients[0] == IngredientDraft()) drafts else ingredients + drafts
+        if (title.isBlank()) title = picked.first().name
     }
 
     val initialState = remember { FormSnapshot(mode, title, notes, ingredients, totals) }
@@ -240,6 +247,10 @@ private fun MealFormFields(
     ) {
         Text(heading, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(16.dp))
+        if (notice != null) {
+            AiNotice(notice)
+            Spacer(Modifier.height(16.dp))
+        }
 
         FieldLabel(stringResource(R.string.form_title))
         Spacer(Modifier.height(6.dp))
@@ -376,3 +387,23 @@ private fun WireIngredient.toDraft() = IngredientDraft(
     carbs = carbs?.let(::toDecimalInput).orEmpty(),
     fat = fat?.let(::toDecimalInput).orEmpty(),
 )
+
+/** The AI estimate line above the review form. */
+@Composable
+internal fun AiNotice(text: String) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        Icon(
+            Icons.Filled.AutoAwesome,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(16.dp).padding(top = 2.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+    }
+}

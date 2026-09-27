@@ -366,4 +366,31 @@
     <string name="ai_error_offline">Keine Verbindung möglich. Prüfe deine Verbindung oder die Serveradresse.</string>
     <string name="ai_error_empty">Die KI hat nicht geantwortet. Versuche es erneut.</string>
     <string name="ai_error_provider">Der Anbieter hat einen Fehler gemeldet. Versuche es erneut.</string>
+
+    <!-- Photo logging (phase 6) -->
+    <string name="photo_title">Foto</string>
+    <string name="photo_hint">Die KI schätzt die Makros</string>
+    <string name="photo_tips_title">Für eine gute Schätzung</string>
+    <string name="photo_tips">• Mach mehrere Fotos aus verschiedenen Winkeln.\n• Nimm eine Gabel oder deine Hand als Maßstab mit aufs Bild.\n• Fotografiere auch die Nährwerttabelle, falls vorhanden.\n• Beschreibe, was man nicht sieht: Öl, Soßen, Zucker.</string>
+    <string name="photo_hide_tips">Verstanden</string>
+    <string name="photo_camera">Foto aufnehmen</string>
+    <string name="photo_gallery">Galerie</string>
+    <string name="photo_remove">Foto %1$d entfernen</string>
+    <string name="photo_alt">Foto %1$d der Mahlzeit</string>
+    <string name="photo_max">Bis zu %1$d Fotos. Sie werden nicht gespeichert: Sie gehen an deinen KI-Anbieter und werden dann verworfen.</string>
+    <string name="photo_describe">Beschreibe deine Mahlzeit</string>
+    <string name="photo_describe_placeholder">Z. B. mit einem Löffel Öl, Vollkornbrot…</string>
+    <string name="photo_estimate">Makros schätzen</string>
+    <string name="photo_estimating">Wird geschätzt…</string>
+    <string name="photo_need_input">Füge ein Foto oder eine Beschreibung hinzu.</string>
+    <string name="photo_error">Dieses Foto konnte nicht gelesen werden.</string>
+    <string name="photo_not_configured">Um mit Fotos zu schätzen, richte die KI mit einem Schlüssel ein (Google gibt ihn kostenlos).</string>
+    <string name="photo_configure">KI einrichten</string>
+    <string name="photo_notice">KI-Schätzung (Sicherheit: %1$s): prüfe die Mengen.</string>
+    <string name="photo_notice_plain">KI-Schätzung: prüfe die Mengen.</string>
+    <string name="photo_confidence_low">niedrig</string>
+    <string name="photo_confidence_medium">mittel</string>
+    <string name="photo_confidence_high">hoch</string>
+    <string name="photo_estimate_query">«%1$s» mit KI schätzen</string>
+    <string name="ai_error_unreadable">Die KI hat keine gültige Schätzung geliefert. Versuche es erneut oder gib sie von Hand ein.</string>
 </resources>

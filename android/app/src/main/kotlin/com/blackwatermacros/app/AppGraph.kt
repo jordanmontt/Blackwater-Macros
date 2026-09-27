@@ -14,6 +14,7 @@ import com.blackwatermacros.app.data.ApiService
 import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.ai.AiClient
 import com.blackwatermacros.app.data.ai.AiSettingsStore
+import com.blackwatermacros.app.data.ai.MealEstimator
 import com.blackwatermacros.app.data.foods.GenericFoodsStore
 import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
 import com.blackwatermacros.app.data.foods.RecentFoods
@@ -51,6 +52,8 @@ object AppGraph {
         private set
     lateinit var ai: AiClient
         private set
+    lateinit var mealEstimator: MealEstimator
+        private set
 
     fun init(context: Context) {
         val baseUrl = BuildConfig.API_BASE_URL.let { if (it.endsWith("/")) it else "$it/" }
@@ -66,6 +69,7 @@ object AppGraph {
         recentFoods = RecentFoods(context)
         aiSettings = AiSettingsStore(context)
         ai = AiClient.create()
+        mealEstimator = MealEstimator(ai, aiSettings)
         accounts = AccountController(
             account = account,
             repository = repository,
@@ -83,5 +87,10 @@ class BlackwaterApp : Application() {
         AppGraph.init(this)
         // Read the bundled foods in the background so the first search is instant.
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch { runCatching { AppGraph.genericFoods.all() } }
+        // Meal photos are never kept: remove any camera file left by a crash.
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { runCatching { java.io.File(cacheDir, PHOTO_CACHE_DIR).deleteRecursively() } }
     }
 }
+
+/** Temporary folder for a camera photo (see `res/xml/photo_paths.xml`). */
+const val PHOTO_CACHE_DIR = "ai-photos"

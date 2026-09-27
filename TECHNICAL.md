@@ -578,6 +578,13 @@ rest of the calorie profile.
   the file excluded from backups and device transfer (`res/xml/backup_rules.xml`,
   `data_extraction_rules.xml`); screen Ajustes → Inteligencia artificial (`AiSettingsScreen`).
 - Tests never call a real provider: mocked `fetch` (web) / MockWebServer (Android).
+- **Photo logging** («Foto» in «Añadir comida», and «Estimar “…” con IA» from search):
+  `buildMealEstimateSystemPrompt` + `buildMealEstimateUserText` (core) → JSON-mode call →
+  `parseMealEstimate` → review form pre-filled per ingredient with a notice line
+  («Estimación de la IA (confianza media)…»). Photos are downscaled to ≤ 1024 px JPEG 80 %
+  in memory (web canvas → data URL; Android `PhotoCodec`) and dropped after the call.
+  Android camera photos go through a temporary `cache/ai-photos/` file (FileProvider scoped
+  to that folder) deleted right after reading; the folder is also wiped at app start.
 
 ---
 

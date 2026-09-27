@@ -157,3 +157,29 @@ export function estimateToIngredients(estimate: MealEstimate): IngredientInput[]
     fat: item.fat,
   }));
 }
+
+/** System prompt for estimating a meal from photos and/or a description. `language` in English («Spanish»). */
+export function buildMealEstimateSystemPrompt(language: string): string {
+  return [
+    "You estimate the nutrition of meals for Blackwater Macros, a calorie and macro tracker.",
+    `Reply with only one JSON object with this shape: ${MEAL_ESTIMATE_SHAPE}`,
+    `Write the title, the item names and the notes in ${language}.`,
+    "One item per food. Add likely hidden ingredients (cooking oil, butter, sauces, dressings, sugar) as their own items.",
+    "grams is the edible weight as served. Judge portions with the references in the photos (plate, cutlery, hand).",
+    "Quantities the user gives and nutrition labels in the photos beat visual guesses.",
+    "calories must match 4 x protein + 4 x carbs + 9 x fat. Whole numbers for grams and calories, one decimal for macros.",
+    "confidence is high only when every portion is clear, low when the photo is unclear or much is hidden.",
+    `notes is one short sentence in ${language} with the main assumption (for example the amount of oil).`,
+  ].join("\n");
+}
+
+/** The user message next to the photos: how many there are and what the user wrote. */
+export function buildMealEstimateUserText(description: string, photoCount: number): string {
+  const text = description.trim();
+  if (photoCount === 0) return `Estimate this meal: ${text}`;
+  const photos =
+    photoCount === 1
+      ? "A photo of my meal."
+      : `${photoCount} photos of the same meal from different angles (one may be a nutrition label).`;
+  return text === "" ? photos : `${photos}\nWhat I can add: ${text}`;
+}

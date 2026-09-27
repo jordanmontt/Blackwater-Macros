@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AddFoodSheet } from "@/components/meals/add-food-sheet";
+import { estimateNotice } from "@/components/foods/photo-estimate";
 import { DayNavigator } from "@/components/meals/day-navigator";
 import { MealCard } from "@/components/meals/meal-card";
 import { MealForm } from "@/components/meals/meal-form";
@@ -32,6 +33,7 @@ import { api, ApiError } from "@/lib/api";
 import { writeCache } from "@/lib/client-cache";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { todayKey } from "@/lib/core/dates";
+import { estimateToIngredients, type MealEstimate } from "@/lib/core/ai-schema";
 import { formatNumberEs } from "@/lib/core/dates";
 import type { IngredientInput, MealDTO, MealTemplateDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
@@ -45,7 +47,8 @@ export default function HoyPage() {
   // Search / barcode: a new pre-filled meal, or one more food for the open form.
   const [reviewDraft, setReviewDraft] = useState<NutritionDraft | null>(null);
   const [pickOnly, setPickOnly] = useState(false);
-  const [appendRequest, setAppendRequest] = useState<{ id: number; ingredient: IngredientDraft } | null>(null);
+  const [appendRequest, setAppendRequest] = useState<{ id: number; ingredients: IngredientDraft[] } | null>(null);
+  const [reviewNotice, setReviewNotice] = useState<string | null>(null);
 
   const mealsKey = `meals:${selectedDay}:${selectedDay}`;
   const mealsRes = useCachedResource<MealDTO[]>(
@@ -101,6 +104,7 @@ export default function HoyPage() {
   function openCreate() {
     setEditingMeal(null);
     setReviewDraft(null);
+    setReviewNotice(null);
     setFormOpen(true);
   }
 
@@ -111,12 +115,26 @@ export default function HoyPage() {
 
   function handleFoodPicked(ingredient: IngredientInput) {
     if (pickOnly) {
-      setAppendRequest({ id: Date.now(), ingredient: ingredientToDraft(ingredient) });
+      setAppendRequest({ id: Date.now(), ingredients: [ingredientToDraft(ingredient)] });
       return;
     }
     setEditingMeal(null);
     setAppendRequest(null);
+    setReviewNotice(null);
     setReviewDraft(draftWithIngredients(ingredient.name, [ingredient]));
+    setFormOpen(true);
+  }
+
+  function handleEstimate(estimate: MealEstimate) {
+    const ingredients = estimateToIngredients(estimate);
+    if (pickOnly) {
+      setAppendRequest({ id: Date.now(), ingredients: ingredients.map(ingredientToDraft) });
+      return;
+    }
+    setEditingMeal(null);
+    setAppendRequest(null);
+    setReviewNotice(estimateNotice(estimate));
+    setReviewDraft(draftWithIngredients(estimate.title, ingredients));
     setFormOpen(true);
   }
 
@@ -254,6 +272,7 @@ export default function HoyPage() {
         onManual={openCreate}
         onAdded={() => refreshMeals(selectedDay)}
         onFoodPicked={handleFoodPicked}
+        onEstimate={handleEstimate}
         pickOnly={pickOnly}
       />
 
@@ -265,6 +284,7 @@ export default function HoyPage() {
             // A pending item or pre-filled draft belongs to the form that just closed.
             setAppendRequest(null);
             setReviewDraft(null);
+            setReviewNotice(null);
           }
         }}
         logDate={selectedDay}
@@ -276,6 +296,7 @@ export default function HoyPage() {
           setAddOpen(true);
         }}
         appendRequest={appendRequest}
+        notice={editingMeal ? null : reviewNotice}
       />
 
       <AlertDialog

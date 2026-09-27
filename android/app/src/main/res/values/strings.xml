@@ -367,4 +367,31 @@
     <string name="ai_error_offline">Could not connect. Check your connection or the server address.</string>
     <string name="ai_error_empty">The AI returned no answer. Try again.</string>
     <string name="ai_error_provider">The provider returned an error. Try again.</string>
+
+    <!-- Photo logging (phase 6) -->
+    <string name="photo_title">Photo</string>
+    <string name="photo_hint">AI estimates the macros</string>
+    <string name="photo_tips_title">For a good estimate</string>
+    <string name="photo_tips">• Take several photos from different angles.\n• Include a fork or your hand for scale.\n• Also photograph the nutrition label if there is one.\n• Describe what cannot be seen: oil, sauces, sugar.</string>
+    <string name="photo_hide_tips">Got it</string>
+    <string name="photo_camera">Take photo</string>
+    <string name="photo_gallery">Gallery</string>
+    <string name="photo_remove">Remove photo %1$d</string>
+    <string name="photo_alt">Meal photo %1$d</string>
+    <string name="photo_max">Up to %1$d photos. They are not kept: they go to your AI provider and are discarded.</string>
+    <string name="photo_describe">Describe your meal</string>
+    <string name="photo_describe_placeholder">E.g. with a spoon of oil, wholemeal bread…</string>
+    <string name="photo_estimate">Estimate macros</string>
+    <string name="photo_estimating">Estimating…</string>
+    <string name="photo_need_input">Add a photo or a description.</string>
+    <string name="photo_error">That photo could not be read.</string>
+    <string name="photo_not_configured">To estimate from photos, set up AI with a key (Google gives one for free).</string>
+    <string name="photo_configure">Set up AI</string>
+    <string name="photo_notice">AI estimate (%1$s confidence): check the amounts.</string>
+    <string name="photo_notice_plain">AI estimate: check the amounts.</string>
+    <string name="photo_confidence_low">low</string>
+    <string name="photo_confidence_medium">medium</string>
+    <string name="photo_confidence_high">high</string>
+    <string name="photo_estimate_query">Estimate «%1$s» with AI</string>
+    <string name="ai_error_unreadable">The AI did not return a valid estimate. Try again or write it by hand.</string>
 </resources>

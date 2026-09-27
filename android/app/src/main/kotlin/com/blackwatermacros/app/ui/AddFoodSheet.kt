@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -47,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.R
@@ -62,11 +64,16 @@ import com.blackwatermacros.app.ui.foods.BarcodeLookup
 import com.blackwatermacros.app.ui.foods.BarcodeView
 import com.blackwatermacros.app.ui.foods.FoodSearchView
 import com.blackwatermacros.app.ui.foods.PortionView
+import com.blackwatermacros.app.ui.foods.PhotoEstimateState
+import com.blackwatermacros.app.ui.foods.PhotoEstimateView
+import com.blackwatermacros.app.ui.foods.PhotoEstimateViewModel
+import com.blackwatermacros.app.ui.foods.estimateNotice
+import com.blackwatermacros.app.core.MealEstimate
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.Flow
 
-private enum class AddFoodView { MENU, COPY, SEARCH, BARCODE, PORTION }
+private enum class AddFoodView { MENU, COPY, SEARCH, BARCODE, PORTION, PHOTO }
 
 /**
  * «Añadir comida» (web `AddFoodSheet`): every way to add food to [day].
@@ -87,15 +94,33 @@ fun AddFoodSheet(
     /** Adds meals with this content to [day]; the message is for the Undo snackbar. */
     onAdd: (sources: List<MealFormValue>, message: String) -> Unit,
     onFoodPicked: (WireIngredient) -> Unit = {},
+    /** The AI estimated a meal; the notice goes above the review form. */
+    onEstimate: (estimate: MealEstimate, notice: String) -> Unit = { _, _ -> },
+    onOpenAiSettings: () -> Unit = {},
     pickOnly: Boolean = false,
     foods: AddFoodViewModel = viewModel(),
+    photo: PhotoEstimateViewModel = viewModel(),
 ) {
     var view by rememberSaveable { mutableStateOf(AddFoodView.MENU) }
     var back by rememberSaveable { mutableStateOf(AddFoodView.MENU) }
     var choice by remember { mutableStateOf<FoodChoice?>(null) }
     val searchState by foods.state.collectAsStateWithLifecycle()
     val barcode by foods.barcode.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) { foods.reset() }
+    LaunchedEffect(Unit) {
+        foods.reset()
+        photo.reset()
+    }
+    // «Estimar “…” con IA» came from search: Back returns there.
+    var fromSearch by rememberSaveable { mutableStateOf(false) }
+    val photoState by photo.state.collectAsStateWithLifecycle()
+    val done = photoState as? PhotoEstimateState.Done
+    val notice = done?.let { estimateNotice(it.estimate) }
+    LaunchedEffect(done) {
+        if (done == null || notice == null) return@LaunchedEffect
+        photo.consumed()
+        onDismiss()
+        onEstimate(done.estimate, notice)
+    }
     LaunchedEffect(barcode) {
         val found = barcode as? BarcodeLookup.Found ?: return@LaunchedEffect
         choice = found.choice
@@ -119,7 +144,14 @@ fun AddFoodSheet(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (view != AddFoodView.MENU) {
-                    IconButton(onClick = { view = if (view == AddFoodView.PORTION) back else AddFoodView.MENU }) {
+                    IconButton(onClick = {
+                        view = when {
+                            view == AddFoodView.PORTION -> back
+                            view == AddFoodView.PHOTO && fromSearch -> AddFoodView.SEARCH
+                            else -> AddFoodView.MENU
+                        }
+                        fromSearch = false
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }
@@ -131,6 +163,7 @@ fun AddFoodSheet(
                             AddFoodView.SEARCH -> R.string.food_search
                             AddFoodView.BARCODE -> R.string.food_barcode
                             AddFoodView.PORTION -> R.string.food_portion_title
+                            AddFoodView.PHOTO -> R.string.photo_title
                         },
                     ),
                     style = MaterialTheme.typography.titleLarge,
@@ -142,6 +175,10 @@ fun AddFoodSheet(
             when (view) {
             AddFoodView.MENU -> {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    BigSource(Icons.Filled.PhotoCamera, stringResource(R.string.photo_title), stringResource(R.string.photo_hint), Modifier.weight(1f)) {
+                        fromSearch = false
+                        view = AddFoodView.PHOTO
+                    }
                     BigSource(Icons.Filled.Search, stringResource(R.string.food_search), stringResource(R.string.food_search_hint), Modifier.weight(1f)) {
                         view = AddFoodView.SEARCH
                     }
@@ -184,11 +221,30 @@ fun AddFoodSheet(
                 onDismiss()
                 onAdd(meals.map { it.toFormValue() }, copiedMessage)
             }
-            AddFoodView.SEARCH -> FoodSearchView(searchState, foods::setQuery) {
+            AddFoodView.SEARCH -> FoodSearchView(
+                searchState,
+                foods::setQuery,
+                onEstimateQuery = { query ->
+                    photo.reset(autoDescription = query)
+                    fromSearch = true
+                    view = AddFoodView.PHOTO
+                },
+            ) {
                 choice = it
                 back = AddFoodView.SEARCH
                 view = AddFoodView.PORTION
             }
+            AddFoodView.PHOTO -> PhotoEstimateView(
+                viewModel = photo,
+                onOpenAiSettings = {
+                    onDismiss()
+                    onOpenAiSettings()
+                },
+                onManual = if (pickOnly) null else ({
+                    onDismiss()
+                    onManual()
+                }),
+            )
             AddFoodView.BARCODE -> BarcodeView(barcode, foods::lookUpBarcode)
             AddFoodView.PORTION -> choice?.let { picked ->
                 PortionView(picked) { grams ->
@@ -213,13 +269,18 @@ private fun BigSource(icon: ImageVector, label: String, hint: String, modifier: 
             .clip(shape)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 16.dp),
+            .padding(horizontal = 6.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(26.dp))
         Spacer(Modifier.height(4.dp))
         Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-        Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            hint,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

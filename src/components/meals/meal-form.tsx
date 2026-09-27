@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { SparklesIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -36,8 +37,10 @@ interface MealFormProps {
   onSaved: (meal: MealDTO) => void;
   /** «Buscar alimento» in the form (opens search / barcode to add one more food). */
   onSearchFood?: () => void;
-  /** A food picked while the form is open, appended once per id. */
-  appendRequest?: { id: number; ingredient: IngredientDraft } | null;
+  /** Foods picked while the form is open, appended once per id. */
+  appendRequest?: { id: number; ingredients: IngredientDraft[] } | null;
+  /** A line above the form, e.g. «Estimación de la IA (confianza media): revisa las cantidades». */
+  notice?: string | null;
 }
 
 /**
@@ -54,6 +57,7 @@ export function MealForm({
   onSaved,
   onSearchFood,
   appendRequest = null,
+  notice = null,
 }: MealFormProps) {
   const [dirty, setDirty] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
@@ -76,6 +80,12 @@ export function MealForm({
   return (
     <>
       <Sheet open={open} onOpenChange={requestOpenChange} title={meal ? t.meal.editTitle : t.meal.newTitle}>
+        {open && notice ? (
+          <p role="note" className="mb-3 flex gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm">
+            <SparklesIcon className="mt-0.5 size-4 shrink-0 text-primary" />
+            <span>{notice}</span>
+          </p>
+        ) : null}
         {open ? (
           <MealFormFields
             key={`${meal?.id ?? "new"}-${logDate}`}
@@ -119,7 +129,7 @@ interface MealFormFieldsProps {
   onSaved: (meal: MealDTO) => void;
   onDirtyChange: (dirty: boolean) => void;
   onSearchFood?: () => void;
-  appendRequest: { id: number; ingredient: IngredientDraft } | null;
+  appendRequest: { id: number; ingredients: IngredientDraft[] } | null;
 }
 
 /**

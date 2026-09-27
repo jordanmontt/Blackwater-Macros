@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, SparklesIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { formatNumberEs } from "@/lib/core/dates";
@@ -26,7 +26,14 @@ const onlineCache = new Map<string, FoodProduct[]>();
  * Search: generic foods first (offline, instant, Spanish names), then Open
  * Food Facts products (online, debounced). Recent picks when the box is empty.
  */
-export function FoodSearch({ onPick }: { onPick: (choice: FoodChoice) => void }) {
+export function FoodSearch({
+  onPick,
+  onEstimateQuery,
+}: {
+  onPick: (choice: FoodChoice) => void;
+  /** «Estimar “…” con IA»: the query as a text estimate (e.g. «3 plátanos»). */
+  onEstimateQuery?: (query: string) => void;
+}) {
   const [query, setQuery] = useState("");
   const [generic, setGeneric] = useState<GenericFood[] | null>(null);
   const [online, setOnline] = useState<{ query: string; products: FoodProduct[] } | null>(null);
@@ -121,6 +128,16 @@ export function FoodSearch({ onPick }: { onPick: (choice: FoodChoice) => void })
             <p className="py-4 text-center text-sm text-muted-foreground">
               {formatTemplate(t.addFood.noResults, { q: trimmed })}
             </p>
+          ) : null}
+          {onEstimateQuery && trimmed.length >= 2 ? (
+            <button
+              type="button"
+              onClick={() => onEstimateQuery(trimmed)}
+              className="flex w-full items-center gap-2 rounded-xl border border-dashed px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent"
+            >
+              <SparklesIcon className="size-4 shrink-0 text-primary" />
+              {formatTemplate(t.photo.estimateQuery, { q: trimmed })}
+            </button>
           ) : null}
         </>
       )}

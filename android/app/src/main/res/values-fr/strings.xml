@@ -377,4 +377,31 @@
     <string name="ai_error_offline">Connexion impossible. Vérifiez votre connexion ou l\'adresse du serveur.</string>
     <string name="ai_error_empty">L\'IA n\'a pas répondu. Réessayez.</string>
     <string name="ai_error_provider">Le fournisseur a renvoyé une erreur. Réessayez.</string>
+
+    <!-- Photo logging (phase 6) -->
+    <string name="photo_title">Photo</string>
+    <string name="photo_hint">L\'IA estime les macros</string>
+    <string name="photo_tips_title">Pour une bonne estimation</string>
+    <string name="photo_tips">• Prenez plusieurs photos sous différents angles.\n• Incluez une fourchette ou votre main pour l\'échelle.\n• Photographiez aussi l\'étiquette nutritionnelle s\'il y en a une.\n• Décrivez ce qui ne se voit pas : huile, sauces, sucre.</string>
+    <string name="photo_hide_tips">Compris</string>
+    <string name="photo_camera">Prendre une photo</string>
+    <string name="photo_gallery">Galerie</string>
+    <string name="photo_remove">Retirer la photo %1$d</string>
+    <string name="photo_alt">Photo %1$d du repas</string>
+    <string name="photo_max">Jusqu\'à %1$d photos. Elles ne sont pas conservées : elles sont envoyées à votre fournisseur d\'IA puis supprimées.</string>
+    <string name="photo_describe">Décrivez votre repas</string>
+    <string name="photo_describe_placeholder">Ex. : avec une cuillère d\'huile, pain complet…</string>
+    <string name="photo_estimate">Estimer les macros</string>
+    <string name="photo_estimating">Estimation…</string>
+    <string name="photo_need_input">Ajoutez une photo ou une description.</string>
+    <string name="photo_error">Impossible de lire cette photo.</string>
+    <string name="photo_not_configured">Pour estimer avec des photos, configurez l\'IA avec une clé (Google en donne une gratuitement).</string>
+    <string name="photo_configure">Configurer l\'IA</string>
+    <string name="photo_notice">Estimation de l\'IA (confiance %1$s) : vérifiez les quantités.</string>
+    <string name="photo_notice_plain">Estimation de l\'IA : vérifiez les quantités.</string>
+    <string name="photo_confidence_low">faible</string>
+    <string name="photo_confidence_medium">moyenne</string>
+    <string name="photo_confidence_high">élevée</string>
+    <string name="photo_estimate_query">Estimer «%1$s» avec l\'IA</string>
+    <string name="ai_error_unreadable">L\'IA n\'a pas renvoyé d\'estimation valide. Réessayez ou saisissez-la à la main.</string>
 </resources>

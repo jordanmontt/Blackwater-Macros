@@ -148,8 +148,8 @@ interface NutritionEntryFieldsProps {
   onDirtyChange?: (dirty: boolean) => void;
   /** Shows «Buscar alimento» next to «Añadir ingrediente» (search / barcode). */
   onSearchFood?: () => void;
-  /** An ingredient picked while the form was open; appended once per `id`. */
-  appendRequest?: { id: number; ingredient: IngredientDraft } | null;
+  /** Ingredients picked while the form was open; appended once per `id`. */
+  appendRequest?: { id: number; ingredients: IngredientDraft[] } | null;
 }
 
 /**
@@ -186,10 +186,10 @@ export function NutritionEntryFields({
     setEntryMode("per_ingredient");
     setIngredients((current) =>
       current.length === 1 && isBlankIngredient(current[0])
-        ? [appendRequest.ingredient]
-        : [...current, appendRequest.ingredient],
+        ? appendRequest.ingredients
+        : [...current, ...appendRequest.ingredients],
     );
-    if (title.trim() === "") setTitle(appendRequest.ingredient.name);
+    if (title.trim() === "" && appendRequest.ingredients.length > 0) setTitle(appendRequest.ingredients[0].name);
   }
 
   const dirty =

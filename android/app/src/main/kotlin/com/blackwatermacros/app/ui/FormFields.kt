@@ -193,7 +193,12 @@ fun CompactField(
 
 /** Compact multi-line text area mirroring the web `Textarea`. */
 @Composable
-fun CompactTextArea(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
+fun CompactTextArea(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null,
+) {
     var focused by remember { mutableStateOf(false) }
     BasicTextField(
         value = value,
@@ -209,7 +214,7 @@ fun CompactTextArea(value: String, onValueChange: (String) -> Unit, modifier: Mo
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 contentAlignment = Alignment.TopStart,
             ) {
-                if (value.isEmpty()) Placeholder(stringResource(R.string.form_notes_placeholder))
+                if (value.isEmpty()) Placeholder(placeholder ?: stringResource(R.string.form_notes_placeholder))
                 innerTextField()
             }
         },

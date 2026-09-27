@@ -15,7 +15,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 3 | New «Añadir comida» flow: sheet, review form, copy from another day, manual | ☑ | ☑ | #12 |
 | 4 | Food search + barcode (Open Food Facts + bundled generic foods) | ☑ | ☑ | #12 |
 | 5 | AI settings + AI client (cloud providers, keys, test) | ☑ | ☑ | #12 |
-| 6 | Photo logging with AI (+ text estimate) | ☐ | ☐ | |
+| 6 | Photo logging with AI (+ text estimate) | ☑ | ☑ | #12 |
 | 7 | Coach tab | ☐ | ☐ | |
 | 8 | Onboarding (first launch) | ☐ | ☐ | |
 | 9 | On-device AI (Android: LiteRT-LM + Gemma 4) | — | ☐ | |
@@ -51,6 +51,12 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
   real Gemini endpoint shows «La clave no es válida» (400 + API_KEY_INVALID), the key is
   stored encrypted in `ai_settings.xml` and survives a restart; web card checked at phone
   size. Next: phase 6 (photos), then 7 (Coach).
+- 2026-09-27 — User asked to continue up to phase 8 (first launch) in the same PR.
+- 2026-09-27 — Phase 6 done (one commit). Emulator: gallery (system picker) and camera
+  photos show as thumbnails, the camera file is deleted at once, a fake key ends in «La clave
+  no es válida» with «Escribir a mano». The success path is covered by tests with recorded
+  answers (no real key used). Lesson: `BitmapFactory.decodeStream` with `inJustDecodeBounds`
+  returns null by design — do not treat that as failure.
 
 ---
 
@@ -385,13 +391,22 @@ Spanish product names preferred, and the review form shows the Spanish name.
   Default models: `gemini-flash-latest`, `gpt-5-mini`, `claude-haiku-4-5`, `openrouter/auto`.
 
 ### Phase 6 — Photo logging
-- [ ] Photo screen (§4.1): camera (Android `TakePicture` into cache file, deleted after
+- [x] Photo screen (§4.1): camera (Android `TakePicture` into cache file, deleted after
       reading; or CameraX) + Photo Picker; web `<input type=file accept=image/* multiple
       capture>`; downscale to max 1024 px JPEG ~80 %; nothing persisted.
-- [ ] Prompt + JSON schema; result → review form; confidence line; error states.
-- [ ] «Estimar con IA» from search (text only).
-- [ ] Tests: prompt building, image downscale util, error mapping; UI test on web with mocked
+- [x] Prompt + JSON schema; result → review form; confidence line; error states.
+- [x] «Estimar con IA» from search (text only).
+- [x] Tests: prompt building, image downscale util, error mapping; UI test on web with mocked
       engine.
+- Done as: core `buildMealEstimateSystemPrompt` / `buildMealEstimateUserText` (ai-schema, both
+  platforms); web `lib/ai/{images,estimate}.ts`, `components/foods/photo-estimate.tsx`
+  (photos as in-memory data URLs), `MealForm notice`; Android `data/ai/{PhotoCodec,
+  MealEstimator}.kt`, `ui/foods/PhotoEstimate{View,ViewModel}.kt`, camera = system
+  `TakePicture` into `cache/ai-photos/` via a FileProvider limited to that folder, file
+  deleted right after reading (and the folder at app start), gallery = system Photo Picker.
+  The review form's append request now carries a list (an estimate appends all its items
+  when opened from the form). Only JSON mode, no response schema: the core parser is
+  tolerant and the prompt carries the shape.
 
 ### Phase 7 — Coach
 - [ ] Coach tab UI (§4.3), in-memory chat state, streaming, examples, not-configured state.

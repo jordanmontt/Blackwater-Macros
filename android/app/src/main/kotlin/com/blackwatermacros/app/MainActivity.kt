@@ -177,6 +177,7 @@ private fun AppNavHost(
                 onOpenSettings = { navController.navigateToTab(AppTab.AJUSTES) },
                 onOpenProfile = { navController.navigate("perfil") },
                 onOpenWeight = { navController.navigateToTab(AppTab.PROGRESO) },
+                onOpenAiSettings = { navController.navigate("ia") },
             )
         }
         composable(AppTab.PROGRESO.route) {

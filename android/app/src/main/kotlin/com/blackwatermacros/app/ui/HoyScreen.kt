@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.res.stringResource
+import com.blackwatermacros.app.core.estimateToIngredients
 import com.blackwatermacros.app.R
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -83,6 +84,7 @@ fun HoyScreen(
     onOpenSettings: () -> Unit = {},
     onOpenProfile: () -> Unit = {},
     onOpenWeight: () -> Unit = {},
+    onOpenAiSettings: () -> Unit = {},
     viewModel: HoyViewModel = viewModel(),
 ) {
     val day by viewModel.day.collectAsStateWithLifecycle()
@@ -94,7 +96,8 @@ fun HoyScreen(
     // Search / barcode: a new pre-filled meal, or one more food for the open form.
     var pickOnly by remember { mutableStateOf(false) }
     var reviewInitial by remember { mutableStateOf<MealFormValue?>(null) }
-    var appendRequest by remember { mutableStateOf<Pair<Long, WireIngredient>?>(null) }
+    var appendRequest by remember { mutableStateOf<Pair<Long, List<WireIngredient>>?>(null) }
+    var reviewNotice by remember { mutableStateOf<String?>(null) }
     var editingMeal by remember { mutableStateOf<MealDTO?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -225,21 +228,40 @@ fun HoyScreen(
             onManual = {
                 editingMeal = null
                 reviewInitial = null
+                reviewNotice = null
                 formOpen = true
             },
             onAdd = ::addMeals,
             onFoodPicked = { ingredient ->
                 if (pickOnly) {
-                    appendRequest = System.nanoTime() to ingredient
+                    appendRequest = System.nanoTime() to listOf(ingredient)
                 } else {
                     editingMeal = null
                     appendRequest = null
+                    reviewNotice = null
                     reviewInitial = MealFormValue(
                         ingredient.name, null, WireEntryMode.PER_INGREDIENT, listOf(ingredient), null, null, null, null,
                     )
                     formOpen = true
                 }
             },
+            onEstimate = { estimate, notice ->
+                val items = estimateToIngredients(estimate).map {
+                    WireIngredient(it.name, it.quantity, it.calories, it.protein, it.carbs, it.fat)
+                }
+                if (pickOnly) {
+                    appendRequest = System.nanoTime() to items
+                } else {
+                    editingMeal = null
+                    appendRequest = null
+                    reviewNotice = notice
+                    reviewInitial = MealFormValue(
+                        estimate.title, null, WireEntryMode.PER_INGREDIENT, items, null, null, null, null,
+                    )
+                    formOpen = true
+                }
+            },
+            onOpenAiSettings = onOpenAiSettings,
             pickOnly = pickOnly,
         )
     }
@@ -251,6 +273,7 @@ fun HoyScreen(
             editingMeal = null
             // A pending item or pre-filled draft belongs to the form that just closed.
             reviewInitial = null
+            reviewNotice = null
             appendRequest = null
         }
         MealFormSheet(
@@ -267,6 +290,7 @@ fun HoyScreen(
                 addOpen = true
             },
             appendRequest = appendRequest,
+            notice = if (editing == null) reviewNotice else null,
         )
     }
 

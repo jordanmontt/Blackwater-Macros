@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { estimateToIngredients, extractJson, parseMealEstimate } from "../../src/lib/core/ai-schema";
+import {
+  buildMealEstimateSystemPrompt,
+  buildMealEstimateUserText,
+  estimateToIngredients,
+  extractJson,
+  MEAL_ESTIMATE_SHAPE,
+  parseMealEstimate,
+} from "../../src/lib/core/ai-schema";
 
 const CLEAN = `{"title":"Pasta boloñesa","items":[{"name":"Espaguetis cocidos","grams":180,"calories":284,"protein":10.4,"carbs":55.8,"fat":1.7},{"name":"Salsa boloñesa","grams":120,"calories":156,"protein":9.6,"carbs":6,"fat":10.2}],"confidence":"Medium","notes":"Aceite estimado"}`;
 
@@ -75,5 +82,22 @@ describe("estimateToIngredients", () => {
       { name: "Arroz", quantity: "150 g", calories: 195, protein: 4, carbs: 42, fat: 0.4 },
       { name: "Salsa", quantity: undefined, calories: 40, protein: 0, carbs: 0, fat: 0 },
     ]);
+  });
+});
+
+describe("meal estimate prompts", () => {
+  it("asks for the JSON shape in the app language", () => {
+    const system = buildMealEstimateSystemPrompt("Spanish");
+    expect(system).toContain(MEAL_ESTIMATE_SHAPE);
+    expect(system).toContain("Write the title, the item names and the notes in Spanish.");
+    expect(system.split("\n")).toHaveLength(9);
+  });
+
+  it("describes the photos and adds what the user wrote", () => {
+    expect(buildMealEstimateUserText("", 1)).toBe("A photo of my meal.");
+    expect(buildMealEstimateUserText("  con una cucharada de aceite ", 3)).toBe(
+      "3 photos of the same meal from different angles (one may be a nutrition label).\nWhat I can add: con una cucharada de aceite",
+    );
+    expect(buildMealEstimateUserText("3 plátanos", 0)).toBe("Estimate this meal: 3 plátanos");
   });
 });

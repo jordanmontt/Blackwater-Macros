@@ -377,4 +377,31 @@
     <string name="ai_error_offline">Impossibile connettersi. Controlla la connessione o l\'indirizzo del server.</string>
     <string name="ai_error_empty">L\'IA non ha risposto. Riprova.</string>
     <string name="ai_error_provider">Il fornitore ha restituito un errore. Riprova.</string>
+
+    <!-- Photo logging (phase 6) -->
+    <string name="photo_title">Foto</string>
+    <string name="photo_hint">L\'IA stima i macro</string>
+    <string name="photo_tips_title">Per una buona stima</string>
+    <string name="photo_tips">• Scatta più foto da angolazioni diverse.\n• Includi una forchetta o la tua mano per la scala.\n• Fotografa anche l\'etichetta nutrizionale, se c\'è.\n• Descrivi ciò che non si vede: olio, salse, zucchero.</string>
+    <string name="photo_hide_tips">Capito</string>
+    <string name="photo_camera">Scatta foto</string>
+    <string name="photo_gallery">Galleria</string>
+    <string name="photo_remove">Rimuovi la foto %1$d</string>
+    <string name="photo_alt">Foto %1$d del pasto</string>
+    <string name="photo_max">Fino a %1$d foto. Non vengono conservate: vanno al tuo fornitore di IA e poi vengono eliminate.</string>
+    <string name="photo_describe">Descrivi il tuo pasto</string>
+    <string name="photo_describe_placeholder">Es.: con un cucchiaio d\'olio, pane integrale…</string>
+    <string name="photo_estimate">Stima i macro</string>
+    <string name="photo_estimating">Stima in corso…</string>
+    <string name="photo_need_input">Aggiungi una foto o una descrizione.</string>
+    <string name="photo_error">Impossibile leggere quella foto.</string>
+    <string name="photo_not_configured">Per stimare con le foto, configura l\'IA con una chiave (Google la dà gratis).</string>
+    <string name="photo_configure">Configura l\'IA</string>
+    <string name="photo_notice">Stima dell\'IA (affidabilità %1$s): controlla le quantità.</string>
+    <string name="photo_notice_plain">Stima dell\'IA: controlla le quantità.</string>
+    <string name="photo_confidence_low">bassa</string>
+    <string name="photo_confidence_medium">media</string>
+    <string name="photo_confidence_high">alta</string>
+    <string name="photo_estimate_query">Stima «%1$s» con l\'IA</string>
+    <string name="ai_error_unreadable">L\'IA non ha restituito una stima valida. Riprova o scrivila a mano.</string>
 </resources>

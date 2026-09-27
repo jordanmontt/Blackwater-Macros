@@ -75,4 +75,21 @@ class AiSchemaTest {
             IngredientInput("Salsa", null, 40.0, 0.0, 0.0, 0.0),
         ).inOrder()
     }
+
+    @Test
+    fun mealEstimatePromptAsksForTheShapeInTheAppLanguage() {
+        val system = buildMealEstimateSystemPrompt("Spanish")
+        assertThat(system).contains(MEAL_ESTIMATE_SHAPE)
+        assertThat(system).contains("Write the title, the item names and the notes in Spanish.")
+        assertThat(system.split("\n")).hasSize(9)
+    }
+
+    @Test
+    fun mealEstimateUserTextDescribesPhotosAndAddsTheUsersWords() {
+        assertThat(buildMealEstimateUserText("", 1)).isEqualTo("A photo of my meal.")
+        assertThat(buildMealEstimateUserText("  con una cucharada de aceite ", 3)).isEqualTo(
+            "3 photos of the same meal from different angles (one may be a nutrition label).\nWhat I can add: con una cucharada de aceite",
+        )
+        assertThat(buildMealEstimateUserText("3 plátanos", 0)).isEqualTo("Estimate this meal: 3 plátanos")
+    }
 }

@@ -25,7 +25,7 @@ Kotlin JUnit mirror with the same inputs and the same expected numbers
 | `tests/unit/expenditure.test.ts` | `estimateExpenditure`, `fitWeightTrend` | `ExpenditureTest.kt` |
 | `tests/unit/foods.test.ts` | `scalePer100g`, `foodToIngredient`, `parseServingGrams`, `normalizeText`, `parseOffProduct`, `parseOffSearch`, `searchGenericFoods` | `FoodsTest.kt` |
 | `tests/unit/ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), `parseAiResponse`, `parseAiStreamLine`, `isAiConfigured`, `aiErrorKind` | `AiProvidersTest.kt` |
-| `tests/unit/ai-schema.test.ts` | `parseMealEstimate`, `extractJson`, `estimateToIngredients` | `AiSchemaTest.kt` |
+| `tests/unit/ai-schema.test.ts` | `parseMealEstimate`, `extractJson`, `estimateToIngredients`, `buildMealEstimateSystemPrompt`, `buildMealEstimateUserText` | `AiSchemaTest.kt` |
 | `tests/unit/progress.test.ts` | `macroAverages` | `ProgressTest.kt` |
 | `tests/unit/coach.test.ts` (+ `coach.fixture.ts`) | `weightProjection`, `buildCoachContext` (exact text), `buildCoachSystemPrompt` | `CoachTest.kt` |
 | `tests/unit/dates.test.ts` | date keys, `parseLocalDateTime`, es-ES formatters | `DatesTest.kt` |
@@ -58,6 +58,7 @@ Robolectric, no emulator needed).
 | `data/CsvBackupTest.kt` | CSV export/import round trip; reads a file exported by the web; skips rows the server would reject; unknown files |
 | `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, 404/unknown, errors, Spanish search, User-Agent) against MockWebServer; the bundled index loads with Spanish names; recent foods |
 | `data/ai/AiClientTest.kt` | AI client against MockWebServer (every provider host redirected, never a real call): «Probar», whole and streamed answers, error kinds; keys stored encrypted per provider and restored; the AI prefs are excluded from every backup |
+| `data/ai/MealEstimatorTest.kt` | «Foto»: photos + description become one JSON-mode request (mirrors `add-food-photo.test.tsx`), an answer without a meal is «unreadable», the language told to the model, photo downscale size, the camera FileProvider only reaches the temporary folder |
 | `ui/ProgressLogicTest.kt` | Progreso numbers: one period for everything, macro averages over logged days (+ split, targets), weigh-ins of the period |
 | `ui/ValidationTest.kt` | Meal form, weight and profile limits (same as `src/server/validation.ts`); recommendation states, latest body fat for protein, measured expenditure from meals + weigh-ins; sync indicator states |
 | `ui/TranslationsTest.kt` | Every language has every string and plural with the same placeholders |

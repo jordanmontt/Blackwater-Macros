@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -67,7 +69,13 @@ import zxingcpp.BarcodeReader
 
 /** Search box, recents, generic foods and Open Food Facts products (web `FoodSearch`). */
 @Composable
-fun FoodSearchView(state: FoodSearchState, onQuery: (String) -> Unit, onPick: (FoodChoice) -> Unit) {
+fun FoodSearchView(
+    state: FoodSearchState,
+    onQuery: (String) -> Unit,
+    /** «Estimar “…” con IA»: the query as a text estimate (e.g. «3 plátanos»). */
+    onEstimateQuery: ((String) -> Unit)? = null,
+    onPick: (FoodChoice) -> Unit,
+) {
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -95,6 +103,21 @@ fun FoodSearchView(state: FoodSearchState, onQuery: (String) -> Unit, onPick: (F
                     }
                 }
                 OnlineResults.Idle -> Unit
+            }
+            if (onEstimateQuery != null && query.length >= 2) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                        .clickable { onEstimateQuery(query) }
+                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.photo_estimate_query, query), style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
         Text(
