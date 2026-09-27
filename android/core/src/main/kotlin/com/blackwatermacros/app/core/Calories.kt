@@ -1,8 +1,8 @@
 package com.blackwatermacros.app.core
 
 /**
- * Mirrors `src/lib/core/calories.ts`. Mifflin-St Jeor BMR, activity multiplier,
- * and calorie target offsets keyed by goal. Rounding via `mathRound` reproduces
+ * Mirrors `src/lib/core/calories.ts`. Mifflin-St Jeor BMR, factorial activity
+ * level (PAL), and calorie target offsets keyed by goal. Rounding via `mathRound` reproduces
  * JS `Math.round` (round-half-up toward +∞).
  */
 
@@ -12,21 +12,31 @@ fun calculateBMR(gender: Gender, weightKg: Double, heightCm: Double, age: Int): 
     return if (gender == Gender.MALE) base + 5 else base - 161
 }
 
+/** Minutes in a day, the unit of the factorial model below. */
+private const val MINUTES_PER_DAY = 1440.0
+
+/** Ordinary living with no exercise, × BMR (FAO/WHO/UNU 2004, low end of 1.40–1.69). */
+private const val BASELINE_INTENSITY = 1.4
+
+/** Resistance training including rest between sets (Compendium 2024: 3.5–6 METs). */
+private const val GYM_INTENSITY = 4.0
+
+/** Walking at a moderate pace, ~4–5 km/h (Compendium 2024: 3.5–3.8 METs). */
+private const val WALKING_INTENSITY = 3.5
+
 /**
- * Activity multiplier from gym frequency (days/week x session minutes) and
- * daily walking minutes. The cascade order matters; first match wins.
+ * Physical activity level (PAL = TDEE / BMR) with the factorial method of
+ * FAO/WHO/UNU 2004: minutes of the day weighted by their intensity as a
+ * multiple of BMR.
+ *
+ *   gym = gymDays x gymMinutes / 7   (average minutes per day)
+ *   PAL = ((1440 - gym - walking) x 1.4 + gym x 4.0 + walking x 3.5) / 1440
  */
 fun getActivityMultiplier(gymDays: Int, gymMinutes: Int, walkingMinutes: Int): Double {
-    val weeklyGymMinutes = gymDays * gymMinutes
-
-    if (weeklyGymMinutes == 0 && walkingMinutes < 30) return 1.2
-    if (weeklyGymMinutes == 0 && walkingMinutes >= 30) return 1.375
-    if (weeklyGymMinutes > 0 && weeklyGymMinutes <= 150 && walkingMinutes < 30) return 1.375
-    if (weeklyGymMinutes > 0 && weeklyGymMinutes <= 150 && walkingMinutes >= 30) return 1.55
-    if (weeklyGymMinutes > 150 && weeklyGymMinutes <= 360 && walkingMinutes >= 30) return 1.55
-    if (weeklyGymMinutes > 150 && weeklyGymMinutes <= 360 && walkingMinutes < 30) return 1.375
-    if (weeklyGymMinutes > 360 && weeklyGymMinutes <= 540) return 1.725
-    return 1.9
+    val gymPerDay = (gymDays * gymMinutes) / 7.0
+    val restMinutes = maxOf(MINUTES_PER_DAY - gymPerDay - walkingMinutes, 0.0)
+    return (restMinutes * BASELINE_INTENSITY + gymPerDay * GYM_INTENSITY + walkingMinutes * WALKING_INTENSITY) /
+        MINUTES_PER_DAY
 }
 
 private data class CalorieOffsets(val target: Double, val min: Double, val max: Double)
@@ -65,6 +75,7 @@ fun calculateCalorieRecommendation(
 
     return CalorieRecommendation(
         bmr = mathRound(bmr),
+        activityFactor = mathRound(multiplier * 100) / 100,
         tdee = tdee,
         target = tdee + offsets.target,
         targetMin = tdee + offsets.min,

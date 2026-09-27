@@ -51,7 +51,7 @@ src/
     app-nav.tsx theme-provider.tsx
   lib/                      # Shared pure logic + types (importable from both sides)
     core/                   # PURE algorithms, zero deps — single source of truth, ported to Kotlin
-      types.ts dates.ts nutrition.ts stats.ts stats-builder.ts protein.ts calories.ts csv.ts
+      types.ts dates.ts nutrition.ts stats.ts stats-builder.ts protein.ts calories.ts expenditure.ts csv.ts
     api.ts demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
   i18n/es.ts                # ALL user-facing Spanish copy as a typed dictionary
 scripts/
@@ -325,7 +325,7 @@ overwrite.
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
-| Metodología | `app/metodologia/page.tsx` | Static content page explaining metric formulas + protein recommendation science + citations |
+| Metodología | `app/metodologia/page.tsx` | Static page: every formula (stats, BMR + factorial PAL, protein, measured expenditure) with the reasoning and Crossref-checked citations. Android: `MethodologyScreen.kt`, same content and reference list |
 
 ### Client data layer (`lib/api.ts`)
 
@@ -462,33 +462,68 @@ happens only in components via `formatNumberEs(value, maxDecimals)` (es-ES local
 
 ---
 
-## 8. Protein recommendation (`lib/core/protein.ts` + `components/nutrition-recommendations.tsx`)
+## 8. Recommendations and measured expenditure (`lib/core/calories.ts`, `protein.ts`, `expenditure.ts`)
 
-Evidence-based protein intake ranges computed from the user's unified goal, body weight,
-and optionally body fat percentage:
+All three are pure functions in `lib/core` (ported 1:1 to Kotlin `:core`), computed on the
+client from the latest weight, the profile and the logged meals. No server-side
+computation. The user-facing explanation, with citations, is the Metodología page
+(`i18n/es.ts` `metodologia.*`; Android `meth_*` strings) — **change it together with the
+math**.
 
-| Goal | BW range (g/kg/day) | Source |
-|---|---|---|
-| Maintain | 1.2–1.6 | ISSN position stand |
-| Surplus | 1.6–2.0 | Morton et al. 2018 |
-| Cut | 1.6–2.2 | Kokura et al. 2024 |
+### 8.1 Calorie target (`calories.ts`)
 
-The unified goal (`cut` | `maintain` | `surplus`) is stored as the `calorie_goal` enum
-column on the `users` table and drives both protein recommendations and calorie targets.
-The goal is read via the session endpoint and updated via `PUT /api/settings`.
-The merged `NutritionRecommendationsCard` component on the "Comidas" page fetches
-the latest weight entry (for body weight and body fat %) and the session (for goal),
-then calls the pure `calculateCalorieRecommendation()` and
-`calculateProteinRecommendation()` functions. No server-side computation — the card
-is entirely client-rendered.
+- **BMR:** Mifflin-St Jeor (1990).
+- **PAL (activity factor):** factorial method (FAO/WHO/UNU 2004) from the profile, not a
+  self-rated 1–5 scale (self-report overestimates activity, Prince et al. 2008):
+  `gym = gymDays × gymMinutes / 7`;
+  `PAL = ((1440 − gym − walking) × 1.4 + gym × 4.0 + walking × 3.5) / 1440`.
+  1.4 = no-exercise day (low end of FAO's 1.40–1.69 band); 4.0 = resistance training with
+  rests (Compendium 2024: 3.5–6 METs); 3.5 = moderate walking. Monotonic: more training
+  never lowers it. Profile limits cap it at ≈ 2.64.
+- **TDEE** = `round(BMR × PAL)`; `activityFactor` (PAL, 2 decimals) is returned for display.
+- **Target:** fixed offsets — cut −400 (−500…−300), maintain ±100, surplus +300 (+200…+400).
+
+### 8.2 Protein (`protein.ts`)
+
+| Goal | g/kg | Basis | Source |
+|---|---|---|---|
+| Maintain | 1.4–2.0 | body weight | Jäger et al. 2017 (ISSN) |
+| Surplus | 1.6–2.2 | body weight | Morton et al. 2018; Iraki et al. 2019 |
+| Cut | 1.8–2.7 | body weight | ≈ 2.3–3.1 g/kg FFM at typical body fat |
+| Cut, body fat known | 2.3–3.1 | lean mass = weight × (1 − BF%) | Helms et al. 2014 (IJSNEM); Jäger 2017 |
+
+Callers pass the most recent non-null `bodyFatPct` from any weigh-in. The result has
+`basis` (`bodyWeight` | `leanMass`), `basisKg`, `range` (g/day), `perKg` and `target`
+(midpoint).
+
+### 8.3 Measured expenditure (`expenditure.ts`)
+
+Energy balance over the **28 days before today** (MacroFactor-style):
+`TDEE = mean intake of logged days − β × 7700`, β = least-squares weight slope (kg/day).
+
+- Days without meals (or summing to 0 kcal) are **excluded**, never counted as 0.
+- Shown only when: ≥ 21 logged days, ≥ 4 weigh-in days spanning ≥ 14 days, and the 95 %
+  margin `1.96 × SE(β) × 7700 ≤ 300 kcal/day`, with `SE(β) = σ / √Σ(x − x̄)²` and σ the
+  residual SD (n − 2 df), floored at 0.5 kg so a few aligned weigh-ins can't look precise.
+  Weekly weigh-ins never qualify; ~3/week do; daily gives ≈ ±180.
+- It is displayed **next to** the formula TDEE (home card and Perfil, `± margin`); it
+  **never replaces the target**. Perfil explains what is missing when it isn't available.
+- Web: `lib/use-measured-expenditure.ts` (meals `meals:<from>:<yesterday>` + `weights`
+  cache keys). Android: `recommend(weights, profile, meals, today)` in
+  `RecommendationsViewModel.kt`.
+
+### 8.4 Where it is stored and shown
+
+The unified goal (`cut` | `maintain` | `surplus`) is the `calorie_goal` enum column on
+`users`, read via the session endpoint and updated via `PUT /api/settings` together with the
+rest of the calorie profile.
 
 **Files:**
-- `lib/core/protein.ts` — pure calculation, no dependencies
+- `lib/core/calories.ts`, `protein.ts`, `expenditure.ts` — pure calculations
 - `components/nutrition-recommendations.tsx` — merged calorie + protein card on "Comidas"
-- `server/repositories/settings-repo.ts` — calorie profile CRUD on users table
-- `server/services/settings-service.ts` — thin service wrapper
-- `app/api/settings/route.ts` — `PUT` endpoint
-- `app/ajustes/page.tsx` — goal selector (3-button toggle, first card)
+- `app/ajustes/perfil/page.tsx` — goal, profile form and the full breakdown
+- `server/repositories/settings-repo.ts`, `server/services/settings-service.ts`,
+  `app/api/settings/route.ts` — calorie profile storage
 
 ---
 
@@ -737,8 +772,9 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
   `TooltipTextSize`) so they follow the phone's font size.
 - **Intake bars** (Comidas): outlined track = what is left, solid fill = eaten (ember past
   the target), two markers = target range, «eaten / min–max unit» next to the status.
-  The calorie card lists Promedio estimado, TMB and TDEE before the bar. Same design on
-  the web (`components/nutrition-recommendations.tsx`).
+  The calorie card lists Promedio estimado, TMB, TDEE and (when the data supports it) the
+  measured expenditure ± margin before the bar; the protein card shows g/kg (of lean mass
+  when a cut uses body fat). Same design on the web (`components/nutrition-recommendations.tsx`).
 - **Comidas:** double-tap the date → today; deleting a meal shows Undo instead of a
   confirmation; single-ingredient meals don't repeat the numbers of the totals;
   ingredient columns have fixed widths that scale with the font size.

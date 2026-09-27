@@ -1,8 +1,8 @@
 import type { CalorieProfile, CalorieRecommendation, Gender, Goal } from "./types";
 
 /**
- * Mifflin-St Jeor equation (1990) — most accurate BMR formula for
- * non-athletes per Frankenfield et al. 2005 (n=1090, 82% within ±10%).
+ * Mifflin-St Jeor equation (1990) — the most reliable predictive BMR equation
+ * for healthy adults in the systematic review by Frankenfield et al. 2005.
  *
  * Men:   BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age) + 5
  * Women: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age) - 161
@@ -17,28 +17,42 @@ export function calculateBMR(
   return gender === "male" ? base + 5 : base - 161;
 }
 
+/** Minutes in a day, the unit of the factorial model below. */
+const MINUTES_PER_DAY = 1440;
 /**
- * Derive an activity multiplier from gym frequency (days/week × session
- * minutes) and daily walking minutes.
+ * Average intensity (× BMR) of a day of ordinary living with no exercise:
+ * sleep, sitting, desk work and light chores. The low end of the "sedentary or
+ * light activity" band (PAL 1.40–1.69) of FAO/WHO/UNU 2004.
+ */
+const BASELINE_INTENSITY = 1.4;
+/** Resistance training including rest between sets (Compendium 2024: 3.5–6 METs). */
+const GYM_INTENSITY = 4.0;
+/** Walking at a moderate pace, ~4–5 km/h (Compendium 2024: 3.5–3.8 METs). */
+const WALKING_INTENSITY = 3.5;
+
+/**
+ * Physical activity level (PAL = TDEE / BMR) with the factorial method of
+ * FAO/WHO/UNU 2004: the day is split into time blocks, each weighted by its
+ * intensity as a multiple of BMR, and averaged over the 1440 minutes.
  *
- * Thresholds based on standard PAL categories, calibrated conservatively
- * for non-athletes (research shows people tend to overestimate activity).
+ *   gym  = gymDays × gymMinutes / 7   (average minutes per day)
+ *   PAL  = ((1440 − gym − walking) × 1.4 + gym × 4.0 + walking × 3.5) / 1440
+ *
+ * Every extra minute of training or walking raises the result, and it is
+ * derived from what the user actually does rather than a self-rated
+ * category, which people tend to overestimate (Prince et al. 2008).
  */
 export function getActivityMultiplier(
   gymDays: number,
   gymMinutes: number,
   walkingMinutes: number,
 ): number {
-  const weeklyGymMinutes = gymDays * gymMinutes;
-
-  if (weeklyGymMinutes === 0 && walkingMinutes < 30) return 1.2;
-  if (weeklyGymMinutes === 0 && walkingMinutes >= 30) return 1.375;
-  if (weeklyGymMinutes > 0 && weeklyGymMinutes <= 150 && walkingMinutes < 30) return 1.375;
-  if (weeklyGymMinutes > 0 && weeklyGymMinutes <= 150 && walkingMinutes >= 30) return 1.55;
-  if (weeklyGymMinutes > 150 && weeklyGymMinutes <= 360 && walkingMinutes >= 30) return 1.55;
-  if (weeklyGymMinutes > 150 && weeklyGymMinutes <= 360 && walkingMinutes < 30) return 1.375;
-  if (weeklyGymMinutes > 360 && weeklyGymMinutes <= 540) return 1.725;
-  return 1.9;
+  const gymPerDay = (gymDays * gymMinutes) / 7;
+  const restMinutes = Math.max(MINUTES_PER_DAY - gymPerDay - walkingMinutes, 0);
+  return (
+    (restMinutes * BASELINE_INTENSITY + gymPerDay * GYM_INTENSITY + walkingMinutes * WALKING_INTENSITY) /
+    MINUTES_PER_DAY
+  );
 }
 
 const CALORIE_OFFSETS: Record<Goal, { target: number; min: number; max: number }> = {
@@ -87,6 +101,7 @@ export function calculateCalorieRecommendation(
 
   return {
     bmr: Math.round(bmr),
+    activityFactor: Math.round(multiplier * 100) / 100,
     tdee,
     target: tdee + offsets.target,
     targetMin: tdee + offsets.min,

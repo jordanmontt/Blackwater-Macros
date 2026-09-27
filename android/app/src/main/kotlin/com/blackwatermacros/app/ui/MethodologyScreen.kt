@@ -82,8 +82,23 @@ fun MethodologyScreen(onBack: () -> Unit) {
                 formula = listOf(
                     stringResource(R.string.meth_tdee_men),
                     stringResource(R.string.meth_tdee_women),
+                    stringResource(R.string.meth_tdee_gym),
+                    stringResource(R.string.meth_tdee_pal),
                     stringResource(R.string.meth_tdee_total),
                 ),
+                afterRes = R.string.meth_tdee_after,
+            )
+            MethodCard(
+                R.string.meth_measured_title,
+                R.string.meth_measured_body,
+                formula = listOf(
+                    stringResource(R.string.meth_measured_window),
+                    stringResource(R.string.meth_measured_intake),
+                    stringResource(R.string.meth_measured_slope),
+                    stringResource(R.string.meth_measured_formula),
+                    stringResource(R.string.meth_measured_margin),
+                ),
+                afterRes = R.string.meth_measured_after,
             )
             ReferencesCard()
             Spacer(Modifier.height(24.dp))
@@ -92,34 +107,41 @@ fun MethodologyScreen(onBack: () -> Unit) {
     }
 }
 
+/** Title, [bodyRes] paragraphs, an optional formula block, then optional [afterRes] paragraphs. */
 @Composable
 private fun MethodCard(
     @StringRes titleRes: Int,
     @StringRes bodyRes: Int,
     formula: List<String>? = null,
+    @StringRes afterRes: Int? = null,
 ) {
-    val title = stringResource(titleRes)
-    val body: String? = stringResource(bodyRes)
     AppCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            if (body != null) {
-                Spacer(Modifier.height(8.dp))
-                body.split("\n\n").forEach { paragraph ->
-                    Text(
-                        paragraph,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                }
-            }
+            Text(stringResource(titleRes), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(8.dp))
+            Paragraphs(stringResource(bodyRes))
             if (formula != null) {
                 FormulaBlock(formula)
             }
+            if (afterRes != null) {
+                Spacer(Modifier.height(8.dp))
+                Paragraphs(stringResource(afterRes))
+            }
         }
+    }
+}
+
+@Composable
+private fun Paragraphs(text: String) {
+    text.split("\n\n").forEach { paragraph ->
+        Text(
+            paragraph,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
     }
 }
 
@@ -150,17 +172,24 @@ private fun ReferencesCard() {
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.meth_references), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
+            // Same list and order as REFERENCES in the web src/app/metodologia/page.tsx.
             val refs = listOf(
-                "Zheng Y, Burke LE, Danford CA, Ewing LJ, Terry MA, Sereika SM. «Self-weighing in weight management: a systematic literature review». Obesity Reviews. 2015;16(2):124–139.",
-                "Walker J. The Hacker's Diet: How to lose weight and hair through stress and poor nutrition. 3rd ed. 2005. Available online (fourmilab.ch).",
-                "Montgomery DC, Peck EA, Vining GG. Introduction to Linear Regression Analysis. 6th ed. Hoboken (NJ): Wiley; 2021.",
-                "Morton RW et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength. Br J Sports Med. 2018;52:376–384.",
-                "Nunes EA et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. J Cachexia Sarcopenia Muscle. 2022;13:795–810.",
-                "Kokura Y et al. Protein supplementation for improving skeletal muscle mass and function in community-dwelling older adults: a systematic review. Clin Nutr ESPEN. 2024.",
-                "Helms ER et al. Evidence-based recommendations for natural bodybuilding contest preparation. Int J Sport Nutr Exerc Metab. 2014;24(2):127–138.",
-                "Jäger R et al. International Society of Sports Nutrition position stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20.",
-                "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241–247.",
-                "Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults. J Am Diet Assoc. 2005;105(5):775–789.",
+                "Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE. Self-weighing in weight management: a systematic literature review. Obesity. 2015;23(2):256–265. doi:10.1002/oby.20946",
+                "Walker J. The Hacker's Diet: how to lose weight and hair through stress and poor nutrition. fourmilab.ch. 2005.",
+                "Montgomery DC, Peck EA, Vining GG. Introduction to Linear Regression Analysis. 6th ed. Wiley; 2021.",
+                "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241–247. doi:10.1093/ajcn/51.2.241",
+                "Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. J Am Diet Assoc. 2005;105(5):775–789. doi:10.1016/j.jada.2005.02.005",
+                "FAO/WHO/UNU. Human energy requirements: report of a joint FAO/WHO/UNU expert consultation. FAO Food and Nutrition Technical Report Series 1. Rome: FAO; 2004.",
+                "Herrmann SD, Willis EA, Ainsworth BE, et al. 2024 Adult Compendium of Physical Activities: a third update of the energy costs of human activities. J Sport Health Sci. 2024;13(1):6–12. doi:10.1016/j.jshs.2023.10.010",
+                "Prince SA, Adamo KB, Hamel ME, Hardt J, Connor Gorber S, Tremblay M. A comparison of direct versus self-report measures for assessing physical activity in adults: a systematic review. Int J Behav Nutr Phys Act. 2008;5:56. doi:10.1186/1479-5868-5-56",
+                "Hall KD. What is the required energy deficit per unit weight loss? Int J Obes. 2008;32(3):573–576. doi:10.1038/sj.ijo.0803720",
+                "Jäger R, Kerksick CM, Campbell BI, et al. International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20. doi:10.1186/s12970-017-0177-8",
+                "Morton RW, Murphy KT, McKellar SR, et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults. Br J Sports Med. 2018;52(6):376–384. doi:10.1136/bjsports-2017-097608",
+                "Iraki J, Fitschen P, Espinar S, Helms E. Nutrition recommendations for bodybuilders in the off-season: a narrative review. Sports. 2019;7(7):154. doi:10.3390/sports7070154",
+                "Helms ER, Aragon AA, Fitschen PJ. Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation. J Int Soc Sports Nutr. 2014;11:20. doi:10.1186/1550-2783-11-20",
+                "Helms ER, Zinn C, Rowlands DS, Brown SR. A systematic review of dietary protein during caloric restriction in resistance trained lean athletes: a case for higher intakes. Int J Sport Nutr Exerc Metab. 2014;24(2):127–138. doi:10.1123/ijsnem.2013-0054",
+                "Kokura Y, Ueshima J, Saino Y, Maeda K. Enhanced protein intake on maintaining muscle mass, strength, and physical function in adults with overweight/obesity: a systematic review and meta-analysis. Clin Nutr ESPEN. 2024;63:417–426. doi:10.1016/j.clnesp.2024.06.030",
+                "Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. J Cachexia Sarcopenia Muscle. 2022;13(2):795–810. doi:10.1002/jcsm.12922",
             )
             Column {
                 refs.forEachIndexed { i, ref ->

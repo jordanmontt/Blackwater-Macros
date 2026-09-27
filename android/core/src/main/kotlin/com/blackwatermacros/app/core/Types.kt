@@ -152,6 +152,8 @@ data class CalorieProfile(
 
 data class CalorieRecommendation(
     val bmr: Double,
+    /** PAL used for the TDEE (TDEE / BMR), rounded to 2 decimals for display. */
+    val activityFactor: Double,
     val tdee: Double,
     val target: Double,
     val targetMin: Double,
@@ -161,10 +163,31 @@ data class CalorieRecommendation(
 
 data class ProteinRange(val min: Double, val max: Double)
 
+/** What the g/kg factors multiply: total body weight or lean (fat-free) mass. */
+enum class ProteinBasis { BODY_WEIGHT, LEAN_MASS }
+
 data class ProteinRecommendation(
     val goal: Goal,
-    val bodyWeightKg: Double,
-    val bwRange: ProteinRange,
-    val bwPerKg: ProteinRange,
+    val basis: ProteinBasis,
+    /** The kilograms the factors multiply (body weight, or lean mass when basis is LEAN_MASS). */
+    val basisKg: Double,
+    /** Grams per day. */
+    val range: ProteinRange,
+    /** g per kg of [basisKg]. */
+    val perKg: ProteinRange,
     val target: Double,
+)
+
+data class ExpenditureEstimate(
+    /** Measured total daily energy expenditure, kcal/day. */
+    val tdee: Double,
+    /** +- kcal/day, 95 % margin from the uncertainty of the weight trend. */
+    val margin: Double,
+    /** Mean intake over the logged days of the window, kcal/day. */
+    val avgIntake: Double,
+    /** Weight trend over the window (least-squares slope), kg/week. */
+    val weightChangePerWeek: Double,
+    val loggedDays: Int,
+    val weighIns: Int,
+    val windowDays: Int,
 )

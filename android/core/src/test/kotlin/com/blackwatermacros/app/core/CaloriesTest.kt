@@ -28,26 +28,36 @@ class CaloriesTest {
         assertThat(calculateBMR(Gender.FEMALE, 45.0, 150.0, 70)).isEqualTo(expected)
     }
 
-    // --- getActivityMultiplier ---
+    // --- getActivityMultiplier (factorial method) ---
 
     @Test
-    fun getActivityMultiplier_sedentary() {
-        assertThat(getActivityMultiplier(0, 0, 0)).isEqualTo(1.2)
+    fun getActivityMultiplier_noExerciseIsTheBaseline() {
+        assertThat(getActivityMultiplier(0, 0, 0)).isWithin(1e-10).of(1.4)
     }
 
     @Test
-    fun getActivityMultiplier_dailyWalkingNoGym() {
-        assertThat(getActivityMultiplier(0, 0, 60)).isEqualTo(1.375)
+    fun getActivityMultiplier_walkingOnly() {
+        // (1380 x 1.4 + 60 x 3.5) / 1440
+        assertThat(getActivityMultiplier(0, 0, 60)).isWithin(1e-10).of(1.4875)
     }
 
     @Test
-    fun getActivityMultiplier_moderateWithGym() {
-        assertThat(getActivityMultiplier(3, 60, 30)).isEqualTo(1.55)
+    fun getActivityMultiplier_gymSpreadOverTheWeekAndWalking() {
+        assertThat(getActivityMultiplier(3, 60, 30)).isWithin(1e-8).of(1.4901785714)
+        assertThat(getActivityMultiplier(5, 90, 0)).isWithin(1e-8).of(1.5160714286)
     }
 
     @Test
-    fun getActivityMultiplier_highTraining() {
-        assertThat(getActivityMultiplier(5, 90, 0)).isEqualTo(1.725)
+    fun getActivityMultiplier_moreTrainingNeverLowersIt() {
+        assertThat(getActivityMultiplier(4, 60, 20)).isGreaterThan(getActivityMultiplier(2, 60, 30))
+        assertThat(getActivityMultiplier(4, 60, 30)).isGreaterThan(getActivityMultiplier(3, 60, 30))
+        assertThat(getActivityMultiplier(3, 90, 30)).isGreaterThan(getActivityMultiplier(3, 60, 30))
+        assertThat(getActivityMultiplier(3, 60, 31)).isGreaterThan(getActivityMultiplier(3, 60, 30))
+    }
+
+    @Test
+    fun getActivityMultiplier_profileMaximums() {
+        assertThat(getActivityMultiplier(7, 300, 480)).isWithin(1e-8).of(2.6416666667)
     }
 
     // --- isCalorieProfileComplete ---
@@ -85,32 +95,32 @@ class CaloriesTest {
     @Test
     fun calculateCalorieRecommendation_cutModeComputesBmrTdeeAndTarget() {
         val profile = CalorieProfile(Gender.MALE, 1990, 178.0, 3, 60, 30, Goal.CUT)
-        // Edad = 2026 - 1990 = 36
-        val bmr = calculateBMR(Gender.MALE, 80.0, 178.0, 36)
-        val tdee = round(bmr * 1.55)
+        // Edad = 2026 - 1990 = 36 -> TMB 1737.5; factor 1.49018 -> TDEE 2589.19
         val rec = calculateCalorieRecommendation(profile, 80.0, CURRENT_YEAR)
 
         assertThat(rec).isNotNull()
         val r = rec!!
-        assertThat(r.bmr).isEqualTo(round(bmr))
-        assertThat(r.tdee).isEqualTo(tdee)
-        assertThat(r.target).isEqualTo(tdee - 400.0)
-        assertThat(r.targetMin).isEqualTo(tdee - 500.0)
-        assertThat(r.targetMax).isEqualTo(tdee - 300.0)
+        assertThat(r.bmr).isEqualTo(1738.0)
+        assertThat(r.activityFactor).isEqualTo(1.49)
+        assertThat(r.tdee).isEqualTo(2589.0)
+        assertThat(r.target).isEqualTo(2189.0)
+        assertThat(r.targetMin).isEqualTo(2089.0)
+        assertThat(r.targetMax).isEqualTo(2289.0)
         assertThat(r.goal).isEqualTo(Goal.CUT)
     }
 
     @Test
     fun calculateCalorieRecommendation_surplusAddsCaloriesToTarget() {
         val profile = CalorieProfile(Gender.FEMALE, 1995, 165.0, 5, 60, 40, Goal.SURPLUS)
-        // Edad = 2026 - 1995 = 31
-        val bmr = calculateBMR(Gender.FEMALE, 60.0, 165.0, 31)
-        val multiplier = getActivityMultiplier(5, 60, 40) // 300 gym min, walking >= 30 -> 1.55
-        val tdee = round(bmr * multiplier)
+        // Edad = 2026 - 1995 = 31 -> TMB 1315.25; factor 1.53571 -> TDEE 2019.85
         val rec = calculateCalorieRecommendation(profile, 60.0, CURRENT_YEAR)
 
         assertThat(rec).isNotNull()
-        assertThat(rec!!.target).isEqualTo(tdee + 300.0)
+        assertThat(rec!!.activityFactor).isEqualTo(1.54)
+        assertThat(rec.tdee).isEqualTo(2020.0)
+        assertThat(rec.target).isEqualTo(2320.0)
+        assertThat(rec.targetMin).isEqualTo(2220.0)
+        assertThat(rec.targetMax).isEqualTo(2420.0)
         assertThat(rec.goal).isEqualTo(Goal.SURPLUS)
     }
 

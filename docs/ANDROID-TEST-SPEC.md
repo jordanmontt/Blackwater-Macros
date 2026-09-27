@@ -7,7 +7,7 @@ rules that keep the two platforms consistent. Architecture lives in
 ## 1. The core contract (pure math implemented twice)
 
 The pure algorithms in `src/lib/core/*.ts` (meal totals, protein, calories/BMR,
-dates, stats, the stats builder, CSV) are implemented **twice**: in TypeScript for
+measured expenditure, dates, stats, the stats builder, CSV) are implemented **twice**: in TypeScript for
 the web/server and as a Kotlin port in the pure-JVM `:core` module
 (`android/core/`). Android needs them locally because it is local-first: it
 computes totals, recommendations and statistics on the phone, without the server.
@@ -21,6 +21,7 @@ Kotlin JUnit mirror with the same inputs and the same expected numbers
 | `tests/unit/nutrition.test.ts` | `sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2` | `NutritionTest.kt` |
 | `tests/unit/protein.test.ts` | `calculateProteinRecommendation` | `ProteinTest.kt` |
 | `tests/unit/calories.test.ts` | `calculateBMR`, `getActivityMultiplier`, `isCalorieProfileComplete`, `calculateCalorieRecommendation` | `CaloriesTest.kt` |
+| `tests/unit/expenditure.test.ts` | `estimateExpenditure` | `ExpenditureTest.kt` |
 | `tests/unit/dates.test.ts` | date keys, `parseLocalDateTime`, es-ES formatters | `DatesTest.kt` |
 | `tests/unit/stats.test.ts` | `movingAverageByDays`, `linearRatePerWeek`, `weeklyAverages`, `buildDailyNutritionSeries`, `rangeToDays` | `StatsTest.kt` |
 | `tests/unit/stats-builder.test.ts` | `buildStatsFromData` | `StatsBuilderTest.kt` |
@@ -49,7 +50,7 @@ Robolectric, no emulator needed).
 | `data/OfflineSyncTest.kt` | End to end with a real in-memory Room database, the real Retrofit client and `FakeServer` (a MockWebServer dispatcher that behaves like the Next.js routes): local-only mode never touches the network; a meal saved offline survives and uploads once, retries never duplicate; edits, deletes and reorders upload; web edits/deletions are pulled; an edit made during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data (upload / discard) and wrong credentials; logout and «delete all data» wipe only the phone; undo delete; CSV import de-duplication; a captive-portal/HTML response fails the sync without losing data |
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and `{ "error": … }` envelopes |
 | `data/CsvBackupTest.kt` | CSV export/import round trip; reads a file exported by the web; skips rows the server would reject; unknown files |
-| `ui/ValidationTest.kt` | Meal form, weight and profile limits (same as `src/server/validation.ts`); recommendation states; sync indicator states |
+| `ui/ValidationTest.kt` | Meal form, weight and profile limits (same as `src/server/validation.ts`); recommendation states, latest body fat for protein, measured expenditure from meals + weigh-ins; sync indicator states |
 | `ui/TranslationsTest.kt` | Every language has every string and plural with the same placeholders |
 | `data/ResponseErrorMapperTest.kt`, `data/NiceTicksTest.kt` | Error envelope decoding; chart axis ticks |
 

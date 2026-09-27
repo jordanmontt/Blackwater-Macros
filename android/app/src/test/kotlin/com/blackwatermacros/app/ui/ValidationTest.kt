@@ -4,6 +4,9 @@ import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
+import com.blackwatermacros.app.core.ProteinBasis
+import com.blackwatermacros.app.core.addDaysToKey
+import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.WeightDTO
 import com.blackwatermacros.app.data.WireEntryMode
 import com.google.common.truth.Truth.assertThat
@@ -86,6 +89,32 @@ class ValidationTest {
         val ready = recommend(listOf(weight), empty.copy(calorieGoal = Goal.CUT)) as RecommendationsUiState.Ready
         assertThat(ready.protein).isNotNull()
         assertThat(ready.calorie).isNull() // needs sex too
+    }
+
+    @Test
+    fun `recommendations use the latest body fat and measure expenditure from 4 weeks of data`() {
+        val today = "2026-03-01"
+        val profile = CalorieProfile(Gender.MALE, 1990, 178.0, 3, 60, 30, Goal.CUT)
+        // Stable 80 kg every other day; body fat only logged on the first weigh-in.
+        val weights = (28 downTo 1 step 2).map { n ->
+            WeightDTO("w$n", "${addDaysToKey(today, -n)}T12:00:00Z", 80.0, if (n == 28) 20.0 else null, null, "")
+        }
+        val meals = (1..28).map { n ->
+            MealDTO(
+                "m$n", addDaysToKey(today, -n), "Comida", null, WireEntryMode.TOTAL_ONLY, emptyList(),
+                2500.0, 150.0, null, null, 2500.0, 150.0, 0.0, 0.0, "",
+            )
+        }
+
+        val ready = recommend(weights, profile, meals, today) as RecommendationsUiState.Ready
+        assertThat(ready.protein!!.basis).isEqualTo(ProteinBasis.LEAN_MASS)
+        assertThat(ready.protein!!.basisKg).isEqualTo(64.0)
+        assertThat(ready.expenditure!!.tdee).isEqualTo(2500.0)
+        assertThat(ready.expenditure!!.margin).isEqualTo(250.0)
+
+        // Weekly weigh-ins are too uncertain: no measured value.
+        val weekly = weights.filterIndexed { i, _ -> i % 4 == 0 }
+        assertThat((recommend(weekly, profile, meals, today) as RecommendationsUiState.Ready).expenditure).isNull()
     }
 
     @Test

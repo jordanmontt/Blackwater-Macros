@@ -21,21 +21,31 @@ describe("calculateBMR", () => {
   });
 });
 
-describe("getActivityMultiplier", () => {
-  it("sedentario", () => {
-    expect(getActivityMultiplier(0, 0, 0)).toBe(1.2);
+describe("getActivityMultiplier (método factorial)", () => {
+  it("sin ejercicio: la base de 1.4 × TMB", () => {
+    expect(getActivityMultiplier(0, 0, 0)).toBeCloseTo(1.4, 10);
   });
 
-  it("caminata diaria sin gym", () => {
-    expect(getActivityMultiplier(0, 0, 60)).toBe(1.375);
+  it("solo caminata: 60 min a 3.5 × TMB", () => {
+    // (1380 × 1.4 + 60 × 3.5) / 1440
+    expect(getActivityMultiplier(0, 0, 60)).toBeCloseTo(1.4875, 10);
   });
 
-  it("moderado con gym", () => {
-    expect(getActivityMultiplier(3, 60, 30)).toBe(1.55);
+  it("gym repartido en la semana y caminata", () => {
+    // gym = 3 × 60 / 7 min/día; (resto × 1.4 + gym × 4.0 + 30 × 3.5) / 1440
+    expect(getActivityMultiplier(3, 60, 30)).toBeCloseTo(1.4901785714, 8);
+    expect(getActivityMultiplier(5, 90, 0)).toBeCloseTo(1.5160714286, 8);
   });
 
-  it("entrenamiento alto", () => {
-    expect(getActivityMultiplier(5, 90, 0)).toBe(1.725);
+  it("más entrenamiento nunca baja el factor", () => {
+    expect(getActivityMultiplier(4, 60, 20)).toBeGreaterThan(getActivityMultiplier(2, 60, 30));
+    expect(getActivityMultiplier(4, 60, 30)).toBeGreaterThan(getActivityMultiplier(3, 60, 30));
+    expect(getActivityMultiplier(3, 90, 30)).toBeGreaterThan(getActivityMultiplier(3, 60, 30));
+    expect(getActivityMultiplier(3, 60, 31)).toBeGreaterThan(getActivityMultiplier(3, 60, 30));
+  });
+
+  it("máximos permitidos del perfil (7 × 300 min + 480 min)", () => {
+    expect(getActivityMultiplier(7, 300, 480)).toBeCloseTo(2.6416666667, 8);
   });
 });
 
@@ -93,16 +103,15 @@ describe("calculateCalorieRecommendation", () => {
       walkingMinutesPerDay: 30,
       calorieGoal: "cut",
     };
-    // Edad = 2026 - 1990 = 36
-    const bmr = calculateBMR("male", 80, 178, 36);
-    const tdee = Math.round(bmr * 1.55);
+    // Edad = 2026 - 1990 = 36 → TMB 1737.5; factor 1.49018 → TDEE 2589.19
     const rec = calculateCalorieRecommendation(profile, 80, CURRENT_YEAR);
     expect(rec).not.toBeNull();
-    expect(rec!.bmr).toBe(Math.round(bmr));
-    expect(rec!.tdee).toBe(tdee);
-    expect(rec!.target).toBe(tdee - 400);
-    expect(rec!.targetMin).toBe(tdee - 500);
-    expect(rec!.targetMax).toBe(tdee - 300);
+    expect(rec!.bmr).toBe(1738);
+    expect(rec!.activityFactor).toBe(1.49);
+    expect(rec!.tdee).toBe(2589);
+    expect(rec!.target).toBe(2189);
+    expect(rec!.targetMin).toBe(2089);
+    expect(rec!.targetMax).toBe(2289);
     expect(rec!.goal).toBe("cut");
   });
 
@@ -116,12 +125,13 @@ describe("calculateCalorieRecommendation", () => {
       walkingMinutesPerDay: 40,
       calorieGoal: "surplus",
     };
-    // Edad = 2026 - 1995 = 31
-    const bmr = calculateBMR("female", 60, 165, 31);
-    const multiplier = getActivityMultiplier(5, 60, 40); // 300 gym min, walking>=30 -> 1.55
-    const tdee = Math.round(bmr * multiplier);
+    // Edad = 2026 - 1995 = 31 → TMB 1315.25; factor 1.53571 → TDEE 2019.85
     const rec = calculateCalorieRecommendation(profile, 60, CURRENT_YEAR);
-    expect(rec!.target).toBe(tdee + 300);
+    expect(rec!.activityFactor).toBe(1.54);
+    expect(rec!.tdee).toBe(2020);
+    expect(rec!.target).toBe(2320);
+    expect(rec!.targetMin).toBe(2220);
+    expect(rec!.targetMax).toBe(2420);
     expect(rec!.goal).toBe("surplus");
   });
 
