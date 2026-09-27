@@ -157,9 +157,9 @@ fun CompactField(
         decorationBox = { innerTextField ->
             Row(
                 Modifier
-                    .defaultMinSize(minHeight = 44.dp)
+                    .defaultMinSize(minHeight = 40.dp)
                     .fieldBackground(enabled, focused && !readOnly)
-                    .padding(start = 12.dp, end = if (trailingIcon != null && readOnly) 6.dp else 12.dp, top = 8.dp, bottom = 8.dp),
+                    .padding(start = 12.dp, end = if (trailingIcon != null && readOnly) 6.dp else 12.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {

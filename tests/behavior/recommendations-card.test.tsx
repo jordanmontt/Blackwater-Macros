@@ -74,7 +74,7 @@ describe("tarjetas de recomendación", () => {
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
     // la etiqueta aparece dentro de un párrafo con el rango → matcher de substring
-    const labels = await screen.findAllByText((content) => content.includes("promedio estimado"));
+    const labels = await screen.findAllByText((content) => content.includes("Promedio estimado"));
     expect(labels.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -97,5 +97,25 @@ describe("tarjetas de recomendación", () => {
 
     expect(await screen.findByText((content) => content.startsWith("Metabolismo basal (TMB):"))).toBeInTheDocument();
     expect(screen.getByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"))).toBeInTheDocument();
+  });
+
+  it("muestra promedio, TMB y TDEE antes de la barra de progreso", async () => {
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    const tdee = await screen.findByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"));
+    const missing = screen.getByText(/te faltan \d+–\d+ kcal/);
+    // TDEE aparece antes que el estado de la barra en el orden del documento.
+    expect(tdee.compareDocumentPosition(missing) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("la barra muestra lo consumido frente al objetivo y cambia de color al pasarse", async () => {
+    const { rerender } = render(<NutritionRecommendationsCard dailyCalories={1200} dailyProtein={50} />);
+    const bars = await screen.findAllByRole("progressbar");
+    expect(bars[0]).toHaveAttribute("aria-valuenow", "1200");
+    expect(screen.getAllByTestId("intake-fill")[0].className).toContain("bg-primary");
+    // "consumido / mínimo–máximo kcal" en palabras, además de la barra
+    expect(screen.getByText((_, el) => el?.tagName === "SPAN" && /^1\.?200 \/ [\d.]+–[\d.]+ kcal$/.test(el.textContent ?? ""))).toBeInTheDocument();
+
+    rerender(<NutritionRecommendationsCard dailyCalories={4000} dailyProtein={50} />);
+    expect(screen.getAllByTestId("intake-fill")[0].className).toContain("bg-tertiary");
   });
 });

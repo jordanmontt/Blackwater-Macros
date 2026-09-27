@@ -1,6 +1,16 @@
 package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.blackwatermacros.app.core.CalorieRecommendation
 import com.blackwatermacros.app.core.Goal
 import kotlin.math.round
 
@@ -86,10 +95,12 @@ fun NutritionRecommendationsCard(
                             rangeMin = calorie.targetMin,
                             rangeMax = calorie.targetMax,
                             barUnit = "kcal",
+                            // Where the target comes from (same as Perfil), shown before the bar.
+                            details = listOf(
+                                stringResource(R.string.rec_bmr, formatNumber(calorie.bmr)),
+                                stringResource(R.string.rec_tdee, formatNumber(calorie.tdee)),
+                            ),
                         )
-                        // Same breakdown as Perfil: where the target comes from.
-                        Spacer(Modifier.height(6.dp))
-                        CalorieBreakdown(calorie)
                     }
                     if (calorie != null && protein != null) {
                         Spacer(Modifier.height(16.dp))
@@ -147,6 +158,7 @@ internal fun RecommendationSection(
     rangeMax: Double,
     barUnit: String = "",
     showBar: Boolean = true,
+    details: List<String> = emptyList(),
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -180,6 +192,9 @@ internal fun RecommendationSection(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        details.forEach {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         if (showBar) {
             Spacer(Modifier.height(10.dp))
             IntakeBar(current, rangeMin, rangeMax, barUnit)
@@ -187,6 +202,11 @@ internal fun RecommendationSection(
     }
 }
 
+/**
+ * Progress towards the daily target: the outlined track is what is left, the
+ * solid fill is what was eaten (ember once past the target) and the two
+ * markers crossing the bar are the target range. The numbers say it in words.
+ */
 @Composable
 private fun IntakeBar(
     current: Double,
@@ -195,48 +215,65 @@ private fun IntakeBar(
     unit: String,
 ) {
     val status = intakeStatus(current, rangeMin, rangeMax, unit)
+    val colors = MaterialTheme.colorScheme
+    // Leave room past the target so going over is visible on the bar.
+    val scaleMax = if (rangeMax > 0) rangeMax * 1.1 else 1.0
+    fun frac(v: Double) = (v / scaleMax).coerceIn(0.0, 1.0).toFloat()
+    val over = current > rangeMax
     Column {
-        Text(status.label, style = MaterialTheme.typography.labelSmall, color = status.color)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+            Text(status.label, style = MaterialTheme.typography.labelSmall, color = status.color, modifier = Modifier.weight(1f))
+            Text(
+                buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = colors.onSurface)) {
+                        append(formatNumber(round(current)))
+                    }
+                    append(" / ${formatNumber(rangeMin)}–${formatNumber(rangeMax)} $unit")
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = colors.onSurfaceVariant,
+            )
+        }
         Spacer(Modifier.height(4.dp))
-        val pct = if (rangeMax > 0) (current / rangeMax * 100) else 0.0
-        val barPct = pct.coerceIn(0.0, 100.0)
-        val zoneLeft = if (rangeMax > 0) (rangeMin / rangeMax * 100) else 0.0
-        val zoneWidth = if (rangeMax > 0) ((rangeMax - rangeMin) / rangeMax * 100) else 0.0
         BoxWithConstraints(
             Modifier
                 .fillMaxWidth()
-                .height(6.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50)),
+                .height(16.dp)
+                .semantics {
+                    contentDescription = status.label
+                    progressBarRangeInfo = ProgressBarRangeInfo(current.toFloat(), 0f..rangeMax.toFloat().coerceAtLeast(1f))
+                },
         ) {
             val w = maxWidth
-            val zoneLeftF = (zoneLeft / 100.0f).toFloat()
+            val pill = RoundedCornerShape(50)
             Box(
                 Modifier
-                    .offset(x = w * zoneLeftF)
-                    .size(width = w * (zoneWidth / 100.0f).toFloat(), height = 6.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
-            )
-            Box(
-                Modifier
-                    .fillMaxWidth(barPct.toFloat() / 100f)
-                    .height(6.dp)
-                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50)),
-            )
-            Tick(w, zoneLeftF)
-            Tick(w, ((zoneLeft + zoneWidth).coerceAtMost(100.0) / 100.0f).toFloat())
+                    .align(Alignment.CenterStart)
+                    .fillMaxWidth()
+                    .height(10.dp)
+                    .clip(pill)
+                    .background(colors.surfaceVariant)
+                    .border(1.dp, colors.outline.copy(alpha = 0.6f), pill),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(frac(current))
+                        .clip(pill)
+                        .background(if (over) colors.tertiary else colors.primary),
+                )
+            }
+            listOf(rangeMin, rangeMax).forEach { mark ->
+                Box(
+                    Modifier
+                        .offset(x = w * frac(mark) - 1.dp)
+                        .width(2.dp)
+                        .fillMaxHeight()
+                        .background(colors.onSurface.copy(alpha = 0.8f), RoundedCornerShape(1.dp)),
+                )
+            }
         }
     }
-}
-
-@Composable
-private fun androidx.compose.foundation.layout.BoxWithConstraintsScope.Tick(totalWidth: androidx.compose.ui.unit.Dp, leftFrac: Float) {
-    Box(
-        Modifier
-            .offset(x = totalWidth * leftFrac)
-            .width(2.dp)
-            .height(6.dp)
-            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)),
-    )
 }
 
 private data class Status(val label: String, val color: Color)
@@ -255,16 +292,4 @@ internal fun Goal.labelRes(): Int = when (this) {
     Goal.CUT -> R.string.goal_cut
     Goal.MAINTAIN -> R.string.goal_maintain
     Goal.SURPLUS -> R.string.goal_surplus
-}
-
-@Composable
-private fun CalorieBreakdown(calorie: CalorieRecommendation) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        listOf(
-            stringResource(R.string.rec_bmr, formatNumber(calorie.bmr)),
-            stringResource(R.string.rec_tdee, formatNumber(calorie.tdee)),
-        ).forEach {
-            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
 }
