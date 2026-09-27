@@ -37,15 +37,69 @@
     <string name="error_ingredient_required">Aggiungi almeno un ingrediente con un nome.</string>
     <string name="error_invalid_number">Alcuni numeri non sono validi.</string>
     <string name="tab_meals">Pasti</string>
+    <string name="tab_progress">Progressi</string>
+    <string name="progress_weight">Peso</string>
+    <string name="progress_trend">Tendenza</string>
+    <string name="progress_change">Variazione</string>
+    <string name="progress_rate">Ritmo</string>
+    <string name="progress_body_fat">Grasso corporeo</string>
+    <string name="progress_calories">Calorie giornaliere</string>
+    <string name="progress_macros">Media dei macro</string>
+    <string name="progress_logged_days">%1$d di %2$d giorni registrati</string>
+    <string name="progress_target">obiettivo %1$s–%2$s</string>
+    <string name="progress_split">Ripartizione delle calorie</string>
+    <string name="progress_split_values">Proteine %1$s %% · Carboidrati %2$s %% · Grassi %3$s %%</string>
+    <string name="progress_per_logged_day">Media per giorno registrato.</string>
+    <string name="progress_entries">Pesate</string>
+    <string name="progress_no_entries_in_range">Nessuna pesata in questo periodo.</string>
+    <string name="progress_no_meals">Ancora nessun pasto in questo periodo.</string>
     <string name="tab_weight">Peso</string>
-    <string name="tab_stats">Statistiche</string>
     <string name="tab_settings">Impostazioni</string>
     <string name="meal_add">Aggiungi pasto</string>
+    <string name="add_food_title">Aggiungi pasto</string>
+    <string name="add_food_manual">Scrivi a mano</string>
+    <string name="add_food_manual_hint">Per ingrediente o solo il totale</string>
+    <string name="add_food_copy">Copia da un altro giorno</string>
+    <string name="add_food_copy_hint">Ripeti pasti già registrati</string>
+    <string name="add_food_templates">Modelli</string>
+    <string name="add_food_copy_target">Verranno aggiunti al %1$s.</string>
+    <string name="add_food_copy_empty">Nessun pasto quel giorno.</string>
+    <string name="add_food_copy_button">Copia (%1$d)</string>
+    <string name="add_food_copied">Copiati al %1$s</string>
+    <string name="discard_title">Scartare le modifiche?</string>
+    <string name="discard_body">Ciò che hai scritto in questo pasto andrà perso.</string>
+    <string name="keep_editing">Continua a modificare</string>
+    <string name="discard">Scarta</string>
+    <string name="food_search">Cerca</string>
+    <string name="food_search_hint">Alimenti e prodotti</string>
+    <string name="food_barcode">Codice a barre</string>
+    <string name="food_barcode_hint">Scansiona la confezione</string>
+    <string name="food_search_food">Cerca alimento</string>
+    <string name="food_search_placeholder">Es. yogurt greco, banana, riso…</string>
+    <string name="food_recent">Recenti</string>
+    <string name="food_generic">Alimenti</string>
+    <string name="food_products">Prodotti (Open Food Facts)</string>
+    <string name="food_searching">Ricerca prodotti…</string>
+    <string name="food_no_results">Nessun risultato per «%1$s».</string>
+    <string name="food_online_error">Nessuna connessione a Open Food Facts: solo alimenti generici.</string>
+    <string name="food_per_100">%1$s kcal · %2$s g prot. per 100 g</string>
+    <string name="food_portion_title">Quanto?</string>
+    <string name="food_grams">Quantità (g o ml)</string>
+    <string name="food_serving">1 porzione (%1$s g)</string>
+    <string name="food_add">Aggiungi</string>
+    <string name="food_incomplete">Mancano alcuni macro nella fonte: contano come 0.</string>
+    <string name="food_credits">Dati: Swiss Food Composition Database (USAV), Ciqual (Anses) e Open Food Facts (ODbL).</string>
+    <string name="food_scan_hint">Inquadra il codice a barre con la fotocamera.</string>
+    <string name="food_manual_code">Oppure scrivi il codice</string>
+    <string name="food_look_up">Cerca</string>
+    <string name="food_looking_up">Ricerca del prodotto…</string>
+    <string name="food_not_found">Questo prodotto non è in Open Food Facts. Cercalo per nome o scrivilo a mano.</string>
+    <string name="food_camera_error">La fotocamera non è disponibile. Scrivi il codice della confezione.</string>
+    <string name="food_needs_internet">Serve una connessione a internet.</string>
     <string name="meal_deleted">Pasto eliminato</string>
     <string name="meal_reorder">Riordina pasto</string>
     <string name="meal_manual_total">Totale manuale</string>
     <string name="meals_empty_day">Non hai ancora registrato pasti in questo giorno.</string>
-    <string name="template_apply">Applica modello</string>
     <string name="template_applied">«%1$s» aggiunto a questo giorno</string>
     <string name="today">Oggi</string>
     <string name="day_previous">Giorno precedente</string>
@@ -59,29 +113,8 @@
     <string name="range_90d">90 giorni</string>
     <string name="range_all">Tutto</string>
     <string name="methodology">Metodologia</string>
-    <string name="stats_no_data">Nessuna registrazione di peso in questo periodo.</string>
-    <string name="stats_weight_summary">Riepilogo peso</string>
     <string name="weight_current">Peso attuale</string>
-    <string name="stats_current_trend">Tendenza attuale</string>
-    <string name="body_fat_current">Grasso attuale</string>
-    <string name="stats_total_change">Variazione totale</string>
-    <string name="stats_weekly_rate">Ritmo settimanale</string>
     <string name="unit_kg_per_week">kg/settimana</string>
-    <string name="stats_fat_change">Variazione grasso</string>
-    <string name="stats_weight_fat_chart">Andamento di peso e grasso corporeo</string>
-    <string name="stats_weekly_average">Media settimanale del peso</string>
-    <string name="stats_minimum">Minimo:</string>
-    <string name="stats_maximum">Massimo:</string>
-    <string name="stats_macro_summary">Riepilogo macro</string>
-    <string name="stats_avg_calories">Media calorie</string>
-    <string name="stats_avg_protein">Media proteine</string>
-    <string name="stats_avg_carbs">Media carboidrati</string>
-    <string name="stats_avg_fat">Media grassi</string>
-    <string name="stats_peak_day">Giorno di picco</string>
-    <string name="stats_daily_calories">Calorie giornaliere</string>
-    <string name="stats_daily_protein">Proteine giornaliere</string>
-    <string name="stats_daily_carbs">Carboidrati giornalieri</string>
-    <string name="stats_daily_fat">Grassi giornalieri</string>
     <string name="chart_value">Valore</string>
     <string name="chart_average">Media</string>
     <string name="chart_trend">Tendenza</string>
@@ -93,8 +126,6 @@
     <string name="weight_delete_title">Eliminare la voce?</string>
     <string name="weight_delete_body">Questa registrazione del peso verrà eliminata definitivamente.</string>
     <string name="weight_empty">Non hai ancora registrato il peso.</string>
-    <string name="weight_change_7d">Variazione peso (7 giorni)</string>
-    <string name="body_fat_change_7d">Variazione grasso (7 giorni)</string>
     <string name="body_fat_value">%1$s%% grasso</string>
     <string name="weight_kg">Peso (kg)</string>
     <string name="body_fat_pct">Grasso corporeo (%)</string>
@@ -216,17 +247,15 @@
     <string name="admin_error_password">La password deve contenere almeno 8 caratteri.</string>
     <string name="meth_intro">Come vengono calcolate le statistiche e le raccomandazioni di calorie e proteine, con le formule esatte e i riferimenti su cui si basano.</string>
     <string name="meth_scale_title">Peso sulla bilancia vs tendenza</string>
-    <string name="meth_scale_body">Il «peso attuale» è la tua ultima registrazione. La «tendenza attuale» è il valore più recente della media mobile a 7 giorni. La «variazione totale» confronta la prima e l\'ultima registrazione dell\'intervallo selezionato. «Minimo» e «massimo» sono i valori estremi delle registrazioni nell\'intervallo.</string>
+    <string name="meth_scale_body">Il «peso attuale» è la tua ultima pesata del periodo. La «tendenza» è il valore più recente della media mobile a 7 giorni. La «variazione» confronta la prima e l\'ultima pesata del periodo selezionato, e il «ritmo» è la pendenza della regressione descritta sotto.</string>
     <string name="meth_ma_title">Media mobile a 7 giorni (tendenza)</string>
     <string name="meth_ma_window">W(d) = { registrazioni con data in [d − 6, d] }</string>
     <string name="meth_ma_body">Vengono mediate tutte le registrazioni con data nella finestra di 7 giorni che termina il giorno d. I giorni senza registrazioni non vengono contati né riempiti con zeri: se quella settimana ti sei pesato solo 3 volte, la media è di quelle 3 registrazioni. Questo attenua il rumore quotidiano (acqua, sale, contenuto intestinale) e mostra la tendenza reale, che cambia lentamente. Pesarsi spesso e guardare la tendenza invece del dato del giorno è ciò che sostiene la letteratura sull\'auto-pesatura (Zheng et al. 2015). The Hacker\'s Diet ha reso popolare la stessa idea di «peso di tendenza», ma con una media mobile esponenziale; qui si usa una media semplice a 7 giorni, più facile da interpretare.</string>
     <string name="meth_rate_title">Ritmo settimanale (kg/settimana)</string>
     <string name="meth_rate_formula">ritmo = β × 7 [kg/settimana]</string>
     <string name="meth_rate_body">x sono i giorni trascorsi dalla prima registrazione dell\'intervallo e y il peso registrato. La pendenza β viene moltiplicata per 7 per esprimerla a settimana. La regressione usa le registrazioni grezze dell\'intervallo visibile: coglie meglio la direzione a lungo termine rispetto al confronto di due soli punti.</string>
-    <string name="meth_weekly_title">Media settimanale del peso</string>
-    <string name="meth_weekly_body">Le settimane iniziano il lunedì. Si calcola la media aritmetica di tutte le registrazioni di ogni settimana; le settimane senza registrazioni non compaiono.</string>
     <string name="meth_daily_title">Calorie, proteine, carboidrati e grassi giornalieri</string>
-    <string name="meth_daily_body">Il totale di ogni giorno è la somma dei pasti di quel giorno (calorie, proteine, carboidrati e grassi si calcolano al salvataggio, sommando gli ingredienti o prendendo il totale inserito a mano). In questi grafici, i giorni senza pasti contano come 0: così i vuoti riflettono onestamente la costanza invece di sparire. La «media» è la media aritmetica dell\'intervallo, il «giorno di picco» il valore massimo, e la linea di tendenza usa esattamente la stessa media mobile a 7 giorni descritta sopra. (Il dispendio misurato, invece, esclude i giorni non registrati; vedi sotto.)</string>
+    <string name="meth_daily_body">Il totale di ogni giorno è la somma dei pasti di quel giorno (calorie, proteine, carboidrati e grassi si calcolano al salvataggio, sommando gli ingredienti o prendendo il totale inserito). Il grafico mostra i giorni registrati con la stessa media mobile a 7 giorni e, se il profilo è completo, la fascia del tuo obiettivo calorico. La «media dei macro» è la media dei giorni con pasti registrati: i giorni non registrati non contano, perché contarli come 0 direbbe che hai mangiato meno di quanto hai mangiato; «N di M giorni registrati» indica quanto sono completi i dati. La ripartizione delle calorie usa 4 kcal per grammo di proteine e carboidrati e 9 kcal per grammo di grassi.</string>
     <string name="meth_protein_title">Raccomandazioni di proteine giornaliere</string>
     <string name="meth_protein_body" formatted="false">Le proteine si calcolano moltiplicando un fattore in g/kg, che dipende dal tuo obiettivo, per il tuo ultimo peso registrato. Il numero grande è il punto medio dell\'intervallo.\n\nMantenimento: 1,4–2,0 g/kg, l\'intervallo della posizione ufficiale dell\'ISSN per chi si allena (Jäger et al. 2017). Massa: 1,6–2,2 g/kg. La meta-analisi di Morton et al. (2018) colloca intorno a 1,6 g/kg il punto oltre il quale il beneficio per la massa muscolare smette di crescere, con un intervallo di confidenza che arriva a 2,2 g/kg, cioè l\'intervallo che Iraki et al. (2019) raccomandano per la fase di massa. Definizione: 1,8–2,7 g/kg. In deficit servono più proteine per preservare il muscolo; questo intervallo corrisponde all\'incirca ai 2,3–3,1 g/kg di massa magra raccomandati in deficit (Helms et al. 2014, IJSNEM; Jäger et al. 2017) per una percentuale di grasso tipica.\n\nSe sei in definizione e hai registrato la tua percentuale di grasso in qualche pesata, l\'app usa il valore più recente per calcolare la tua massa magra (peso × (1 − % di grasso)) e applica 2,3–3,1 g/kg su di essa. È più preciso: il tessuto adiposo aumenta appena il fabbisogno proteico, quindi un fattore sul peso totale eccede per chi ha più grasso e non basta per chi è molto magro. Mantenimento e massa usano il peso totale, che è come gli studi esprimono quegli intervalli. Negli adulti in sovrappeso o con obesità, più di 1,3 g/kg di peso aiuta già a preservare massa e forza muscolare durante il dimagrimento (Kokura et al. 2024), e in generale più proteine favoriscono la massa magra, soprattutto insieme all\'allenamento di forza (Nunes et al. 2022).</string>
     <string name="meth_tdee_title">Stima del dispendio energetico giornaliero (TDEE)</string>
@@ -312,4 +341,163 @@
         <item quantity="many">%d modifiche non sono ancora state caricate e andranno perse.</item>
         <item quantity="other">%d modifiche non sono ancora state caricate e andranno perse.</item>
     </plurals>
+
+    <!-- AI settings (phase 5) -->
+    <string name="ai_title">Intelligenza artificiale</string>
+    <string name="ai_link_subtitle">Foto dei pasti e coach: fornitore e chiave API</string>
+    <string name="ai_description">Stima i macro di una foto e risponde nel coach. La tua chiave resta solo su questo telefono (cifrata, senza backup) e va direttamente al fornitore, mai al nostro server.</string>
+    <string name="ai_provider">Fornitore</string>
+    <string name="ai_provider_gemini">Google Gemini (chiave gratuita)</string>
+    <string name="ai_provider_openai">OpenAI (ChatGPT)</string>
+    <string name="ai_provider_anthropic">Anthropic (Claude)</string>
+    <string name="ai_provider_openrouter">OpenRouter</string>
+    <string name="ai_provider_custom">Altro compatibile con OpenAI (Ollama, LM Studio…)</string>
+    <string name="ai_api_key">Chiave API</string>
+    <string name="ai_api_key_optional">Chiave API (se il server la richiede)</string>
+    <string name="ai_show_key">Mostra la chiave</string>
+    <string name="ai_hide_key">Nascondi la chiave</string>
+    <string name="ai_model">Modello</string>
+    <string name="ai_model_hint">Lascia vuoto per usare %1$s.</string>
+    <string name="ai_base_url">Indirizzo del server</string>
+    <string name="ai_base_url_hint">L\'indirizzo compatibile con OpenAI, che termina con /v1 (es. http://192.168.1.10:11434/v1 per Ollama sul tuo computer).</string>
+    <string name="ai_local_hint">Un modello sul tuo computer è privato, ma di solito meno preciso del cloud.</string>
+    <string name="ai_test">Prova</string>
+    <string name="ai_testing">Prova in corso…</string>
+    <string name="ai_test_ok">Funziona. Ora puoi usare le foto e il coach.</string>
+    <string name="ai_free_key_title">Come ottenere una chiave Google gratuita</string>
+    <string name="ai_free_key_steps">1. Apri aistudio.google.com/api-keys e accedi con il tuo account Google.\n2. Tocca «Create API key».\n3. Copiala e incollala qui.</string>
+    <string name="ai_free_key_open">Apri AI Studio</string>
+    <string name="ai_free_key_privacy">Con la chiave gratuita, Google può usare le tue foto e domande per migliorare i suoi prodotti, tranne nel SEE, in Svizzera e nel Regno Unito.</string>
+    <string name="ai_coach_sees_data">Il coach può vedere i miei dati</string>
+    <string name="ai_coach_sees_data_hint">Ogni domanda invia un riepilogo: profilo, pasti degli ultimi 14 giorni e peso.</string>
+    <string name="ai_error_not_configured">Configura l\'IA nelle Impostazioni.</string>
+    <string name="ai_error_invalid_key">La chiave non è valida o non ha i permessi.</string>
+    <string name="ai_error_quota">Hai raggiunto il limite del fornitore. Aspetta un po\' o controlla il tuo piano.</string>
+    <string name="ai_error_not_found">Il fornitore non trova quel modello. Controlla il nome del modello.</string>
+    <string name="ai_error_offline">Impossibile connettersi. Controlla la connessione o l\'indirizzo del server.</string>
+    <string name="ai_error_empty">L\'IA non ha risposto. Riprova.</string>
+    <string name="ai_error_provider">Il fornitore ha restituito un errore. Riprova.</string>
+
+    <!-- Photo logging (phase 6) -->
+    <string name="photo_title">Foto</string>
+    <string name="photo_hint">L\'IA stima i macro</string>
+    <string name="photo_tips_title">Per una buona stima</string>
+    <string name="photo_tips">• Scatta più foto da angolazioni diverse.\n• Includi una forchetta o la tua mano per la scala.\n• Fotografa anche l\'etichetta nutrizionale, se c\'è.\n• Descrivi ciò che non si vede: olio, salse, zucchero.</string>
+    <string name="photo_camera">Scatta foto</string>
+    <string name="photo_gallery">Galleria</string>
+    <string name="photo_remove">Rimuovi la foto %1$d</string>
+    <string name="photo_alt">Foto %1$d del pasto</string>
+    <string name="photo_max">Fino a %1$d foto. Non vengono conservate: vanno al tuo fornitore di IA e poi vengono eliminate.</string>
+    <string name="photo_describe">Descrivi il tuo pasto</string>
+    <string name="photo_describe_placeholder">Es.: con un cucchiaio d\'olio, pane integrale…</string>
+    <string name="photo_estimate">Stima i macro</string>
+    <string name="photo_estimating">Stima in corso…</string>
+    <string name="photo_need_input">Aggiungi una foto o una descrizione.</string>
+    <string name="photo_error">Impossibile leggere quella foto.</string>
+    <string name="photo_not_configured">Per stimare con le foto, configura l\'IA con una chiave (Google la dà gratis).</string>
+    <string name="photo_configure">Configura l\'IA</string>
+    <string name="photo_notice">Stima dell\'IA (affidabilità %1$s): controlla le quantità.</string>
+    <string name="photo_notice_plain">Stima dell\'IA: controlla le quantità.</string>
+    <string name="photo_confidence_low">bassa</string>
+    <string name="photo_confidence_medium">media</string>
+    <string name="photo_confidence_high">alta</string>
+    <string name="photo_estimate_query">Stima «%1$s» con l\'IA</string>
+    <string name="ai_error_unreadable">L\'IA non ha restituito una stima valida. Riprova o scrivila a mano.</string>
+
+    <!-- Coach (phase 7) -->
+    <string name="tab_coach">Coach</string>
+    <string name="coach_intro">Chiedi di cibo, della tua dieta o dei tuoi progressi.</string>
+    <string name="coach_placeholder">Scrivi la tua domanda…</string>
+    <string name="coach_send">Invia</string>
+    <string name="coach_stop">Ferma</string>
+    <string name="coach_new_chat">Nuova conversazione</string>
+    <string name="coach_thinking">Sto pensando…</string>
+    <string name="coach_disclaimer">Il coach può sbagliare. Non è un consiglio medico.</string>
+    <string name="coach_engine">%1$s · cloud</string>
+    <string name="coach_no_data">Senza accesso ai tuoi dati (Impostazioni → IA).</string>
+    <string name="coach_not_configured">Configura l\'IA per usare il coach. Basta una chiave Google gratuita.</string>
+    <string name="coach_memory_only">La conversazione non viene salvata: sparisce quando chiudi l\'app.</string>
+    <string name="ai_short_gemini">Gemini</string>
+    <string name="ai_short_openai">OpenAI</string>
+    <string name="ai_short_anthropic">Claude</string>
+    <string name="ai_short_openrouter">OpenRouter</string>
+    <string name="ai_short_custom">il tuo server</string>
+    <string-array name="coach_examples">
+        <item>Quanto peserò tra 30 giorni?</item>
+        <item>Mangio troppo?</item>
+        <item>Cosa mangio oggi per arrivare alle mie calorie?</item>
+        <item>Cosa mangio a cena?</item>
+        <item>Quanti macro hanno 3 banane?</item>
+        <item>Stima i macro di un hamburger con patatine</item>
+        <item>Valuta la mia dieta di questa settimana</item>
+    </string-array>
+
+    <!-- Onboarding (phase 8) -->
+    <string name="onboarding_step">Passo %1$d di %2$d</string>
+    <string name="onboarding_skip">Salta</string>
+    <string name="onboarding_welcome_body">Registra i tuoi pasti e il tuo peso. I tuoi dati restano sul telefono.</string>
+    <string name="onboarding_login">Ho un account — Accedi</string>
+    <string name="onboarding_no_account">Inizia senza account</string>
+    <string name="onboarding_no_account_hint">Potrai collegare un account più tardi nelle Impostazioni per sincronizzare con il web.</string>
+    <string name="onboarding_data_title">I tuoi dati</string>
+    <string name="onboarding_data_intro">Servono per calcolare calorie e proteine. Puoi cambiarli in Impostazioni → Profilo.</string>
+    <string name="onboarding_goal">Obiettivo</string>
+    <string name="onboarding_activity">Attività</string>
+    <string name="onboarding_activity_summary">%1$s giorni di palestra · %2$s min di camminata al giorno</string>
+    <string name="onboarding_invalid">Controlla i dati: anno tra 1920 e 2010, altezza tra 100 e 250 cm, peso tra 20 e 400 kg.</string>
+    <string name="onboarding_next">Continua</string>
+    <string name="onboarding_ai_title">Intelligenza artificiale (facoltativa)</string>
+    <string name="onboarding_ai_intro">L\'IA stima i macro da una foto del tuo pasto e risponde alle tue domande nel coach. Google dà una chiave gratuita.</string>
+    <string name="onboarding_ai_key">Incolla qui la tua chiave Google</string>
+    <string name="onboarding_ai_other">Un altro fornitore (OpenAI, Claude) o un modello sul tuo computer? È in Impostazioni → IA.</string>
+    <string name="onboarding_back">Indietro</string>
+    <string name="onboarding_not_now">Non ora</string>
+    <string name="onboarding_done_title">Fatto!</string>
+    <string name="onboarding_done_body">Aggiungi il tuo primo pasto con il pulsante +. Registra il peso ogni pochi giorni per vedere i progressi.</string>
+    <string name="onboarding_done_ai">L\'IA è pronta: prova «Foto» quando aggiungi un pasto, e il coach.</string>
+    <string name="onboarding_start">Inizia</string>
+    <string name="onboarding_replay">Rivedi il tutorial</string>
+    <string name="onboarding_replay_hint">Rivedi i primi passi.</string>
+
+    <!-- On-device AI (phase 9) -->
+    <string name="local_model_title">Modello sul telefono</string>
+    <string name="local_model_description">Funziona senza internet e nulla esce dal telefono. Meno preciso del cloud, e più lento.</string>
+    <string name="local_model_unsupported">Questo telefono non può usare il modello (serve un processore ARM a 64 bit).</string>
+    <string name="local_model_checksum_failed">Il file scaricato era danneggiato ed è stato eliminato. Riprova.</string>
+    <string name="local_model_failed">Il download non è riuscito. Riprova.</string>
+    <string name="local_model_choose">Modello</string>
+    <string name="local_model_needs_ram">Questo telefono non ha abbastanza RAM per questo modello (servono circa %1$s GB). Scegline uno più leggero.</string>
+    <string name="local_model_note_e2b">Consigliato. Legge le foto. Circa 6 GB di RAM.</string>
+    <string name="local_model_note_e4b">Più preciso, più lento e più grande. Legge le foto. Circa 8 GB di RAM.</string>
+    <string name="local_model_note_qwen">Leggero. Solo per il coach (non legge le foto). Circa 4 GB di RAM.</string>
+    <string name="local_model_download">Scarica (%1$s GB)</string>
+    <string name="local_model_waiting">In attesa del Wi-Fi…</string>
+    <string name="local_model_progress">Download… %1$d %%</string>
+    <string name="local_model_ready">Scaricato. Scegli cosa funziona sul telefono:</string>
+    <string name="local_model_use_photos">Usa per le foto</string>
+    <string name="local_model_use_coach">Usa per il coach</string>
+    <string name="local_model_no_vision">Questo modello non legge le foto: le foto usano il cloud.</string>
+    <string name="local_model_delete">Elimina il modello</string>
+    <string name="local_model_confirm_title">Scaricare il modello?</string>
+    <string name="local_model_warning">Occupa %1$s GB e richiede circa %2$s GB di RAM. Si scarica in background, via Wi-Fi a meno che tu non consenta i dati mobili. È meno preciso del cloud.</string>
+    <string name="local_model_mobile_data">Usa anche i dati mobili</string>
+    <string name="local_model_confirm">Scarica</string>
+    <string name="local_model_delete_body">Libera %1$s GB. Foto e coach tornano al cloud.</string>
+    <string name="local_model_cloud">Cloud</string>
+    <string name="local_model_device">Telefono</string>
+    <string name="local_model_channel">Download del modello</string>
+    <string name="local_model_downloading">Download di %1$s</string>
+    <string name="coach_engine_device">%1$s · telefono</string>
+    <string name="photo_max_device">Fino a %1$d foto. Non vengono conservate e non escono dal telefono.</string>
+    <plurals name="templates_count">
+        <item quantity="one">%d modello</item>
+        <item quantity="many">%d modelli</item>
+        <item quantity="other">%d modelli</item>
+    </plurals>
+    <string name="meth_ai_title">Stime con l\'IA</string>
+    <string name="meth_ai_body" formatted="false">Le foto e il testo («3 banane») diventano alimenti, grammi e macro grazie a un modello linguistico: il fornitore scelto in Impostazioni → IA, oppure il modello sul tuo telefono. È una stima: il modello non pesa il cibo, lo giudica dalla foto, dai riferimenti di dimensione (piatto, posate, la tua mano), dall\'etichetta nutrizionale se la fotografi e da ciò che descrivi.\n\nL\'app chiede una risposta in un formato fisso, controlla che contenga alimenti e macro validi e apre sempre il modulo di revisione prima di salvare: nulla di ciò che dice l\'IA viene registrato senza la tua conferma. I modelli sul dispositivo sono più piccoli di quelli nel cloud e sbagliano di più.\n\nIl coach usa i numeri calcolati dall\'app (i tuoi obiettivi, il dispendio misurato e la proiezione del peso) invece di calcolarne di propri. La proiezione a 30 giorni prolunga la retta di tendenza delle ultime 4 settimane con il suo margine del 95 %; non tiene conto di cambiamenti futuri nella tua dieta. Non è un consiglio medico.</string>
+    <string name="meth_sources_title">Fonti dei dati</string>
+    <string name="meth_sources_body">Alimenti generici (offline): Swiss Food Composition Database dell\'Ufficio federale della sicurezza alimentare e di veterinaria (USAV, Svizzera) e tabella Ciqual 2020 di Anses (Francia, Licence Ouverte / Etalab 2.0). I nomi in spagnolo sono aggiunti da questo progetto.\n\nProdotti e codici a barre: Open Food Facts, banca dati aperta sotto la Open Database License (ODbL). I dati di ogni prodotto provengono dai suoi collaboratori e possono contenere errori. I valori sono per 100 g dell\'alimento come descritto dalla fonte.</string>
+    <string name="ai_error_unavailable">Il servizio di IA è sovraccarico o non disponibile al momento. Riprova tra poco.</string>
+    <string name="ai_error_local">Il modello del telefono non ha potuto rispondere. Riprova o usa il cloud in Impostazioni → IA.</string>
 </resources>

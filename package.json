@@ -15,13 +15,17 @@
     "core:sync-check": "tsx scripts/check-core-sync.ts",
     "hooks:install": "bash scripts/install-hooks.sh",
     "create-user": "tsx scripts/create-user.ts",
-    "set-admin": "tsx scripts/set-admin.ts"
+    "set-admin": "tsx scripts/set-admin.ts",
+    "prebuild": "node scripts/copy-zxing-wasm.mjs",
+    "predev": "node scripts/copy-zxing-wasm.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@mlc-ai/web-llm": "^0.2.85",
+    "barcode-detector": "^3.2.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",

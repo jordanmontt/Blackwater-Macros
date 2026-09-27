@@ -24,12 +24,23 @@ export const WEIGHT_NOISE_FLOOR_KG = 0.5;
 /** Largest 95 % margin (kcal/day) at which the measured value is shown. */
 export const MAX_MARGIN_KCAL = 300;
 /** Two-sided 95 % normal quantile. */
-const Z_95 = 1.96;
+export const Z_95 = 1.96;
 
-interface Trend {
+/** Least-squares line through weigh-ins, with what is needed for its error. */
+export interface WeightTrend {
   slopePerDay: number;
   /** Standard error of the slope, kg/day. */
   slopeError: number;
+  /** Scatter of the weigh-ins around the line, kg (never below the noise floor). */
+  sigma: number;
+  n: number;
+  /** Mean of x and of y (x = days since `origin`). */
+  meanX: number;
+  meanY: number;
+  /** Σ(x − x̄)². */
+  sxx: number;
+  /** Date of the first weigh-in: x = 0. */
+  origin: string;
 }
 
 /**
@@ -37,11 +48,13 @@ interface Trend {
  * line is estimated from the residuals (n − 2 degrees of freedom), never below
  * WEIGHT_NOISE_FLOOR_KG: SE = σ / √Σ(x − x̄)². Fewer or clustered weigh-ins
  * give a small Σ(x − x̄)², noisier ones a larger σ; both widen the error.
+ * Points must be sorted by date. Null with fewer than 3 points or one day.
  */
-function weightTrend(points: DataPoint[]): Trend | null {
+export function fitWeightTrend(points: DataPoint[]): WeightTrend | null {
   const n = points.length;
   if (n < 3) return null;
-  const xs = points.map((p) => daysBetweenKeys(points[0].date, p.date));
+  const origin = points[0].date;
+  const xs = points.map((p) => daysBetweenKeys(origin, p.date));
   const ys = points.map((p) => p.value);
   const meanX = xs.reduce((a, b) => a + b, 0) / n;
   const meanY = ys.reduce((a, b) => a + b, 0) / n;
@@ -58,7 +71,7 @@ function weightTrend(points: DataPoint[]): Trend | null {
     squaredResiduals += (ys[i] - (meanY + slopePerDay * (xs[i] - meanX))) ** 2;
   }
   const sigma = Math.max(Math.sqrt(squaredResiduals / (n - 2)), WEIGHT_NOISE_FLOOR_KG);
-  return { slopePerDay, slopeError: sigma / Math.sqrt(sxx) };
+  return { slopePerDay, slopeError: sigma / Math.sqrt(sxx), sigma, n, meanX, meanY, sxx, origin };
 }
 
 /**
@@ -98,7 +111,7 @@ export function estimateExpenditure(
     return null;
   }
 
-  const trend = weightTrend(weighIns);
+  const trend = fitWeightTrend(weighIns);
   if (trend === null) return null;
   const margin = Math.round(Z_95 * trend.slopeError * KCAL_PER_KG);
   if (margin > MAX_MARGIN_KCAL) return null;

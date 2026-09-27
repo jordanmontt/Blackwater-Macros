@@ -13,6 +13,8 @@ kotlin {
 }
 
 dependencies {
+    // JSON trees only (no compiler plugin): Open Food Facts and AI answers.
+    implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
     testImplementation(libs.truth)
 }

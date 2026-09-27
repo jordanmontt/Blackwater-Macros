@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the temporary meal-photo folder in the cache (deleted after each photo and at start). -->
+<paths>
+    <cache-path name="ai_photos" path="ai-photos/" />
+</paths>

@@ -5,6 +5,7 @@ import { AppNav } from "@/components/app-nav";
 import { DemoBanner } from "@/components/demo-banner";
 import { PwaInstall } from "@/components/pwa-install";
 import { ThemeColorSync } from "@/components/theme-color-sync";
+import { OnboardingRedirect } from "@/components/onboarding-redirect";
 import { AuthRedirect } from "@/components/auth-redirect";
 import { t } from "@/i18n";
 import "./globals.css";
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <DemoBanner />
           <PwaInstall />
           <AuthRedirect />
+          <OnboardingRedirect />
           <div className="flex-1 pb-20 md:pb-6">{children}</div>
           <AppNav />
           <Toaster position="top-center" richColors />

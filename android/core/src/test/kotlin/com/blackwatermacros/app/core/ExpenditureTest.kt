@@ -118,4 +118,28 @@ class ExpenditureTest {
         val calm = weighIns(80.0, 0.0, 2).mapIndexed { i, p -> p.copy(value = p.value + if (i % 2 == 0) 0.3 else -0.3) }
         assertThat(estimateExpenditure(meals(28, 2500.0), calm, TODAY)!!.margin).isEqualTo(250.0)
     }
+
+    // --- fitWeightTrend ---
+
+    @Test
+    fun fitWeightTrendFitsTheLineAndFloorsTheScatter() {
+        val trend = fitWeightTrend(
+            listOf(DataPoint("2026-02-01", 80.0), DataPoint("2026-02-08", 79.5), DataPoint("2026-02-15", 79.0)),
+        )!!
+        assertThat(trend.slopePerDay).isWithin(1e-10).of(-0.5 / 7)
+        assertThat(trend.sigma).isEqualTo(0.5)
+        assertThat(trend.n).isEqualTo(3)
+        assertThat(trend.meanX).isEqualTo(7.0)
+        assertThat(trend.meanY).isWithin(1e-10).of(79.5)
+        assertThat(trend.sxx).isEqualTo(98.0)
+        assertThat(trend.slopeError).isWithin(1e-10).of(0.5 / kotlin.math.sqrt(98.0))
+        assertThat(trend.origin).isEqualTo("2026-02-01")
+    }
+
+    @Test
+    fun fitWeightTrendNeedsThreePointsOnMoreThanOneDay() {
+        assertThat(fitWeightTrend(listOf(DataPoint("2026-02-01", 80.0), DataPoint("2026-02-08", 79.0)))).isNull()
+        assertThat(fitWeightTrend(listOf(80.0, 80.5, 79.5).map { DataPoint("2026-02-01", it) })).isNull()
+    }
 }
+

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ActivityIcon, BookOpenIcon, DumbbellIcon, FlameIcon, ScaleIcon, TrendingUpIcon, UtensilsCrossedIcon, CalendarDaysIcon, SigmaIcon } from "lucide-react";
+import { ActivityIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, ScaleIcon, SigmaIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -47,10 +47,6 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.rateBody}</p>
       </MethodologyCard>
 
-      <MethodologyCard icon={<CalendarDaysIcon />} title={t.metodologia.weeklyAvgTitle}>
-        <p>{t.metodologia.weeklyAvgBody}</p>
-      </MethodologyCard>
-
       <MethodologyCard icon={<UtensilsCrossedIcon />} title={t.metodologia.nutritionTitle}>
         <p>{t.metodologia.nutritionBody}</p>
       </MethodologyCard>
@@ -75,6 +71,18 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.measuredData}</p>
         <p>{t.metodologia.measuredUncertainty}</p>
         <p>{t.metodologia.measuredLimits}</p>
+      </MethodologyCard>
+
+      <MethodologyCard icon={<SparklesIcon />} title={t.metodologia.aiTitle}>
+        {t.metodologia.aiBody.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+      </MethodologyCard>
+
+      <MethodologyCard icon={<DatabaseIcon />} title={t.metodologia.sourcesTitle}>
+        {t.metodologia.sourcesBody.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
       </MethodologyCard>
 
       <Card>

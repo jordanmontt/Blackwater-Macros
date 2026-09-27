@@ -34,6 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blackwatermacros.app.R
@@ -142,6 +145,11 @@ fun CompactField(
     decimal: Boolean = false,
     readOnly: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
+    leadingIcon: (@Composable () -> Unit)? = null,
+    /** Overrides the text/decimal keyboard (e.g. digits only for a barcode). */
+    keyboardType: KeyboardType? = null,
+    /** Dots instead of the text (API keys). */
+    secret: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
     BasicTextField(
@@ -153,7 +161,11 @@ fun CompactField(
         textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp),
         // Default caret is black: invisible on the dark theme.
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-        keyboardOptions = KeyboardOptions(keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Text),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType ?: if (secret) KeyboardType.Password else if (decimal) KeyboardType.Decimal else KeyboardType.Text,
+            autoCorrectEnabled = if (secret || keyboardType == KeyboardType.Uri) false else null,
+        ),
+        visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
         decorationBox = { innerTextField ->
             Row(
                 Modifier
@@ -162,6 +174,10 @@ fun CompactField(
                     .padding(start = 12.dp, end = if (trailingIcon != null && readOnly) 6.dp else 12.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                if (leadingIcon != null) {
+                    leadingIcon()
+                    Spacer(Modifier.width(8.dp))
+                }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                     if (value.isEmpty()) Placeholder(placeholder)
                     innerTextField()
@@ -178,7 +194,13 @@ fun CompactField(
 
 /** Compact multi-line text area mirroring the web `Textarea`. */
 @Composable
-fun CompactTextArea(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
+fun CompactTextArea(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null,
+    minHeight: Dp = 72.dp,
+) {
     var focused by remember { mutableStateOf(false) }
     BasicTextField(
         value = value,
@@ -189,12 +211,12 @@ fun CompactTextArea(value: String, onValueChange: (String) -> Unit, modifier: Mo
         decorationBox = { innerTextField ->
             Box(
                 Modifier
-                    .defaultMinSize(minHeight = 72.dp)
+                    .defaultMinSize(minHeight = minHeight)
                     .fieldBackground(enabled = true, focused = focused)
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 contentAlignment = Alignment.TopStart,
             ) {
-                if (value.isEmpty()) Placeholder(stringResource(R.string.form_notes_placeholder))
+                if (value.isEmpty()) Placeholder(placeholder ?: stringResource(R.string.form_notes_placeholder))
                 innerTextField()
             }
         },

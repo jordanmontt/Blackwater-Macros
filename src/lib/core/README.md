@@ -30,13 +30,26 @@ specification for both platforms — each assertion maps 1:1 to a Kotlin JUnit t
 | `nutrition.ts`     | Meal/ingredient totals and rounding (`sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2`) |
 | `protein.ts`       | Protein intake recommendation, per kg of body weight or lean mass (`calculateProteinRecommendation`) |
 | `calories.ts`      | BMR (Mifflin-St Jeor), factorial activity level (PAL), calorie targets |
-| `expenditure.ts`   | Measured TDEE from intake and weight trend, with its 95 % margin (`estimateExpenditure`) |
+| `expenditure.ts`   | Measured TDEE from intake and weight trend, with its 95 % margin (`estimateExpenditure`, `fitWeightTrend`) |
+| `foods.ts`         | Portion scaling, Open Food Facts parsing, search in the bundled generic foods |
+| `ai-providers.ts`  | Cloud AI request bodies and answer parsing per provider (Gemini, OpenAI-compatible, Anthropic), error kinds |
+| `ai-schema.ts`     | AI answer → meal estimate (tolerant JSON parsing, validation) → ingredient rows |
+| `progress.ts`      | Macro averages over logged days (Progreso tab)                       |
+| `coach.ts`         | Weight projection, the coach's data summary and system prompt         |
 | `dates.ts`         | Date-key arithmetic and es-ES formatting                             |
 | `stats.ts`         | Moving average, linear regression, weekly averages, series building  |
 | `stats-builder.ts` | Master `buildStatsFromData` used by server and demo mode             |
 | `csv.ts`           | RFC-4180 CSV serializer with BOM                                     |
 
 ## Kotlin Porting Notes
+
+- JSON (Open Food Facts, AI answers) is read as `kotlinx.serialization.json`
+  element trees — no compiler plugin in `:core`.
+- Regexes run on Android's ICU engine, not the JVM's: avoid JVM-only syntax such as
+  the `(?U)` flag (it crashes on the phone while JVM tests pass). Spell Unicode
+  classes out explicitly.
+- Numbers printed into text use `plainNumber()` so Kotlin writes «80» and «70.3»
+  exactly like JS `String(n)`.
 
 When porting these algorithms to Kotlin:
 

@@ -3,6 +3,10 @@
 Everything a developer needs to modify this codebase with confidence.
 For general usage and setup, read [README.md](./README.md) first.
 
+> **Work in progress:** the next version (AI food logging, barcode/search, Progreso and Coach
+> tabs, onboarding) is planned in [docs/AI-PLAN.md](./docs/AI-PLAN.md). Check its Status table
+> before starting any work, and keep it updated.
+
 ---
 
 ## 1. Stack
@@ -25,7 +29,7 @@ For general usage and setup, read [README.md](./README.md) first.
 src/
   app/                      # App Router: pages (static) + /api routes (serverless)
     page.tsx                # "Comidas" — daily meal log (client component)
-    admin/ ajustes/ estadisticas/ login/ metodologia/ peso/
+    admin/ ajustes/ login/ metodologia/ progreso/
     api/                    # Route handlers; every folder = one endpoint family
       auth/login|logout|session/
       admin/users/
@@ -44,7 +48,9 @@ src/
     validation.ts           # zod schemas shared by all mutating endpoints
   components/
     ui/*                    # shadcn/ui primitives (Base UI based)
-    meals/*                 # DayNavigator, MealCard, MealForm
+    meals/*                 # DayNavigator, MealCard, MealForm (review form), AddFoodSheet («Añadir comida»)
+    ui/sheet.tsx            # Bottom sheet on phones (drag down / outside / Esc closes), dialog from sm
+    foods/*                 # FoodSearch, PortionPicker, BarcodeScanner (search / barcode in «Añadir comida»)
     nutrition-recommendations.tsx  # Merged calorie + protein recommendations card (Comidas page)
     weight-fat-chart.tsx          # Combined weight (kg) + body fat (%) chart with trend line
     demo-banner.tsx         # Persistent "demo mode" banner + exit to login
@@ -318,9 +324,8 @@ overwrite.
 
 | Page | File | Highlights |
 |---|---|---|
-| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), template chips, meal list, MealForm dialog, delete confirm, floating add-meal button |
-| Peso | `app/peso/page.tsx` | Current-weight summary (peso actual, grasa actual, cambio grasa 7 días), combined weight+fat chart, entries grouped by day, floating register button |
-| Estadísticas | `app/estadisticas/page.tsx` | Range tabs, 6 composition MiniStat cards, combined weight/body fat chart, weekly averages, macro summary + 4 macro trend charts; ⓘ links to /metodologia |
+| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), meal list, delete confirm. The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
+| Progreso | `app/progreso/page.tsx` | Peso + Estadísticas merged (old URLs redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «N de M días registrados», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), link to Perfil, Metodología link, CSV export buttons, template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
@@ -406,7 +411,7 @@ free-text quantity field is exempt — it holds strings like "30-40 g".
 - Days are **date keys** (`YYYY-MM-DD`) computed in the *browser's* local timezone
   (`todayKey()`). For stats, the client sends its `today` so the server anchors
   ranges correctly for each user.
-- Weights are **exact instants** (`TIMESTAMPTZ` ISO strings); the peso page groups
+- Weights are **exact instants** (`TIMESTAMPTZ` ISO strings); the Progreso page groups
   them by local day via string slice and renders with es-ES formatters
   (`lib/core/dates.ts`: `formatDateKeyLong`, `formatTimestamp`, `nowDateTimeLocalValue`,
   `parseLocalDateTime`).
@@ -527,6 +532,87 @@ rest of the calorie profile.
 
 ---
 
+## 8.5 Foods: offline generic index, Open Food Facts, barcode
+
+- **Bundled index** `public/foods/generic.json` = Android `assets/foods/generic.json`, built
+  by `scripts/foods/build_generic_index.py` (Python stdlib; downloads to
+  `scripts/foods/.cache/`) from the Swiss Food Composition Database and CIQUAL 2020
+  (baby food and brand mineral waters left out). **Spanish first**: every food has a
+  Spanish name from `scripts/foods/names-es.tsv` (reviewable by hand; foods with a
+  repeated Spanish name are dropped, Swiss first). Rebuild after editing the TSV.
+- **Search** (`core/foods.ts` `searchGenericFoods`): every query word (or its singular, or
+  a Spain/Latin-America synonym from `SPANISH_SYNONYMS`) must start a word of the name;
+  exact name > starts with > rest, whole-word matches first, app-language names first.
+- **Open Food Facts**: web barcode lookups go straight from the browser (the product
+  API allows CORS); web text search goes through `GET /api/foods/search` (signed-in
+  pass-through; Search-a-licious has no CORS; demo mode has no online search). Android
+  calls both directly with a `BlackwaterMacros/<version>` User-Agent
+  (`data/foods/OpenFoodFactsClient.kt`). Limits ~10 searches/min/IP → debounce + cache.
+- **Barcode**: web uses the browser `BarcodeDetector` or the `barcode-detector` ponyfill
+  (zxing-wasm; the `.wasm` is copied to `public/wasm/` by `scripts/copy-zxing-wasm.mjs`
+  before dev/build — never loaded from a CDN). Android: CameraX + zxing-cpp
+  (`CAMERA` permission asked on first use; typing the code always works). Frames are
+  analysed in memory and never stored.
+- A picked food + grams becomes one ingredient row (`foodToIngredient`) in the review
+  form; inside the form «Buscar alimento» appends more. Recent picks: `localStorage`
+  (web) / SharedPreferences (Android), 20 max.
+
+## 8.6 AI providers and keys
+
+- **Pure part** (`core/ai-providers.ts` = Kotlin `AiProviders.kt`, byte-identical request
+  bodies, mirrored tests): `buildAiRequest` for Gemini (`x-goog-api-key`, JSON mode, SSE
+  streaming), OpenAI-compatible chat completions (OpenAI, OpenRouter, any `…/v1` server
+  such as Ollama/LM Studio; OpenAI gets `max_completion_tokens`, the rest `max_tokens`) and
+  Anthropic (`anthropic-dangerous-direct-browser-access` so the browser can call it);
+  `parseAiResponse`, `parseAiStreamLine`, `aiErrorKind` (Gemini answers a wrong key with
+  400 + `API_KEY_INVALID`). Default models (editable): `gemini-flash-latest`,
+  `gpt-5-mini`, `claude-haiku-4-5`, `openrouter/auto`.
+- **Transport**: web `lib/ai/client.ts` (`fetch`, streams read line by line), Android
+  `data/ai/AiClient.kt` (OkHttp). Both call the provider **directly**: the Blackwater
+  server never sees keys, photos or questions. Errors become `AiFailure` kinds with a
+  user message (`t.ai.errors`, `ai_error_*`).
+- **Settings** (one key + model per provider, base URL, «El coach puede ver mis datos»):
+  web `lib/ai/settings.ts` in `localStorage["bw:ai"]` (per browser), card
+  `components/settings/ai-settings-card.tsx` in Ajustes; Android `data/ai/AiSettingsStore.kt`
+  in the `ai_settings` prefs with the keys AES-GCM-encrypted by an Android Keystore key,
+  the file excluded from backups and device transfer (`res/xml/backup_rules.xml`,
+  `data_extraction_rules.xml`); screen Ajustes → Inteligencia artificial (`AiSettingsScreen`).
+- Tests never call a real provider: mocked `fetch` (web) / MockWebServer (Android).
+- **Photo logging** («Foto» in «Añadir comida», and «Estimar “…” con IA» from search):
+  `buildMealEstimateSystemPrompt` + `buildMealEstimateUserText` (core) → JSON-mode call →
+  `parseMealEstimate` → review form pre-filled per ingredient with a notice line
+  («Estimación de la IA (confianza media)…»). Photos are downscaled to ≤ 1024 px JPEG 80 %
+  in memory (web canvas → data URL; Android `PhotoCodec`) and dropped after the call.
+  Android camera photos go through a temporary `cache/ai-photos/` file (FileProvider scoped
+  to that folder) deleted right after reading; the folder is also wiped at app start.
+- **Coach** (tab `/coach`, Android `CoachScreen`): streamed chat kept in memory only (web
+  module state, Android activity-scoped ViewModel). Each question sends
+  `buildCoachSystemPrompt(language, buildCoachContext(input))`, the input read fresh from the
+  same data as the Comidas card (profile, targets, measured expenditure, 4 weeks of meals,
+  60 days of weigh-ins); with «El coach puede ver mis datos» off the data is neither read
+  nor sent. The last 20 good turns go along as history.
+- **On-device AI** (Android only, D5/D6): a model from the `LocalModels` catalog (Gemma 4 E2B
+  default, Gemma 4 E4B, Qwen3 1.7B text-only; Apache-2.0, SHA-256 pinned; one on the phone at
+  a time) run by LiteRT-LM (`data/ai/local/`). Downloaded
+  on request by a WorkManager foreground job (Wi-Fi by default, resumable, checksum) into
+  `noBackupFilesDir/models`. `AiSettings.photoEngine` / `coachEngine` choose cloud or phone;
+  `usableEngine` decides readiness. `LocalEngine` loads once (GPU, else CPU; a request that
+  fails on GPU is retried on CPU), serves one request at a time, JSON via constrained
+  decoding. Needs Kotlin ≥ 2.4 (the library's metadata).
+- **Local AI on the web** (D9, Coach only): `lib/ai/browser-model.ts` runs Qwen3 1.7B with
+  WebLLM on WebGPU (imported lazily, own chunk). Ajustes → IA → «Modelo en este navegador»
+  checks `navigator.gpu` (a one-line reason when missing), downloads ~1 GB into the
+  browser cache with progress, and «Usar para el coach: Nube / Este navegador»
+  (`AiSettings.coachEngine`). `coach-chat.ts` streams from it instead of the provider;
+  nothing leaves the browser.
+- **First launch** (D12): web `/bienvenida` (your data → optional Google key → done) after a
+  login with an incomplete profile, flag `localStorage["bw:onboarding-done"]`; Android route
+  `bienvenida` (welcome with «Iniciar sesión» first → data → AI → done) only on a fresh
+  install (no account, nothing logged), flag `AppPreferences.onboardingDone`. «Ver
+  tutorial» in Ajustes on both.
+
+---
+
 ## 9. React conventions in this repo
 
 ESLint enforces `react-hooks/set-state-in-effect` — no synchronous setState inside
@@ -592,7 +678,7 @@ Three projects, one run (`npm test`):
 |---|---|---|
 | `unit` | node | Pure-function edge cases (`stats`, `dates`, password vectors, CSV escaping) |
 | `behavior` | node | Black-box requirements written in Spanish, exercising **services** through injected in-memory fakes — no HTTP, no DB |
-| `behavior-ui` | happy-dom | Renders actual pages and components (`today-page`, `peso-page`, `ajustes-page`, `perfil-page`, `recommendations-card`, `day-navigator`, …) with mocked `@/lib/api` |
+| `behavior-ui` | happy-dom | Renders actual pages and components (`today-page`, `progreso-page`, `ajustes-page`, `perfil-page`, `recommendations-card`, `day-navigator`, …) with mocked `@/lib/api` |
 
 Notes:
 - **happy-dom, not jsdom**: Node ≥20.19 supports `require(esm)` but the pinned
@@ -644,7 +730,7 @@ Gotchas learned the hard way:
 
 | Want to… | Touch |
 |---|---|
-| New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → **port to Kotlin `:core` with its mirror test** → card/chart in Estadísticas on web and Android → explain in `/metodologia` + `i18n/es.ts` + Android `meth_*` strings |
+| New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → **port to Kotlin `:core` with its mirror test** → card/chart in Progreso on web and Android → explain in `/metodologia` + `i18n/es.ts` + Android `meth_*` strings |
 | Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → Perfil/Ajustes page → read via session endpoint. Android: `ProfileEntity` + migration, `WireCalorieProfile`, `profileBody` (explicit nulls) and the Perfil screen |
 | New field on meals/templates/weights (synced) | DB column + zod schema + DTO (web); Android: wire DTO, Room entity **+ `Migration`** (bump `LocalDatabase` version; never destructive: local-only users have no other copy), mappers, `FakeServer`; add a round-trip case to `OfflineSyncTest` |
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in `i18n/es.ts`; proxy already protects it. Android: screen + route in `MainActivity`, strings in the 5 `strings.xml` |
@@ -669,7 +755,7 @@ database on the phone; nothing in the UI waits for the network.** The account is
 optional add-on that turns on a background sync.
 
 ```
-Screens (Comidas · Peso · Estadísticas · Ajustes)
+Screens (Comidas · Progreso · Ajustes)
         │ read/write — always local, instant
         ▼
 AppRepository ── Room (meals, templates, weights, profile)
@@ -733,11 +819,14 @@ app/src/main/kotlin/com/blackwatermacros/app/
     BearerAuthInterceptor.kt, ResponseErrorMapper.kt (admin error messages)
   ui/
     HoyScreen/ViewModel, MealCard           # Comidas: day navigator, totals, recommendations,
-                                            #   templates row, reorderable meals, undo delete
-    MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue) + validation
+                                            #   reorderable meals, undo delete/add
+    AddFoodSheet.kt                         # «Añadir comida»: search, barcode, manual, copy, templates
+    foods/AddFoodViewModel.kt, FoodViews.kt # search (generic + Open Food Facts), portion, CameraX + zxing-cpp scanner
+    MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue, toCopyRequest) +
+                                            #   validation; swipe-to-close asks before discarding edits
     NutritionRecommendationsCard.kt, RecommendationsViewModel.kt  # calorie/protein card + intake bars
-    PesoScreen/ViewModel, WeightFormDialog  # weights (validation = server limits)
-    StatsScreen/ViewModel, chart/*          # local stats; Canvas charts (text sizes in sp)
+    ProgressScreen/ViewModel, WeightFormDialog  # Progreso: local stats + weigh-ins (validation = server limits)
+    chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a target band)
     SettingsScreen/ViewModel, SettingsComponents.kt  # Ajustes (account, templates, data, theme, language)
     ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
     LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen
@@ -792,7 +881,7 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
 - **Base URL:** `BuildConfig.API_BASE_URL`, default `https://blackwater-macros.jordanmontt.fr/`,
   override with `-Papp.baseUrl=<url>`. Only used after logging in.
 - **Version:** `versionCode 1` / `versionName "0.1.0"` in `app/build.gradle.kts`.
-- **Toolchain:** `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.1.20, Compose BOM, Room,
+- **Toolchain:** `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.4.20, Compose BOM, Room,
   WorkManager, AppCompat, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk`
   36, `minSdk` 24 + desugaring for `java.time`.
 - **Local SDK:** `android/local.properties` (`sdk.dir=…`), gitignored.
@@ -808,7 +897,11 @@ yet; screens are verified manually on an emulator.
 
 ### 14.7 Not done yet (candidates for a next version)
 
-- **Release & F-Droid:** no release signing config and no F-Droid metadata
+- **Release build:** `./gradlew :app:assembleRelease` → one APK per ABI in
+  `app/build/outputs/apk/release/` (arm64 ~15 MB), R8-shrunk. Signed with `keystore.properties`
+  (storeFile, storePassword, keyAlias, keyPassword; never committed) when present, else with the
+  debug key (fine for sharing test builds, not for a store).
+- **Release & F-Droid:** no F-Droid metadata
   (`fastlane/metadata/android/…` or an fdroiddata recipe) yet; builds shared so far are
   debug APKs. Bump `versionCode`/`versionName` for every release.
 - **Room migrations:** the local database is at version 1 with `exportSchema = false`.

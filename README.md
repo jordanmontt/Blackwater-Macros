@@ -15,7 +15,32 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
 - **Comidas por día**: título, ingredientes con cantidad y notas. Dos modos de
   registro de nutrición: *por ingrediente* (la app suma calorías, proteína,
   carbohidratos y grasa) o *solo total* (introduces únicamente el total de la comida).
-  Doble toque en la fecha para volver a hoy.
+  Doble toque en la fecha para volver a hoy. El botón **+** abre «Añadir comida»:
+  escribir a mano, **copiar de otro día** (eliges el día y las comidas; con «Deshacer»)
+  o aplicar una plantilla. Los paneles se cierran deslizando hacia abajo y, si has
+  escrito algo, preguntan antes de descartarlo.
+- **Buscar alimentos y código de barras**: 3.275 alimentos genéricos con nombre en
+  español incluidos en la app (funcionan sin conexión; entiende «banana», «papa»,
+  «jugo»…) y los productos de Open Food Facts; escanea el código del envase (o
+  escríbelo). Eliges la cantidad y la comida queda lista para revisar y guardar.
+  Datos abiertos: Swiss Food Composition Database (FSVO), Ciqual (Anses) y Open Food
+  Facts (ODbL).
+- **Foto con IA**: haz hasta 5 fotos de tu comida (o de la etiqueta), añade una
+  descripción y la IA estima los alimentos, las cantidades y los macros; revisas y
+  guardas. También «Estimar “3 plátanos” con IA» desde Buscar. Las fotos no se guardan:
+  se reducen en memoria, se envían al proveedor que elijas y se descartan.
+- **Coach**: pestaña de chat sobre tu comida y tu progreso («¿Cuál será mi peso en 30
+  días?», «¿Qué ceno?»…). Recibe un resumen de tus datos solo si lo permites y la
+  conversación no se guarda.
+- **IA a tu elección** (Ajustes → Inteligencia artificial): Google Gemini (clave gratis,
+  con guía), OpenAI, Anthropic, OpenRouter o un servidor propio compatible con OpenAI
+  (Ollama, LM Studio). La clave se queda en tu dispositivo (en Android, cifrada y fuera
+  de las copias de seguridad) y va directa al proveedor. También un **modelo local**:
+  en Android Gemma 4 E2B/E4B o Qwen3 1.7B (fotos y coach, sin internet); en la web
+  Qwen3 1.7B para el coach en navegadores con WebGPU.
+- **Primeros pasos**: al empezar, tus datos (sexo, año, altura, peso, objetivo) y la
+  clave de IA opcional; en Android, «Iniciar sesión» es la primera opción y la cuenta es
+  opcional. «Ver tutorial» en Ajustes.
 - **Recomendaciones** de calorías (TMB, nivel de actividad calculado a partir de tus días
   de gimnasio y minutos de caminata, TDEE, rango según objetivo) y de proteína (por
   masa magra en definición si registras tu % de grasa), con barras de progreso de lo
@@ -23,11 +48,12 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
 - **Gasto medido**: con 4 semanas de comidas y pesajes frecuentes, la app mide tu gasto
   real por balance energético y lo muestra con su margen de error junto al estimado.
 - **Perfil** (Ajustes → Perfil): objetivo deportivo y datos corporales.
-- **Plantillas**: guarda comidas repetitivas ("Desayuno") y aplícalas en un toque.
-- **Peso**: varios registros al día con fecha y hora autocompletadas.
-- **Estadísticas**: series diarias de kcal y proteína con línea de tendencia
-  (media móvil de 7 días) y día pico marcado, evolución del peso con tendencia,
-  ritmo semanal (kg/semana), cambio total, medias semanales y mínimos/máximos.
+- **Plantillas**: guarda comidas repetitivas ("Desayuno") y aplícalas desde «Añadir comida».
+- **Progreso**: un selector de periodo para toda la pantalla; peso actual,
+  tendencia (media móvil de 7 días), cambio, ritmo semanal y grasa corporal con su
+  gráfico; calorías diarias con la franja del objetivo; «Promedio de macros» de los
+  días registrados con el reparto de calorías; y los registros de peso (varios al día,
+  con fecha y hora autocompletadas).
 - **Página de metodología** (`/metodologia`): explica con fórmulas y referencias
   cómo se calcula cada métrica.
 - **Exportación CSV** de comidas y pesos (en Android también importación, con el
@@ -107,7 +133,7 @@ en segundo plano con el mismo backend que la web (`PUT /api/<tipo>/:id` idempote
 listas completas). Funciona sin conexión: lo que registras en el gimnasio se guarda al
 instante y se sube solo cuando vuelve la red, aunque cierres la app.
 
-- **Comidas**, **Peso**, **Estadísticas** (calculadas en el teléfono) y **Ajustes**
+- **Comidas**, **Progreso** (calculado en el teléfono) y **Ajustes**
   (cuenta y sincronización, **Perfil**, plantillas, exportar/importar CSV con el mismo
   formato que la web, borrar los datos del teléfono, tema Sistema/Claro/Oscuro, idioma,
   Metodología y Admin).

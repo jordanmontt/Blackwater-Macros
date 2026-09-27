@@ -50,6 +50,9 @@ fun TrendChart(
     unit: String,
     peak: DataPoint?,
     modifier: Modifier = Modifier,
+    /** Target range drawn as a shaded band behind the lines (e.g. the calorie target). */
+    band: Pair<Double, Double>? = null,
+    bandColor: Color = color.copy(alpha = 0.14f),
 ) {
     val axisColor = MaterialTheme.colorScheme.outlineVariant
     val ringColor = MaterialTheme.colorScheme.background
@@ -69,7 +72,7 @@ fun TrendChart(
     val allValues = points.map { it.value }
     val trendVals = trendRows.map { it.second }
     val vMin = 0.0
-    val vMax = (allValues + trendVals).maxOrNull()?.let { it * 1.15 } ?: 1.0
+    val vMax = (allValues + trendVals + listOfNotNull(band?.second)).maxOrNull()?.let { it * 1.15 } ?: 1.0
 
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
 
@@ -164,6 +167,15 @@ fun TrendChart(
                     } else {
                         Stroke(width = width)
                     },
+                )
+            }
+
+            if (band != null) {
+                val top = y(band.second)
+                drawRect(
+                    color = bandColor,
+                    topLeft = Offset(plotLeft, top),
+                    size = androidx.compose.ui.geometry.Size(plotWidth, y(band.first) - top),
                 )
             }
 

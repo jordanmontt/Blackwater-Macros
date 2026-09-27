@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3Icon, HomeIcon, ScaleIcon, SettingsIcon } from "lucide-react";
+import { HomeIcon, MessageCircleIcon, SettingsIcon, TrendingUpIcon } from "lucide-react";
 import { t } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/", label: t.nav.hoy, icon: HomeIcon },
-  { href: "/peso", label: t.nav.peso, icon: ScaleIcon },
-  { href: "/estadisticas", label: t.nav.estadisticas, icon: BarChart3Icon },
+  { href: "/progreso", label: t.nav.progreso, icon: TrendingUpIcon },
+  { href: "/coach", label: t.nav.coach, icon: MessageCircleIcon },
   { href: "/ajustes", label: t.nav.ajustes, icon: SettingsIcon },
 ];
 
@@ -20,7 +20,7 @@ const items = [
  */
 export function AppNav() {
   const pathname = usePathname();
-  if (pathname === "/login") return null;
+  if (pathname === "/login" || pathname === "/bienvenida") return null;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-background/80 md:sticky md:inset-x-auto md:bottom-auto md:top-0 md:order-first md:w-full md:border-t-0 md:border-b md:pb-0">

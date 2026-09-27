@@ -15,26 +15,35 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.SideEffect
+import androidx.activity.compose.LocalActivity
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.blackwatermacros.app.ui.AdminScreen
+import com.blackwatermacros.app.ui.AiSettingsScreen
 import com.blackwatermacros.app.ui.AppTab
 import com.blackwatermacros.app.ui.BlackwaterShapes
 import com.blackwatermacros.app.ui.BlackwaterTypography
 import com.blackwatermacros.app.ui.BottomNavBar
+import com.blackwatermacros.app.ui.CoachScreen
+import com.blackwatermacros.app.ui.OnboardingScreen
+import com.blackwatermacros.app.ui.resolveOnboarding
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
 import com.blackwatermacros.app.ui.MethodologyScreen
-import com.blackwatermacros.app.ui.PesoScreen
 import com.blackwatermacros.app.ui.ProfileScreen
 import com.blackwatermacros.app.ui.SettingsScreen
-import com.blackwatermacros.app.ui.StatsScreen
+import com.blackwatermacros.app.ui.ProgressScreen
 
 /**
  * "Blackwater" palette — a warm, organic dark-forest look with a single warm
@@ -117,8 +126,8 @@ class MainActivity : AppCompatActivity() {
 
 private val AllTabRoutes = setOf(
     AppTab.HOY.route,
-    AppTab.PESO.route,
-    AppTab.ESTADISTICAS.route,
+    AppTab.PROGRESO.route,
+    AppTab.COACH.route,
     AppTab.AJUSTES.route,
 )
 
@@ -132,6 +141,20 @@ private fun AppRoot() {
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
+    }
+
+    // Status and navigation bar icons follow the app's theme (not the system's): light icons on
+    // the dark theme, dark icons on the light one, whatever the phone itself uses.
+    val activity = LocalActivity.current
+    val barColor = (if (darkTheme) DarkColors else LightColors).background
+    SideEffect {
+        val window = activity?.window ?: return@SideEffect
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !darkTheme
+            isAppearanceLightNavigationBars = !darkTheme
+        }
+        @Suppress("DEPRECATION")
+        window.navigationBarColor = barColor.toArgb()
     }
 
     BlackwaterMacrosTheme(darkTheme = darkTheme) {
@@ -161,11 +184,29 @@ private fun AppNavHost(
     innerPadding: PaddingValues,
 ) {
     // No login gate: the app is fully usable offline; the account is optional (Ajustes → Cuenta).
+    // A fresh install opens on the first steps (D12); decided once, off the main thread.
+    // Once done (the usual case) no database read is needed, so nothing waits.
+    val startDestination by produceState(if (AppGraph.preferences.onboardingDone) AppTab.HOY.route else null) {
+        if (value != null) return@produceState
+        value = withContext(Dispatchers.IO) {
+            if (resolveOnboarding(AppGraph.preferences, AppGraph.account, AppGraph.repository)) ONBOARDING_ROUTE else AppTab.HOY.route
+        }
+    }
+    val start = startDestination ?: return
     NavHost(
         navController = navController,
-        startDestination = AppTab.HOY.route,
+        startDestination = start,
         modifier = Modifier,
     ) {
+        composable(ONBOARDING_ROUTE) {
+            OnboardingScreen(
+                onLogin = { navController.navigate("login") },
+                onFinished = {
+                    navController.popBackStack(ONBOARDING_ROUTE, inclusive = true)
+                    navController.navigateToTab(AppTab.HOY)
+                },
+            )
+        }
         composable("login") {
             LoginScreen(
                 onBack = { navController.popBackStack() },
@@ -177,15 +218,19 @@ private fun AppNavHost(
                 modifier = Modifier.padding(innerPadding),
                 onOpenSettings = { navController.navigateToTab(AppTab.AJUSTES) },
                 onOpenProfile = { navController.navigate("perfil") },
-                onOpenWeight = { navController.navigateToTab(AppTab.PESO) },
+                onOpenWeight = { navController.navigateToTab(AppTab.PROGRESO) },
+                onOpenAiSettings = { navController.navigate("ia") },
             )
         }
-        composable(AppTab.PESO.route) {
-            PesoScreen(modifier = Modifier.padding(innerPadding))
-        }
-        composable(AppTab.ESTADISTICAS.route) {
-            StatsScreen(
+        composable(AppTab.PROGRESO.route) {
+            ProgressScreen(
                 onOpenMetodologia = { navController.navigate("metodologia") },
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
+        composable(AppTab.COACH.route) {
+            CoachScreen(
+                onOpenAiSettings = { navController.navigate("ia") },
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -194,12 +239,17 @@ private fun AppNavHost(
                 modifier = Modifier.padding(innerPadding),
                 onOpenLogin = { navController.navigate("login") },
                 onOpenProfile = { navController.navigate("perfil") },
+                onOpenAi = { navController.navigate("ia") },
+                onOpenTutorial = { navController.navigate(ONBOARDING_ROUTE) },
                 onOpenMetodologia = { navController.navigate("metodologia") },
                 onOpenAdmin = { navController.navigate("admin") },
             )
         }
         composable("perfil") {
             ProfileScreen(onBack = { navController.popBackStack() })
+        }
+        composable("ia") {
+            AiSettingsScreen(onBack = { navController.popBackStack() })
         }
         composable("metodologia") {
             MethodologyScreen(onBack = { navController.popBackStack() })
@@ -212,9 +262,12 @@ private fun AppNavHost(
     }
 }
 
+private const val ONBOARDING_ROUTE = "bienvenida"
+
 private fun NavHostController.navigateToTab(tab: AppTab) {
     navigate(tab.route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
+        // Comidas, not the graph's start: a fresh install starts on the first steps.
+        popUpTo(AppTab.HOY.route) { saveState = true }
         launchSingleTop = true
         restoreState = true
     }

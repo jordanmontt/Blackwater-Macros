@@ -88,6 +88,15 @@ class OfflineSyncTest {
     }
 
     @Test
+    fun `saving a new meal returns its id so copies can be undone`() = runBlocking<Unit> {
+        val id = repository.saveMeal(null, breakfast())
+
+        assertThat(repository.mealsForDay("2026-06-15").first().single().id).isEqualTo(id)
+        repository.deleteMeal(id)
+        assertThat(repository.mealsForDay("2026-06-15").first()).isEmpty()
+    }
+
+    @Test
     fun `without an account deleting removes the row for good`() = runBlocking<Unit> {
         repository.saveMeal(null, breakfast())
         val id = repository.mealsForDay("2026-06-15").first().single().id

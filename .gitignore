@@ -52,3 +52,6 @@ next-env.d.ts
 # JVM crash dumps
 hs_err_pid*.log
 replay_pid*.log
+scripts/foods/.cache/
+__pycache__/
+public/wasm/

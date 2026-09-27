@@ -7,7 +7,8 @@ rules that keep the two platforms consistent. Architecture lives in
 ## 1. The core contract (pure math implemented twice)
 
 The pure algorithms in `src/lib/core/*.ts` (meal totals, protein, calories/BMR,
-measured expenditure, dates, stats, the stats builder, CSV) are implemented **twice**: in TypeScript for
+measured expenditure, foods, AI answer parsing, progress averages, coach context,
+dates, stats, the stats builder, CSV) are implemented **twice**: in TypeScript for
 the web/server and as a Kotlin port in the pure-JVM `:core` module
 (`android/core/`). Android needs them locally because it is local-first: it
 computes totals, recommendations and statistics on the phone, without the server.
@@ -21,7 +22,12 @@ Kotlin JUnit mirror with the same inputs and the same expected numbers
 | `tests/unit/nutrition.test.ts` | `sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2` | `NutritionTest.kt` |
 | `tests/unit/protein.test.ts` | `calculateProteinRecommendation` | `ProteinTest.kt` |
 | `tests/unit/calories.test.ts` | `calculateBMR`, `getActivityMultiplier`, `isCalorieProfileComplete`, `calculateCalorieRecommendation` | `CaloriesTest.kt` |
-| `tests/unit/expenditure.test.ts` | `estimateExpenditure` | `ExpenditureTest.kt` |
+| `tests/unit/expenditure.test.ts` | `estimateExpenditure`, `fitWeightTrend` | `ExpenditureTest.kt` |
+| `tests/unit/foods.test.ts` | `scalePer100g`, `foodToIngredient`, `parseServingGrams`, `normalizeText`, `parseOffProduct`, `parseOffSearch`, `searchGenericFoods` | `FoodsTest.kt` |
+| `tests/unit/ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), `parseAiResponse`, `parseAiStreamLine`, `isAiConfigured`, `aiErrorKind` | `AiProvidersTest.kt` |
+| `tests/unit/ai-schema.test.ts` | `parseMealEstimate`, `extractJson`, `estimateToIngredients`, `buildMealEstimateSystemPrompt`, `buildMealEstimateUserText` | `AiSchemaTest.kt` |
+| `tests/unit/progress.test.ts` | `macroAverages` | `ProgressTest.kt` |
+| `tests/unit/coach.test.ts` (+ `coach.fixture.ts`) | `weightProjection`, `buildCoachContext` (exact text), `buildCoachSystemPrompt` | `CoachTest.kt` |
 | `tests/unit/dates.test.ts` | date keys, `parseLocalDateTime`, es-ES formatters | `DatesTest.kt` |
 | `tests/unit/stats.test.ts` | `movingAverageByDays`, `linearRatePerWeek`, `weeklyAverages`, `buildDailyNutritionSeries`, `rangeToDays` | `StatsTest.kt` |
 | `tests/unit/stats-builder.test.ts` | `buildStatsFromData` | `StatsBuilderTest.kt` |
@@ -50,6 +56,13 @@ Robolectric, no emulator needed).
 | `data/OfflineSyncTest.kt` | End to end with a real in-memory Room database, the real Retrofit client and `FakeServer` (a MockWebServer dispatcher that behaves like the Next.js routes): local-only mode never touches the network; a meal saved offline survives and uploads once, retries never duplicate; edits, deletes and reorders upload; web edits/deletions are pulled; an edit made during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data (upload / discard) and wrong credentials; logout and «delete all data» wipe only the phone; undo delete; CSV import de-duplication; a captive-portal/HTML response fails the sync without losing data |
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and `{ "error": … }` envelopes |
 | `data/CsvBackupTest.kt` | CSV export/import round trip; reads a file exported by the web; skips rows the server would reject; unknown files |
+| `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, 404/unknown, errors, Spanish search, User-Agent) against MockWebServer; the bundled index loads with Spanish names; recent foods |
+| `data/ai/AiClientTest.kt` | AI client against MockWebServer (every provider host redirected, never a real call): «Probar», whole and streamed answers, error kinds; keys stored encrypted per provider and restored; the AI prefs are excluded from every backup |
+| `data/ai/MealEstimatorTest.kt` | «Foto»: photos + description become one JSON-mode request (mirrors `add-food-photo.test.tsx`), an answer without a meal is «unreadable», the language told to the model, photo downscale size, the camera FileProvider only reaches the temporary folder |
+| `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`) with a real in-memory Room DB and MockWebServer: streamed answer with the local data summary, conversation history until «Nueva conversación», failures not resent, no data without permission; `historyForModel`; Markdown bullets/bold |
+| `ui/OnboardingTest.kt` | First launch (mirrors `onboarding.test.tsx`): only a fresh install without account or data sees it, an update marks it done, form ranges, «Tus datos» saves profile (default activity) + weight |
+| `data/ai/local/LocalModelTest.kt` | On-device model: resumable download (Range, server ignoring Range), SHA-256 check deletes damaged files, device support (arm64, RAM, debug), engine routing and persistence, model outside backups |
+| `ui/ProgressLogicTest.kt` | Progreso numbers: one period for everything, macro averages over logged days (+ split, targets), weigh-ins of the period |
 | `ui/ValidationTest.kt` | Meal form, weight and profile limits (same as `src/server/validation.ts`); recommendation states, latest body fat for protein, measured expenditure from meals + weigh-ins; sync indicator states |
 | `ui/TranslationsTest.kt` | Every language has every string and plural with the same placeholders |
 | `data/ResponseErrorMapperTest.kt`, `data/NiceTicksTest.kt` | Error envelope decoding; chart axis ticks |
@@ -68,6 +81,7 @@ platforms, both should be tested:
 | `routes-*` (wire contract) | `ApiContractTest` + `FakeServer` |
 | `csv-export` | `CsvBackupTest` |
 | `stats-overview`, `tests/unit/stats-builder` | `:core` `StatsBuilderTest` (Android computes stats locally) |
+| `progreso-page` (period, averages over logged days, weigh-ins) | `ProgressLogicTest` |
 | `recommendations-card`, `perfil-page` (recommendation rules) | `ValidationTest` (`recommend`) |
 | `*-page.test.tsx` (screens) | Not automated yet — Compose UI tests are a known gap; screens are checked manually on an emulator |
 

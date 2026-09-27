@@ -24,7 +24,13 @@ class AppPreferences(private val prefs: SharedPreferences) {
         _theme.value = mode
     }
 
+    /** The first-launch steps were finished or skipped. */
+    var onboardingDone: Boolean
+        get() = prefs.getBoolean(KEY_ONBOARDING_DONE, false)
+        set(value) = prefs.edit { putBoolean(KEY_ONBOARDING_DONE, value) }
+
     private companion object {
         const val KEY_THEME = "theme"
+        const val KEY_ONBOARDING_DONE = "onboardingDone"
     }
 }

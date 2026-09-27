@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
@@ -34,9 +35,12 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Upload
@@ -57,6 +61,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,6 +93,8 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onOpenLogin: () -> Unit,
     onOpenProfile: () -> Unit,
+    onOpenAi: () -> Unit,
+    onOpenTutorial: () -> Unit,
     onOpenMetodologia: () -> Unit,
     onOpenAdmin: () -> Unit,
     viewModel: SettingsViewModel = viewModel(),
@@ -114,6 +121,8 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState()),
         ) {
+            AppearanceCard(theme = theme, onThemeChange = viewModel::setTheme)
+            LanguageCard()
             AccountCard(
                 state = account,
                 loggingOut = logoutPrompt == LogoutPrompt.Checking,
@@ -126,6 +135,12 @@ fun SettingsScreen(
                 title = stringResource(R.string.profile_title),
                 subtitle = stringResource(R.string.profile_link_subtitle),
                 onClick = onOpenProfile,
+            )
+            LinkCard(
+                icon = Icons.Filled.AutoAwesome,
+                title = stringResource(R.string.ai_title),
+                subtitle = stringResource(R.string.ai_link_subtitle),
+                onClick = onOpenAi,
             )
             TemplatesCard(
                 templates = templates,
@@ -140,13 +155,17 @@ fun SettingsScreen(
                 onDelete = { deletingTemplate = it },
             )
             DataCard(viewModel = viewModel, message = dataMessage)
-            AppearanceCard(theme = theme, onThemeChange = viewModel::setTheme)
-            LanguageCard()
             LinkCard(
                 icon = Icons.Filled.Info,
                 title = stringResource(R.string.methodology),
                 subtitle = stringResource(R.string.methodology_subtitle),
                 onClick = onOpenMetodologia,
+            )
+            LinkCard(
+                icon = Icons.Filled.PlayCircle,
+                title = stringResource(R.string.onboarding_replay),
+                subtitle = stringResource(R.string.onboarding_replay_hint),
+                onClick = onOpenTutorial,
             )
             if (account.account?.isAdmin == true) {
                 LinkCard(
@@ -342,19 +361,33 @@ private fun TemplatesCard(
     onEdit: (TemplateDTO) -> Unit,
     onDelete: (TemplateDTO) -> Unit,
 ) {
+    // Collapsed by default: with many templates the list would take the whole page.
+    var expanded by rememberSaveable { mutableStateOf(false) }
     AppCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Column(Modifier.padding(16.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    stringResource(R.string.templates_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f),
-                )
-                OutlinedButton(onClick = onCreate) {
-                    ButtonIcon(Icons.Filled.Add, MaterialTheme.colorScheme.primary)
-                    Text(stringResource(R.string.template_new), style = MaterialTheme.typography.labelMedium)
+            Row(
+                Modifier.fillMaxWidth().clickable { expanded = !expanded },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.templates_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    CardDescription(pluralStringResource(R.plurals.templates_count, templates.size, templates.size))
                 }
+                Icon(
+                    if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (!expanded) return@Column
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(onClick = onCreate) {
+                ButtonIcon(Icons.Filled.Add, MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.template_new), style = MaterialTheme.typography.labelMedium)
             }
             Spacer(Modifier.height(12.dp))
 

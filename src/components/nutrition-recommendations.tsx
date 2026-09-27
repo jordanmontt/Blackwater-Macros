@@ -1,15 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
 import { DumbbellIcon, FlameIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { api } from "@/lib/api";
-import { useCachedResource } from "@/lib/use-cached-resource";
 import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
+import { useRecommendations } from "@/lib/use-recommendations";
 import { formatNumberEs } from "@/lib/core/dates";
-import { calculateCalorieRecommendation } from "@/lib/core/calories";
-import { calculateProteinRecommendation } from "@/lib/core/protein";
-import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
+import type { Goal } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -18,18 +14,6 @@ const GOAL_LABELS: Record<Goal, string> = {
   maintain: t.calorias.goalMaintain,
   surplus: t.calorias.goalSurplus,
 };
-
-function emptyProfile(): CalorieProfile {
-  return {
-    gender: null,
-    birthYear: null,
-    heightCm: null,
-    gymDaysPerWeek: null,
-    gymSessionMinutes: null,
-    walkingMinutesPerDay: null,
-    calorieGoal: null,
-  };
-}
 
 /**
  * Status text for an intake vs a recommended range: "en rango", or how much
@@ -125,8 +109,8 @@ function IntakeBar({
 }
 
 /**
- * Collapsed calorie + protein recommendation card. Fetches weights and the
- * user profile once and renders both ranges in a single card.
+ * Collapsed calorie + protein recommendation card: both ranges in a single card,
+ * with the intake bars for the selected day.
  */
 export function NutritionRecommendationsCard({
   dailyCalories,
@@ -135,31 +119,8 @@ export function NutritionRecommendationsCard({
   dailyCalories: number;
   dailyProtein: number;
 }) {
-  const weightsRes = useCachedResource<WeightDTO[]>("weights", () => api.listWeights());
-  const sessionRes = useCachedResource<Awaited<ReturnType<typeof api.session>>>("session", () =>
-    api.session(),
-  );
-
-  const weights = weightsRes.data ?? null;
-  const calorieProfile = sessionRes.data?.calorieProfile ?? emptyProfile();
-
-  const latestWeight = weights?.at(-1) ?? null;
-  // Body fat is not logged at every weigh-in: use the most recent one there is.
-  const bodyFatPct = weights?.findLast((w) => w.bodyFatPct !== null)?.bodyFatPct ?? null;
+  const { latestWeight, calorieRec, proteinRec } = useRecommendations();
   const measured = useMeasuredExpenditure();
-
-  const calorieRec = useMemo(
-    () => (latestWeight ? calculateCalorieRecommendation(calorieProfile, latestWeight.weightKg, new Date().getFullYear()) : null),
-    [latestWeight, calorieProfile],
-  );
-
-  const proteinRec = useMemo(
-    () =>
-      latestWeight && calorieProfile.calorieGoal
-        ? calculateProteinRecommendation(latestWeight.weightKg, calorieProfile.calorieGoal, bodyFatPct)
-        : null,
-    [latestWeight, calorieProfile.calorieGoal, bodyFatPct],
-  );
 
   if (!latestWeight) {
     return (

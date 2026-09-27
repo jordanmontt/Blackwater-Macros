@@ -73,7 +73,6 @@ fun MethodologyScreen(onBack: () -> Unit) {
                 R.string.meth_rate_body,
                 formula = listOf("β = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)²", stringResource(R.string.meth_rate_formula)),
             )
-            MethodCard(R.string.meth_weekly_title, R.string.meth_weekly_body)
             MethodCard(R.string.meth_daily_title, R.string.meth_daily_body)
             MethodCard(R.string.meth_protein_title, R.string.meth_protein_body)
             MethodCard(
@@ -100,6 +99,8 @@ fun MethodologyScreen(onBack: () -> Unit) {
                 ),
                 afterRes = R.string.meth_measured_after,
             )
+            MethodCard(R.string.meth_ai_title, R.string.meth_ai_body)
+            MethodCard(R.string.meth_sources_title, R.string.meth_sources_body)
             ReferencesCard()
             Spacer(Modifier.height(24.dp))
             }

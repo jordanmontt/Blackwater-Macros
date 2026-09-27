@@ -118,6 +118,23 @@ class ValidationTest {
     }
 
     @Test
+    fun `copying a meal or template keeps its content and only sends totals for total-only`() {
+        val perIngredient = MealFormValue(
+            "Tortilla", "con cebolla", WireEntryMode.PER_INGREDIENT,
+            listOf(com.blackwatermacros.app.data.WireIngredient("Huevos", "3", 210.0, 18.0, 1.0, 15.0)),
+            999.0, 999.0, 999.0, 999.0,
+        )
+        val copy = perIngredient.toCopyRequest("2026-06-16")
+        assertThat(copy.logDate).isEqualTo("2026-06-16")
+        assertThat(copy.title).isEqualTo("Tortilla")
+        assertThat(copy.ingredients).isEqualTo(perIngredient.ingredients)
+        assertThat(copy.totalCalories).isNull()
+
+        val totalOnly = perIngredient.copy(entryMode = WireEntryMode.TOTAL_ONLY, ingredients = emptyList())
+        assertThat(totalOnly.toCopyRequest("2026-06-16").totalCalories).isEqualTo(999.0)
+    }
+
+    @Test
     fun `the header cloud reflects the sync state and hides without an account`() {
         val account = com.blackwatermacros.app.data.Account("ana", "t", isAdmin = false)
         assertThat(syncIndicatorState(null, 3, false, null)).isEqualTo(SyncIndicatorState.Hidden)
