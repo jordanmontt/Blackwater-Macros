@@ -54,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <DemoBanner />
           <PwaInstall />
           <AuthRedirect />
-          <div className="flex-1 pb-20">{children}</div>
+          <div className="flex-1 pb-20 md:pb-6">{children}</div>
           <AppNav />
           <Toaster position="top-center" richColors />
         </ThemeProvider>

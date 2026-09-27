@@ -13,13 +13,17 @@ const items = [
   { href: "/ajustes", label: t.nav.ajustes, icon: SettingsIcon },
 ];
 
-/** Mobile-first bottom navigation; becomes a top bar on desktop. */
+/**
+ * Mobile-first bottom navigation; becomes a top bar on desktop. On desktop it is
+ * sticky and moved first in the (flex-column) body, so it takes its own height
+ * instead of overlapping the page header.
+ */
 export function AppNav() {
   const pathname = usePathname();
   if (pathname === "/login") return null;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-background/80 md:inset-x-auto md:bottom-auto md:top-0 md:w-full md:border-t-0 md:border-b md:pb-0">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-background/80 md:sticky md:inset-x-auto md:bottom-auto md:top-0 md:order-first md:w-full md:border-t-0 md:border-b md:pb-0">
       <ul className="mx-auto flex max-w-2xl items-stretch justify-around md:justify-start md:gap-2 md:px-4">
         {items.map((item) => {
           const active =
