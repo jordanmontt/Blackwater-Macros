@@ -599,6 +599,12 @@ rest of the calorie profile.
   `usableEngine` decides readiness. `LocalEngine` loads once (GPU, else CPU; a request that
   fails on GPU is retried on CPU), serves one request at a time, JSON via constrained
   decoding. Needs Kotlin ≥ 2.4 (the library's metadata).
+- **Local AI on the web** (D9, Coach only): `lib/ai/browser-model.ts` runs Qwen3 1.7B with
+  WebLLM on WebGPU (imported lazily, own chunk). Ajustes → IA → «Modelo en este navegador»
+  checks `navigator.gpu` (a one-line reason when missing), downloads ~1 GB into the
+  browser cache with progress, and «Usar para el coach: Nube / Este navegador»
+  (`AiSettings.coachEngine`). `coach-chat.ts` streams from it instead of the provider;
+  nothing leaves the browser.
 - **First launch** (D12): web `/bienvenida` (your data → optional Google key → done) after a
   login with an incomplete profile, flag `localStorage["bw:onboarding-done"]`; Android route
   `bienvenida` (welcome with «Iniciar sesión» first → data → AI → done) only on a fresh

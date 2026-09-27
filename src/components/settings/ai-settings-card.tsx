@@ -10,6 +10,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { DEFAULT_MODELS, type AiProvider } from "@/lib/core/ai-providers";
 import { AiError, testAi } from "@/lib/ai/client";
 import { AI_PROVIDERS, aiConfigOf, saveAiSettings, useAiSettings } from "@/lib/ai/settings";
+import { BrowserModelSection } from "@/components/settings/browser-model-section";
 import { formatTemplate, t } from "@/i18n";
 
 type TestState = { status: "idle" } | { status: "testing" } | { status: "ok" } | { status: "error"; message: string };
@@ -177,6 +178,8 @@ export function AiSettingsCard() {
             ) : null}
           </p>
         </div>
+
+        <BrowserModelSection />
 
         <label className="flex items-start gap-3 rounded-lg border p-3">
           <input

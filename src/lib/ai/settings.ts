@@ -17,6 +17,8 @@ export interface AiSettings {
   baseUrl: string;
   /** D11: the coach receives a summary of your data with each question. */
   coachSeesData: boolean;
+  /** D5/D9: the coach runs in the cloud or on the model downloaded into this browser. */
+  coachEngine: "cloud" | "browser";
 }
 
 export const AI_PROVIDERS: AiProvider[] = ["gemini", "openai", "anthropic", "openrouter", "custom"];
@@ -27,6 +29,7 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   models: {},
   baseUrl: "",
   coachSeesData: true,
+  coachEngine: "cloud",
 };
 
 const STORAGE_KEY = "bw:ai";
@@ -52,6 +55,7 @@ function parse(raw: string | null): AiSettings {
       models: typeof value.models === "object" && value.models ? value.models : {},
       baseUrl: typeof value.baseUrl === "string" ? value.baseUrl : "",
       coachSeesData: value.coachSeesData !== false,
+      coachEngine: value.coachEngine === "browser" ? "browser" : "cloud",
     };
   } catch {
     return DEFAULT_AI_SETTINGS;
@@ -108,4 +112,9 @@ export function aiConfigOf(settings: AiSettings): AiConfig {
 
 export function isAiReady(settings: AiSettings): boolean {
   return isAiConfigured(aiConfigOf(settings));
+}
+
+/** The coach can answer: with the cloud key, or with the model in this browser (D9). */
+export function isCoachReady(settings: AiSettings, browserModelReady: boolean): boolean {
+  return settings.coachEngine === "browser" ? browserModelReady : isAiReady(settings);
 }

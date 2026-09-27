@@ -6,6 +6,7 @@ import { buildCoachSystemPrompt } from "@/lib/core/coach";
 import { AiError, aiStream, type AiFailure } from "@/lib/ai/client";
 import { loadCoachContext } from "@/lib/ai/coach-data";
 import { AI_LANGUAGE } from "@/lib/ai/estimate";
+import { browserChatStream } from "@/lib/ai/browser-model";
 import { aiConfigOf, getAiSettings } from "@/lib/ai/settings";
 
 export interface ChatMessage {
@@ -82,17 +83,12 @@ export async function sendCoachMessage(text: string): Promise<void> {
   try {
     const settings = getAiSettings();
     const context = settings.coachSeesData ? await loadCoachContext() : null;
-    const stream = aiStream(
-      aiConfigOf(settings),
-      {
-        system: buildCoachSystemPrompt(AI_LANGUAGE, context),
-        messages: [...history, { role: "user", text: question }],
-        json: false,
-        stream: true,
-        maxTokens: 4096,
-      },
-      signal,
-    );
+    const system = buildCoachSystemPrompt(AI_LANGUAGE, context);
+    const messages: AiMessage[] = [...history, { role: "user", text: question }];
+    const stream =
+      settings.coachEngine === "browser"
+        ? browserChatStream(system, messages, signal)
+        : aiStream(aiConfigOf(settings), { system, messages, json: false, stream: true, maxTokens: 4096 }, signal);
     for await (const piece of stream) {
       if (signal.aborted) break;
       patchLast((message) => ({ ...message, text: message.text + piece }));

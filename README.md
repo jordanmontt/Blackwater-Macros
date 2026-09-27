@@ -25,6 +25,22 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
   escríbelo). Eliges la cantidad y la comida queda lista para revisar y guardar.
   Datos abiertos: Swiss Food Composition Database (FSVO), Ciqual (Anses) y Open Food
   Facts (ODbL).
+- **Foto con IA**: haz hasta 5 fotos de tu comida (o de la etiqueta), añade una
+  descripción y la IA estima los alimentos, las cantidades y los macros; revisas y
+  guardas. También «Estimar “3 plátanos” con IA» desde Buscar. Las fotos no se guardan:
+  se reducen en memoria, se envían al proveedor que elijas y se descartan.
+- **Coach**: pestaña de chat sobre tu comida y tu progreso («¿Cuál será mi peso en 30
+  días?», «¿Qué ceno?»…). Recibe un resumen de tus datos solo si lo permites y la
+  conversación no se guarda.
+- **IA a tu elección** (Ajustes → Inteligencia artificial): Google Gemini (clave gratis,
+  con guía), OpenAI, Anthropic, OpenRouter o un servidor propio compatible con OpenAI
+  (Ollama, LM Studio). La clave se queda en tu dispositivo (en Android, cifrada y fuera
+  de las copias de seguridad) y va directa al proveedor. También un **modelo local**:
+  en Android Gemma 4 E2B/E4B o Qwen3 1.7B (fotos y coach, sin internet); en la web
+  Qwen3 1.7B para el coach en navegadores con WebGPU.
+- **Primeros pasos**: al empezar, tus datos (sexo, año, altura, peso, objetivo) y la
+  clave de IA opcional; en Android, «Iniciar sesión» es la primera opción y la cuenta es
+  opcional. «Ver tutorial» en Ajustes.
 - **Recomendaciones** de calorías (TMB, nivel de actividad calculado a partir de tus días
   de gimnasio y minutos de caminata, TDEE, rango según objetivo) y de proteína (por
   masa magra en definición si registras tu % de grasa), con barras de progreso de lo

@@ -19,7 +19,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 7 | Coach tab | ☑ | ☑ | #12 |
 | 8 | Onboarding (first launch) | ☑ | ☑ | #12 |
 | 9 | On-device AI (Android: LiteRT-LM + Gemma 4) | — | ☑ | #12 |
-| 10 | Local AI on the web (optional, see D9) | ✗ | — | dropped by the user |
+| 10 | Local AI on the web (optional, see D9) | ☑ | — | #12 |
 | 11 | Docs, F-Droid metadata, release | ☐ | ☐ | |
 
 Legend: ☐ todo · ◐ in progress · ☑ done. **Workflow (user's choice): everything goes on the
@@ -91,6 +91,11 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
   native libs; signed with a key from `keystore.properties` if present, else the debug key
   (installable test builds). arm64 APK **14.8 MB** (debug was 81 MB). Smoke-tested on the
   emulator: food search (bundled + Open Food Facts), Coach screen, on-device engine loads.
+- 2026-09-27 — User asked for phase 10 after all (and to update the docs). Done in one commit;
+  checked in the browser pane: WebGPU detected (with `shader-f16`), section and download
+  button shown, no console errors. The 1 GB download and a local Coach answer were not run
+  (the user asked not to test the Coach); behaviour covered by mocked tests. README
+  «Funcionalidades» now lists the AI features.
 
 ---
 
@@ -493,11 +498,20 @@ Spanish product names preferred, and the review form shows the Spanish name.
   SHA-256 pinned. One model on the phone at a time (a new download replaces the old); the
   RAM check is per model.
 
-### Phase 10 — Local AI on the web (low effort, D9) — ✗ dropped by the user (2026-09-27)
-- [ ] WebLLM (`@mlc-ai/web-llm`, loaded lazily so it does not weigh on the normal bundle),
-      `navigator.gpu` check, one small model, download with progress + size warning, Coach
-      only. Hidden/disabled with a one-line reason when WebGPU is missing (common on phones).
-      Timebox: one session; if it fights back, ship without it and note it here.
+### Phase 10 — Local AI on the web (low effort, D9)
+(First dropped by the user, then requested again the same day.)
+- [x] WebLLM (`@mlc-ai/web-llm` 0.2.85, Apache-2.0, loaded lazily so it does not weigh on the
+      normal bundle: its own ~6 MB chunk), `navigator.gpu` check, one small model, download
+      with progress + size warning, Coach only. Hidden behind a one-line reason when WebGPU
+      is missing (common on phones).
+- Done as: `lib/ai/browser-model.ts` (state store, `checkBrowserModel`, download/delete,
+  `browserChatStream` with `enable_thinking: false`), `components/settings/
+  browser-model-section.tsx` inside Ajustes → IA, `AiSettings.coachEngine` «cloud | browser»,
+  `isCoachReady`, Coach footer «Qwen3 1.7B · este navegador». Model **Qwen3 1.7B**
+  (`Qwen3-1.7B-q4f16_1-MLC`, or `q4f32_1` without `shader-f16`), ~1 GB from Hugging Face
+  (`mlc-ai`, not gated) + its WebGPU library from `mlc-ai/binary-mlc-llm-libs` on GitHub;
+  kept in the browser's cache. Same model as Android's light option. Photos stay in the cloud.
+- Tests: `tests/behavior/browser-model.test.tsx` (WebLLM and WebGPU mocked).
 
 ### Phase 11 — Docs & release
 - [ ] TECHNICAL.md (new modules, AI section, Progress tab), README features, api.md unchanged

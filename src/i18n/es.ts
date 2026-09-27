@@ -328,6 +328,22 @@ export const t = {
     freeKeyOpen: "Abrir AI Studio",
     freeKeyPrivacy:
       "Con la clave gratis, Google puede usar tus fotos y preguntas para mejorar sus productos, salvo en el EEE, Suiza y el Reino Unido.",
+    browserTitle: "Modelo en este navegador",
+    browserDescription:
+      "El coach funciona sin enviar nada fuera del navegador. Menos preciso que la nube y necesita una tarjeta gráfica con WebGPU.",
+    browserChecking: "Comprobando si este navegador puede usarlo…",
+    browserUnsupported:
+      "Este navegador no tiene WebGPU, así que no puede usar un modelo local. Prueba Chrome o Edge en un ordenador.",
+    browserDownload: "Descargar {model} (~{size} GB)",
+    browserWarning:
+      "Se descargan ~{size} GB que se guardan en la caché de este navegador. Usa la tarjeta gráfica y puede ir lento. Solo para el coach; las fotos siguen en la nube.",
+    browserDownloading: "Descargando y preparando… {percent} %",
+    browserReady: "{model} está en este navegador.",
+    browserError: "No se pudo cargar el modelo: {message}",
+    browserDelete: "Eliminar del navegador",
+    useForCoach: "Usar para el coach",
+    engineCloud: "Nube",
+    engineBrowser: "Este navegador",
     coachSeesData: "El coach puede ver mis datos",
     coachSeesDataHint: "Con cada pregunta se envía un resumen: perfil, comidas de los últimos 14 días y peso.",
     errors: {
@@ -368,6 +384,7 @@ export const t = {
     thinking: "Pensando…",
     disclaimer: "El coach puede equivocarse. No es consejo médico.",
     engine: "{provider} · nube",
+    engineBrowser: "{model} · este navegador",
     noData: "Sin acceso a tus datos (Ajustes → IA).",
     notConfigured: "Configura la IA para usar el coach. Con una clave gratis de Google basta.",
     configure: "Configurar la IA",

@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { resetCoach, sendCoachMessage, stopCoach, useCoachChat, type ChatMessage } from "@/lib/ai/coach-chat";
-import { isAiReady, useAiSettings } from "@/lib/ai/settings";
+import { isCoachReady, useAiSettings } from "@/lib/ai/settings";
+import { BROWSER_MODEL, checkBrowserModel, useBrowserModel } from "@/lib/ai/browser-model";
 import { cn } from "@/lib/utils";
 import { formatTemplate, t } from "@/i18n";
 
@@ -21,7 +22,13 @@ export default function CoachPage() {
   const chat = useCoachChat();
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
-  const ready = isAiReady(settings);
+  const browserModel = useBrowserModel();
+  const ready = isCoachReady(settings, browserModel.status === "ready");
+  const onBrowser = settings.coachEngine === "browser";
+
+  useEffect(() => {
+    if (onBrowser) void checkBrowserModel();
+  }, [onBrowser]);
   const lastText = chat.messages.at(-1)?.text;
 
   useEffect(() => {
@@ -121,7 +128,9 @@ export default function CoachPage() {
               )}
             </div>
             <p className="text-[11px] leading-snug text-muted-foreground">
-              {t.coach.disclaimer} {formatTemplate(t.coach.engine, { provider: t.ai.providerShort[settings.provider] })}
+              {t.coach.disclaimer} {onBrowser
+                ? formatTemplate(t.coach.engineBrowser, { model: BROWSER_MODEL.name })
+                : formatTemplate(t.coach.engine, { provider: t.ai.providerShort[settings.provider] })}
               {settings.coachSeesData ? "" : ` · ${t.coach.noData}`}
             </p>
           </form>
