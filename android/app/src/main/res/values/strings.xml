@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generated from the translation table; English is the default for any other phone language. -->
 <resources>
-    <string name="app_name" translatable="false">Blackwater</string>
+    <string name="app_name" translatable="false">Blackwater Macros</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_save">Save</string>
     <string name="action_delete">Delete</string>
