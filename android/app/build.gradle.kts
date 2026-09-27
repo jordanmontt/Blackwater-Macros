@@ -53,9 +53,6 @@ android {
         unitTests.isIncludeAndroidResources = true
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
 }
 
 dependencies {
@@ -108,4 +105,10 @@ dependencies {
     testImplementation(libs.robolectric)
 
     debugImplementation(libs.compose.ui.tooling)
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
