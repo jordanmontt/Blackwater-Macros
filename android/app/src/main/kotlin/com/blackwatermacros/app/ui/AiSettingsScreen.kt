@@ -214,9 +214,9 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
 
 /** «Cómo conseguir una clave gratis de Google»: collapsed until tapped. Also used by onboarding. */
 @Composable
-internal fun FreeKeyGuide() {
+internal fun FreeKeyGuide(initiallyOpen: Boolean = false) {
     val context = LocalContext.current
-    var open by rememberSaveable { mutableStateOf(false) }
+    var open by rememberSaveable { mutableStateOf(initiallyOpen) }
     Row(
         Modifier
             .fillMaxWidth()

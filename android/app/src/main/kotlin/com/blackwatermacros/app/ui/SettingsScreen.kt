@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Upload
@@ -90,6 +91,7 @@ fun SettingsScreen(
     onOpenLogin: () -> Unit,
     onOpenProfile: () -> Unit,
     onOpenAi: () -> Unit,
+    onOpenTutorial: () -> Unit,
     onOpenMetodologia: () -> Unit,
     onOpenAdmin: () -> Unit,
     viewModel: SettingsViewModel = viewModel(),
@@ -150,6 +152,12 @@ fun SettingsScreen(
             DataCard(viewModel = viewModel, message = dataMessage)
             AppearanceCard(theme = theme, onThemeChange = viewModel::setTheme)
             LanguageCard()
+            LinkCard(
+                icon = Icons.Filled.PlayCircle,
+                title = stringResource(R.string.onboarding_replay),
+                subtitle = stringResource(R.string.onboarding_replay_hint),
+                onClick = onOpenTutorial,
+            )
             LinkCard(
                 icon = Icons.Filled.Info,
                 title = stringResource(R.string.methodology),

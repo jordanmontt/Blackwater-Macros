@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -30,6 +29,11 @@ import com.blackwatermacros.app.ui.BlackwaterShapes
 import com.blackwatermacros.app.ui.BlackwaterTypography
 import com.blackwatermacros.app.ui.BottomNavBar
 import com.blackwatermacros.app.ui.CoachScreen
+import com.blackwatermacros.app.ui.OnboardingScreen
+import com.blackwatermacros.app.ui.resolveOnboarding
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
 import com.blackwatermacros.app.ui.MethodologyScreen
@@ -162,11 +166,29 @@ private fun AppNavHost(
     innerPadding: PaddingValues,
 ) {
     // No login gate: the app is fully usable offline; the account is optional (Ajustes → Cuenta).
+    // A fresh install opens on the first steps (D12); decided once, off the main thread.
+    // Once done (the usual case) no database read is needed, so nothing waits.
+    val startDestination by produceState(if (AppGraph.preferences.onboardingDone) AppTab.HOY.route else null) {
+        if (value != null) return@produceState
+        value = withContext(Dispatchers.IO) {
+            if (resolveOnboarding(AppGraph.preferences, AppGraph.account, AppGraph.repository)) ONBOARDING_ROUTE else AppTab.HOY.route
+        }
+    }
+    val start = startDestination ?: return
     NavHost(
         navController = navController,
-        startDestination = AppTab.HOY.route,
+        startDestination = start,
         modifier = Modifier,
     ) {
+        composable(ONBOARDING_ROUTE) {
+            OnboardingScreen(
+                onLogin = { navController.navigate("login") },
+                onFinished = {
+                    navController.popBackStack(ONBOARDING_ROUTE, inclusive = true)
+                    navController.navigateToTab(AppTab.HOY)
+                },
+            )
+        }
         composable("login") {
             LoginScreen(
                 onBack = { navController.popBackStack() },
@@ -200,6 +222,7 @@ private fun AppNavHost(
                 onOpenLogin = { navController.navigate("login") },
                 onOpenProfile = { navController.navigate("perfil") },
                 onOpenAi = { navController.navigate("ia") },
+                onOpenTutorial = { navController.navigate(ONBOARDING_ROUTE) },
                 onOpenMetodologia = { navController.navigate("metodologia") },
                 onOpenAdmin = { navController.navigate("admin") },
             )
@@ -221,9 +244,12 @@ private fun AppNavHost(
     }
 }
 
+private const val ONBOARDING_ROUTE = "bienvenida"
+
 private fun NavHostController.navigateToTab(tab: AppTab) {
     navigate(tab.route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
+        // Comidas, not the graph's start: a fresh install starts on the first steps.
+        popUpTo(AppTab.HOY.route) { saveState = true }
         launchSingleTop = true
         restoreState = true
     }

@@ -591,6 +591,11 @@ rest of the calorie profile.
   same data as the Comidas card (profile, targets, measured expenditure, 4 weeks of meals,
   60 days of weigh-ins); with «El coach puede ver mis datos» off the data is neither read
   nor sent. The last 20 good turns go along as history.
+- **First launch** (D12): web `/bienvenida` (your data → optional Google key → done) after a
+  login with an incomplete profile, flag `localStorage["bw:onboarding-done"]`; Android route
+  `bienvenida` (welcome with «Iniciar sesión» first → data → AI → done) only on a fresh
+  install (no account, nothing logged), flag `AppPreferences.onboardingDone`. «Ver
+  tutorial» in Ajustes on both.
 
 ---
 

@@ -431,4 +431,31 @@
         <item>¿Cuántos macros tienen 3 plátanos?</item>
         <item>Evalúa mi dieta de esta semana</item>
     </string-array>
+
+    <!-- Onboarding (phase 8) -->
+    <string name="onboarding_step">Paso %1$d de %2$d</string>
+    <string name="onboarding_skip">Saltar</string>
+    <string name="onboarding_welcome_body">Registra tus comidas y tu peso. Tus datos se quedan en tu teléfono.</string>
+    <string name="onboarding_login">Ya tengo cuenta — Iniciar sesión</string>
+    <string name="onboarding_no_account">Empezar sin cuenta</string>
+    <string name="onboarding_no_account_hint">Puedes conectar una cuenta más tarde en Ajustes para sincronizar con la web.</string>
+    <string name="onboarding_data_title">Tus datos</string>
+    <string name="onboarding_data_intro">Con esto calculamos tus calorías y tu proteína. Puedes cambiarlo en Ajustes → Perfil.</string>
+    <string name="onboarding_goal">Objetivo</string>
+    <string name="onboarding_activity">Actividad</string>
+    <string name="onboarding_activity_summary">%1$s días de gimnasio · %2$s min caminando al día</string>
+    <string name="onboarding_invalid">Revisa los datos: año entre 1920 y 2010, altura entre 100 y 250 cm, peso entre 20 y 400 kg.</string>
+    <string name="onboarding_next">Continuar</string>
+    <string name="onboarding_ai_title">Inteligencia artificial (opcional)</string>
+    <string name="onboarding_ai_intro">La IA estima los macros de una foto de tu comida y responde tus preguntas en el coach. Google da una clave gratis.</string>
+    <string name="onboarding_ai_key">Pega aquí tu clave de Google</string>
+    <string name="onboarding_ai_other">¿Otro proveedor (OpenAI, Claude) o un modelo en tu ordenador? Está en Ajustes → IA.</string>
+    <string name="onboarding_back">Atrás</string>
+    <string name="onboarding_not_now">Ahora no</string>
+    <string name="onboarding_done_title">¡Listo!</string>
+    <string name="onboarding_done_body">Añade tu primera comida con el botón +. Registra tu peso cada pocos días para ver tu progreso.</string>
+    <string name="onboarding_done_ai">La IA está lista: prueba «Foto» al añadir comida y el coach.</string>
+    <string name="onboarding_start">Empezar</string>
+    <string name="onboarding_replay">Ver tutorial</string>
+    <string name="onboarding_replay_hint">Vuelve a ver los primeros pasos.</string>
 </resources>

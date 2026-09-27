@@ -17,7 +17,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 5 | AI settings + AI client (cloud providers, keys, test) | ☑ | ☑ | #12 |
 | 6 | Photo logging with AI (+ text estimate) | ☑ | ☑ | #12 |
 | 7 | Coach tab | ☑ | ☑ | #12 |
-| 8 | Onboarding (first launch) | ☐ | ☐ | |
+| 8 | Onboarding (first launch) | ☑ | ☑ | #12 |
 | 9 | On-device AI (Android: LiteRT-LM + Gemma 4) | — | ☐ | |
 | 10 | Local AI on the web (optional, see D9) | ☐ | — | |
 | 11 | Docs, F-Droid metadata, release | ☐ | ☐ | |
@@ -60,6 +60,11 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
 - 2026-09-27 — Phase 7 done (one commit). Emulator + browser: examples, a question with the
   fake key shows «La clave no es válida», the Android conversation survives tab switches.
   Next: phase 8 (onboarding).
+- 2026-09-27 — User asked to continue with phase 9 after phase 8.
+- 2026-09-27 — Phase 8 done (one commit). Emulator: «Ver tutorial» → welcome → prefilled data
+  → AI step → done → Comidas; «Saltar» returns to Comidas and Back leaves the app (a start
+  destination of `bienvenida` had broken the tab back stack: fixed). Browser checked at phone
+  size. Next: phase 9 (on-device AI).
 
 ---
 
@@ -423,10 +428,17 @@ Spanish product names preferred, and the review form shows the Spanish name.
   render minimal Markdown (bullets, **bold**). 4 tabs: Comidas · Progreso · Coach · Ajustes.
 
 ### Phase 8 — Onboarding
-- [ ] Android: 4-step flow (§4.5), shown when `onboardingDone` is false; login path reuses
+- [x] Android: 4-step flow (§4.5), shown when `onboardingDone` is false; login path reuses
       `LoginScreen` logic; profile + first weight saved through `AppRepository`.
-- [ ] Web: steps 2–4 after first login with incomplete profile.
-- [ ] «Ver tutorial» in Ajustes. Tests for the gating logic.
+- [x] Web: steps 2–4 after first login with incomplete profile.
+- [x] «Ver tutorial» in Ajustes. Tests for the gating logic.
+- Done as: web `app/bienvenida/page.tsx`, `lib/onboarding.ts`, `components/onboarding-redirect.tsx`
+  (in the layout; only acts on `/`; a complete profile marks the steps done); Android
+  `ui/Onboarding{Screen,ViewModel}.kt`, route `bienvenida`. Android gating: shown only when not
+  done, no account and **nothing logged** (`resolveOnboarding`), so updating users never see
+  it; once done, the start destination is decided without touching the database. Activity
+  defaults when «Actividad» is not opened: 0 gym days, 60 min, 30 min walking. Tabs now pop
+  up to Comidas (not the graph start, which can be `bienvenida`).
 
 ### Phase 9 — On-device AI (Android)
 - [ ] Upgrade Kotlin to ≥ 2.2 (LiteRT-LM requirement; project is on 2.1.20) — separate

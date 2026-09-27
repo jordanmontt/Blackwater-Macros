@@ -421,4 +421,31 @@
         <item>How many macros do 3 bananas have?</item>
         <item>Review my diet this week</item>
     </string-array>
+
+    <!-- Onboarding (phase 8) -->
+    <string name="onboarding_step">Step %1$d of %2$d</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_welcome_body">Log your meals and your weight. Your data stays on your phone.</string>
+    <string name="onboarding_login">I have an account — Log in</string>
+    <string name="onboarding_no_account">Start without an account</string>
+    <string name="onboarding_no_account_hint">You can connect an account later in Settings to sync with the web.</string>
+    <string name="onboarding_data_title">Your data</string>
+    <string name="onboarding_data_intro">With this we work out your calories and protein. You can change it in Settings → Profile.</string>
+    <string name="onboarding_goal">Goal</string>
+    <string name="onboarding_activity">Activity</string>
+    <string name="onboarding_activity_summary">%1$s gym days · %2$s min walking a day</string>
+    <string name="onboarding_invalid">Check the data: year between 1920 and 2010, height between 100 and 250 cm, weight between 20 and 400 kg.</string>
+    <string name="onboarding_next">Continue</string>
+    <string name="onboarding_ai_title">Artificial intelligence (optional)</string>
+    <string name="onboarding_ai_intro">AI estimates the macros of a photo of your meal and answers your questions in the coach. Google gives a free key.</string>
+    <string name="onboarding_ai_key">Paste your Google key here</string>
+    <string name="onboarding_ai_other">Another provider (OpenAI, Claude) or a model on your computer? It is in Settings → AI.</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_not_now">Not now</string>
+    <string name="onboarding_done_title">All set!</string>
+    <string name="onboarding_done_body">Add your first meal with the + button. Log your weight every few days to see your progress.</string>
+    <string name="onboarding_done_ai">AI is ready: try «Photo» when adding food, and the coach.</string>
+    <string name="onboarding_start">Start</string>
+    <string name="onboarding_replay">Show the tutorial</string>
+    <string name="onboarding_replay_hint">See the first steps again.</string>
 </resources>

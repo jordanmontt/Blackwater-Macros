@@ -29,8 +29,14 @@ class AppPreferences(private val prefs: SharedPreferences) {
         get() = prefs.getBoolean(KEY_PHOTO_TIPS_HIDDEN, false)
         set(value) = prefs.edit { putBoolean(KEY_PHOTO_TIPS_HIDDEN, value) }
 
+    /** The first-launch steps were finished or skipped. */
+    var onboardingDone: Boolean
+        get() = prefs.getBoolean(KEY_ONBOARDING_DONE, false)
+        set(value) = prefs.edit { putBoolean(KEY_ONBOARDING_DONE, value) }
+
     private companion object {
         const val KEY_THEME = "theme"
+        const val KEY_ONBOARDING_DONE = "onboardingDone"
         const val KEY_PHOTO_TIPS_HIDDEN = "photoTipsHidden"
     }
 }

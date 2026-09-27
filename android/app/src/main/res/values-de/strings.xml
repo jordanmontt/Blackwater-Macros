@@ -420,4 +420,31 @@
         <item>Wie viele Makros haben 3 Bananen?</item>
         <item>Bewerte meine Ernährung dieser Woche</item>
     </string-array>
+
+    <!-- Onboarding (phase 8) -->
+    <string name="onboarding_step">Schritt %1$d von %2$d</string>
+    <string name="onboarding_skip">Überspringen</string>
+    <string name="onboarding_welcome_body">Erfasse deine Mahlzeiten und dein Gewicht. Deine Daten bleiben auf deinem Telefon.</string>
+    <string name="onboarding_login">Ich habe ein Konto — Anmelden</string>
+    <string name="onboarding_no_account">Ohne Konto starten</string>
+    <string name="onboarding_no_account_hint">Du kannst später in den Einstellungen ein Konto verbinden, um mit dem Web zu synchronisieren.</string>
+    <string name="onboarding_data_title">Deine Daten</string>
+    <string name="onboarding_data_intro">Damit berechnen wir deine Kalorien und dein Eiweiß. Änderbar unter Einstellungen → Profil.</string>
+    <string name="onboarding_goal">Ziel</string>
+    <string name="onboarding_activity">Aktivität</string>
+    <string name="onboarding_activity_summary">%1$s Trainingstage · %2$s min Gehen pro Tag</string>
+    <string name="onboarding_invalid">Prüfe die Daten: Jahr zwischen 1920 und 2010, Größe zwischen 100 und 250 cm, Gewicht zwischen 20 und 400 kg.</string>
+    <string name="onboarding_next">Weiter</string>
+    <string name="onboarding_ai_title">Künstliche Intelligenz (optional)</string>
+    <string name="onboarding_ai_intro">Die KI schätzt die Makros eines Fotos deiner Mahlzeit und beantwortet deine Fragen im Coach. Google gibt einen kostenlosen Schlüssel.</string>
+    <string name="onboarding_ai_key">Füge hier deinen Google-Schlüssel ein</string>
+    <string name="onboarding_ai_other">Ein anderer Anbieter (OpenAI, Claude) oder ein Modell auf deinem Computer? Das findest du unter Einstellungen → KI.</string>
+    <string name="onboarding_back">Zurück</string>
+    <string name="onboarding_not_now">Jetzt nicht</string>
+    <string name="onboarding_done_title">Fertig!</string>
+    <string name="onboarding_done_body">Füge deine erste Mahlzeit mit der +-Taste hinzu. Erfasse dein Gewicht alle paar Tage, um deinen Fortschritt zu sehen.</string>
+    <string name="onboarding_done_ai">Die KI ist bereit: probiere «Foto» beim Hinzufügen und den Coach.</string>
+    <string name="onboarding_start">Loslegen</string>
+    <string name="onboarding_replay">Tutorial ansehen</string>
+    <string name="onboarding_replay_hint">Die ersten Schritte noch einmal ansehen.</string>
 </resources>

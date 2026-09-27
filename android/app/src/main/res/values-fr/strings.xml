@@ -431,4 +431,31 @@
         <item>Combien de macros dans 3 bananes ?</item>
         <item>Évalue mon alimentation de la semaine</item>
     </string-array>
+
+    <!-- Onboarding (phase 8) -->
+    <string name="onboarding_step">Étape %1$d sur %2$d</string>
+    <string name="onboarding_skip">Passer</string>
+    <string name="onboarding_welcome_body">Enregistrez vos repas et votre poids. Vos données restent sur votre téléphone.</string>
+    <string name="onboarding_login">J\'ai un compte — Se connecter</string>
+    <string name="onboarding_no_account">Commencer sans compte</string>
+    <string name="onboarding_no_account_hint">Vous pourrez connecter un compte plus tard dans Réglages pour synchroniser avec le web.</string>
+    <string name="onboarding_data_title">Vos données</string>
+    <string name="onboarding_data_intro">Cela sert à calculer vos calories et vos protéines. Modifiable dans Réglages → Profil.</string>
+    <string name="onboarding_goal">Objectif</string>
+    <string name="onboarding_activity">Activité</string>
+    <string name="onboarding_activity_summary">%1$s jours de salle · %2$s min de marche par jour</string>
+    <string name="onboarding_invalid">Vérifiez les données : année entre 1920 et 2010, taille entre 100 et 250 cm, poids entre 20 et 400 kg.</string>
+    <string name="onboarding_next">Continuer</string>
+    <string name="onboarding_ai_title">Intelligence artificielle (facultatif)</string>
+    <string name="onboarding_ai_intro">L\'IA estime les macros d\'une photo de votre repas et répond à vos questions dans le coach. Google offre une clé gratuite.</string>
+    <string name="onboarding_ai_key">Collez ici votre clé Google</string>
+    <string name="onboarding_ai_other">Un autre fournisseur (OpenAI, Claude) ou un modèle sur votre ordinateur ? C\'est dans Réglages → IA.</string>
+    <string name="onboarding_back">Retour</string>
+    <string name="onboarding_not_now">Plus tard</string>
+    <string name="onboarding_done_title">C\'est prêt !</string>
+    <string name="onboarding_done_body">Ajoutez votre premier repas avec le bouton +. Notez votre poids tous les quelques jours pour voir vos progrès.</string>
+    <string name="onboarding_done_ai">L\'IA est prête : essayez «Photo» en ajoutant un repas, et le coach.</string>
+    <string name="onboarding_start">Commencer</string>
+    <string name="onboarding_replay">Voir le tutoriel</string>
+    <string name="onboarding_replay_hint">Revoir les premiers pas.</string>
 </resources>

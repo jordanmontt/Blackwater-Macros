@@ -431,4 +431,31 @@
         <item>Quanti macro hanno 3 banane?</item>
         <item>Valuta la mia dieta di questa settimana</item>
     </string-array>
+
+    <!-- Onboarding (phase 8) -->
+    <string name="onboarding_step">Passo %1$d di %2$d</string>
+    <string name="onboarding_skip">Salta</string>
+    <string name="onboarding_welcome_body">Registra i tuoi pasti e il tuo peso. I tuoi dati restano sul telefono.</string>
+    <string name="onboarding_login">Ho un account — Accedi</string>
+    <string name="onboarding_no_account">Inizia senza account</string>
+    <string name="onboarding_no_account_hint">Potrai collegare un account più tardi nelle Impostazioni per sincronizzare con il web.</string>
+    <string name="onboarding_data_title">I tuoi dati</string>
+    <string name="onboarding_data_intro">Servono per calcolare calorie e proteine. Puoi cambiarli in Impostazioni → Profilo.</string>
+    <string name="onboarding_goal">Obiettivo</string>
+    <string name="onboarding_activity">Attività</string>
+    <string name="onboarding_activity_summary">%1$s giorni di palestra · %2$s min di camminata al giorno</string>
+    <string name="onboarding_invalid">Controlla i dati: anno tra 1920 e 2010, altezza tra 100 e 250 cm, peso tra 20 e 400 kg.</string>
+    <string name="onboarding_next">Continua</string>
+    <string name="onboarding_ai_title">Intelligenza artificiale (facoltativa)</string>
+    <string name="onboarding_ai_intro">L\'IA stima i macro da una foto del tuo pasto e risponde alle tue domande nel coach. Google dà una chiave gratuita.</string>
+    <string name="onboarding_ai_key">Incolla qui la tua chiave Google</string>
+    <string name="onboarding_ai_other">Un altro fornitore (OpenAI, Claude) o un modello sul tuo computer? È in Impostazioni → IA.</string>
+    <string name="onboarding_back">Indietro</string>
+    <string name="onboarding_not_now">Non ora</string>
+    <string name="onboarding_done_title">Fatto!</string>
+    <string name="onboarding_done_body">Aggiungi il tuo primo pasto con il pulsante +. Registra il peso ogni pochi giorni per vedere i progressi.</string>
+    <string name="onboarding_done_ai">L\'IA è pronta: prova «Foto» quando aggiungi un pasto, e il coach.</string>
+    <string name="onboarding_start">Inizia</string>
+    <string name="onboarding_replay">Rivedi il tutorial</string>
+    <string name="onboarding_replay_hint">Rivedi i primi passi.</string>
 </resources>

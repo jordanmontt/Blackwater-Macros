@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { DownloadIcon, InfoIcon, LogOutIcon, PencilIcon, PlusIcon, ShieldIcon, Trash2Icon, UserIcon } from "lucide-react";
+import { DownloadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, Trash2Icon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -129,6 +129,18 @@ export default function AjustesPage() {
       </Card>
 
       <AiSettingsCard />
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.onboarding.replay}</CardTitle>
+          <CardDescription>{t.onboarding.replayHint}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" nativeButton={false} render={<Link href="/bienvenida" />}>
+            <PlayCircleIcon /> {t.onboarding.replay}
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="pb-3">
