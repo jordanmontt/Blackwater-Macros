@@ -10,7 +10,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | # | Phase | Web | Android | PR |
 |---|-------|-----|---------|----|
 | 0 | Plan + decisions confirmed | ☑ | ☑ | branch `ai-features` |
-| 1 | Core foundations (pure TS + Kotlin) | ☐ | ☐ | |
+| 1 | Core foundations (pure TS + Kotlin) | ☑ | ☑ | branch `ai/1-core` |
 | 2 | Progress tab (merge Peso + Estadísticas) | ☐ | ☐ | |
 | 3 | New «Añadir comida» flow: sheet, review form, copy from another day, manual | ☐ | ☐ | |
 | 4 | Food search + barcode (Open Food Facts + bundled generic foods) | ☐ | ☐ | |
@@ -31,6 +31,9 @@ session budget is tight (`ai/<n>a-web`, `ai/<n>b-android`).
 - 2026-09-27 — Plan written (branch `ai-features`). Methodology v2 (PR #10) merged before.
 - 2026-09-27 — Decisions D6, D7, D9 confirmed by the user (see §2). Checked: Swiss FCDB terms
   allow nutrition-diary apps with attribution; CIQUAL is Etalab 2.0; BEDCA has no reuse licence.
+- 2026-09-27 — Phase 1 done on `ai/1-core` (branched from `ai-features`, so its PR also carries
+  the plan). Gate green: web 358 tests, core sync OK, Android core/app tests + lint + assemble.
+  Next: phase 2 (Progreso tab), branch `ai/2-progress` from `main` once phase 1 is merged.
 - 2026-09-27 — User created a free Gemini key at https://aistudio.google.com/api-keys (that is
   the URL the guide must use). The key is entered by the user in the app (phase 5); it must
   never be pasted into chat, committed, or put in fixtures. Tests use recorded/mock responses.
@@ -278,14 +281,21 @@ browser (demo mode: «Explorar datos de demo» on /login). New Android strings g
 `%` that are not format strings need `formatted="false"`.
 
 ### Phase 1 — Core foundations
-- [ ] `src/lib/core/foods.ts` + `tests/unit/foods.test.ts`; Kotlin `Foods.kt` + `FoodsTest.kt`.
-- [ ] `src/lib/core/ai-schema.ts` + tests; Kotlin `AiSchema.kt` + tests (fixtures of real-ish
-      Gemini/OpenAI/Claude outputs incl. code fences and bad numbers).
-- [ ] `src/lib/core/progress.ts` (macro averages over logged days, calorie series with target)
-      + tests; Kotlin mirror.
-- [ ] `src/lib/core/coach.ts` (`buildCoachContext`, `weightProjection`) + tests; Kotlin mirror.
-- [ ] Add pairs to `android/test-sync/manifest.json`; table in `docs/ANDROID-TEST-SPEC.md`;
-      file table in `src/lib/core/README.md`.
+- [x] `src/lib/core/foods.ts` + `tests/unit/foods.test.ts`; Kotlin `Foods.kt` + `FoodsTest.kt`.
+      (`scalePer100g`, `foodToIngredient`, `parseServingGrams`, `normalizeText`,
+      `parseOffProduct(Fields)`, `parseOffSearch`, `searchGenericFoods`; types `Per100g`,
+      `FoodProduct`, `GenericFood {id, source, names: {es,en,fr,de,it}, per100g}`.)
+- [x] `src/lib/core/ai-schema.ts` + tests; Kotlin `AiSchema.kt` + tests (`MEAL_ESTIMATE_SHAPE`
+      for prompts, `extractJson`, `parseMealEstimate`, `estimateToIngredients`).
+- [x] `src/lib/core/progress.ts` (`macroAverages` over logged days + kcal split) + tests;
+      Kotlin mirror. (The calorie chart's target band needs no core code: it is the
+      recommendation's `targetMin/targetMax`.)
+- [x] `src/lib/core/coach.ts` (`weightProjection`, `buildCoachContext`, `buildCoachSystemPrompt`)
+      + tests with a shared fixture (`tests/unit/coach.fixture.ts`) asserting the exact text;
+      Kotlin mirror produces the identical text. `expenditure.ts` now exports `fitWeightTrend`
+      (+ `Z_95`) so the projection reuses the same statistics.
+- [x] Pairs in `android/test-sync/manifest.json`; tables in `docs/ANDROID-TEST-SPEC.md` and
+      `src/lib/core/README.md`. `:core` now depends on `kotlinx-serialization-json` (JSON trees).
 
 ### Phase 2 — Progreso tab
 - [ ] Web: `src/app/progreso/page.tsx` (merge `peso` + `estadisticas`), redirects from `/peso`

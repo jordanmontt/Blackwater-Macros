@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { addDaysToKey } from "../../src/lib/core/dates";
-import { estimateExpenditure } from "../../src/lib/core/expenditure";
+import { estimateExpenditure, fitWeightTrend } from "../../src/lib/core/expenditure";
 import type { DataPoint } from "../../src/lib/core/stats";
 
 const TODAY = "2026-03-01";
@@ -105,5 +105,29 @@ describe("estimateExpenditure", () => {
     expect(estimateExpenditure(meals(28, 2500), noisy, TODAY)).toBeNull();
     const calm = weighIns(80, 0, 2).map((p, i) => ({ ...p, value: p.value + (i % 2 === 0 ? 0.3 : -0.3) }));
     expect(estimateExpenditure(meals(28, 2500), calm, TODAY)!.margin).toBe(250);
+  });
+});
+
+describe("fitWeightTrend", () => {
+  it("fits the line and floors the scatter at 0.5 kg", () => {
+    const trend = fitWeightTrend([
+      { date: "2026-02-01", value: 80 },
+      { date: "2026-02-08", value: 79.5 },
+      { date: "2026-02-15", value: 79 },
+    ])!;
+    expect(trend.slopePerDay).toBeCloseTo(-0.5 / 7, 10);
+    expect(trend.sigma).toBe(0.5);
+    expect(trend.n).toBe(3);
+    expect(trend.meanX).toBe(7);
+    expect(trend.meanY).toBeCloseTo(79.5, 10);
+    expect(trend.sxx).toBe(98);
+    expect(trend.slopeError).toBeCloseTo(0.5 / Math.sqrt(98), 10);
+    expect(trend.origin).toBe("2026-02-01");
+  });
+
+  it("needs 3 points on more than one day", () => {
+    expect(fitWeightTrend([{ date: "2026-02-01", value: 80 }, { date: "2026-02-08", value: 79 }])).toBeNull();
+    const sameDay = [80, 80.5, 79.5].map((value) => ({ date: "2026-02-01", value }));
+    expect(fitWeightTrend(sameDay)).toBeNull();
   });
 });

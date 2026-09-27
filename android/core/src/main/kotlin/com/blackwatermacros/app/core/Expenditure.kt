@@ -27,19 +27,35 @@ const val WEIGHT_NOISE_FLOOR_KG = 0.5
 /** Largest 95 % margin (kcal/day) at which the measured value is shown. */
 const val MAX_MARGIN_KCAL = 300.0
 
-private const val Z_95 = 1.96
+/** Two-sided 95 % normal quantile. */
+const val Z_95 = 1.96
 
-private class Trend(val slopePerDay: Double, val slopeError: Double)
+/** Least-squares line through weigh-ins, with what is needed for its error. */
+data class WeightTrend(
+    val slopePerDay: Double,
+    /** Standard error of the slope, kg/day. */
+    val slopeError: Double,
+    /** Scatter around the line, kg (never below the noise floor). */
+    val sigma: Double,
+    val n: Int,
+    val meanX: Double,
+    val meanY: Double,
+    /** Sum of (x - mean x)^2. */
+    val sxx: Double,
+    /** Date of the first weigh-in: x = 0. */
+    val origin: String,
+)
 
 /**
  * Least-squares weight trend and its standard error: SE = sigma / sqrt(Sxx),
  * sigma from the residuals (n - 2 degrees of freedom), never below
- * [WEIGHT_NOISE_FLOOR_KG].
+ * [WEIGHT_NOISE_FLOOR_KG]. Points must be sorted by date.
  */
-private fun weightTrend(points: List<DataPoint>): Trend? {
+fun fitWeightTrend(points: List<DataPoint>): WeightTrend? {
     val n = points.size
     if (n < 3) return null
-    val xs = points.map { daysBetweenKeys(points[0].date, it.date).toDouble() }
+    val origin = points[0].date
+    val xs = points.map { daysBetweenKeys(origin, it.date).toDouble() }
     val ys = points.map { it.value }
     val meanX = xs.sum() / n
     val meanY = ys.sum() / n
@@ -57,7 +73,7 @@ private fun weightTrend(points: List<DataPoint>): Trend? {
         squaredResiduals += residual * residual
     }
     val sigma = maxOf(sqrt(squaredResiduals / (n - 2)), WEIGHT_NOISE_FLOOR_KG)
-    return Trend(slopePerDay, sigma / sqrt(sxx))
+    return WeightTrend(slopePerDay, sigma / sqrt(sxx), sigma, n, meanX, meanY, sxx, origin)
 }
 
 /**
@@ -80,7 +96,7 @@ fun estimateExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today
     if (weighInDays < MIN_WEIGH_INS) return null
     if (daysBetweenKeys(weighIns.first().date, weighIns.last().date) < MIN_WEIGHT_SPAN_DAYS) return null
 
-    val trend = weightTrend(weighIns) ?: return null
+    val trend = fitWeightTrend(weighIns) ?: return null
     val margin = mathRound(Z_95 * trend.slopeError * KCAL_PER_KG)
     if (margin > MAX_MARGIN_KCAL) return null
 

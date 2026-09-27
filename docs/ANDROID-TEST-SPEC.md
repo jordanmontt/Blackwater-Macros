@@ -7,7 +7,8 @@ rules that keep the two platforms consistent. Architecture lives in
 ## 1. The core contract (pure math implemented twice)
 
 The pure algorithms in `src/lib/core/*.ts` (meal totals, protein, calories/BMR,
-measured expenditure, dates, stats, the stats builder, CSV) are implemented **twice**: in TypeScript for
+measured expenditure, foods, AI answer parsing, progress averages, coach context,
+dates, stats, the stats builder, CSV) are implemented **twice**: in TypeScript for
 the web/server and as a Kotlin port in the pure-JVM `:core` module
 (`android/core/`). Android needs them locally because it is local-first: it
 computes totals, recommendations and statistics on the phone, without the server.
@@ -21,7 +22,11 @@ Kotlin JUnit mirror with the same inputs and the same expected numbers
 | `tests/unit/nutrition.test.ts` | `sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2` | `NutritionTest.kt` |
 | `tests/unit/protein.test.ts` | `calculateProteinRecommendation` | `ProteinTest.kt` |
 | `tests/unit/calories.test.ts` | `calculateBMR`, `getActivityMultiplier`, `isCalorieProfileComplete`, `calculateCalorieRecommendation` | `CaloriesTest.kt` |
-| `tests/unit/expenditure.test.ts` | `estimateExpenditure` | `ExpenditureTest.kt` |
+| `tests/unit/expenditure.test.ts` | `estimateExpenditure`, `fitWeightTrend` | `ExpenditureTest.kt` |
+| `tests/unit/foods.test.ts` | `scalePer100g`, `foodToIngredient`, `parseServingGrams`, `normalizeText`, `parseOffProduct`, `parseOffSearch`, `searchGenericFoods` | `FoodsTest.kt` |
+| `tests/unit/ai-schema.test.ts` | `parseMealEstimate`, `extractJson`, `estimateToIngredients` | `AiSchemaTest.kt` |
+| `tests/unit/progress.test.ts` | `macroAverages` | `ProgressTest.kt` |
+| `tests/unit/coach.test.ts` (+ `coach.fixture.ts`) | `weightProjection`, `buildCoachContext` (exact text), `buildCoachSystemPrompt` | `CoachTest.kt` |
 | `tests/unit/dates.test.ts` | date keys, `parseLocalDateTime`, es-ES formatters | `DatesTest.kt` |
 | `tests/unit/stats.test.ts` | `movingAverageByDays`, `linearRatePerWeek`, `weeklyAverages`, `buildDailyNutritionSeries`, `rangeToDays` | `StatsTest.kt` |
 | `tests/unit/stats-builder.test.ts` | `buildStatsFromData` | `StatsBuilderTest.kt` |

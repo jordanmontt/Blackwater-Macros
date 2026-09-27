@@ -40,6 +40,26 @@
       "source": "src/lib/core/csv.ts",
       "ts": "tests/unit/auth-and-csv.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/CsvTest.kt"
+    },
+    {
+      "source": "src/lib/core/foods.ts",
+      "ts": "tests/unit/foods.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/FoodsTest.kt"
+    },
+    {
+      "source": "src/lib/core/ai-schema.ts",
+      "ts": "tests/unit/ai-schema.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/AiSchemaTest.kt"
+    },
+    {
+      "source": "src/lib/core/progress.ts",
+      "ts": "tests/unit/progress.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/ProgressTest.kt"
+    },
+    {
+      "source": "src/lib/core/coach.ts",
+      "ts": "tests/unit/coach.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/CoachTest.kt"
     }
   ]
 }
