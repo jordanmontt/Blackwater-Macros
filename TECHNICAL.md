@@ -48,7 +48,8 @@ src/
     validation.ts           # zod schemas shared by all mutating endpoints
   components/
     ui/*                    # shadcn/ui primitives (Base UI based)
-    meals/*                 # DayNavigator, MealCard, MealForm
+    meals/*                 # DayNavigator, MealCard, MealForm (review form), AddFoodSheet («Añadir comida»)
+    ui/sheet.tsx            # Bottom sheet on phones (drag down / outside / Esc closes), dialog from sm
     nutrition-recommendations.tsx  # Merged calorie + protein recommendations card (Comidas page)
     weight-fat-chart.tsx          # Combined weight (kg) + body fat (%) chart with trend line
     demo-banner.tsx         # Persistent "demo mode" banner + exit to login
@@ -322,7 +323,7 @@ overwrite.
 
 | Page | File | Highlights |
 |---|---|---|
-| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), template chips, meal list, MealForm dialog, delete confirm, floating add-meal button |
+| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), meal list, delete confirm. The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
 | Progreso | `app/progreso/page.tsx` | Peso + Estadísticas merged (old URLs redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «N de M días registrados», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), link to Perfil, Metodología link, CSV export buttons, template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
@@ -736,8 +737,10 @@ app/src/main/kotlin/com/blackwatermacros/app/
     BearerAuthInterceptor.kt, ResponseErrorMapper.kt (admin error messages)
   ui/
     HoyScreen/ViewModel, MealCard           # Comidas: day navigator, totals, recommendations,
-                                            #   templates row, reorderable meals, undo delete
-    MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue) + validation
+                                            #   reorderable meals, undo delete/add
+    AddFoodSheet.kt                         # «Añadir comida»: manual, copy from another day, templates
+    MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue, toCopyRequest) +
+                                            #   validation; swipe-to-close asks before discarding edits
     NutritionRecommendationsCard.kt, RecommendationsViewModel.kt  # calorie/protein card + intake bars
     ProgressScreen/ViewModel, WeightFormDialog  # Progreso: local stats + weigh-ins (validation = server limits)
     chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a target band)

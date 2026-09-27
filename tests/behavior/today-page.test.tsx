@@ -1,8 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import HoyPage from "@/app/page";
-import { formatNumberEs } from "@/lib/core/dates";
+import { addDaysToKey, formatNumberEs, todayKey } from "@/lib/core/dates";
 import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
 
 /**
@@ -11,8 +11,10 @@ import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
  *    calculado con todas las comidas registradas,
  *  - puede avanzar/retroceder de día para revisar comidas pasadas,
  *  - si no hay comidas, la pantalla lo deja claro e invita a añadir,
- *  - al aplicar una plantilla hay feedback inmediato y no se puede
- *    disparar dos veces sin querer.
+ *  - el botón + abre «Añadir comida»: escribir a mano, copiar de otro día o
+ *    aplicar una plantilla (sin poder dispararla dos veces sin querer),
+ *  - el formulario se cierra al arrastrarlo/pulsar fuera, pero si hay cambios
+ *    pregunta antes de descartarlos.
  */
 
 vi.mock("@/lib/api", () => ({
@@ -53,6 +55,7 @@ vi.mock("@/lib/api", () => ({
 
 import { api } from "@/lib/api";
 import { clearCache } from "@/lib/client-cache";
+import { t } from "@/i18n";
 
 describe("pantalla Hoy", () => {
   beforeEach(() => {
@@ -60,6 +63,10 @@ describe("pantalla Hoy", () => {
     clearCache();
     sessionStorage.clear();
     vi.mocked(api.listTemplates).mockResolvedValue([]);
+    vi.mocked(api.listMeals).mockImplementation(async () => [
+      meal({ title: "Desayuno", kcal: 475, protein: 32.4 }),
+      meal({ title: "Comida", kcal: 850, protein: 45 }),
+    ]);
   });
 
   it("muestra los totales diarios sumando todas las comidas del día", async () => {
@@ -92,40 +99,36 @@ describe("pantalla Hoy", () => {
     expect(vi.mocked(api.listMeals).mock.calls.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("aplicar una plantilla añade la comida, avisa al usuario y bloquea el botón mientras tanto", async () => {
+  async function openAddSheet(user: ReturnType<typeof userEvent.setup>) {
+    await screen.findByText("Desayuno");
+    await user.click(screen.getAllByRole("button", { name: t.hoy.addMeal })[0]);
+    return screen.findByRole("dialog", { name: t.addFood.title });
+  }
+
+  it("aplicar una plantilla desde «Añadir comida» añade la comida y bloquea el botón mientras tanto", async () => {
     const user = userEvent.setup();
     let resolveCreate!: (value: MealDTO) => void;
     vi.mocked(api.createMeal).mockImplementationOnce(
       () => new Promise<MealDTO>((resolve) => (resolveCreate = resolve)),
     );
-    vi.mocked(api.listTemplates).mockResolvedValue([
-      template({ name: "Desayuno salvaje" }),
-    ]);
+    vi.mocked(api.listTemplates).mockResolvedValue([template({ name: "Desayuno salvaje" })]);
     render(<HoyPage />);
 
-    const chip = await screen.findByRole("button", { name: "Desayuno salvaje" });
-    expect(vi.mocked(api.createMeal)).not.toHaveBeenCalled();
-
+    const sheet = await openAddSheet(user);
+    const chip = await within(sheet).findByRole("button", { name: "Desayuno salvaje" });
     await user.click(chip);
 
     expect(vi.mocked(api.createMeal)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(api.createMeal)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Desayuno salvaje",
-        entryMode: "per_ingredient",
-        logDate: expect.any(String),
-      }),
+      expect.objectContaining({ title: "Desayuno salvaje", entryMode: "per_ingredient", logDate: todayKey() }),
     );
-
-    // Mientras la petición vuela, el chip muestra "Añadiendo…" y no se puede re-disparar.
-    const pendingChip = screen.getByRole("button", { name: "Añadiendo…" });
-    expect(pendingChip).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "Desayuno salvaje" })).toBeNull();
+    // Mientras la petición vuela no se puede re-disparar.
+    expect(chip).toBeDisabled();
 
     resolveCreate(meal({ title: "Desayuno salvaje", kcal: 300, protein: 20 }));
-    // Termina la petición: el chip vuelve a su estado normal y la lista se refresca.
-    expect(await screen.findByRole("button", { name: "Desayuno salvaje" })).toBeEnabled();
-    expect(screen.queryByRole("button", { name: "Añadiendo…" })).toBeNull();
+    // Termina: el panel se cierra y la lista se refresca.
+    await waitForDialogToClose(t.addFood.title);
+    expect(vi.mocked(api.listMeals).mock.calls.length).toBeGreaterThan(1);
   });
 
   it("aplicar una plantilla 'solo total' crea la comida con sus macros totales", async () => {
@@ -151,7 +154,8 @@ describe("pantalla Hoy", () => {
     ]);
     render(<HoyPage />);
 
-    await user.click(await screen.findByRole("button", { name: "Cena ligera" }));
+    const sheet = await openAddSheet(user);
+    await user.click(await within(sheet).findByRole("button", { name: "Cena ligera" }));
 
     expect(vi.mocked(api.createMeal)).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -164,7 +168,76 @@ describe("pantalla Hoy", () => {
       }),
     );
   });
+
+  it("«Escribir a mano» abre el formulario vacío", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+
+    const sheet = await openAddSheet(user);
+    await user.click(within(sheet).getByRole("button", { name: new RegExp(t.addFood.manual) }));
+
+    const form = await screen.findByRole("dialog", { name: t.meal.newTitle });
+    expect(within(form).getByLabelText(t.meal.titleLabel)).toHaveValue("");
+  });
+
+  it("copia comidas elegidas de otro día al día que se está viendo", async () => {
+    const user = userEvent.setup();
+    const yesterday = addDaysToKey(todayKey(), -1);
+    vi.mocked(api.listMeals).mockImplementation(async (from: string) =>
+      from === yesterday
+        ? [
+            { ...meal({ title: "Tortilla de ayer", kcal: 400, protein: 25 }), id: "y-1", logDate: yesterday },
+            { ...meal({ title: "Cena de ayer", kcal: 600, protein: 40 }), id: "y-2", logDate: yesterday },
+          ]
+        : [meal({ title: "Desayuno", kcal: 475, protein: 32.4 })],
+    );
+    render(<HoyPage />);
+
+    const sheet = await openAddSheet(user);
+    await user.click(within(sheet).getByRole("button", { name: new RegExp(t.addFood.copy) }));
+
+    const copyButton = within(sheet).getByRole("button", { name: "Copiar (0)" });
+    expect(copyButton).toBeDisabled();
+    await user.click(await within(sheet).findByRole("checkbox", { name: /Tortilla de ayer/ }));
+    await user.click(within(sheet).getByRole("button", { name: "Copiar (1)" }));
+
+    expect(vi.mocked(api.createMeal)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(api.createMeal)).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Tortilla de ayer", logDate: todayKey() }),
+    );
+  });
+
+  it("al cerrar el formulario con cambios pregunta antes de descartarlos", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+
+    const sheet = await openAddSheet(user);
+    await user.click(within(sheet).getByRole("button", { name: new RegExp(t.addFood.manual) }));
+    const form = await screen.findByRole("dialog", { name: t.meal.newTitle });
+    await user.type(within(form).getByLabelText(t.meal.titleLabel), "Merienda");
+
+    await user.click(within(form).getByRole("button", { name: t.meal.cancel }));
+    const confirm = await screen.findByRole("alertdialog", { name: t.addFood.discardTitle });
+    await user.click(within(confirm).getByRole("button", { name: t.addFood.keepEditing }));
+    expect(within(screen.getByRole("dialog", { name: t.meal.newTitle })).getByLabelText(t.meal.titleLabel)).toHaveValue(
+      "Merienda",
+    );
+
+    await user.keyboard("{Escape}");
+    await user.click(
+      within(await screen.findByRole("alertdialog", { name: t.addFood.discardTitle })).getByRole("button", {
+        name: t.addFood.discard,
+      }),
+    );
+    await waitForDialogToClose(t.meal.newTitle);
+    expect(vi.mocked(api.createMeal)).not.toHaveBeenCalled();
+  });
 });
+
+async function waitForDialogToClose(name: string) {
+  const { waitFor } = await import("@testing-library/react");
+  await waitFor(() => expect(screen.queryByRole("dialog", { name })).toBeNull());
+}
 
 function meal(partial: { title: string; kcal: number; protein: number }): MealDTO {
   return {

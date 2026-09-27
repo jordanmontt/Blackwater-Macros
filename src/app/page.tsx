@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AddFoodSheet } from "@/components/meals/add-food-sheet";
 import { DayNavigator } from "@/components/meals/day-navigator";
 import { MealCard } from "@/components/meals/meal-card";
 import { MealForm } from "@/components/meals/meal-form";
@@ -27,14 +28,14 @@ import { useCachedResource } from "@/lib/use-cached-resource";
 import { todayKey } from "@/lib/core/dates";
 import { formatNumberEs } from "@/lib/core/dates";
 import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
-import { formatTemplate, t } from "@/i18n";
+import { t } from "@/i18n";
 
 export default function HoyPage() {
   const [selectedDay, setSelectedDay] = useState<string>(() => todayKey());
   const [formOpen, setFormOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<MealDTO | null>(null);
   const [deletingMeal, setDeletingMeal] = useState<MealDTO | null>(null);
-  const [applyingTemplateId, setApplyingTemplateId] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const mealsKey = `meals:${selectedDay}:${selectedDay}`;
   const mealsRes = useCachedResource<MealDTO[]>(
@@ -92,6 +93,10 @@ export default function HoyPage() {
     setFormOpen(true);
   }
 
+  function openAdd() {
+    setAddOpen(true);
+  }
+
   async function handleSaved() {
     await refreshMeals(selectedDay);
   }
@@ -104,29 +109,6 @@ export default function HoyPage() {
       await refreshMeals(selectedDay);
     } catch {
       toast.error(t.common.errorGeneric);
-    }
-  }
-
-  async function handleApplyTemplate(template: MealTemplateDTO) {
-    setApplyingTemplateId(template.id);
-    try {
-      await api.createMeal({
-        logDate: selectedDay,
-        title: template.title,
-        notes: template.notes,
-        entryMode: template.entryMode,
-        ingredients: template.ingredients,
-        totalCalories: template.entryMode === "total_only" ? template.totalCalories : null,
-        totalProtein: template.entryMode === "total_only" ? template.totalProtein : null,
-        totalCarbs: template.entryMode === "total_only" ? template.totalCarbs : null,
-        totalFat: template.entryMode === "total_only" ? template.totalFat : null,
-      });
-      toast.success(formatTemplate(t.hoy.templateApplied, { name: template.name }));
-      await refreshMeals(selectedDay);
-    } catch {
-      toast.error(t.common.errorGeneric);
-    } finally {
-      setApplyingTemplateId(null);
     }
   }
 
@@ -211,33 +193,13 @@ export default function HoyPage() {
         />
       </section>
 
-      {templates.length > 0 ? (
-        <section aria-label={t.hoy.templates} className="mt-4">
-          <h2 className="text-sm font-medium text-muted-foreground">{t.hoy.applyTemplate}</h2>
-          <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {templates.map((template) => (
-              <Button
-                key={template.id}
-                variant="outline"
-                size="sm"
-                className="shrink-0 rounded-full"
-                disabled={applyingTemplateId !== null}
-                onClick={() => void handleApplyTemplate(template)}
-              >
-                {applyingTemplateId === template.id ? t.hoy.applyingTemplate : template.name}
-              </Button>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
       <section className="mt-5 space-y-3" aria-label={t.hoy.title}>
         {meals === null ? (
           <p className="py-8 text-center text-sm text-muted-foreground">{t.common.loading}</p>
         ) : meals.length === 0 ? (
           <button
             type="button"
-            onClick={openCreate}
+            onClick={openAdd}
             className="w-full rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground transition-colors hover:bg-accent"
           >
             {t.hoy.emptyDay}
@@ -260,6 +222,15 @@ export default function HoyPage() {
           </DndContext>
         )}
       </section>
+
+      <AddFoodSheet
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        day={selectedDay}
+        templates={templates}
+        onManual={openCreate}
+        onAdded={() => refreshMeals(selectedDay)}
+      />
 
       <MealForm
         open={formOpen}
@@ -290,7 +261,7 @@ export default function HoyPage() {
       </AlertDialog>
 
       <Button
-        onClick={openCreate}
+        onClick={openAdd}
         aria-label={t.hoy.addMeal}
         size="icon"
         className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 size-14 rounded-full bg-tertiary text-tertiary-foreground shadow-lg hover:bg-tertiary/90 md:bottom-6"

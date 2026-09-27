@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,6 +112,8 @@ interface NutritionEntryFieldsProps {
   submitLabel: string;
   onCancel: () => void;
   onSubmit: (payload: NutritionPayload) => Promise<void>;
+  /** Told whenever the fields start or stop differing from `draft` (to confirm before discarding). */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 /**
@@ -126,6 +128,7 @@ export function NutritionEntryFields({
   submitLabel,
   onCancel,
   onSubmit,
+  onDirtyChange,
 }: NutritionEntryFieldsProps) {
   const [title, setTitle] = useState(draft.title);
   const [notes, setNotes] = useState(draft.notes);
@@ -136,6 +139,19 @@ export function NutritionEntryFields({
   const [totalCarbs, setTotalCarbs] = useState(draft.totalCarbs);
   const [totalFat, setTotalFat] = useState(draft.totalFat);
   const [error, setError] = useState<string | null>(null);
+
+  const dirty =
+    title !== draft.title ||
+    notes !== draft.notes ||
+    entryMode !== draft.entryMode ||
+    JSON.stringify(ingredients) !== JSON.stringify(draft.ingredients) ||
+    totalCalories !== draft.totalCalories ||
+    totalProtein !== draft.totalProtein ||
+    totalCarbs !== draft.totalCarbs ||
+    totalFat !== draft.totalFat;
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
 
   function updateIngredient(index: number, patch: Partial<IngredientDraft>) {
     setIngredients((current) =>

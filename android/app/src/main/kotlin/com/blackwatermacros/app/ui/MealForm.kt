@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,6 +30,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,6 +75,20 @@ data class MealFormValue(
         totalFat = totalFat,
     )
 
+    /**
+     * A new meal on [logDate] with this content (a template, or a meal copied
+     * from another day). Totals only for «Solo total», as the form sends them.
+     */
+    fun toCopyRequest(logDate: String): MealRequest {
+        val totalOnly = entryMode == WireEntryMode.TOTAL_ONLY
+        return toMealRequest(logDate).copy(
+            totalCalories = totalCalories.takeIf { totalOnly },
+            totalProtein = totalProtein.takeIf { totalOnly },
+            totalCarbs = totalCarbs.takeIf { totalOnly },
+            totalFat = totalFat.takeIf { totalOnly },
+        )
+    }
+
     fun toTemplateRequest() = TemplateRequest(
         name = title,
         title = title,
@@ -95,6 +112,9 @@ fun TemplateDTO.toFormValue() =
  * Create/edit form for meals and templates (the web `MealForm` +
  * `NutritionEntryFields`), in a bottom sheet. Two entry modes: per-ingredient
  * nutrition or a single manual total. Saving is local, so it never fails.
+ * The sheet closes by swiping down, tapping outside or Back — asking first
+ * when there are unsaved edits. [prefilled]: a new meal filled in for the user
+ * (search, barcode, AI) counts as unsaved from the start.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,18 +123,57 @@ fun MealFormSheet(
     initial: MealFormValue?,
     onDismiss: () -> Unit,
     onSubmit: (MealFormValue) -> Unit,
+    prefilled: Boolean = false,
 ) {
+    var dirty by remember { mutableStateOf(prefilled) }
+    var confirmDiscard by remember { mutableStateOf(false) }
+    val currentDirty by rememberUpdatedState(dirty)
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { value ->
+            if (value == SheetValue.Hidden && currentDirty) {
+                confirmDiscard = true
+                false
+            } else {
+                true
+            }
+        },
+    )
+    fun requestDismiss() {
+        if (dirty) confirmDiscard = true else onDismiss()
+    }
+
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-            confirmValueChange = { it != SheetValue.Hidden },
-        ),
+        onDismissRequest = ::requestDismiss,
+        sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
         Column(Modifier.fillMaxWidth().fillMaxHeight(0.9f)) {
-            MealFormFields(heading, initial, onDismiss, onSubmit)
+            MealFormFields(
+                heading = heading,
+                initial = initial,
+                onCancel = ::requestDismiss,
+                onSubmit = onSubmit,
+                onDirtyChange = { dirty = it || prefilled },
+            )
         }
+    }
+
+    if (confirmDiscard) {
+        AlertDialog(
+            onDismissRequest = { confirmDiscard = false },
+            title = { Text(stringResource(R.string.discard_title)) },
+            text = { Text(stringResource(R.string.discard_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDiscard = false
+                    onDismiss()
+                }) { Text(stringResource(R.string.discard), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDiscard = false }) { Text(stringResource(R.string.keep_editing)) }
+            },
+        )
     }
 }
 
@@ -125,6 +184,7 @@ private fun MealFormFields(
     initial: MealFormValue?,
     onCancel: () -> Unit,
     onSubmit: (MealFormValue) -> Unit,
+    onDirtyChange: (Boolean) -> Unit = {},
 ) {
     val totalOnly = initial?.entryMode == WireEntryMode.TOTAL_ONLY
     var mode by rememberSaveable { mutableStateOf(initial?.entryMode ?: WireEntryMode.PER_INGREDIENT) }
@@ -145,6 +205,10 @@ private fun MealFormFields(
         )
     }
     var errorRes by rememberSaveable { mutableStateOf<Int?>(null) }
+
+    val initialState = remember { FormSnapshot(mode, title, notes, ingredients, totals) }
+    val dirty = FormSnapshot(mode, title, notes, ingredients, totals) != initialState
+    LaunchedEffect(dirty) { onDirtyChange(dirty) }
 
     Column(
         Modifier
@@ -258,6 +322,15 @@ private fun MealFormFields(
         }
     }
 }
+
+/** What the user can change, to tell whether the form has unsaved edits. */
+private data class FormSnapshot(
+    val mode: WireEntryMode,
+    val title: String,
+    val notes: String,
+    val ingredients: List<IngredientDraft>,
+    val totals: List<String>,
+)
 
 private fun WireEntryMode.labelRes(): Int = when (this) {
     WireEntryMode.PER_INGREDIENT -> R.string.entry_mode_per_ingredient

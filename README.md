@@ -15,7 +15,10 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
 - **Comidas por día**: título, ingredientes con cantidad y notas. Dos modos de
   registro de nutrición: *por ingrediente* (la app suma calorías, proteína,
   carbohidratos y grasa) o *solo total* (introduces únicamente el total de la comida).
-  Doble toque en la fecha para volver a hoy.
+  Doble toque en la fecha para volver a hoy. El botón **+** abre «Añadir comida»:
+  escribir a mano, **copiar de otro día** (eliges el día y las comidas; con «Deshacer»)
+  o aplicar una plantilla. Los paneles se cierran deslizando hacia abajo y, si has
+  escrito algo, preguntan antes de descartarlo.
 - **Recomendaciones** de calorías (TMB, nivel de actividad calculado a partir de tus días
   de gimnasio y minutos de caminata, TDEE, rango según objetivo) y de proteína (por
   masa magra en definición si registras tu % de grasa), con barras de progreso de lo
@@ -23,7 +26,7 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
 - **Gasto medido**: con 4 semanas de comidas y pesajes frecuentes, la app mide tu gasto
   real por balance energético y lo muestra con su margen de error junto al estimado.
 - **Perfil** (Ajustes → Perfil): objetivo deportivo y datos corporales.
-- **Plantillas**: guarda comidas repetitivas ("Desayuno") y aplícalas en un toque.
+- **Plantillas**: guarda comidas repetitivas ("Desayuno") y aplícalas desde «Añadir comida».
 - **Progreso**: un selector de periodo para toda la pantalla; peso actual,
   tendencia (media móvil de 7 días), cambio, ritmo semanal y grasa corporal con su
   gráfico; calorías diarias con la franja del objetivo; «Promedio de macros» de los

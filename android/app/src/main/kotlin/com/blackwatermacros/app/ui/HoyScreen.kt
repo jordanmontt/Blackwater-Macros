@@ -67,12 +67,12 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 /** Number of fixed non-meal items emitted at the top of the meal LazyColumn. */
-private const val HEADER_COUNT = 3
+private const val HEADER_COUNT = 2
 
 /**
  * "Comidas/Hoy" screen matching the web `today` page: day navigator, daily
- * totals, recommendations card, apply-template row, and a reorderable meal
- * list with create/edit/delete.
+ * totals, recommendations card and a reorderable meal list with edit/delete.
+ * The + button opens «Añadir comida» (manual, copy from another day, templates).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,6 +88,7 @@ fun HoyScreen(
     val templates by viewModel.templates.collectAsStateWithLifecycle()
 
     var formOpen by remember { mutableStateOf(false) }
+    var addOpen by remember { mutableStateOf(false) }
     var editingMeal by remember { mutableStateOf<MealDTO?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -98,7 +99,6 @@ fun HoyScreen(
         if (state is HoyUiState.Loaded) listMeals = (state as HoyUiState.Loaded).meals
     }
 
-    val templateAddedMessage = stringResource(R.string.template_applied)
     val mealDeletedMessage = stringResource(R.string.meal_deleted)
     val undoLabel = stringResource(R.string.action_undo)
 
@@ -116,9 +116,19 @@ fun HoyScreen(
         }
     }
 
-    fun applyTemplate(template: TemplateDTO) {
-        viewModel.applyTemplate(template)
-        scope.launch { snackbarHostState.showSnackbar(templateAddedMessage.format(template.name)) }
+    /** Adds meals right away; the snackbar offers Undo. */
+    fun addMeals(sources: List<MealFormValue>, message: String) {
+        viewModel.addMeals(sources) { ids ->
+            scope.launch {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                val result = snackbarHostState.showSnackbar(
+                    message = message,
+                    actionLabel = undoLabel,
+                    duration = SnackbarDuration.Long,
+                )
+                if (result == SnackbarResult.ActionPerformed) viewModel.deleteMeals(ids)
+            }
+        }
     }
 
     Scaffold(
@@ -134,10 +144,7 @@ fun HoyScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    editingMeal = null
-                    formOpen = true
-                },
+                onClick = { addOpen = true },
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary,
             ) {
@@ -171,26 +178,19 @@ fun HoyScreen(
                     if (loadedMeals.isEmpty()) {
                         EmptyDayContent(
                             totals = totals,
-                            templates = templates,
-                            onApplyTemplate = ::applyTemplate,
                             onOpenProfile = onOpenProfile,
                             onOpenWeight = onOpenWeight,
-                            onAdd = {
-                                editingMeal = null
-                                formOpen = true
-                            },
+                            onAdd = { addOpen = true },
                         )
                     } else {
                         MealList(
                             meals = listMeals,
                             totals = totals,
-                            templates = templates,
                             onEdit = { meal ->
                                 editingMeal = meal
                                 formOpen = true
                             },
                             onDelete = ::deleteMeal,
-                            onApplyTemplate = ::applyTemplate,
                             onOpenProfile = onOpenProfile,
                             onOpenWeight = onOpenWeight,
                             onReorder = { newList ->
@@ -202,6 +202,20 @@ fun HoyScreen(
                 }
             }
         }
+    }
+
+    if (addOpen) {
+        AddFoodSheet(
+            day = day,
+            templates = templates,
+            mealsOn = viewModel::mealsOn,
+            onDismiss = { addOpen = false },
+            onManual = {
+                editingMeal = null
+                formOpen = true
+            },
+            onAdd = ::addMeals,
+        )
     }
 
     if (formOpen) {
@@ -227,10 +241,8 @@ fun HoyScreen(
 private fun MealList(
     meals: List<MealDTO>,
     totals: Totals,
-    templates: List<TemplateDTO>,
     onEdit: (MealDTO) -> Unit,
     onDelete: (MealDTO) -> Unit,
-    onApplyTemplate: (TemplateDTO) -> Unit,
     onOpenProfile: () -> Unit,
     onOpenWeight: () -> Unit,
     onReorder: (List<MealDTO>) -> Unit,
@@ -251,16 +263,6 @@ private fun MealList(
         item(key = "totals") { DailyTotalsCard(totals) }
         item(key = "recommendations") {
             NutritionRecommendationsCard(totals.calories, totals.protein, onOpenProfile, onOpenWeight)
-        }
-        item(key = "templates") {
-            if (templates.isEmpty()) {
-                Spacer(Modifier.height(4.dp))
-            } else {
-                TemplatesRow(
-                    templates = templates,
-                    onApply = onApplyTemplate,
-                )
-            }
         }
         items(meals, key = { it.id }) { meal ->
             ReorderableItem(reorderableState, key = meal.id) { isDragging ->
@@ -286,8 +288,6 @@ private fun MealList(
 @Composable
 private fun EmptyDayContent(
     totals: Totals,
-    templates: List<TemplateDTO>,
-    onApplyTemplate: (TemplateDTO) -> Unit,
     onOpenProfile: () -> Unit,
     onOpenWeight: () -> Unit,
     onAdd: () -> Unit,
@@ -299,15 +299,7 @@ private fun EmptyDayContent(
     ) {
         DailyTotalsCard(totals)
         NutritionRecommendationsCard(totals.calories, totals.protein, onOpenProfile, onOpenWeight)
-        if (templates.isNotEmpty()) {
-            TemplatesRow(
-                templates = templates,
-                onApply = onApplyTemplate,
-            )
-        } else {
-            Spacer(Modifier.height(4.dp))
-        }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
         Surface(
             onClick = onAdd,
             modifier = Modifier
@@ -352,40 +344,7 @@ private fun EmptyDayContent(
 }
 
 @Composable
-private fun TemplatesRow(
-    templates: List<TemplateDTO>,
-    onApply: (TemplateDTO) -> Unit = {},
-) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
-        Text(
-            text = stringResource(R.string.template_apply),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.height(8.dp))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            templates.forEach { template ->
-                OutlinedButton(
-                    onClick = { onApply(template) },
-                    shape = RoundedCornerShape(50),
-                ) {
-                    Text(
-                        template.name,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DayNavigator(
+internal fun DayNavigator(
     day: String,
     isToday: Boolean,
     caption: String,

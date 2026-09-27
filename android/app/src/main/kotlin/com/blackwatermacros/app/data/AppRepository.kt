@@ -44,9 +44,10 @@ class AppRepository(
     fun allMeals(): Flow<List<MealDTO>> =
         db.meals().observeAll().map { rows -> rows.map { it.toDto() } }
 
-    /** Creates ([id] null) or replaces a meal. */
-    suspend fun saveMeal(id: String?, request: MealRequest) {
+    /** Creates ([id] null) or replaces a meal; returns its id. */
+    suspend fun saveMeal(id: String?, request: MealRequest): String {
         val dao = db.meals()
+        val mealId = id ?: newId()
         db.withTransaction {
             val existing = id?.let { dao.get(it) }
             val sortOrder = if (existing != null && existing.logDate == request.logDate) {
@@ -54,9 +55,10 @@ class AppRepository(
             } else {
                 (dao.maxSortOrder(request.logDate) ?: -1) + 1
             }
-            dao.upsert(request.toEntity(id ?: newId(), sortOrder, nowIso()))
+            dao.upsert(request.toEntity(mealId, sortOrder, nowIso()))
         }
         changed()
+        return mealId
     }
 
     suspend fun deleteMeal(id: String) {

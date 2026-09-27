@@ -12,7 +12,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 0 | Plan + decisions confirmed | ☑ | ☑ | #12 |
 | 1 | Core foundations (pure TS + Kotlin) | ☑ | ☑ | #12 |
 | 2 | Progress tab (merge Peso + Estadísticas) | ☑ | ☑ | #12 |
-| 3 | New «Añadir comida» flow: sheet, review form, copy from another day, manual | ☐ | ☐ | |
+| 3 | New «Añadir comida» flow: sheet, review form, copy from another day, manual | ☑ | ☑ | #12 |
 | 4 | Food search + barcode (Open Food Facts + bundled generic foods) | ☐ | ☐ | |
 | 5 | AI settings + AI client (cloud providers, keys, test) | ☐ | ☐ | |
 | 6 | Photo logging with AI (+ text estimate) | ☐ | ☐ | |
@@ -37,6 +37,9 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
 - 2026-09-27 — User asked for **one PR only**: branches consolidated into `ai-features`
   (PR #11 closed, replaced by #12). Phase 2 done as one commit. Next: phase 3, then phase 4
   (the user asked to continue with 4 after this; 4 plugs into 3's add-food flow).
+- 2026-09-27 — Phase 3 done (one commit). Verified on the emulator (swipe closes an empty
+  form, asks with edits, copy + undo) and in the browser at phone size (drag closes the
+  sheet). Next: phase 4, Spanish first (see phase 4 notes).
 - 2026-09-27 — User created a free Gemini key at https://aistudio.google.com/api-keys (that is
   the URL the guide must use). The key is entered by the user in the app (phase 5); it must
   never be pasted into chat, committed, or put in fixtures. Tests use recorded/mock responses.
@@ -317,14 +320,32 @@ browser (demo mode: «Explorar datos de demo» on /login). New Android strings g
   logged days only (a 0 would drag the trend down).
 
 ### Phase 3 — «Añadir comida» flow
-- [ ] Shared «meal draft» state (web hook / Android ViewModel) used by the review form.
-- [ ] Sheet with sources; review form (existing MealForm refactored, both entry modes kept).
-- [ ] Copy from another day (web + Android) with undo.
-- [ ] Fix modal dismiss (drag down / outside tap; discard confirmation if dirty).
-- [ ] Tests: web behavior tests for sheet → review → save, copy; Android `ValidationTest`
-      additions for draft → `MealRequest`.
+- [x] Review form = existing `MealForm` (both entry modes kept) that accepts a pre-filled
+      draft: web `MealForm initial` (a `NutritionDraft`), Android `MealFormSheet(initial,
+      prefilled = true)`. A pre-filled form counts as unsaved (asks before discarding).
+      Phases 4/6 fill it; no separate «draft» store was needed.
+- [x] «Añadir comida» sheet: web `components/meals/add-food-sheet.tsx` (on the new
+      `components/ui/sheet.tsx`), Android `AddFoodSheet.kt`. Sources now: Escribir a mano,
+      Copiar de otro día, templates (moved off the Comidas page). Phase 4 adds Buscar/Código
+      at the top, phase 6 Foto.
+- [x] Copy from another day (web + Android): pick a day, tick meals, copy to the day being
+      viewed; Undo (web toast action, Android snackbar). Shared content → request helpers:
+      web `lib/meal-payload.ts` `copyMealPayload`, Android `MealFormValue.toCopyRequest`;
+      `AppRepository.saveMeal` now returns the id.
+- [x] Dismiss bug fixed: sheets close by dragging down / outside / Back-Esc; the meal form
+      asks «¿Descartar los cambios?» when it has edits (Android no longer blocks `Hidden`).
+- [x] Tests: `today-page` (sheet, templates, manual, copy, discard confirmation);
+      Android `ValidationTest` (`toCopyRequest`), `OfflineSyncTest` (saveMeal returns id).
 
 ### Phase 4 — Search + barcode
+
+**Spanish first (user, 2026-09-27): most users will be Spanish speakers.** So: every
+bundled generic food gets a Spanish name (not only the top 1,000), Spanish names rank first
+when the app language is Spanish, common Spain/Latin-America variants are matched as
+synonyms (plátano/banana, patata/papa, judías/frijoles/porotos, melocotón/durazno,
+zumo/jugo, maíz/choclo, gambas/camarones…), Open Food Facts is queried with `langs=es` and
+Spanish product names preferred, and the review form shows the Spanish name.
+
 - [ ] Generic index build script + generated files (committed) + attribution.
 - [ ] OFF client (web fetch; Android OkHttp with User-Agent), rate-limit/debounce, in-memory
       cache.

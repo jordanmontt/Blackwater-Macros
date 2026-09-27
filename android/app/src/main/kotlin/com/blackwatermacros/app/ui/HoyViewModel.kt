@@ -9,12 +9,12 @@ import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.MealRequest
 import com.blackwatermacros.app.data.TemplateDTO
-import com.blackwatermacros.app.data.WireEntryMode
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -87,22 +87,24 @@ class HoyViewModel(
         viewModelScope.launch { repository.restoreMeal(meal) }
     }
 
-    /** Applies a saved template as a new meal on the current day (web `applyTemplate`). */
-    fun applyTemplate(template: TemplateDTO) {
-        val request = MealRequest(
-            logDate = _day.value,
-            title = template.title,
-            notes = template.notes,
-            entryMode = template.entryMode,
-            ingredients = template.ingredients,
-            totalCalories = totalIfOnly(template.entryMode, template.totalCalories),
-            totalProtein = totalIfOnly(template.entryMode, template.totalProtein),
-            totalCarbs = totalIfOnly(template.entryMode, template.totalCarbs),
-            totalFat = totalIfOnly(template.entryMode, template.totalFat),
-        )
-        viewModelScope.launch { repository.saveMeal(null, request) }
+    /** Meals of any day (the «Copiar de otro día» list). */
+    fun mealsOn(day: String): Flow<List<MealDTO>> = repository.mealsForDay(day)
+
+    /**
+     * Adds meals with the content of [sources] (templates or meals from another
+     * day) to the current day, and reports their ids so the user can undo.
+     */
+    fun addMeals(sources: List<MealFormValue>, onAdded: (List<String>) -> Unit = {}) {
+        val day = _day.value
+        viewModelScope.launch {
+            val ids = sources.map { repository.saveMeal(null, it.toCopyRequest(day)) }
+            onAdded(ids)
+        }
     }
 
-    private fun totalIfOnly(entryMode: WireEntryMode, value: Double?): Double? =
-        if (entryMode == WireEntryMode.TOTAL_ONLY) value else null
+    /** Undo of [addMeals]. */
+    fun deleteMeals(ids: List<String>) {
+        viewModelScope.launch { ids.forEach { repository.deleteMeal(it) } }
+    }
+
 }
