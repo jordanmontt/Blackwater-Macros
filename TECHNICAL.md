@@ -3,6 +3,10 @@
 Everything a developer needs to modify this codebase with confidence.
 For general usage and setup, read [README.md](./README.md) first.
 
+> **Work in progress:** the next version (AI food logging, barcode/search, Progreso and Coach
+> tabs, onboarding) is planned in [docs/AI-PLAN.md](./docs/AI-PLAN.md). Check its Status table
+> before starting any work, and keep it updated.
+
 ---
 
 ## 1. Stack
