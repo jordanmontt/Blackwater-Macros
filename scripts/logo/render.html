@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8">
+<!--
+  Blackwater Macros logo (option B: steel hub). Single source for every icon:
+  scripts/logo/render-icons.sh opens this page in headless Chrome with
+  ?mode=fg|mono|legacy|solo|maskable&px=N and screenshots it.
+  Geometry is in a 108-unit adaptive-icon grid, plate radius 36.6 around (54,54).
+-->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}svg{display:block}</style></head>
+<body><div id="out"></div><script>
+const v = { id: "B", name: "B · Buje de acero", desc: "Como un disco olímpico real: aro metálico cepillado alrededor del agujero, agujero negro.",
+    rim: "#0f2318", body: "#1a3a2a", center: "#1e412f", step: "#0c1d14", text: "#f1ede0", hubRing: "steel", hole: "#050806", kg: true, bwSize: 76, hub: "steel" };
+let uid = 0;
+/** The plate in a 108×108 canvas (adaptive icon grid), radius R around (54,54). */
+function plate(v, R = 36.6) {
+  const k = R / 245; // original artwork was drawn with r=245 in a 512 box
+  const s = (r) => (r * k).toFixed(2);
+  const id = "p" + (uid++);
+  // Proportions measured from public/logo.png (in units where the plate radius is 245).
+  const topR = 158, botR = 206;
+  const top = `<path id="${id}t" d="M${54 - topR * k},54 A${s(topR)},${s(topR)} 0 0,1 ${54 + topR * k},54" fill="none"/>`;
+  const bot = `<path id="${id}b" d="M${54 - botR * k},54 A${s(botR)},${s(botR)} 0 0,0 ${54 + botR * k},54" fill="none"/>`;
+  const kg = v.kg ? `<text font-family="Cinzel,serif" font-weight="900" font-size="${(58 * k).toFixed(2)}" fill="${v.text}" text-anchor="middle" letter-spacing="${(4 * k).toFixed(2)}"><textPath href="#${id}t" startOffset="50%">20 KG</textPath></text>` : "";
+  const bw = `<text font-family="Cinzel,serif" font-weight="900" font-size="${(v.bwSize * k).toFixed(2)}" fill="${v.bwColor || v.text}" text-anchor="middle" letter-spacing="${(8 * k).toFixed(2)}"><textPath href="#${id}b" startOffset="50%">BW</textPath></text>`;
+  const cross = v.cross === false ? "" : `<g stroke="${v.step}" stroke-width="${s(3)}" stroke-linecap="round" opacity=".9">
+      <line x1="${54 - 128 * k}" y1="54" x2="${54 - 60 * k}" y2="54"/><line x1="${54 + 60 * k}" y1="54" x2="${54 + 128 * k}" y2="54"/>
+      <line x1="54" y1="${54 - 128 * k}" x2="54" y2="${54 - 60 * k}"/><line x1="54" y1="${54 + 60 * k}" x2="54" y2="${54 + 128 * k}"/>
+    </g>`;
+  return `
+    <defs>
+      <radialGradient id="${id}steel" cx="45%" cy="40%" r="70%">
+        <stop offset="0" stop-color="#e6e8e3"/><stop offset=".55" stop-color="#9aa09a"/><stop offset="1" stop-color="#5d625d"/>
+      </radialGradient>
+      <radialGradient id="${id}shade" cx="40%" cy="35%" r="75%">
+        <stop offset="0" stop-color="#ffffff" stop-opacity=".07"/><stop offset="1" stop-color="#000000" stop-opacity=".12"/>
+      </radialGradient>
+      ${top}${bot}
+    </defs>
+    <circle cx="54" cy="54" r="${R}" fill="${v.rim}"/>
+    <circle cx="54" cy="54" r="${s(234)}" fill="${v.body}"/>
+    <circle cx="54" cy="54" r="${s(222)}" fill="none" stroke="${v.step}" stroke-width="${s(4)}"/>
+    <circle cx="54" cy="54" r="${s(134)}" fill="${v.center}" stroke="${v.step}" stroke-width="${s(6)}"/>
+    ${cross}
+    ${kg}${bw}
+    ${v.hub === "steel" ? `<circle cx="54" cy="54" r="${s(48)}" fill="url(#${id}steel)"/>` : `<circle cx="54" cy="54" r="${s(46)}" fill="${v.hubRing}"/>`}
+    <circle cx="54" cy="54" r="${s(33)}" fill="${v.hole}"/>
+    <circle cx="54" cy="54" r="${R}" fill="url(#${id}shade)"/>
+  `;
+}
+
+
+const q = new URLSearchParams(location.search);
+const mode = q.get("mode"), px = +q.get("px");
+const R = 36.6, side = 2 * R;
+let body = "";
+if (mode === "fg") {
+  // Adaptive-icon foreground: 108-unit canvas, plate fills the visible 72-unit area.
+  body = `<svg width="${px}" height="${px}" viewBox="0 0 108 108">${plate(v, R)}</svg>`;
+} else if (mode === "solo") {
+  body = `<svg width="${px}" height="${px}" viewBox="${54 - R} ${54 - R} ${side} ${side}">${plate(v, R)}</svg>`;
+} else if (mode === "legacy") {
+  const s = side * 48 / 46;  // round plate with a 1dp margin in a 48dp icon
+  body = `<svg width="${px}" height="${px}" viewBox="${54 - s / 2} ${54 - s / 2} ${s} ${s}">${plate(v, R)}</svg>`;
+} else if (mode === "maskable") {
+  const s = side / 0.8;  // plate = the 80% safe circle, corners in the rim color
+  body = `<svg width="${px}" height="${px}" viewBox="${54 - s / 2} ${54 - s / 2} ${s} ${s}"><rect x="0" y="0" width="108" height="108" fill="${v.rim}"/>${plate(v, R)}</svg>`;
+} else if (mode === "mono") {
+  // Themed-icon layer: white plate silhouette with the hole, rings and lettering cut out.
+  const inner = plate({...v, rim:"#fff", body:"#fff", center:"#fff", step:"#000", text:"#000", hubRing:"#000", hole:"#000", hub:"cream", bwColor:"#000"}, R)
+    .replace(/<circle cx="54" cy="54" r="[^"]+" fill="url\(#[^)]+shade\)"\/>/, "");
+  body = `<svg width="${px}" height="${px}" viewBox="0 0 108 108"><defs><mask id="mm" maskUnits="userSpaceOnUse" x="0" y="0" width="108" height="108">${inner}</mask></defs><rect width="108" height="108" fill="#fff" mask="url(#mm)"/></svg>`;
+}
+document.getElementById("out").innerHTML = body;
+</script></body></html>

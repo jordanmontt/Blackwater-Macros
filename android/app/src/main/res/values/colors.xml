@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Launcher icon background: the app's paper color -->
-    <color name="ic_launcher_background">#F8F6EF</color>
+    <!-- Launcher icon background: the plate's rim green, so the icon is the plate edge to edge -->
+    <color name="ic_launcher_background">#0F2318</color>
     <!-- Window/splash background, same as the Compose theme background (light). -->
     <color name="app_background">#F8F6EF</color>
 </resources>

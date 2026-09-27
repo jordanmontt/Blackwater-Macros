@@ -706,10 +706,14 @@ AndroidX AppCompat per-app locales: the system setting on 13+, stored by AppComp
 of `:core`). `TranslationsTest` fails if a language misses a key or a placeholder. CSV
 column names stay Spanish on purpose (they are the web's file format).
 
-**Logo:** the web's 20 kg «BW» plate (`public/logo.png`) is the adaptive launcher icon
-(`mipmap-*/ic_launcher_foreground.png` on the paper background, plus a monochrome layer
-for themed icons), the splash icon, and `drawable-nodpi/logo_plate.png` on the login
-page. Tab headers have no logo (same on the web).
+**Logo:** the 20 kg «BW» plate with a steel hub. `scripts/logo/render.html` is the single
+vector source; `scripts/logo/render-icons.sh` renders every size with headless Chrome:
+the Android adaptive icon (foreground = the plate filling the visible area, background
+`ic_launcher_background` = the rim green, so launchers show just the plate; monochrome
+layer for themed icons; round legacy icons), `drawable-nodpi/logo_plate.png` (login page),
+and the web's `public/logo.png`, `src/app/icon.png` and PWA icons (maskable = plate in
+the 80 % safe circle on rim green). `public/logo.svg` is a copy of the vector. The app
+label is «Blackwater Macros». Tab headers have no logo (same on the web).
 
 **Comidas date:** double-tap the date to jump back to today (web: double-click /
 double-tap, `touch-manipulation` so phones deliver it). The calorie recommendation card
