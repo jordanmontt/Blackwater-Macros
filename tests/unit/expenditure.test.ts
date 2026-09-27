@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { addDaysToKey } from "../../src/lib/core/dates";
-import { estimateExpenditure, fitWeightTrend } from "../../src/lib/core/expenditure";
+import { dailyMeans, estimateExpenditure, fitWeightTrend } from "../../src/lib/core/expenditure";
 import type { DataPoint } from "../../src/lib/core/stats";
 
 const TODAY = "2026-03-01";
@@ -105,6 +105,30 @@ describe("estimateExpenditure", () => {
     expect(estimateExpenditure(meals(28, 2500), noisy, TODAY)).toBeNull();
     const calm = weighIns(80, 0, 2).map((p, i) => ({ ...p, value: p.value + (i % 2 === 0 ? 0.3 : -0.3) }));
     expect(estimateExpenditure(meals(28, 2500), calm, TODAY)!.margin).toBe(250);
+  });
+});
+
+describe("dailyMeans", () => {
+  it("one point per day, the mean of that day's weigh-ins, sorted by date", () => {
+    expect(
+      dailyMeans([
+        { date: "2026-02-03", value: 79 },
+        { date: "2026-02-01", value: 80 },
+        { date: "2026-02-01", value: 81 },
+      ]),
+    ).toEqual([
+      { date: "2026-02-01", value: 80.5 },
+      { date: "2026-02-03", value: 79 },
+    ]);
+  });
+
+  it("morning and evening weigh-ins do not count twice in the expenditure or its margin", () => {
+    const single = estimateExpenditure(meals(28, 2500), weighIns(80, -0.5), TODAY)!;
+    const twice = weighIns(80, -0.5).flatMap((p) => [p, { date: p.date, value: p.value + 1 }]);
+    const doubled = estimateExpenditure(meals(28, 2500), twice, TODAY)!;
+    expect(doubled.tdee).toBe(single.tdee);
+    expect(doubled.margin).toBe(single.margin);
+    expect(doubled.weighIns).toBe(10);
   });
 });
 

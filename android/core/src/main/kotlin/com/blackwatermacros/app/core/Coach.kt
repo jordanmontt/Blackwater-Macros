@@ -25,8 +25,8 @@ data class WeightProjection(
  */
 fun weightProjection(weights: List<DataPoint>, today: String, days: Int = 30): WeightProjection? {
     val from = addDaysToKey(today, -(EXPENDITURE_WINDOW_DAYS - 1))
-    val recent = weights.filter { it.date >= from && it.date <= today }.sortedBy { it.date }
-    if (recent.map { it.date }.toSet().size < MIN_WEIGH_INS) return null
+    val recent = dailyMeans(weights.filter { it.date >= from && it.date <= today })
+    if (recent.size < MIN_WEIGH_INS) return null
     if (daysBetweenKeys(recent.first().date, recent.last().date) < MIN_WEIGHT_SPAN_DAYS) return null
 
     val trend = fitWeightTrend(recent) ?: return null
@@ -147,10 +147,11 @@ fun buildCoachContext(input: CoachInput): String {
         "Calorie target: not available (profile incomplete)."
     }
     if (protein != null) {
-        val basis = if (protein.basis == ProteinBasis.LEAN_MASS) {
-            "${num(protein.perKg.min)}–${num(protein.perKg.max)} g/kg of ${num(protein.basisKg)} kg lean mass"
-        } else {
-            "${num(protein.perKg.min)}–${num(protein.perKg.max)} g/kg body weight"
+        val basis = when (protein.basis) {
+            ProteinBasis.LEAN_MASS -> "${num(protein.perKg.min)}–${num(protein.perKg.max)} g/kg of ${num(protein.basisKg)} kg lean mass"
+            ProteinBasis.REFERENCE_WEIGHT ->
+                "${num(protein.perKg.min)}–${num(protein.perKg.max)} g/kg of ${num(protein.basisKg)} kg, the weight at BMI 25"
+            ProteinBasis.BODY_WEIGHT -> "${num(protein.perKg.min)}–${num(protein.perKg.max)} g/kg body weight"
         }
         lines += "Protein target: ${num(protein.range.min)}–${num(protein.range.max)} g/day ($basis)."
     }

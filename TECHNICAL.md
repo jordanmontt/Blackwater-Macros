@@ -487,6 +487,10 @@ math**.
   never lowers it. Profile limits cap it at ≈ 2.64.
 - **TDEE** = `round(BMR × PAL)`; `activityFactor` (PAL, 2 decimals) is returned for display.
 - **Target:** fixed offsets — cut −400 (−500…−300), maintain ±100, surplus +300 (+200…+400).
+  **Floor:** `target`, `targetMin` and `targetMax` never go below the BMR (only reached by a
+  cut for small, sedentary people).
+- METs are used as multiples of BMR (an approximation: 1 MET is usually a bit above the real
+  RMR, Byrne et al. 2005, so exercise energy comes out low — conservative).
 
 ### 8.2 Protein (`protein.ts`)
 
@@ -496,10 +500,13 @@ math**.
 | Surplus | 1.6–2.2 | body weight | Morton et al. 2018; Iraki et al. 2019 |
 | Cut | 1.8–2.7 | body weight | ≈ 2.3–3.1 g/kg FFM at typical body fat |
 | Cut, body fat known | 2.3–3.1 | lean mass = weight × (1 − BF%) | Helms et al. 2014 (IJSNEM); Jäger 2017 |
+| Any goal, BMI > 25 (not the lean-mass case) | as above | reference weight = 25 × height² | McClave 2016; checked against Kokura 2024 (>1.3 g/kg actual) |
 
-Callers pass the most recent non-null `bodyFatPct` from any weigh-in. The result has
-`basis` (`bodyWeight` | `leanMass`), `basisKg`, `range` (g/day), `perKg` and `target`
-(midpoint).
+The reference weight is skipped when a logged body fat is normal (< 25 % men, < 33 %
+women ≈ BMI 25, Gallagher et al. 2000): then the high BMI is muscle. Callers pass the most
+recent non-null `bodyFatPct` from any weigh-in and `{ heightCm, gender }` from the profile.
+The result has `basis` (`bodyWeight` | `leanMass` | `referenceWeight`), `basisKg`, `range`
+(g/day), `perKg` and `target` (midpoint).
 
 ### 8.3 Measured expenditure (`expenditure.ts`)
 
@@ -507,6 +514,8 @@ Energy balance over the **28 days before today** (MacroFactor-style):
 `TDEE = mean intake of logged days − β × 7700`, β = least-squares weight slope (kg/day).
 
 - Days without meals (or summing to 0 kcal) are **excluded**, never counted as 0.
+- Weigh-ins are reduced to **one point per day** (`dailyMeans`) before the fit: same-day
+  weigh-ins are not independent measurements (also for the coach's weight projection).
 - Shown only when: ≥ 21 logged days, ≥ 4 weigh-in days spanning ≥ 14 days, and the 95 %
   margin `1.96 × SE(β) × 7700 ≤ 300 kcal/day`, with `SE(β) = σ / √Σ(x − x̄)²` and σ the
   residual SD (n − 2 df), floored at 0.5 kg so a few aligned weigh-ins can't look precise.

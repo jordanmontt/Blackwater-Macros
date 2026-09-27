@@ -1,4 +1,4 @@
-import type { Goal, ProteinRange, ProteinRecommendation } from "./types";
+import type { Gender, Goal, ProteinRange, ProteinRecommendation } from "./types";
 
 /**
  * Evidence-based protein intake ranges (g per kg of body weight per day).
@@ -31,24 +31,68 @@ function perKgRange(min: number, max: number): ProteinRange {
   return { min: Math.round(min * 10) / 10, max: Math.round(max * 10) / 10 };
 }
 
+/**
+ * Above this BMI the g/kg ranges apply to the weight at this BMI instead of the
+ * actual weight. The studies behind the ranges are mostly in normal-weight
+ * people, and fat tissue barely raises protein needs: for 110 kg at 1.80 m the
+ * cut range would otherwise be 198–297 g/day, far above the >1.3 g/kg of actual
+ * weight that already preserves muscle in adults with overweight or obesity
+ * (Kokura et al. 2024). Weight at a reference BMI is how clinical nutrition
+ * doses protein in obesity (McClave et al. 2016).
+ */
+export const REFERENCE_BMI = 25;
+
+/**
+ * Body fat (%) up to which a high BMI is taken to be muscle, not fat: roughly
+ * the fat that corresponds to BMI 25 in adults (Gallagher et al. 2000).
+ */
+export const NORMAL_BODY_FAT_MAX: Record<Gender, number> = { male: 25, female: 33 };
+
 function isUsableBodyFat(bodyFatPct: number | null | undefined): bodyFatPct is number {
   return bodyFatPct != null && bodyFatPct > 0 && bodyFatPct < 100;
+}
+
+/** Height and sex, to tell when a high BMI is likely fat (both optional). */
+export interface ProteinPerson {
+  heightCm: number | null;
+  gender: Gender | null;
+}
+
+/**
+ * The weight at BMI 25 when the BMI is above it and the extra weight is likely
+ * fat, else null. A logged body fat in the normal range means the high BMI is
+ * muscle (common in people who lift), so the actual weight is kept.
+ */
+export function proteinReferenceWeight(
+  weightKg: number,
+  bodyFatPct: number | null,
+  person: ProteinPerson,
+): number | null {
+  if (person.heightCm === null || person.heightCm <= 0) return null;
+  const heightM = person.heightCm / 100;
+  const reference = REFERENCE_BMI * heightM * heightM;
+  if (weightKg <= reference) return null;
+  const muscular =
+    isUsableBodyFat(bodyFatPct) && person.gender !== null && bodyFatPct < NORMAL_BODY_FAT_MAX[person.gender];
+  return muscular ? null : reference;
 }
 
 export function calculateProteinRecommendation(
   weightKg: number,
   goal: Goal,
   bodyFatPct: number | null = null,
+  person: ProteinPerson = { heightCm: null, gender: null },
 ): ProteinRecommendation {
   const useLeanMass = goal === "cut" && isUsableBodyFat(bodyFatPct);
-  const basisKg = useLeanMass ? weightKg * (1 - bodyFatPct / 100) : weightKg;
+  const reference = useLeanMass ? null : proteinReferenceWeight(weightKg, bodyFatPct, person);
+  const basisKg = useLeanMass ? weightKg * (1 - bodyFatPct / 100) : (reference ?? weightKg);
   const factors = useLeanMass ? LEAN_MASS_CUT_RANGE : BODY_WEIGHT_RANGES[goal];
 
   const grams = range(basisKg * factors.min, basisKg * factors.max);
 
   return {
     goal,
-    basis: useLeanMass ? "leanMass" : "bodyWeight",
+    basis: useLeanMass ? "leanMass" : reference !== null ? "referenceWeight" : "bodyWeight",
     basisKg: Math.round(basisKg * 10) / 10,
     range: grams,
     perKg: perKgRange(factors.min, factors.max),

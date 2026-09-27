@@ -155,4 +155,23 @@ describe("calculateCalorieRecommendation", () => {
     expect(recYounger!.bmr).toBe(Math.round(bmrYounger));
     expect(recOlder!.bmr).toBeGreaterThan(recYounger!.bmr);
   });
+
+  it("la definición nunca baja del metabolismo basal", () => {
+    // Mujer de 70 años, 150 cm, 50 kg, sin ejercicio: TMB 927, TDEE 1297.
+    const profile: CalorieProfile = {
+      gender: "female",
+      birthYear: 1956,
+      heightCm: 150,
+      gymDaysPerWeek: 0,
+      gymSessionMinutes: 0,
+      walkingMinutesPerDay: 0,
+      calorieGoal: "cut",
+    };
+    const rec = calculateCalorieRecommendation(profile, 50, 2026)!;
+    expect(rec.bmr).toBe(927);
+    expect(rec.tdee).toBe(1297);
+    expect(rec.targetMin).toBe(927);
+    expect(rec.target).toBe(927);
+    expect(rec.targetMax).toBe(997);
+  });
 });

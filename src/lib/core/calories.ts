@@ -98,14 +98,19 @@ export function calculateCalorieRecommendation(
   );
   const tdee = Math.round(bmr * multiplier);
   const offsets = CALORIE_OFFSETS[profile.calorieGoal!];
+  // Safety floor: the target never goes below the basal metabolic rate. Only a
+  // cut for a small, sedentary person gets there (e.g. TDEE 1540 − 500 = 1040
+  // against a BMR of 1100); a deficit that deep is better left to supervision.
+  const floor = Math.round(bmr);
+  const atLeastBmr = (kcal: number) => Math.max(kcal, floor);
 
   return {
-    bmr: Math.round(bmr),
+    bmr: floor,
     activityFactor: Math.round(multiplier * 100) / 100,
     tdee,
-    target: tdee + offsets.target,
-    targetMin: tdee + offsets.min,
-    targetMax: tdee + offsets.max,
+    target: atLeastBmr(tdee + offsets.target),
+    targetMin: atLeastBmr(tdee + offsets.min),
+    targetMax: atLeastBmr(tdee + offsets.max),
     goal: profile.calorieGoal!,
   };
 }

@@ -141,5 +141,27 @@ class ExpenditureTest {
         assertThat(fitWeightTrend(listOf(DataPoint("2026-02-01", 80.0), DataPoint("2026-02-08", 79.0)))).isNull()
         assertThat(fitWeightTrend(listOf(80.0, 80.5, 79.5).map { DataPoint("2026-02-01", it) })).isNull()
     }
-}
 
+    @Test
+    fun dailyMeans_onePointPerDayTheMeanSortedByDate() {
+        assertThat(
+            dailyMeans(
+                listOf(
+                    DataPoint("2026-02-03", 79.0),
+                    DataPoint("2026-02-01", 80.0),
+                    DataPoint("2026-02-01", 81.0),
+                ),
+            ),
+        ).containsExactly(DataPoint("2026-02-01", 80.5), DataPoint("2026-02-03", 79.0)).inOrder()
+    }
+
+    @Test
+    fun morningAndEveningWeighInsDoNotCountTwice() {
+        val single = estimateExpenditure(meals(28, 2500.0), weighIns(80.0, -0.5), TODAY)!!
+        val twice = weighIns(80.0, -0.5).flatMap { listOf(it, DataPoint(it.date, it.value + 1)) }
+        val doubled = estimateExpenditure(meals(28, 2500.0), twice, TODAY)!!
+        assertThat(doubled.tdee).isEqualTo(single.tdee)
+        assertThat(doubled.margin).isEqualTo(single.margin)
+        assertThat(doubled.weighIns).isEqualTo(10)
+    }
+}

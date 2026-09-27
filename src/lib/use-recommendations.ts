@@ -44,9 +44,12 @@ export function useRecommendations(): {
   const proteinRec = useMemo(
     () =>
       latestWeight && profile.calorieGoal
-        ? calculateProteinRecommendation(latestWeight.weightKg, profile.calorieGoal, bodyFatPct)
+        ? calculateProteinRecommendation(latestWeight.weightKg, profile.calorieGoal, bodyFatPct, {
+            heightCm: profile.heightCm,
+            gender: profile.gender,
+          })
         : null,
-    [latestWeight, profile.calorieGoal, bodyFatPct],
+    [latestWeight, profile.calorieGoal, profile.heightCm, profile.gender, bodyFatPct],
   );
 
   return { weights, latestWeight, calorieRec, proteinRec };

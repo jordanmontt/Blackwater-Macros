@@ -55,6 +55,7 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.proteinRecBody}</p>
         <p>{t.metodologia.proteinRecRanges}</p>
         <p>{t.metodologia.proteinRecFfm}</p>
+        <p>{t.metodologia.proteinRecReference}</p>
       </MethodologyCard>
 
       <MethodologyCard icon={<FlameIcon />} title={t.metodologia.tdeeTitle}>
@@ -236,6 +237,28 @@ const REFERENCES: { authors: string; title: string; source: string; details: str
     source: "J Cachexia Sarcopenia Muscle",
     details: "2022;13(2):795–810.",
     doi: "10.1002/jcsm.12922",
+  },
+  {
+    authors: "Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y",
+    title: "Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index",
+    source: "Am J Clin Nutr",
+    details: "2000;72(3):694–701.",
+    doi: "10.1093/ajcn/72.3.694",
+  },
+  {
+    authors: "McClave SA, Taylor BE, Martindale RG, et al.",
+    title:
+      "Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.)",
+    source: "JPEN J Parenter Enteral Nutr",
+    details: "2016;40(2):159–211.",
+    doi: "10.1177/0148607115621863",
+  },
+  {
+    authors: "Byrne NM, Hills AP, Hunter GR, Weinsier RL, Schutz Y",
+    title: "Metabolic equivalent: one size does not fit all",
+    source: "J Appl Physiol",
+    details: "2005;99(3):1112–1119.",
+    doi: "10.1152/japplphysiol.00023.2004",
   },
 ];
 

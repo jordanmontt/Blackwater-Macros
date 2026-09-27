@@ -72,14 +72,17 @@ fun calculateCalorieRecommendation(
     )
     val tdee = mathRound(bmr * multiplier)
     val offsets = CALORIE_OFFSETS.getValue(profile.calorieGoal!!)
+    // Safety floor: the target never goes below the basal metabolic rate (web `calories.ts`).
+    val floor = mathRound(bmr)
+    fun atLeastBmr(kcal: Double) = maxOf(kcal, floor)
 
     return CalorieRecommendation(
-        bmr = mathRound(bmr),
+        bmr = floor,
         activityFactor = mathRound(multiplier * 100) / 100,
         tdee = tdee,
-        target = tdee + offsets.target,
-        targetMin = tdee + offsets.min,
-        targetMax = tdee + offsets.max,
+        target = atLeastBmr(tdee + offsets.target),
+        targetMin = atLeastBmr(tdee + offsets.min),
+        targetMax = atLeastBmr(tdee + offsets.max),
         goal = profile.calorieGoal!!,
     )
 }

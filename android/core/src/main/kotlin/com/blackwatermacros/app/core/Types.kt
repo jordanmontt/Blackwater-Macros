@@ -164,7 +164,8 @@ data class CalorieRecommendation(
 data class ProteinRange(val min: Double, val max: Double)
 
 /** What the g/kg factors multiply: total body weight or lean (fat-free) mass. */
-enum class ProteinBasis { BODY_WEIGHT, LEAN_MASS }
+/** What the g/kg factors multiply (web `ProteinBasis`). */
+enum class ProteinBasis { BODY_WEIGHT, LEAN_MASS, REFERENCE_WEIGHT }
 
 data class ProteinRecommendation(
     val goal: Goal,

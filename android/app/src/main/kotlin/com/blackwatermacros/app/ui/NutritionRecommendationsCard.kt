@@ -136,10 +136,10 @@ fun NutritionRecommendationsCard(
 internal fun proteinPerKg(protein: ProteinRecommendation): String {
     val min = formatNumber(protein.perKg.min, 1)
     val max = formatNumber(protein.perKg.max, 1)
-    return if (protein.basis == ProteinBasis.LEAN_MASS) {
-        stringResource(R.string.rec_per_kg_lean, min, max, formatNumber(protein.basisKg, 1))
-    } else {
-        stringResource(R.string.rec_per_kg, min, max)
+    return when (protein.basis) {
+        ProteinBasis.LEAN_MASS -> stringResource(R.string.rec_per_kg_lean, min, max, formatNumber(protein.basisKg, 1))
+        ProteinBasis.REFERENCE_WEIGHT -> stringResource(R.string.rec_per_kg_reference, min, max, formatNumber(protein.basisKg, 1))
+        ProteinBasis.BODY_WEIGHT -> stringResource(R.string.rec_per_kg, min, max)
     }
 }
 

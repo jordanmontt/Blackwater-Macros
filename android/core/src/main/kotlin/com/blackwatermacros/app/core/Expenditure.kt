@@ -47,6 +47,16 @@ data class WeightTrend(
 )
 
 /**
+ * One point per day: the mean of that day's weigh-ins, sorted by date (web
+ * `dailyMeans`). Several weigh-ins on one day are not independent measurements
+ * of the trend.
+ */
+fun dailyMeans(points: List<DataPoint>): List<DataPoint> =
+    points.groupBy { it.date }
+        .toSortedMap()
+        .map { (date, values) -> DataPoint(date, values.sumOf { it.value } / values.size) }
+
+/**
  * Least-squares weight trend and its standard error: SE = sigma / sqrt(Sxx),
  * sigma from the residuals (n - 2 degrees of freedom), never below
  * [WEIGHT_NOISE_FLOOR_KG]. Points must be sorted by date.
@@ -91,8 +101,8 @@ fun estimateExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today
     val loggedTotals = caloriesByDay.values.filter { it > 0 }
     if (loggedTotals.size < MIN_LOGGED_DAYS) return null
 
-    val weighIns = weights.filter(inWindow).sortedBy { it.date }
-    val weighInDays = weighIns.map { it.date }.toSet().size
+    val weighIns = dailyMeans(weights.filter(inWindow))
+    val weighInDays = weighIns.size
     if (weighInDays < MIN_WEIGH_INS) return null
     if (daysBetweenKeys(weighIns.first().date, weighIns.last().date) < MIN_WEIGHT_SPAN_DAYS) return null
 

@@ -138,4 +138,16 @@ class CaloriesTest {
         assertThat(recYounger!!.bmr).isEqualTo(round(bmrYounger))
         assertThat(recOlder.bmr).isGreaterThan(recYounger.bmr)
     }
+
+    @Test
+    fun calculateCalorieRecommendation_cutNeverGoesBelowBmr() {
+        // Woman, 70, 150 cm, 50 kg, no exercise: BMR 927, TDEE 1297.
+        val profile = CalorieProfile(Gender.FEMALE, 1956, 150.0, 0, 0, 0, Goal.CUT)
+        val rec = calculateCalorieRecommendation(profile, 50.0, 2026)!!
+        assertThat(rec.bmr).isEqualTo(927.0)
+        assertThat(rec.tdee).isEqualTo(1297.0)
+        assertThat(rec.targetMin).isEqualTo(927.0)
+        assertThat(rec.target).isEqualTo(927.0)
+        assertThat(rec.targetMax).isEqualTo(997.0)
+    }
 }

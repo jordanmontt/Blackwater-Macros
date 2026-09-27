@@ -7,6 +7,7 @@ import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.CalorieRecommendation
 import com.blackwatermacros.app.core.DataPoint
 import com.blackwatermacros.app.core.ExpenditureEstimate
+import com.blackwatermacros.app.core.ProteinPerson
 import com.blackwatermacros.app.core.ProteinRecommendation
 import com.blackwatermacros.app.core.calculateCalorieRecommendation
 import com.blackwatermacros.app.core.calculateProteinRecommendation
@@ -68,7 +69,9 @@ internal fun recommend(
     } else {
         null
     }
-    val protein = profile.calorieGoal?.let { calculateProteinRecommendation(latestWeight.weightKg, it, bodyFatPct) }
+    val protein = profile.calorieGoal?.let {
+        calculateProteinRecommendation(latestWeight.weightKg, it, bodyFatPct, ProteinPerson(profile.heightCm, profile.gender))
+    }
     if (calorie == null && protein == null) return RecommendationsUiState.NeedsProfile
     val expenditure = estimateExpenditure(
         meals.map { DataPoint(it.logDate, it.resolvedCalories) },

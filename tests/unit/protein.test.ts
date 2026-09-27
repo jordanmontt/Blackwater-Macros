@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateProteinRecommendation } from "../../src/lib/core/protein";
+import { calculateProteinRecommendation, proteinReferenceWeight } from "../../src/lib/core/protein";
 
 describe("calculateProteinRecommendation", () => {
   const WEIGHT = 80;
@@ -63,5 +63,49 @@ describe("calculateProteinRecommendation", () => {
     expect(calculateProteinRecommendation(80, "maintain").target).toBe(136);
     expect(calculateProteinRecommendation(80, "surplus").target).toBe(152);
     expect(calculateProteinRecommendation(80, "cut").target).toBe(180);
+  });
+
+  describe("above BMI 25 the ranges use the weight at BMI 25", () => {
+    const tall = { heightCm: 180, gender: "male" as const };
+
+    it("110 kg at 1.80 m: reference 81 kg for every goal without body fat", () => {
+      const maintain = calculateProteinRecommendation(110, "maintain", null, tall);
+      expect(maintain.basis).toBe("referenceWeight");
+      expect(maintain.basisKg).toBe(81);
+      expect(maintain.range).toEqual({ min: 113, max: 162 });
+      const cut = calculateProteinRecommendation(110, "cut", null, tall);
+      expect(cut.range).toEqual({ min: 146, max: 219 });
+      expect(cut.perKg).toEqual({ min: 1.8, max: 2.7 });
+    });
+
+    it("a normal body fat means the high BMI is muscle: actual weight", () => {
+      const lifter = calculateProteinRecommendation(95, "surplus", 12, tall);
+      expect(lifter.basis).toBe("bodyWeight");
+      expect(lifter.range).toEqual({ min: 152, max: 209 });
+      expect(calculateProteinRecommendation(110, "maintain", 30, tall).basis).toBe("referenceWeight");
+    });
+
+    it("women: muscle up to 33 % body fat", () => {
+      const woman = { heightCm: 165, gender: "female" as const };
+      expect(calculateProteinRecommendation(80, "maintain", 30, woman).basis).toBe("bodyWeight");
+      const higher = calculateProteinRecommendation(80, "maintain", 35, woman);
+      expect(higher.basis).toBe("referenceWeight");
+      expect(higher.basisKg).toBe(68.1);
+    });
+
+    it("cutting with body fat keeps the lean-mass rule", () => {
+      const cut = calculateProteinRecommendation(110, "cut", 30, tall);
+      expect(cut.basis).toBe("leanMass");
+      expect(cut.basisKg).toBe(77);
+    });
+
+    it("no change at BMI 25 or below, or without height", () => {
+      expect(calculateProteinRecommendation(80, "maintain", null, tall).basis).toBe("bodyWeight");
+      expect(calculateProteinRecommendation(110, "maintain", null, { heightCm: null, gender: "male" }).basis).toBe(
+        "bodyWeight",
+      );
+      expect(proteinReferenceWeight(81, null, tall)).toBeNull();
+      expect(proteinReferenceWeight(82, null, tall)).toBeCloseTo(81);
+    });
   });
 });

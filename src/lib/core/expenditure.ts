@@ -26,6 +26,24 @@ export const MAX_MARGIN_KCAL = 300;
 /** Two-sided 95 % normal quantile. */
 export const Z_95 = 1.96;
 
+/**
+ * One point per day: the mean of that day's weigh-ins, sorted by date. Several
+ * weigh-ins on one day (morning and evening can differ by a kilo) are not
+ * independent measurements of the trend, so they must not count as several
+ * points in the regression or its error.
+ */
+export function dailyMeans(points: DataPoint[]): DataPoint[] {
+  const byDay = new Map<string, number[]>();
+  for (const point of points) {
+    const values = byDay.get(point.date) ?? [];
+    values.push(point.value);
+    byDay.set(point.date, values);
+  }
+  return [...byDay.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, values]) => ({ date, value: values.reduce((a, b) => a + b, 0) / values.length }));
+}
+
 /** Least-squares line through weigh-ins, with what is needed for its error. */
 export interface WeightTrend {
   slopePerDay: number;
@@ -104,8 +122,8 @@ export function estimateExpenditure(
   const loggedTotals = [...caloriesByDay.values()].filter((kcal) => kcal > 0);
   if (loggedTotals.length < MIN_LOGGED_DAYS) return null;
 
-  const weighIns = weights.filter(inWindow).sort((a, b) => a.date.localeCompare(b.date));
-  const weighInDays = new Set(weighIns.map((point) => point.date)).size;
+  const weighIns = dailyMeans(weights.filter(inWindow));
+  const weighInDays = weighIns.length;
   if (weighInDays < MIN_WEIGH_INS) return null;
   if (daysBetweenKeys(weighIns[0].date, weighIns[weighIns.length - 1].date) < MIN_WEIGHT_SPAN_DAYS) {
     return null;

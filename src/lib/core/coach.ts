@@ -4,6 +4,7 @@ import {
   MIN_WEIGHT_SPAN_DAYS,
   MIN_WEIGH_INS,
   Z_95,
+  dailyMeans,
   fitWeightTrend,
 } from "./expenditure";
 import { round1, round2 } from "./nutrition";
@@ -36,10 +37,8 @@ export interface WeightProjection {
  */
 export function weightProjection(weights: DataPoint[], today: string, days = 30): WeightProjection | null {
   const from = addDaysToKey(today, -(EXPENDITURE_WINDOW_DAYS - 1));
-  const recent = weights
-    .filter((point) => point.date >= from && point.date <= today)
-    .sort((a, b) => a.date.localeCompare(b.date));
-  if (new Set(recent.map((point) => point.date)).size < MIN_WEIGH_INS) return null;
+  const recent = dailyMeans(weights.filter((point) => point.date >= from && point.date <= today));
+  if (recent.length < MIN_WEIGH_INS) return null;
   if (daysBetweenKeys(recent[0].date, recent[recent.length - 1].date) < MIN_WEIGHT_SPAN_DAYS) return null;
 
   const trend = fitWeightTrend(recent);
@@ -165,7 +164,9 @@ export function buildCoachContext(input: CoachInput): string {
     const basis =
       protein.basis === "leanMass"
         ? `${num(protein.perKg.min)}–${num(protein.perKg.max)} g/kg of ${num(protein.basisKg)} kg lean mass`
-        : `${num(protein.perKg.min)}–${num(protein.perKg.max)} g/kg body weight`;
+        : protein.basis === "referenceWeight"
+          ? `${num(protein.perKg.min)}–${num(protein.perKg.max)} g/kg of ${num(protein.basisKg)} kg, the weight at BMI 25`
+          : `${num(protein.perKg.min)}–${num(protein.perKg.max)} g/kg body weight`;
     lines.push(`Protein target: ${num(protein.range.min)}–${num(protein.range.max)} g/day (${basis}).`);
   }
   lines.push(

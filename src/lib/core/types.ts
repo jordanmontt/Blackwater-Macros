@@ -137,13 +137,16 @@ export interface ProteinRange {
   max: number;
 }
 
-/** What the g/kg factors multiply: total body weight or lean (fat-free) mass. */
-export type ProteinBasis = "bodyWeight" | "leanMass";
+/**
+ * What the g/kg factors multiply: total body weight, lean (fat-free) mass, or
+ * the reference weight at BMI 25 when a high BMI is likely fat.
+ */
+export type ProteinBasis = "bodyWeight" | "leanMass" | "referenceWeight";
 
 export interface ProteinRecommendation {
   goal: Goal;
   basis: ProteinBasis;
-  /** The kilograms the factors multiply (body weight, or lean mass when basis is leanMass). */
+  /** The kilograms the factors multiply (body weight, lean mass or reference weight, see `basis`). */
   basisKg: number;
   /** Grams per day. */
   range: ProteinRange;

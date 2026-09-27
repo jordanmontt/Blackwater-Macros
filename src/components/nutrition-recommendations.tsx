@@ -213,8 +213,8 @@ export function NutritionRecommendationsCard({
               {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} g/día
             </p>
             <p className="text-xs text-muted-foreground">
-              {proteinRec.basis === "leanMass"
-                ? formatTemplate(t.protein.perKgLeanMass, {
+              {proteinRec.basis !== "bodyWeight"
+                ? formatTemplate(proteinRec.basis === "leanMass" ? t.protein.perKgLeanMass : t.protein.perKgReference, {
                     min: formatNumberEs(proteinRec.perKg.min, 1),
                     max: formatNumberEs(proteinRec.perKg.max, 1),
                     kg: formatNumberEs(proteinRec.basisKg, 1),

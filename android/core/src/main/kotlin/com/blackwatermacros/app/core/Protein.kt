@@ -23,23 +23,56 @@ private fun range(min: Double, max: Double): ProteinRange = ProteinRange(mathRou
 private fun perKgRange(min: Double, max: Double): ProteinRange =
     ProteinRange(mathRound(min * 10) / 10, mathRound(max * 10) / 10)
 
+/**
+ * Above this BMI the g/kg ranges apply to the weight at this BMI (web `REFERENCE_BMI`):
+ * fat tissue barely raises protein needs (Kokura et al. 2024; McClave et al. 2016).
+ */
+const val REFERENCE_BMI = 25.0
+
+/** Body fat (%) up to which a high BMI is taken to be muscle (Gallagher et al. 2000). */
+val NORMAL_BODY_FAT_MAX: Map<Gender, Double> = mapOf(Gender.MALE to 25.0, Gender.FEMALE to 33.0)
+
 private fun isUsableBodyFat(bodyFatPct: Double?): Boolean =
     bodyFatPct != null && bodyFatPct > 0 && bodyFatPct < 100
+
+/** Height and sex, to tell when a high BMI is likely fat (both optional). */
+data class ProteinPerson(val heightCm: Double?, val gender: Gender?)
+
+/**
+ * The weight at BMI 25 when the BMI is above it and the extra weight is likely
+ * fat, else null. A logged body fat in the normal range means the high BMI is
+ * muscle, so the actual weight is kept.
+ */
+fun proteinReferenceWeight(weightKg: Double, bodyFatPct: Double?, person: ProteinPerson): Double? {
+    val heightCm = person.heightCm?.takeIf { it > 0 } ?: return null
+    val heightM = heightCm / 100
+    val reference = REFERENCE_BMI * heightM * heightM
+    if (weightKg <= reference) return null
+    val muscular = isUsableBodyFat(bodyFatPct) && person.gender != null &&
+        bodyFatPct!! < NORMAL_BODY_FAT_MAX.getValue(person.gender)
+    return if (muscular) null else reference
+}
 
 fun calculateProteinRecommendation(
     weightKg: Double,
     goal: Goal,
     bodyFatPct: Double? = null,
+    person: ProteinPerson = ProteinPerson(null, null),
 ): ProteinRecommendation {
     val useLeanMass = goal == Goal.CUT && isUsableBodyFat(bodyFatPct)
-    val basisKg = if (useLeanMass) weightKg * (1 - bodyFatPct!! / 100) else weightKg
+    val reference = if (useLeanMass) null else proteinReferenceWeight(weightKg, bodyFatPct, person)
+    val basisKg = if (useLeanMass) weightKg * (1 - bodyFatPct!! / 100) else reference ?: weightKg
     val (min, max) = if (useLeanMass) LEAN_MASS_CUT_RANGE else BODY_WEIGHT_RANGES.getValue(goal)
 
     val grams = range(basisKg * min, basisKg * max)
 
     return ProteinRecommendation(
         goal = goal,
-        basis = if (useLeanMass) ProteinBasis.LEAN_MASS else ProteinBasis.BODY_WEIGHT,
+        basis = when {
+            useLeanMass -> ProteinBasis.LEAN_MASS
+            reference != null -> ProteinBasis.REFERENCE_WEIGHT
+            else -> ProteinBasis.BODY_WEIGHT
+        },
         basisKg = mathRound(basisKg * 10) / 10,
         range = grams,
         perKg = perKgRange(min, max),
