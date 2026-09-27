@@ -31,6 +31,9 @@ work = "2.10.3"
 camerax = "1.4.2"
 zxingCpp = "2.3.0"
 
+# On-device AI (optional model downloaded by the user): LiteRT-LM, Apache-2.0, no Play Services.
+litertlm = "0.17.1"
+
 # Test
 junit = "4.13.2"
 truth = "1.4.4"
@@ -95,6 +98,7 @@ camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.
 camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
 camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 zxing-cpp = { group = "io.github.zxing-cpp", name = "android", version.ref = "zxingCpp" }
+litertlm = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-test-core = { group = "androidx.test", name = "core-ktx", version.ref = "androidxTestCore" }

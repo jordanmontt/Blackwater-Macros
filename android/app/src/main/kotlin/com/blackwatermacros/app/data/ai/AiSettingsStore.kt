@@ -19,6 +19,22 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
+/** D5: where each AI feature runs. */
+enum class AiEngineChoice(val id: String) {
+    CLOUD("cloud"),
+    DEVICE("device");
+
+    companion object {
+        fun fromId(id: String?): AiEngineChoice = entries.firstOrNull { it.id == id } ?: CLOUD
+    }
+}
+
+/** The engine a feature can use right now, or null when the chosen one is not set up. */
+fun usableEngine(choice: AiEngineChoice, cloudReady: Boolean, deviceReady: Boolean): AiEngineChoice? = when (choice) {
+    AiEngineChoice.CLOUD -> AiEngineChoice.CLOUD.takeIf { cloudReady }
+    AiEngineChoice.DEVICE -> AiEngineChoice.DEVICE.takeIf { deviceReady }
+}
+
 /** Ajustes → IA (web `lib/ai/settings.ts`): one key and model per provider. */
 data class AiSettings(
     val provider: AiProvider = AiProvider.GEMINI,
@@ -29,6 +45,8 @@ data class AiSettings(
     val baseUrl: String = "",
     /** D11: the coach receives a summary of your data with each question. */
     val coachSeesData: Boolean = true,
+    val photoEngine: AiEngineChoice = AiEngineChoice.CLOUD,
+    val coachEngine: AiEngineChoice = AiEngineChoice.CLOUD,
 ) {
     val config: AiConfig
         get() = AiConfig(
@@ -105,6 +123,8 @@ class AiSettingsStore(private val prefs: SharedPreferences, private val cipher: 
             putString(KEY_PROVIDER, next.provider.id)
             putString(KEY_BASE_URL, next.baseUrl)
             putBoolean(KEY_COACH_DATA, next.coachSeesData)
+            putString(KEY_PHOTO_ENGINE, next.photoEngine.id)
+            putString(KEY_COACH_ENGINE, next.coachEngine.id)
             for (provider in AiProvider.entries) {
                 val key = next.apiKeys[provider].orEmpty()
                 if (key != current.apiKeys[provider].orEmpty()) {
@@ -127,6 +147,8 @@ class AiSettingsStore(private val prefs: SharedPreferences, private val cipher: 
         }.toMap(),
         baseUrl = prefs.getString(KEY_BASE_URL, null).orEmpty(),
         coachSeesData = prefs.getBoolean(KEY_COACH_DATA, true),
+        photoEngine = AiEngineChoice.fromId(prefs.getString(KEY_PHOTO_ENGINE, null)),
+        coachEngine = AiEngineChoice.fromId(prefs.getString(KEY_COACH_ENGINE, null)),
     )
 
     companion object {
@@ -137,5 +159,7 @@ class AiSettingsStore(private val prefs: SharedPreferences, private val cipher: 
         private const val KEY_MODEL = "model."
         private const val KEY_BASE_URL = "baseUrl"
         private const val KEY_COACH_DATA = "coachSeesData"
+        private const val KEY_PHOTO_ENGINE = "photoEngine"
+        private const val KEY_COACH_ENGINE = "coachEngine"
     }
 }

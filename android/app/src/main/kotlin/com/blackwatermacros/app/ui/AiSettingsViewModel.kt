@@ -17,6 +17,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import com.blackwatermacros.app.data.ai.AiEngineChoice
+import com.blackwatermacros.app.data.ai.local.DeviceSupport
+import com.blackwatermacros.app.data.ai.local.LocalEngine
+import com.blackwatermacros.app.data.ai.local.LocalModelManager
+import com.blackwatermacros.app.data.ai.local.LocalModelState
+import com.blackwatermacros.app.data.ai.local.LocalModelSpec
 
 sealed interface AiTestState {
     data object Idle : AiTestState
@@ -35,6 +44,7 @@ fun AiFailure.messageRes(): Int = when (this) {
     AiFailure.EMPTY -> R.string.ai_error_empty
     AiFailure.UNREADABLE -> R.string.ai_error_unreadable
     AiFailure.PROVIDER -> R.string.ai_error_provider
+    AiFailure.NO_VISION -> R.string.local_model_no_vision
 }
 
 @StringRes
@@ -50,9 +60,37 @@ fun AiProvider.labelRes(): Int = when (this) {
 class AiSettingsViewModel(
     private val store: AiSettingsStore = AppGraph.aiSettings,
     private val client: AiClient = AppGraph.ai,
+    private val models: LocalModelManager = AppGraph.localModels,
+    private val local: LocalEngine = AppGraph.localEngine,
 ) : ViewModel() {
 
     val settings: StateFlow<AiSettings> = store.settings
+
+    val modelState: StateFlow<LocalModelState> = models.state
+    val selectedModel: StateFlow<LocalModelSpec> = models.selected
+
+    fun support(model: LocalModelSpec): DeviceSupport = models.support(model)
+
+    fun selectModel(model: LocalModelSpec) = models.select(model)
+
+    /** D6: null until known; false = the model takes no images, photos stay in the cloud. */
+    val deviceVision: StateFlow<Boolean?> = models.state
+        .map { if (it == LocalModelState.Ready) local.supportsImages() else null }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun downloadModel(anyNetwork: Boolean) = models.download(anyNetwork)
+
+    fun cancelDownload() = models.cancel()
+
+    /** Frees the space; features that used the phone go back to the cloud. */
+    fun deleteModel() {
+        store.update { it.copy(photoEngine = AiEngineChoice.CLOUD, coachEngine = AiEngineChoice.CLOUD) }
+        models.delete { local.release() }
+    }
+
+    fun setPhotoEngine(choice: AiEngineChoice) = update { it.copy(photoEngine = choice) }
+
+    fun setCoachEngine(choice: AiEngineChoice) = update { it.copy(coachEngine = choice) }
 
     private val _test = MutableStateFlow<AiTestState>(AiTestState.Idle)
     val test: StateFlow<AiTestState> = _test.asStateFlow()

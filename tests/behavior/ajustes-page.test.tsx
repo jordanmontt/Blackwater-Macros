@@ -13,6 +13,7 @@ import { emptyCalorieProfile, templateDto } from "../helpers/repos";
  *  - enlaza a "Perfil" (objetivo y datos corporales viven allí),
  *  - exportar comidas y peso apunta a la API (CSV),
  *  - crea, edita y borra plantillas (el formulario es "@/components/meals/template-form"),
+ *    en una sección plegada por defecto (con muchas plantillas la lista sería enorme),
  *  - cierra la sesión de forma explícita.
  */
 
@@ -147,9 +148,21 @@ describe("pantalla Ajustes", () => {
     expect(weightsLink).toHaveAttribute("href", "/api/export/weights");
   });
 
+  it("las plantillas empiezan plegadas y se despliegan al tocar el título", async () => {
+    const user = userEvent.setup();
+    render(<AjustesPage />);
+    const header = await screen.findByRole("button", { name: new RegExp(`^${t.hoy.templates}`) });
+    expect(header).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: t.meal.delete })).toBeNull();
+    await user.click(header);
+    expect(header).toHaveAttribute("aria-expanded", "true");
+    expect(await screen.findByRole("button", { name: t.meal.delete })).toBeInTheDocument();
+  });
+
   it("borra una plantilla y la quita de la lista", async () => {
     const user = userEvent.setup();
     render(<AjustesPage />);
+    await user.click(await screen.findByRole("button", { name: new RegExp(`^${t.hoy.templates}`) }));
     await screen.findByRole("button", { name: t.meal.delete });
 
     // Tras borrar, el servidor ya no devuelve la plantilla: la lista se
@@ -164,6 +177,7 @@ describe("pantalla Ajustes", () => {
   it("abre el formulario de nueva plantilla y al guardar la añade a la lista", async () => {
     const user = userEvent.setup();
     render(<AjustesPage />);
+    await user.click(await screen.findByRole("button", { name: new RegExp(`^${t.hoy.templates}`) }));
 
     // El formulario apunta al widget real (mockeado). Al guardar, la lista se
     // refresca desde la (mockeada) base de datos y aparece la nueva plantilla.

@@ -18,8 +18,8 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 6 | Photo logging with AI (+ text estimate) | ☑ | ☑ | #12 |
 | 7 | Coach tab | ☑ | ☑ | #12 |
 | 8 | Onboarding (first launch) | ☑ | ☑ | #12 |
-| 9 | On-device AI (Android: LiteRT-LM + Gemma 4) | — | ☐ | |
-| 10 | Local AI on the web (optional, see D9) | ☐ | — | |
+| 9 | On-device AI (Android: LiteRT-LM + Gemma 4) | — | ☑ | #12 |
+| 10 | Local AI on the web (optional, see D9) | ✗ | — | dropped by the user |
 | 11 | Docs, F-Droid metadata, release | ☐ | ☐ | |
 
 Legend: ☐ todo · ◐ in progress · ☑ done. **Workflow (user's choice): everything goes on the
@@ -65,6 +65,27 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
   → AI step → done → Comidas; «Saltar» returns to Comidas and Back leaves the app (a start
   destination of `bienvenida` had broken the tab back stack: fixed). Browser checked at phone
   size. Next: phase 9 (on-device AI).
+- 2026-09-27 — User: continue with phase 9; then said **not** to do phase 10 (web local AI is
+  dropped; «Otro compatible con OpenAI» still covers Ollama/LM Studio on the web).
+- 2026-09-27 — Phase 9 done in two commits (Kotlin upgrade; on-device AI). Verified on the
+  arm64 emulator (3 GB RAM) with the real model pushed into `no_backup/models`: capabilities
+  report vision, the Coach answered in Spanish streamed on CPU (~5 min on the emulator; GPU
+  failed there → CPU retry), a photo estimate ran on CPU for 10+ min (emulator vision on CPU
+  is impractically slow; real phones use the GPU). The in-app 2.6 GB download itself was
+  covered by tests (resume, checksum), not run end to end on the emulator.
+  **Open:** that on-device photo estimate came back unreadable (the JSON did not parse); the raw
+  answer is now logged in debug builds (`MealEstimator`) to find out why. User asked why the
+  APK grew (81 MB debug): LiteRT-LM native code 21.8 MB arm64 + 26 MB x86_64, stored
+  uncompressed, plus 25 MB of unminified dex — options (per-ABI APKs, R8, optional flavor)
+  to decide with the user.
+- 2026-09-27 — User tested the debug APK. Feedback done: provider as a dropdown (Android; the
+  web already had a select), Ajustes order Apariencia · Idioma · Cuenta · Perfil · IA ·
+  Plantillas (collapsed) · Tus datos · Metodología · Ver tutorial · Administración (web: same
+  without Idioma), photo tips always shown (not dismissible), new example «Estima los macros
+  de una hamburguesa con papas», status-bar icons follow the app theme (were dark on the
+  dark theme), «Registrar peso» labelled button in Progreso, choice of on-device model.
+  Debug builds start slowly on the 3 GB emulator (24 s interpreted, ~5 s once compiled):
+  a release build with R8 + baseline profile is part of the size work.
 
 ---
 
@@ -441,17 +462,33 @@ Spanish product names preferred, and the review form shows the Spanish name.
   up to Comidas (not the graph start, which can be `bienvenida`).
 
 ### Phase 9 — On-device AI (Android)
-- [ ] Upgrade Kotlin to ≥ 2.2 (LiteRT-LM requirement; project is on 2.1.20) — separate
-      commit, full gate.
-- [ ] `com.google.ai.edge.litertlm:litertlm-android`; `OnDeviceEngine` implementing
-      `AiEngine`; model download via WorkManager (foreground, resumable, progress, Wi-Fi
-      default), checksum, delete. arm64 only: hide the option on unsupported devices / < 6 GB
-      RAM.
-- [ ] Verify multimodal (D6); JSON output reliability → stricter prompt + core parser retries
-      once.
-- [ ] F-Droid: confirm LiteRT-LM is acceptable (Chompass precedent) before merging.
+- [x] Upgrade Kotlin (LiteRT-LM 0.17.1 is built with Kotlin 2.4): now **Kotlin 2.4.20, KSP
+      2.3.12**, `kotlinOptions` → `compilerOptions` — separate commit, full gate.
+- [x] `litertlm-android:0.17.1` (Apache-2.0); `data/ai/local/LocalEngine.kt` (same shapes as
+      the cloud client: streamed chat, whole JSON answer); `ModelDownloader` (Range resume,
+      SHA-256, delete on mismatch) + `LocalModelManager`/`ModelDownloadWorker` (WorkManager,
+      foreground `dataSync`, Wi-Fi unless the user allows mobile data, progress
+      notification); delete frees the engine and the file. Model in `noBackupFilesDir`.
+      `deviceSupport`: arm64 and ≥ ~6 GB RAM (debug builds skip the RAM check).
+- [x] Verify multimodal (D6): `Capabilities.inputModalities().vision` is true for
+      `gemma-4-E2B-it.litertlm`, so «Teléfono» is offered for photos too (it asks the model,
+      so another file without vision would fall back to «las fotos usan la nube»). JSON: the
+      on-device call uses LiteRT-LM constrained decoding with `MEAL_ESTIMATE_SCHEMA`.
+- [ ] F-Droid: confirm LiteRT-LM is acceptable (prebuilt `.so` from Google Maven, Apache-2.0;
+      Chompass precedent) before merging — see phase 11.
+- Engine choice (D5): Ajustes → IA → «Modelo en el teléfono»: download (2.6 GB warning),
+  progress, then «Usar para fotos / para el coach: Nube · Teléfono», «Eliminar el modelo».
+  Coach footer shows «Gemma 4 E2B · teléfono». GPU first, CPU fallback — some GPUs (the
+  emulator's) fail only when the first message runs, so a failed request reloads on CPU and
+  retries once.
+- Cost: the APK grows ~48 MB (arm64 + x86_64 native code) → per-ABI APKs in phase 11.
+- **Model choice** (user request after testing): `LocalModels` catalog — Gemma 4 E2B (2.6 GB,
+  photos, ~6 GB RAM, default), Gemma 4 E4B (3.7 GB, photos, more precise, ~8 GB RAM), Qwen3
+  1.7B (1.0 GB, coach only, ~4 GB RAM); all `litert-community`, not gated, Apache-2.0,
+  SHA-256 pinned. One model on the phone at a time (a new download replaces the old); the
+  RAM check is per model.
 
-### Phase 10 — Local AI on the web (low effort, D9)
+### Phase 10 — Local AI on the web (low effort, D9) — ✗ dropped by the user (2026-09-27)
 - [ ] WebLLM (`@mlc-ai/web-llm`, loaded lazily so it does not weigh on the normal bundle),
       `navigator.gpu` check, one small model, download with progress + size warning, Coach
       only. Hidden/disabled with a one-line reason when WebGPU is missing (common on phones).

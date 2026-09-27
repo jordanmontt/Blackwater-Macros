@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { InfoIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { InfoIcon, PencilIcon, WeightIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import {
   CartesianGrid,
@@ -170,13 +170,13 @@ export default function ProgresoPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Labelled: a bare «+» here did not say it logs a weigh-in. */}
       <Button
         onClick={() => openForm(null)}
-        aria-label={t.peso.addTitle}
-        size="icon"
-        className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 size-14 rounded-full bg-tertiary text-tertiary-foreground shadow-lg hover:bg-tertiary/90 md:bottom-6"
+        className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 h-14 gap-2 rounded-full bg-tertiary px-5 text-base text-tertiary-foreground shadow-lg hover:bg-tertiary/90 md:bottom-6"
       >
-        <PlusIcon className="size-6" />
+        <WeightIcon className="size-5" />
+        {t.peso.addTitle}
       </Button>
     </main>
   );

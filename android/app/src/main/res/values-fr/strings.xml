@@ -383,7 +383,6 @@
     <string name="photo_hint">L\'IA estime les macros</string>
     <string name="photo_tips_title">Pour une bonne estimation</string>
     <string name="photo_tips">• Prenez plusieurs photos sous différents angles.\n• Incluez une fourchette ou votre main pour l\'échelle.\n• Photographiez aussi l\'étiquette nutritionnelle s\'il y en a une.\n• Décrivez ce qui ne se voit pas : huile, sauces, sucre.</string>
-    <string name="photo_hide_tips">Compris</string>
     <string name="photo_camera">Prendre une photo</string>
     <string name="photo_gallery">Galerie</string>
     <string name="photo_remove">Retirer la photo %1$d</string>
@@ -429,6 +428,7 @@
         <item>Que manger aujourd\'hui pour atteindre mes calories ?</item>
         <item>Que manger ce soir ?</item>
         <item>Combien de macros dans 3 bananes ?</item>
+        <item>Estime les macros d\'un burger avec des frites</item>
         <item>Évalue mon alimentation de la semaine</item>
     </string-array>
 
@@ -458,4 +458,40 @@
     <string name="onboarding_start">Commencer</string>
     <string name="onboarding_replay">Voir le tutoriel</string>
     <string name="onboarding_replay_hint">Revoir les premiers pas.</string>
+
+    <!-- On-device AI (phase 9) -->
+    <string name="local_model_title">Modèle sur le téléphone</string>
+    <string name="local_model_description">Fonctionne sans internet et rien ne quitte votre téléphone. Moins précis que le cloud, et plus lent.</string>
+    <string name="local_model_unsupported">Ce téléphone ne peut pas utiliser le modèle (il faut un processeur ARM 64 bits).</string>
+    <string name="local_model_checksum_failed">Le fichier téléchargé était endommagé et a été supprimé. Réessayez.</string>
+    <string name="local_model_failed">Le téléchargement a échoué. Réessayez.</string>
+    <string name="local_model_choose">Modèle</string>
+    <string name="local_model_needs_ram">Ce téléphone n\'a pas assez de RAM pour ce modèle (il faut environ %1$s Go). Choisissez-en un plus léger.</string>
+    <string name="local_model_note_e2b">Recommandé. Lit les photos. Environ 6 Go de RAM.</string>
+    <string name="local_model_note_e4b">Plus précis, plus lent et plus gros. Lit les photos. Environ 8 Go de RAM.</string>
+    <string name="local_model_note_qwen">Léger. Coach seulement (ne lit pas les photos). Environ 4 Go de RAM.</string>
+    <string name="local_model_download">Télécharger (%1$s Go)</string>
+    <string name="local_model_waiting">En attente du Wi-Fi…</string>
+    <string name="local_model_progress">Téléchargement… %1$d %%</string>
+    <string name="local_model_ready">Téléchargé. Choisissez ce qui tourne sur le téléphone :</string>
+    <string name="local_model_use_photos">Utiliser pour les photos</string>
+    <string name="local_model_use_coach">Utiliser pour le coach</string>
+    <string name="local_model_no_vision">Ce modèle ne lit pas les photos : les photos passent par le cloud.</string>
+    <string name="local_model_delete">Supprimer le modèle</string>
+    <string name="local_model_confirm_title">Télécharger le modèle ?</string>
+    <string name="local_model_warning">Il occupe %1$s Go et demande environ %2$s Go de RAM. Il se télécharge en arrière-plan, en Wi-Fi sauf si vous autorisez les données mobiles. Il est moins précis que le cloud.</string>
+    <string name="local_model_mobile_data">Utiliser aussi les données mobiles</string>
+    <string name="local_model_confirm">Télécharger</string>
+    <string name="local_model_delete_body">Libère %1$s Go. Les photos et le coach repassent par le cloud.</string>
+    <string name="local_model_cloud">Cloud</string>
+    <string name="local_model_device">Téléphone</string>
+    <string name="local_model_channel">Téléchargement du modèle</string>
+    <string name="local_model_downloading">Téléchargement de %1$s</string>
+    <string name="coach_engine_device">%1$s · téléphone</string>
+    <string name="photo_max_device">Jusqu\'à %1$d photos. Elles ne sont pas conservées et ne quittent pas votre téléphone.</string>
+    <plurals name="templates_count">
+        <item quantity="one">%d modèle</item>
+        <item quantity="many">%d modèles</item>
+        <item quantity="other">%d modèles</item>
+    </plurals>
 </resources>

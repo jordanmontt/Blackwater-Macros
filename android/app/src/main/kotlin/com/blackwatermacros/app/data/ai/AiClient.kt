@@ -25,7 +25,11 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /** Web `AiFailure`: what the user is told when a call fails. */
-enum class AiFailure { NOT_CONFIGURED, INVALID_KEY, QUOTA, NOT_FOUND, OFFLINE, EMPTY, UNREADABLE, PROVIDER }
+enum class AiFailure {
+    NOT_CONFIGURED, INVALID_KEY, QUOTA, NOT_FOUND, OFFLINE, EMPTY, UNREADABLE, PROVIDER,
+    /** The on-device model does not take images (D6). */
+    NO_VISION,
+}
 
 class AiException(val failure: AiFailure, detail: String = "") : Exception(detail.ifEmpty { failure.name })
 

@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
     implementation(libs.zxing.cpp)
+    implementation(libs.litertlm)
 
     coreLibraryDesugaring(libs.android.jdk.desugaring)
 

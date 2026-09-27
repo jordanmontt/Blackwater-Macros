@@ -60,6 +60,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.AiProvider
 import com.blackwatermacros.app.core.AiRole
+import com.blackwatermacros.app.data.ai.AiEngineChoice
 
 /** Short provider name for «Gemini · nube». */
 fun AiProvider.shortLabelRes(): Int = when (this) {
@@ -84,6 +85,8 @@ fun CoachScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val settings by viewModel.aiSettings.collectAsStateWithLifecycle()
+    val engine by viewModel.engine.collectAsStateWithLifecycle()
+    val localModel by viewModel.localModelSpec.collectAsStateWithLifecycle()
     var draft by rememberSaveable { mutableStateOf("") }
     val listState = rememberLazyListState()
     val lastLength = state.messages.lastOrNull()?.text?.length ?: 0
@@ -120,7 +123,7 @@ fun CoachScreen(
         },
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
-            if (!settings.ready) {
+            if (engine == null) {
                 SettingsCard(null) {
                     Text(stringResource(R.string.coach_not_configured), style = MaterialTheme.typography.bodyMedium)
                     Spacer(Modifier.height(12.dp))
@@ -187,10 +190,14 @@ fun CoachScreen(
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                val engine = stringResource(R.string.coach_engine, stringResource(settings.provider.shortLabelRes()))
+                val engineLabel = if (engine == AiEngineChoice.DEVICE) {
+                    stringResource(R.string.coach_engine_device, localModel.name)
+                } else {
+                    stringResource(R.string.coach_engine, stringResource(settings.provider.shortLabelRes()))
+                }
                 val noData = if (settings.coachSeesData) "" else " · " + stringResource(R.string.coach_no_data)
                 Text(
-                    "${stringResource(R.string.coach_disclaimer)} $engine$noData",
+                    "${stringResource(R.string.coach_disclaimer)} $engineLabel$noData",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

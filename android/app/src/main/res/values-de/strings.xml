@@ -372,7 +372,6 @@
     <string name="photo_hint">Die KI schätzt die Makros</string>
     <string name="photo_tips_title">Für eine gute Schätzung</string>
     <string name="photo_tips">• Mach mehrere Fotos aus verschiedenen Winkeln.\n• Nimm eine Gabel oder deine Hand als Maßstab mit aufs Bild.\n• Fotografiere auch die Nährwerttabelle, falls vorhanden.\n• Beschreibe, was man nicht sieht: Öl, Soßen, Zucker.</string>
-    <string name="photo_hide_tips">Verstanden</string>
     <string name="photo_camera">Foto aufnehmen</string>
     <string name="photo_gallery">Galerie</string>
     <string name="photo_remove">Foto %1$d entfernen</string>
@@ -418,6 +417,7 @@
         <item>Was esse ich heute, um meine Kalorien zu erreichen?</item>
         <item>Was esse ich zu Abend?</item>
         <item>Wie viele Makros haben 3 Bananen?</item>
+        <item>Schätze die Makros eines Burgers mit Pommes</item>
         <item>Bewerte meine Ernährung dieser Woche</item>
     </string-array>
 
@@ -447,4 +447,39 @@
     <string name="onboarding_start">Loslegen</string>
     <string name="onboarding_replay">Tutorial ansehen</string>
     <string name="onboarding_replay_hint">Die ersten Schritte noch einmal ansehen.</string>
+
+    <!-- On-device AI (phase 9) -->
+    <string name="local_model_title">Modell auf dem Telefon</string>
+    <string name="local_model_description">Funktioniert ohne Internet und nichts verlässt dein Telefon. Ungenauer als die Cloud und langsamer.</string>
+    <string name="local_model_unsupported">Dieses Telefon kann das Modell nicht ausführen (es braucht einen 64-Bit-ARM-Prozessor).</string>
+    <string name="local_model_checksum_failed">Die heruntergeladene Datei war beschädigt und wurde gelöscht. Versuche es erneut.</string>
+    <string name="local_model_failed">Der Download ist fehlgeschlagen. Versuche es erneut.</string>
+    <string name="local_model_choose">Modell</string>
+    <string name="local_model_needs_ram">Dieses Telefon hat nicht genug RAM für dieses Modell (es braucht etwa %1$s GB). Wähle ein leichteres.</string>
+    <string name="local_model_note_e2b">Empfohlen. Liest Fotos. Etwa 6 GB RAM.</string>
+    <string name="local_model_note_e4b">Genauer, langsamer und größer. Liest Fotos. Etwa 8 GB RAM.</string>
+    <string name="local_model_note_qwen">Leicht. Nur für den Coach (liest keine Fotos). Etwa 4 GB RAM.</string>
+    <string name="local_model_download">Herunterladen (%1$s GB)</string>
+    <string name="local_model_waiting">Warte auf WLAN…</string>
+    <string name="local_model_progress">Wird heruntergeladen… %1$d %%</string>
+    <string name="local_model_ready">Heruntergeladen. Wähle, was auf dem Telefon läuft:</string>
+    <string name="local_model_use_photos">Für Fotos verwenden</string>
+    <string name="local_model_use_coach">Für den Coach verwenden</string>
+    <string name="local_model_no_vision">Dieses Modell kann keine Fotos lesen: Fotos laufen über die Cloud.</string>
+    <string name="local_model_delete">Modell löschen</string>
+    <string name="local_model_confirm_title">Modell herunterladen?</string>
+    <string name="local_model_warning">Es belegt %1$s GB und braucht etwa %2$s GB RAM. Der Download läuft im Hintergrund, über WLAN, außer du erlaubst mobile Daten. Es ist ungenauer als die Cloud.</string>
+    <string name="local_model_mobile_data">Auch mobile Daten verwenden</string>
+    <string name="local_model_confirm">Herunterladen</string>
+    <string name="local_model_delete_body">Gibt %1$s GB frei. Fotos und Coach laufen wieder über die Cloud.</string>
+    <string name="local_model_cloud">Cloud</string>
+    <string name="local_model_device">Telefon</string>
+    <string name="local_model_channel">Modell-Download</string>
+    <string name="local_model_downloading">%1$s wird heruntergeladen</string>
+    <string name="coach_engine_device">%1$s · Telefon</string>
+    <string name="photo_max_device">Bis zu %1$d Fotos. Sie werden nicht gespeichert und verlassen dein Telefon nicht.</string>
+    <plurals name="templates_count">
+        <item quantity="one">%d Vorlage</item>
+        <item quantity="other">%d Vorlagen</item>
+    </plurals>
 </resources>

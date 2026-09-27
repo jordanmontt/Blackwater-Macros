@@ -19,18 +19,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,6 +58,7 @@ import com.blackwatermacros.app.core.DEFAULT_MODELS
 const val AI_STUDIO_URL = "https://aistudio.google.com/api-keys"
 
 /** Ajustes → Inteligencia artificial (§4.4 of docs/AI-PLAN.md). */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -89,17 +94,33 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
             SettingsCard(null) { CardDescription(stringResource(R.string.ai_description)) }
 
             SettingsCard(stringResource(R.string.ai_provider)) {
-                AiProvider.entries.forEach { option ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { viewModel.setProvider(option) }
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                var menuExpanded by rememberSaveable { mutableStateOf(false) }
+                ExposedDropdownMenuBox(expanded = menuExpanded, onExpandedChange = { menuExpanded = !menuExpanded }) {
+                    val label = stringResource(provider.labelRes())
+                    CompactField(
+                        value = label,
+                        onValueChange = {},
+                        placeholder = label,
+                        readOnly = true,
+                        trailingIcon = {
+                            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        },
+                        modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                    )
+                    ExposedDropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     ) {
-                        RadioButton(selected = option == provider, onClick = null)
-                        Spacer(Modifier.width(12.dp))
-                        Text(stringResource(option.labelRes()), style = MaterialTheme.typography.bodyMedium)
+                        AiProvider.entries.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(option.labelRes())) },
+                                onClick = {
+                                    viewModel.setProvider(option)
+                                    menuExpanded = false
+                                },
+                            )
+                        }
                     }
                 }
                 if (provider == AiProvider.GEMINI) {
@@ -187,6 +208,8 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
                     }
                 }
             }
+
+            LocalModelSection(viewModel)
 
             SettingsCard(null) {
                 Row(

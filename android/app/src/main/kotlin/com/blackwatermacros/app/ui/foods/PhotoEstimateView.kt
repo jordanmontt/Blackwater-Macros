@@ -78,7 +78,7 @@ fun PhotoEstimateView(
     val photos by viewModel.photos.collectAsStateWithLifecycle()
     val description by viewModel.description.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val tipsVisible by viewModel.tipsVisible.collectAsStateWithLifecycle()
+    val onDevice by viewModel.onDevice.collectAsStateWithLifecycle()
 
     if (!ready) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -127,19 +127,16 @@ fun PhotoEstimateView(
     val full = photos.size >= MAX_PHOTOS
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (tipsVisible) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f))
-                    .padding(start = 12.dp, end = 12.dp, top = 10.dp),
-            ) {
-                Text(stringResource(R.string.photo_tips_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                Spacer(Modifier.height(4.dp))
-                Text(stringResource(R.string.photo_tips), style = MaterialTheme.typography.bodySmall)
-                TextButton(onClick = viewModel::hideTips) { Text(stringResource(R.string.photo_hide_tips)) }
-            }
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f))
+                .padding(12.dp),
+        ) {
+            Text(stringResource(R.string.photo_tips_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Spacer(Modifier.height(4.dp))
+            Text(stringResource(R.string.photo_tips), style = MaterialTheme.typography.bodySmall)
         }
 
         if (photos.isNotEmpty()) {
@@ -201,7 +198,7 @@ fun PhotoEstimateView(
             }
         }
         Text(
-            stringResource(R.string.photo_max, MAX_PHOTOS),
+            stringResource(if (onDevice) R.string.photo_max_device else R.string.photo_max, MAX_PHOTOS),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

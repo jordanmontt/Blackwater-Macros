@@ -15,6 +15,10 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.SideEffect
+import androidx.activity.compose.LocalActivity
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
@@ -137,6 +141,20 @@ private fun AppRoot() {
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
+    }
+
+    // Status and navigation bar icons follow the app's theme (not the system's): light icons on
+    // the dark theme, dark icons on the light one, whatever the phone itself uses.
+    val activity = LocalActivity.current
+    val barColor = (if (darkTheme) DarkColors else LightColors).background
+    SideEffect {
+        val window = activity?.window ?: return@SideEffect
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !darkTheme
+            isAppearanceLightNavigationBars = !darkTheme
+        }
+        @Suppress("DEPRECATION")
+        window.navigationBarColor = barColor.toArgb()
     }
 
     BlackwaterMacrosTheme(darkTheme = darkTheme) {

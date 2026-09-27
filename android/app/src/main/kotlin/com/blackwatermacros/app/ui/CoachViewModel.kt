@@ -22,6 +22,14 @@ import com.blackwatermacros.app.data.ai.AiException
 import com.blackwatermacros.app.data.ai.AiFailure
 import com.blackwatermacros.app.data.ai.AiSettingsStore
 import com.blackwatermacros.app.data.ai.aiLanguageName
+import com.blackwatermacros.app.data.ai.AiEngineChoice
+import com.blackwatermacros.app.data.ai.usableEngine
+import com.blackwatermacros.app.data.ai.local.LocalEngine
+import com.blackwatermacros.app.data.ai.local.LocalModelState
+import com.blackwatermacros.app.data.ai.local.LocalModelSpec
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,11 +79,20 @@ class CoachViewModel(
     private val settings: AiSettingsStore = AppGraph.aiSettings,
     private val client: AiClient = AppGraph.ai,
     private val language: () -> String = { aiLanguageName(appLocale().language) },
+    private val local: LocalEngine? = AppGraph.localEngine,
+    localModel: StateFlow<LocalModelState> = AppGraph.localModels.state,
+    /** For «Gemma 4 E2B · teléfono» under the chat. */
+    val localModelSpec: StateFlow<LocalModelSpec> = AppGraph.localModels.selected,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()
     val aiSettings = settings.settings
+
+    /** The engine the coach uses now (cloud or this phone), or null when it is not set up. */
+    val engine: StateFlow<AiEngineChoice?> = combine(settings.settings, localModel) { current, model ->
+        usableEngine(current.coachEngine, current.ready, model == LocalModelState.Ready)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, usableEngine(settings.current.coachEngine, settings.current.ready, localModel.value == LocalModelState.Ready))
 
     private var nextId = 1L
     private var job: Job? = null
@@ -100,16 +117,14 @@ class CoachViewModel(
             try {
                 val current = settings.current
                 val context = if (current.coachSeesData) buildCoachContext(loadCoachInput()) else null
-                client.stream(
-                    current.config,
-                    AiInput(
-                        system = buildCoachSystemPrompt(language(), context),
-                        messages = history + AiMessage(AiRole.USER, question),
-                        json = false,
-                        stream = true,
-                        maxTokens = 4096,
-                    ),
-                ).collect { piece -> patchLast { it.copy(text = it.text + piece) } }
+                val system = buildCoachSystemPrompt(language(), context)
+                val messages = history + AiMessage(AiRole.USER, question)
+                val answer = if (current.coachEngine == AiEngineChoice.DEVICE && local != null) {
+                    local.stream(system, messages)
+                } else {
+                    client.stream(current.config, AiInput(system, messages, json = false, stream = true, maxTokens = 4096))
+                }
+                answer.collect { piece -> patchLast { it.copy(text = it.text + piece) } }
                 if (_state.value.messages.lastOrNull()?.text.isNullOrBlank()) patchLast { it.copy(error = AiFailure.EMPTY) }
             } catch (e: CancellationException) {
                 throw e

@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -27,7 +28,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -102,13 +103,14 @@ fun ProgressScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            // Labelled: a bare «+» here did not say it logs a weigh-in.
+            ExtendedFloatingActionButton(
                 onClick = { openForm(null) },
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary,
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.weight_add))
-            }
+                icon = { Icon(Icons.Filled.MonitorWeight, contentDescription = null) },
+                text = { Text(stringResource(R.string.weight_add)) },
+            )
         },
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding)) {

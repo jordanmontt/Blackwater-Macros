@@ -383,7 +383,6 @@
     <string name="photo_hint">L\'IA stima i macro</string>
     <string name="photo_tips_title">Per una buona stima</string>
     <string name="photo_tips">• Scatta più foto da angolazioni diverse.\n• Includi una forchetta o la tua mano per la scala.\n• Fotografa anche l\'etichetta nutrizionale, se c\'è.\n• Descrivi ciò che non si vede: olio, salse, zucchero.</string>
-    <string name="photo_hide_tips">Capito</string>
     <string name="photo_camera">Scatta foto</string>
     <string name="photo_gallery">Galleria</string>
     <string name="photo_remove">Rimuovi la foto %1$d</string>
@@ -429,6 +428,7 @@
         <item>Cosa mangio oggi per arrivare alle mie calorie?</item>
         <item>Cosa mangio a cena?</item>
         <item>Quanti macro hanno 3 banane?</item>
+        <item>Stima i macro di un hamburger con patatine</item>
         <item>Valuta la mia dieta di questa settimana</item>
     </string-array>
 
@@ -458,4 +458,40 @@
     <string name="onboarding_start">Inizia</string>
     <string name="onboarding_replay">Rivedi il tutorial</string>
     <string name="onboarding_replay_hint">Rivedi i primi passi.</string>
+
+    <!-- On-device AI (phase 9) -->
+    <string name="local_model_title">Modello sul telefono</string>
+    <string name="local_model_description">Funziona senza internet e nulla esce dal telefono. Meno preciso del cloud, e più lento.</string>
+    <string name="local_model_unsupported">Questo telefono non può usare il modello (serve un processore ARM a 64 bit).</string>
+    <string name="local_model_checksum_failed">Il file scaricato era danneggiato ed è stato eliminato. Riprova.</string>
+    <string name="local_model_failed">Il download non è riuscito. Riprova.</string>
+    <string name="local_model_choose">Modello</string>
+    <string name="local_model_needs_ram">Questo telefono non ha abbastanza RAM per questo modello (servono circa %1$s GB). Scegline uno più leggero.</string>
+    <string name="local_model_note_e2b">Consigliato. Legge le foto. Circa 6 GB di RAM.</string>
+    <string name="local_model_note_e4b">Più preciso, più lento e più grande. Legge le foto. Circa 8 GB di RAM.</string>
+    <string name="local_model_note_qwen">Leggero. Solo per il coach (non legge le foto). Circa 4 GB di RAM.</string>
+    <string name="local_model_download">Scarica (%1$s GB)</string>
+    <string name="local_model_waiting">In attesa del Wi-Fi…</string>
+    <string name="local_model_progress">Download… %1$d %%</string>
+    <string name="local_model_ready">Scaricato. Scegli cosa funziona sul telefono:</string>
+    <string name="local_model_use_photos">Usa per le foto</string>
+    <string name="local_model_use_coach">Usa per il coach</string>
+    <string name="local_model_no_vision">Questo modello non legge le foto: le foto usano il cloud.</string>
+    <string name="local_model_delete">Elimina il modello</string>
+    <string name="local_model_confirm_title">Scaricare il modello?</string>
+    <string name="local_model_warning">Occupa %1$s GB e richiede circa %2$s GB di RAM. Si scarica in background, via Wi-Fi a meno che tu non consenta i dati mobili. È meno preciso del cloud.</string>
+    <string name="local_model_mobile_data">Usa anche i dati mobili</string>
+    <string name="local_model_confirm">Scarica</string>
+    <string name="local_model_delete_body">Libera %1$s GB. Foto e coach tornano al cloud.</string>
+    <string name="local_model_cloud">Cloud</string>
+    <string name="local_model_device">Telefono</string>
+    <string name="local_model_channel">Download del modello</string>
+    <string name="local_model_downloading">Download di %1$s</string>
+    <string name="coach_engine_device">%1$s · telefono</string>
+    <string name="photo_max_device">Fino a %1$d foto. Non vengono conservate e non escono dal telefono.</string>
+    <plurals name="templates_count">
+        <item quantity="one">%d modello</item>
+        <item quantity="many">%d modelli</item>
+        <item quantity="other">%d modelli</item>
+    </plurals>
 </resources>

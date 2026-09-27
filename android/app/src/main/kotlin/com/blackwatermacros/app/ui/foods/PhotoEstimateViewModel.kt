@@ -10,7 +10,6 @@ import androidx.lifecycle.viewModelScope
 import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.core.AiImage
 import com.blackwatermacros.app.core.MealEstimate
-import com.blackwatermacros.app.data.AppPreferences
 import com.blackwatermacros.app.data.ai.AiException
 import com.blackwatermacros.app.data.ai.AiFailure
 import com.blackwatermacros.app.data.ai.AiSettingsStore
@@ -18,6 +17,10 @@ import com.blackwatermacros.app.data.ai.MAX_PHOTOS
 import com.blackwatermacros.app.data.ai.MealEstimator
 import com.blackwatermacros.app.data.ai.PhotoCodec
 import com.blackwatermacros.app.data.ai.aiLanguageName
+import com.blackwatermacros.app.data.ai.AiEngineChoice
+import com.blackwatermacros.app.data.ai.usableEngine
+import com.blackwatermacros.app.data.ai.local.LocalModelState
+import kotlinx.coroutines.flow.combine
 import com.blackwatermacros.app.ui.appLocale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -52,11 +55,17 @@ sealed interface PhotoEstimateState {
 class PhotoEstimateViewModel(
     private val estimator: MealEstimator = AppGraph.mealEstimator,
     settings: AiSettingsStore = AppGraph.aiSettings,
-    private val preferences: AppPreferences = AppGraph.preferences,
+    localModel: StateFlow<LocalModelState> = AppGraph.localModels.state,
 ) : ViewModel() {
 
-    val aiReady: StateFlow<Boolean> = settings.settings.map { it.ready }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, settings.current.ready)
+    /** Cloud with a key, or the on-device model downloaded, whichever «Fotos» uses (D5). */
+    val aiReady: StateFlow<Boolean> = combine(settings.settings, localModel) { current, model ->
+        usableEngine(current.photoEngine, current.ready, model == LocalModelState.Ready) != null
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, settings.current.ready)
+
+    /** For «Se envían a …» under the photos. */
+    val onDevice: StateFlow<Boolean> = settings.settings.map { it.photoEngine == AiEngineChoice.DEVICE }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settings.current.photoEngine == AiEngineChoice.DEVICE)
 
     private val _photos = MutableStateFlow<List<MealPhoto>>(emptyList())
     val photos: StateFlow<List<MealPhoto>> = _photos.asStateFlow()
@@ -65,9 +74,6 @@ class PhotoEstimateViewModel(
 
     private val _state = MutableStateFlow<PhotoEstimateState>(PhotoEstimateState.Idle)
     val state: StateFlow<PhotoEstimateState> = _state.asStateFlow()
-
-    private val _tipsVisible = MutableStateFlow(!preferences.photoTipsHidden)
-    val tipsVisible: StateFlow<Boolean> = _tipsVisible.asStateFlow()
 
     private var nextId = 1L
     private var job: Job? = null
@@ -78,11 +84,6 @@ class PhotoEstimateViewModel(
         description.value = autoDescription.orEmpty()
         _state.value = PhotoEstimateState.Idle
         if (autoDescription != null && aiReady.value) estimate()
-    }
-
-    fun hideTips() {
-        preferences.photoTipsHidden = true
-        _tipsVisible.value = false
     }
 
     fun addPhotos(context: Context, uris: List<Uri>) {

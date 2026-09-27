@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { DownloadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, Trash2Icon, UserIcon } from "lucide-react";
+import { ChevronDownIcon, DownloadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, Trash2Icon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ export default function AjustesPage() {
   const demoMode = useDemoMode();
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MealTemplateDTO | null>(null);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const mounted = useMounted();
 
   const sessionRes = useCachedResource<
@@ -114,6 +115,21 @@ export default function AjustesPage() {
 
       <Card>
         <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.ajustes.session}</CardTitle>
+          <CardDescription>
+            {demoMode ? t.demo.banner : `${t.ajustes.loggedInAs} ${username || "…"}`}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Separator className="mb-3" />
+          <Button variant="outline" onClick={() => void handleLogout()}>
+            <LogOutIcon /> {t.auth.logout}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
           <CardTitle className="text-base">{t.perfil.title}</CardTitle>
           <CardDescription>{t.perfil.description}</CardDescription>
         </CardHeader>
@@ -132,79 +148,33 @@ export default function AjustesPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.onboarding.replay}</CardTitle>
-          <CardDescription>{t.onboarding.replayHint}</CardDescription>
+          {/* Collapsed by default: with many templates the list would take the whole page. */}
+          <button
+            type="button"
+            aria-expanded={templatesOpen}
+            onClick={() => setTemplatesOpen((open) => !open)}
+            className="flex w-full items-center justify-between gap-2 text-left"
+          >
+            <span>
+              <CardTitle className="text-base">{t.hoy.templates}</CardTitle>
+              <CardDescription>{templates.length === 1
+                  ? t.ajustes.templatesCountOne
+                  : formatTemplate(t.ajustes.templatesCount, { n: templates.length })}</CardDescription>
+            </span>
+            <ChevronDownIcon className={cn("size-4 text-muted-foreground transition-transform", templatesOpen && "rotate-180")} />
+          </button>
         </CardHeader>
-        <CardContent>
-          <Button variant="outline" nativeButton={false} render={<Link href="/bienvenida" />}>
-            <PlayCircleIcon /> {t.onboarding.replay}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.metodologia.title}</CardTitle>
-          <CardDescription>{t.ajustes.methodologyLink}</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent hidden={!templatesOpen} className="space-y-3">
           <Button
             variant="outline"
-            nativeButton={false}
-            render={<Link href="/metodologia" />}
+            size="sm"
+            onClick={() => {
+              setEditingTemplate(null);
+              setTemplateDialogOpen(true);
+            }}
           >
-            <InfoIcon /> {t.metodologia.title}
+            <PlusIcon /> {t.ajustes.newTemplate}
           </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.ajustes.exportSection}</CardTitle>
-          <CardDescription>{t.ajustes.exportHint}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            variant="outline"
-            disabled={demoMode}
-            nativeButton={false}
-            render={<a href="/api/export/meals" download />}
-          >
-            <DownloadIcon /> {t.ajustes.exportMeals}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={demoMode}
-            nativeButton={false}
-            render={<a href="/api/export/weights" download />}
-          >
-            <DownloadIcon /> {t.ajustes.exportWeights}
-          </Button>
-        </CardContent>
-        {demoMode ? (
-          <CardContent className="pt-0">
-            <p className="text-xs text-muted-foreground">{t.ajustes.exportDemoDisabled}</p>
-          </CardContent>
-        ) : null}
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center justify-between gap-2 text-base">
-            {t.hoy.templates}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setEditingTemplate(null);
-                setTemplateDialogOpen(true);
-              }}
-            >
-              <PlusIcon /> {t.ajustes.newTemplate}
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
           {templates.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t.hoy.noTemplates}</p>
           ) : (
@@ -277,6 +247,64 @@ export default function AjustesPage() {
         }}
       />
 
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.ajustes.exportSection}</CardTitle>
+          <CardDescription>{t.ajustes.exportHint}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            variant="outline"
+            disabled={demoMode}
+            nativeButton={false}
+            render={<a href="/api/export/meals" download />}
+          >
+            <DownloadIcon /> {t.ajustes.exportMeals}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={demoMode}
+            nativeButton={false}
+            render={<a href="/api/export/weights" download />}
+          >
+            <DownloadIcon /> {t.ajustes.exportWeights}
+          </Button>
+        </CardContent>
+        {demoMode ? (
+          <CardContent className="pt-0">
+            <p className="text-xs text-muted-foreground">{t.ajustes.exportDemoDisabled}</p>
+          </CardContent>
+        ) : null}
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.metodologia.title}</CardTitle>
+          <CardDescription>{t.ajustes.methodologyLink}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/metodologia" />}
+          >
+            <InfoIcon /> {t.metodologia.title}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.onboarding.replay}</CardTitle>
+          <CardDescription>{t.onboarding.replayHint}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" nativeButton={false} render={<Link href="/bienvenida" />}>
+            <PlayCircleIcon /> {t.onboarding.replay}
+          </Button>
+        </CardContent>
+      </Card>
+
       {isAdmin && !demoMode ? (
         <Card>
           <CardHeader className="pb-3">
@@ -297,20 +325,6 @@ export default function AjustesPage() {
         </Card>
       ) : null}
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.ajustes.session}</CardTitle>
-          <CardDescription>
-            {demoMode ? t.demo.banner : `${t.ajustes.loggedInAs} ${username || "…"}`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Separator className="mb-3" />
-          <Button variant="outline" onClick={() => void handleLogout()}>
-            <LogOutIcon /> {t.auth.logout}
-          </Button>
-        </CardContent>
-      </Card>
     </main>
   );
 }

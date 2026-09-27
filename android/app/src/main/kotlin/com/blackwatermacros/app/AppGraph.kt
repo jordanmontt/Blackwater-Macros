@@ -15,6 +15,8 @@ import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.ai.AiClient
 import com.blackwatermacros.app.data.ai.AiSettingsStore
 import com.blackwatermacros.app.data.ai.MealEstimator
+import com.blackwatermacros.app.data.ai.local.LocalEngine
+import com.blackwatermacros.app.data.ai.local.LocalModelManager
 import com.blackwatermacros.app.data.foods.GenericFoodsStore
 import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
 import com.blackwatermacros.app.data.foods.RecentFoods
@@ -54,6 +56,10 @@ object AppGraph {
         private set
     lateinit var mealEstimator: MealEstimator
         private set
+    lateinit var localModels: LocalModelManager
+        private set
+    lateinit var localEngine: LocalEngine
+        private set
 
     fun init(context: Context) {
         val baseUrl = BuildConfig.API_BASE_URL.let { if (it.endsWith("/")) it else "$it/" }
@@ -69,7 +75,9 @@ object AppGraph {
         recentFoods = RecentFoods(context)
         aiSettings = AiSettingsStore(context)
         ai = AiClient.create()
-        mealEstimator = MealEstimator(ai, aiSettings)
+        localModels = LocalModelManager(context)
+        localEngine = LocalEngine(context)
+        mealEstimator = MealEstimator(ai, aiSettings, localEngine)
         accounts = AccountController(
             account = account,
             repository = repository,

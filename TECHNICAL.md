@@ -591,6 +591,14 @@ rest of the calorie profile.
   same data as the Comidas card (profile, targets, measured expenditure, 4 weeks of meals,
   60 days of weigh-ins); with «El coach puede ver mis datos» off the data is neither read
   nor sent. The last 20 good turns go along as history.
+- **On-device AI** (Android only, D5/D6): a model from the `LocalModels` catalog (Gemma 4 E2B
+  default, Gemma 4 E4B, Qwen3 1.7B text-only; Apache-2.0, SHA-256 pinned; one on the phone at
+  a time) run by LiteRT-LM (`data/ai/local/`). Downloaded
+  on request by a WorkManager foreground job (Wi-Fi by default, resumable, checksum) into
+  `noBackupFilesDir/models`. `AiSettings.photoEngine` / `coachEngine` choose cloud or phone;
+  `usableEngine` decides readiness. `LocalEngine` loads once (GPU, else CPU; a request that
+  fails on GPU is retried on CPU), serves one request at a time, JSON via constrained
+  decoding. Needs Kotlin ≥ 2.4 (the library's metadata).
 - **First launch** (D12): web `/bienvenida` (your data → optional Google key → done) after a
   login with an incomplete profile, flag `localStorage["bw:onboarding-done"]`; Android route
   `bienvenida` (welcome with «Iniciar sesión» first → data → AI → done) only on a fresh
@@ -867,7 +875,7 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
 - **Base URL:** `BuildConfig.API_BASE_URL`, default `https://blackwater-macros.jordanmontt.fr/`,
   override with `-Papp.baseUrl=<url>`. Only used after logging in.
 - **Version:** `versionCode 1` / `versionName "0.1.0"` in `app/build.gradle.kts`.
-- **Toolchain:** `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.1.20, Compose BOM, Room,
+- **Toolchain:** `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.4.20, Compose BOM, Room,
   WorkManager, AppCompat, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk`
   36, `minSdk` 24 + desugaring for `java.time`.
 - **Local SDK:** `android/local.properties` (`sdk.dir=…`), gitignored.

@@ -24,11 +24,6 @@ class AppPreferences(private val prefs: SharedPreferences) {
         _theme.value = mode
     }
 
-    /** «Para una buena estimación» was dismissed once: do not show it again. */
-    var photoTipsHidden: Boolean
-        get() = prefs.getBoolean(KEY_PHOTO_TIPS_HIDDEN, false)
-        set(value) = prefs.edit { putBoolean(KEY_PHOTO_TIPS_HIDDEN, value) }
-
     /** The first-launch steps were finished or skipped. */
     var onboardingDone: Boolean
         get() = prefs.getBoolean(KEY_ONBOARDING_DONE, false)
@@ -37,6 +32,5 @@ class AppPreferences(private val prefs: SharedPreferences) {
     private companion object {
         const val KEY_THEME = "theme"
         const val KEY_ONBOARDING_DONE = "onboardingDone"
-        const val KEY_PHOTO_TIPS_HIDDEN = "photoTipsHidden"
     }
 }

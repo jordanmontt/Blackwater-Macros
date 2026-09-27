@@ -14,16 +14,6 @@ import { downscalePhoto, MAX_PHOTOS } from "@/lib/ai/images";
 import { isAiReady, useAiSettings } from "@/lib/ai/settings";
 import { formatTemplate, t } from "@/i18n";
 
-const TIPS_HIDDEN_KEY = "bw:photo-tips-hidden";
-
-function tipsHidden(): boolean {
-  try {
-    return localStorage.getItem(TIPS_HIDDEN_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
 interface Photo {
   id: number;
   image: AiImage;
@@ -47,7 +37,6 @@ export function PhotoEstimate({
   const settings = useAiSettings();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [description, setDescription] = useState(autoDescription ?? "");
-  const [showTips, setShowTips] = useState(() => !tipsHidden());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -126,32 +115,18 @@ export function PhotoEstimate({
     setPhotos((current) => [...current, ...added].slice(0, MAX_PHOTOS));
   }
 
-  function hideTips() {
-    setShowTips(false);
-    try {
-      localStorage.setItem(TIPS_HIDDEN_KEY, "1");
-    } catch {
-      // Only a convenience.
-    }
-  }
-
   const full = photos.length >= MAX_PHOTOS;
 
   return (
     <div className="space-y-4">
-      {showTips ? (
-        <section aria-label={t.photo.tipsTitle} className="rounded-xl border bg-primary/5 p-3 text-sm">
-          <h3 className="font-medium">{t.photo.tipsTitle}</h3>
-          <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-muted-foreground">
-            {t.photo.tips.map((tip) => (
-              <li key={tip}>{tip}</li>
-            ))}
-          </ul>
-          <Button variant="ghost" size="sm" className="mt-1 -ml-2" onClick={hideTips}>
-            {t.photo.hideTips}
-          </Button>
-        </section>
-      ) : null}
+      <section aria-label={t.photo.tipsTitle} className="rounded-xl border bg-primary/5 p-3 text-sm">
+        <h3 className="font-medium">{t.photo.tipsTitle}</h3>
+        <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-muted-foreground">
+          {t.photo.tips.map((tip) => (
+            <li key={tip}>{tip}</li>
+          ))}
+        </ul>
+      </section>
 
       {photos.length > 0 ? (
         <ul className="flex gap-2 overflow-x-auto pb-1">

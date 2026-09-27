@@ -20,6 +20,9 @@ import com.blackwatermacros.app.data.ai.AiFailure
 import com.blackwatermacros.app.data.ai.AiSettingsStore
 import com.blackwatermacros.app.data.ai.SecretCipher
 import com.blackwatermacros.app.data.local.LocalDatabase
+import com.blackwatermacros.app.data.ai.local.LocalModelState
+import com.blackwatermacros.app.data.ai.local.LocalModels
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -81,7 +84,15 @@ class CoachTest {
                 }
                 .build(),
         )
-        viewModel = CoachViewModel(repository, settings, client, language = { "Spanish" })
+        viewModel = CoachViewModel(
+            repository,
+            settings,
+            client,
+            language = { "Spanish" },
+            local = null,
+            localModel = MutableStateFlow(LocalModelState.NotDownloaded),
+            localModelSpec = MutableStateFlow(LocalModels.DEFAULT),
+        )
         runBlocking {
             repository.saveProfile(CalorieProfile(Gender.FEMALE, 1992, 165.0, 3, 60, 30, Goal.CUT))
             repository.saveWeight(null, WeightRequest(Instant.now().toString(), 62.0))
