@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PlusIcon, Trash2Icon } from "lucide-react";
+import { PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,6 +98,38 @@ export function resultToNutritionDraft(nutrition: {
   };
 }
 
+/** An ingredient row as the form edits it (numbers as text). */
+export function ingredientToDraft(ingredient: IngredientInput): IngredientDraft {
+  return resultToNutritionDraft({
+    title: "",
+    notes: null,
+    entryMode: "per_ingredient",
+    ingredients: [ingredient],
+    totalCalories: null,
+    totalProtein: null,
+    totalCarbs: null,
+    totalFat: null,
+  }).ingredients[0];
+}
+
+/** A new per-ingredient meal pre-filled from search, a barcode or the AI. */
+export function draftWithIngredients(title: string, ingredients: IngredientInput[]): NutritionDraft {
+  return resultToNutritionDraft({
+    title,
+    notes: null,
+    entryMode: "per_ingredient",
+    ingredients,
+    totalCalories: null,
+    totalProtein: null,
+    totalCarbs: null,
+    totalFat: null,
+  });
+}
+
+function isBlankIngredient(item: IngredientDraft): boolean {
+  return Object.values(item).every((value) => value.trim() === "");
+}
+
 function parseNumber(value: string): number | undefined {
   const trimmed = value.trim().replace(",", ".");
   if (trimmed === "") return undefined;
@@ -114,6 +146,10 @@ interface NutritionEntryFieldsProps {
   onSubmit: (payload: NutritionPayload) => Promise<void>;
   /** Told whenever the fields start or stop differing from `draft` (to confirm before discarding). */
   onDirtyChange?: (dirty: boolean) => void;
+  /** Shows «Buscar alimento» next to «Añadir ingrediente» (search / barcode). */
+  onSearchFood?: () => void;
+  /** An ingredient picked while the form was open; appended once per `id`. */
+  appendRequest?: { id: number; ingredient: IngredientDraft } | null;
 }
 
 /**
@@ -129,6 +165,8 @@ export function NutritionEntryFields({
   onCancel,
   onSubmit,
   onDirtyChange,
+  onSearchFood,
+  appendRequest = null,
 }: NutritionEntryFieldsProps) {
   const [title, setTitle] = useState(draft.title);
   const [notes, setNotes] = useState(draft.notes);
@@ -139,6 +177,20 @@ export function NutritionEntryFields({
   const [totalCarbs, setTotalCarbs] = useState(draft.totalCarbs);
   const [totalFat, setTotalFat] = useState(draft.totalFat);
   const [error, setError] = useState<string | null>(null);
+  const [appliedAppend, setAppliedAppend] = useState<number | null>(null);
+
+  // A food picked from search/barcode while the form is open joins the list
+  // (replacing the empty starter row) — adjusting state during render, once per id.
+  if (appendRequest && appendRequest.id !== appliedAppend) {
+    setAppliedAppend(appendRequest.id);
+    setEntryMode("per_ingredient");
+    setIngredients((current) =>
+      current.length === 1 && isBlankIngredient(current[0])
+        ? [appendRequest.ingredient]
+        : [...current, appendRequest.ingredient],
+    );
+    if (title.trim() === "") setTitle(appendRequest.ingredient.name);
+  }
 
   const dirty =
     title !== draft.title ||
@@ -336,14 +388,21 @@ export function NutritionEntryFields({
               </div>
             ))}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIngredients((current) => [...current, { ...emptyIngredient }])}
-          >
-            <PlusIcon /> {t.meal.addIngredient}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIngredients((current) => [...current, { ...emptyIngredient }])}
+            >
+              <PlusIcon /> {t.meal.addIngredient}
+            </Button>
+            {onSearchFood ? (
+              <Button type="button" variant="outline" size="sm" onClick={onSearchFood}>
+                <SearchIcon /> {t.addFood.searchFood}
+              </Button>
+            ) : null}
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2">

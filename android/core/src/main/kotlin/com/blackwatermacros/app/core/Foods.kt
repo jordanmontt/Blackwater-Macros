@@ -110,7 +110,7 @@ private const val KJ_PER_KCAL = 4.184
  * One Open Food Facts product object (from `/api/v2/product/<code>` or a
  * Search-a-licious hit). Null when it has no energy value.
  */
-fun parseOffProductFields(value: JsonElement?): FoodProduct? {
+fun parseOffProductFields(value: JsonElement?, lang: FoodLang? = null): FoodProduct? {
     val product = value as? JsonObject ?: return null
     val nutriments = product["nutriments"] as? JsonObject ?: JsonObject(emptyMap())
 
@@ -127,7 +127,9 @@ fun parseOffProductFields(value: JsonElement?): FoodProduct? {
     val brands = if (brandsValue is JsonArray) jsonText(brandsValue.firstOrNull()) else jsonText(brandsValue)
     val brand = brands?.split(",")?.get(0)?.trim()
     val code = jsonText(product["code"])
-    val name = jsonText(product["product_name"]) ?: jsonText(product["generic_name"]) ?: brand ?: code ?: ""
+    // With a language, `product_name_<lang>` wins (Spanish first).
+    val localized = lang?.let { jsonText(product["product_name_${it.code}"]) }
+    val name = localized ?: jsonText(product["product_name"]) ?: jsonText(product["generic_name"]) ?: brand ?: code ?: ""
 
     val declaredServing = jsonNumber(product["serving_quantity"])
     val servingGrams = if (declaredServing != null && declaredServing > 0) {
@@ -152,18 +154,18 @@ fun parseOffProductFields(value: JsonElement?): FoodProduct? {
 }
 
 /** Response of `/api/v2/product/<code>.json`; null when the product is unknown. */
-fun parseOffProduct(json: JsonElement): FoodProduct? {
+fun parseOffProduct(json: JsonElement, lang: FoodLang? = null): FoodProduct? {
     val response = json as? JsonObject ?: return null
     val status = response["status"] as? JsonPrimitive
     if (status != null && !status.isString && status.content.toDoubleOrNull() == 0.0) return null
-    return parseOffProductFields(response["product"])
+    return parseOffProductFields(response["product"], lang)
 }
 
 /** Search-a-licious (`hits`) or legacy search (`products`) response. */
-fun parseOffSearch(json: JsonElement): List<FoodProduct> {
+fun parseOffSearch(json: JsonElement, lang: FoodLang? = null): List<FoodProduct> {
     val response = json as? JsonObject ?: return emptyList()
     val list = (response["hits"] as? JsonArray) ?: (response["products"] as? JsonArray) ?: return emptyList()
-    return list.mapNotNull { parseOffProductFields(it) }
+    return list.mapNotNull { parseOffProductFields(it, lang) }
 }
 
 private val WORD_SPLIT = Regex("[^a-z0-9]+")
@@ -228,9 +230,10 @@ fun queryAlternatives(token: String): List<String> {
 
 /**
  * Searches the bundled generic foods in every language they have, ignoring case
- * and accents. Every word of the query must start a word of the name. Best
- * first: exact name, then names that start with the query, then the rest; names
- * in the app language win ties, then shorter names.
+ * and accents. Every word of the query (or its singular or a Spanish synonym)
+ * must start a word of the name. Best first: exact name, then names that start
+ * with the query, then the rest; within each, names where every query word is a
+ * whole word, then names in the app language, then shorter names.
  */
 fun searchGenericFoods(foods: List<GenericFood>, query: String, lang: FoodLang, limit: Int = 20): List<GenericFoodMatch> {
     val normalizedQuery = normalizeText(query)
@@ -252,7 +255,8 @@ fun searchGenericFoods(foods: List<GenericFood>, query: String, lang: FoodLang, 
                 normalizedName.startsWith(normalizedQuery) -> 1
                 else -> 2
             }
-            val score = base * 2 + if (nameLang == lang) 0 else 1
+            val wholeWords = tokens.all { alternatives -> words.any { it in alternatives } }
+            val score = base * 4 + (if (wholeWords) 0 else 2) + if (nameLang == lang) 0 else 1
             if (best == null || score < best) best = score
         }
         if (best == null) continue

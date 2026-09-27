@@ -8,6 +8,7 @@ import type {
   StatsSummary,
   WeightDTO,
 } from "./core/types";
+import type { FoodLang, FoodProduct } from "./core/foods";
 import { demoApi } from "./demo-api";
 import { isDemoMode } from "./demo-store";
 import { clearCache, invalidate } from "./client-cache";
@@ -239,6 +240,17 @@ export const api = {
       invalidate("stats:");
       return result;
     });
+  },
+
+  /**
+   * Open Food Facts text search through our pass-through route (the search
+   * service does not allow browser requests). Not available in demo mode.
+   */
+  searchFoods: async (query: string, lang: FoodLang = "es"): Promise<FoodProduct[]> => {
+    if (isDemoMode()) return [];
+    const params = new URLSearchParams({ q: query, lang });
+    const data = await request<{ products: FoodProduct[] }>(`/api/foods/search?${params}`);
+    return data.products;
   },
 
   stats: async (range: StatsRange, today: string) => {

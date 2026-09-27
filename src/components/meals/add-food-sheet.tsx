@@ -1,24 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeftIcon, CopyIcon, PencilLineIcon } from "lucide-react";
+import { ArrowLeftIcon, CopyIcon, PencilLineIcon, ScanBarcodeIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { DayNavigator } from "@/components/meals/day-navigator";
+import { BarcodeScanner } from "@/components/foods/barcode-scanner";
+import { FoodSearch } from "@/components/foods/food-search";
+import { PortionPicker } from "@/components/foods/portion-picker";
+import { productChoice, rememberFood, type FoodChoice } from "@/lib/foods/foods-client";
+import { foodToIngredient } from "@/lib/core/foods";
 import { api } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { addDaysToKey, formatDateKeyShort, formatNumberEs } from "@/lib/core/dates";
 import { copyMealPayload } from "@/lib/meal-payload";
-import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
+import type { IngredientInput, MealDTO, MealTemplateDTO } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 
-type View = "menu" | "copy";
+type View = "menu" | "copy" | "search" | "barcode" | "portion";
 
 /**
- * «Añadir comida»: every way to add food to `day`, each ending in a saved meal.
- * Escribir a mano opens the review form; Copiar de otro día and the templates
- * add meals directly (with Undo).
+ * «Añadir comida»: every way to add food to `day`. Buscar and Código de barras
+ * pick a food and its portion, then hand it over (`onFoodPicked`) for the
+ * review form; Escribir a mano opens that form empty; Copiar de otro día and
+ * the templates add meals directly (with Undo). `pickOnly`: opened from the
+ * review form to add one more food, so only Buscar and Código are offered.
  */
 export function AddFoodSheet({
   open,
@@ -27,6 +34,8 @@ export function AddFoodSheet({
   templates,
   onManual,
   onAdded,
+  onFoodPicked,
+  pickOnly = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,14 +44,36 @@ export function AddFoodSheet({
   onManual: () => void;
   /** Meals were created on `day` (copies or a template). */
   onAdded: () => void | Promise<unknown>;
+  /** A food and portion picked from search or a barcode. */
+  onFoodPicked: (ingredient: IngredientInput) => void;
+  pickOnly?: boolean;
 }) {
   const [view, setView] = useState<View>("menu");
+  const [choice, setChoice] = useState<FoodChoice | null>(null);
+  const [back, setBack] = useState<View>("menu");
+
+  function pick(next: FoodChoice, from: View) {
+    setChoice(next);
+    setBack(from);
+    setView("portion");
+  }
   const [busy, setBusy] = useState(false);
 
   function changeOpen(next: boolean) {
-    if (!next) setView("menu");
+    if (!next) {
+      setView("menu");
+      setChoice(null);
+    }
     onOpenChange(next);
   }
+
+  const titles: Record<View, string> = {
+    menu: t.addFood.title,
+    copy: t.addFood.copy,
+    search: t.addFood.search,
+    barcode: t.addFood.barcode,
+    portion: t.addFood.portionTitle,
+  };
 
   /** Creates the meals, closes the sheet and offers Undo. */
   async function addMeals(sources: Parameters<typeof copyMealPayload>[0][], message: string) {
@@ -71,10 +102,15 @@ export function AddFoodSheet({
     <Sheet
       open={open}
       onOpenChange={changeOpen}
-      title={view === "copy" ? t.addFood.copy : t.addFood.title}
+      title={titles[view]}
       headerAction={
-        view === "copy" ? (
-          <Button variant="ghost" size="icon-sm" aria-label={t.addFood.back} onClick={() => setView("menu")}>
+        view !== "menu" ? (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t.addFood.back}
+            onClick={() => setView(view === "portion" ? back : "menu")}
+          >
             <ArrowLeftIcon />
           </Button>
         ) : undefined
@@ -82,6 +118,21 @@ export function AddFoodSheet({
     >
       {view === "menu" ? (
         <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            <BigSourceButton
+              icon={<SearchIcon />}
+              label={t.addFood.search}
+              hint={t.addFood.searchHint}
+              onClick={() => setView("search")}
+            />
+            <BigSourceButton
+              icon={<ScanBarcodeIcon />}
+              label={t.addFood.barcode}
+              hint={t.addFood.barcodeHint}
+              onClick={() => setView("barcode")}
+            />
+          </div>
+          {pickOnly ? null : (
           <div className="grid gap-2">
             <SourceButton
               icon={<PencilLineIcon />}
@@ -99,7 +150,8 @@ export function AddFoodSheet({
               onClick={() => setView("copy")}
             />
           </div>
-          {templates.length > 0 ? (
+          )}
+          {!pickOnly && templates.length > 0 ? (
             <section aria-label={t.addFood.templates}>
               <h3 className="text-xs font-medium text-muted-foreground">{t.addFood.templates}</h3>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -121,6 +173,20 @@ export function AddFoodSheet({
             </section>
           ) : null}
         </div>
+      ) : view === "search" ? (
+        <FoodSearch onPick={(next) => pick(next, "search")} />
+      ) : view === "barcode" ? (
+        <BarcodeScanner onFound={(product) => pick(productChoice(product), "barcode")} />
+      ) : view === "portion" && choice ? (
+        <PortionPicker
+          choice={choice}
+          onAdd={(grams) => {
+            rememberFood(choice);
+            const ingredient = foodToIngredient(choice.name, choice.per100g, grams);
+            changeOpen(false);
+            onFoodPicked(ingredient);
+          }}
+        />
       ) : (
         <CopyFromDay
           targetDay={day}
@@ -134,6 +200,30 @@ export function AddFoodSheet({
         />
       )}
     </Sheet>
+  );
+}
+
+function BigSourceButton({
+  icon,
+  label,
+  hint,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  hint: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col items-center gap-1 rounded-xl border bg-primary/5 px-3 py-4 text-center transition-colors hover:bg-accent [&_svg]:size-6 [&_svg]:text-primary"
+    >
+      {icon}
+      <span className="text-sm font-medium">{label}</span>
+      <span className="text-xs text-muted-foreground">{hint}</span>
+    </button>
   );
 }
 

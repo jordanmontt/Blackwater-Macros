@@ -101,9 +101,10 @@ const KJ_PER_KCAL = 4.184;
 /**
  * One Open Food Facts product object (from `/api/v2/product/<code>` or a
  * Search-a-licious hit). Null when it has no energy value: without kcal it is
- * useless for this app.
+ * useless for this app. With `lang`, `product_name_<lang>` wins over the
+ * generic name (Spanish first).
  */
-export function parseOffProductFields(value: unknown): FoodProduct | null {
+export function parseOffProductFields(value: unknown, lang: FoodLang | null = null): FoodProduct | null {
   const product = asRecord(value);
   if (!product) return null;
   const nutriments = asRecord(product.nutriments) ?? {};
@@ -120,7 +121,8 @@ export function parseOffProductFields(value: unknown): FoodProduct | null {
   const brands = Array.isArray(product.brands) ? toText(product.brands[0]) : toText(product.brands);
   const brand = brands ? brands.split(",")[0].trim() : null;
   const code = toText(product.code);
-  const name = toText(product.product_name) ?? toText(product.generic_name) ?? brand ?? code ?? "";
+  const localized = lang ? toText(product[`product_name_${lang}`]) : null;
+  const name = localized ?? toText(product.product_name) ?? toText(product.generic_name) ?? brand ?? code ?? "";
 
   const declaredServing = toNumber(product.serving_quantity);
   const servingGrams =
@@ -144,18 +146,18 @@ export function parseOffProductFields(value: unknown): FoodProduct | null {
 }
 
 /** Response of `/api/v2/product/<code>.json`; null when the product is unknown. */
-export function parseOffProduct(json: unknown): FoodProduct | null {
+export function parseOffProduct(json: unknown, lang: FoodLang | null = null): FoodProduct | null {
   const response = asRecord(json);
   if (!response || response.status === 0) return null;
-  return parseOffProductFields(response.product);
+  return parseOffProductFields(response.product, lang);
 }
 
 /** Search-a-licious (`hits`) or legacy search (`products`) response. */
-export function parseOffSearch(json: unknown): FoodProduct[] {
+export function parseOffSearch(json: unknown, lang: FoodLang | null = null): FoodProduct[] {
   const response = asRecord(json);
   if (!response) return [];
   const list = Array.isArray(response.hits) ? response.hits : Array.isArray(response.products) ? response.products : [];
-  return list.map(parseOffProductFields).filter((p): p is FoodProduct => p !== null);
+  return list.map((item) => parseOffProductFields(item, lang)).filter((p): p is FoodProduct => p !== null);
 }
 
 const WORD_SPLIT = /[^a-z0-9]+/;
@@ -226,8 +228,9 @@ export function queryAlternatives(token: string): string[] {
  * Searches the bundled generic foods in every language they have, ignoring case
  * and accents. Every word of the query (or its singular or a Spanish synonym,
  * see `queryAlternatives`) must start a word of the name. Best first: exact
- * name, then names that start with the query, then the rest; names in the app
- * language win ties, then shorter names.
+ * name, then names that start with the query, then the rest; within each,
+ * names where every query word is a whole word («papas» → «Patata», not
+ * «Papaya»), then names in the app language, then shorter names.
  */
 export function searchGenericFoods(
   foods: GenericFood[],
@@ -248,7 +251,8 @@ export function searchGenericFoods(
       const words = normalizedName.split(WORD_SPLIT).filter(Boolean);
       if (!tokens.every((alternatives) => words.some((word) => alternatives.some((alt) => word.startsWith(alt))))) continue;
       const base = normalizedName === normalizedQuery ? 0 : normalizedName.startsWith(normalizedQuery) ? 1 : 2;
-      const score = base * 2 + (nameLang === lang ? 0 : 1);
+      const wholeWords = tokens.every((alternatives) => words.some((word) => alternatives.includes(word)));
+      const score = base * 4 + (wholeWords ? 0 : 2) + (nameLang === lang ? 0 : 1);
       if (best === null || score < best) best = score;
     }
     if (best === null) continue;

@@ -95,6 +95,16 @@ describe("Open Food Facts parsing", () => {
     expect(parseOffProduct(JSON.parse(`"nonsense"`))).toBeNull();
   });
 
+  it("prefers the product name in the app language", () => {
+    const json = JSON.parse(
+      `{"status":1,"product":{"product_name":"Greek yogurt","product_name_es":"Yogur griego","nutriments":{"energy-kcal_100g":97}}}`,
+    );
+    expect(parseOffProduct(json, "es")!.name).toBe("Yogur griego");
+    expect(parseOffProduct(json, "fr")!.name).toBe("Greek yogurt");
+    expect(parseOffProduct(json)!.name).toBe("Greek yogurt");
+    expect(parseOffSearch({ hits: [json.product] }, "es")[0].name).toBe("Yogur griego");
+  });
+
   it("reads search results and skips products without energy", () => {
     const results = parseOffSearch(JSON.parse(OFF_SEARCH));
     expect(results).toHaveLength(1);
@@ -146,6 +156,8 @@ describe("Spanish first: plurals and synonyms", () => {
     ];
     const ids = (query: string) => searchGenericFoods(foods, query, "es").map((m) => m.food.id);
     expect(ids("papas cocidas")).toEqual(["a"]);
+    // Whole-word matches first: «papas» means potatoes, «Papaya» only starts with «papa».
+    expect(ids("papas")).toEqual(["a", "b"]);
     expect(ids("jugo")).toEqual([]);
     expect(searchGenericFoods(foods, "banana", "es").map((m) => m.name)).toEqual(["Plátano"]);
   });

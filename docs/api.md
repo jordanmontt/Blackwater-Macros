@@ -378,6 +378,41 @@ Success `200` — the full `StatsSummary`:
 
 ---
 
+## Food search
+
+### Search products (Open Food Facts)
+
+```
+GET /api/foods/search?q=yogur%20griego&lang=es
+```
+
+Authenticated pass-through to Open Food Facts text search (Search-a-licious does not
+allow browser/CORS requests). Stores nothing. `q`: 2–80 characters; `lang`: `es` (default),
+`en`, `fr`, `de` or `it` — product names in that language win.
+
+**200**
+```json
+{
+  "products": [
+    {
+      "code": "8480000592170",
+      "name": "Yogur griego natural",
+      "brand": "Hacendado",
+      "per100g": { "calories": 122, "protein": 3.5, "carbs": 4.2, "fat": 10 },
+      "servingGrams": 125,
+      "incomplete": false
+    }
+  ]
+}
+```
+
+**400** invalid query · **401** not signed in · **502** Open Food Facts unavailable.
+
+Barcode lookups do not use this route: the product API allows browser requests, so the
+web calls `https://world.openfoodfacts.org/api/v2/product/<code>.json` directly and
+Android calls it with its own User-Agent. Open Food Facts limits searches to about
+10/min per IP; the web debounces (450 ms, ≥ 3 characters) and caches per query.
+
 ## Settings
 
 ### Update calorie profile

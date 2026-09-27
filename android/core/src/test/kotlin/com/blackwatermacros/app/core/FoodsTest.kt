@@ -86,6 +86,16 @@ class FoodsTest {
     }
 
     @Test
+    fun prefersTheProductNameInTheAppLanguage() {
+        val product = json("""{"status":1,"product":{"product_name":"Greek yogurt","product_name_es":"Yogur griego","nutriments":{"energy-kcal_100g":97}}}""")
+        assertThat(parseOffProduct(product, FoodLang.ES)!!.name).isEqualTo("Yogur griego")
+        assertThat(parseOffProduct(product, FoodLang.FR)!!.name).isEqualTo("Greek yogurt")
+        assertThat(parseOffProduct(product)!!.name).isEqualTo("Greek yogurt")
+        val hit = (product as kotlinx.serialization.json.JsonObject)["product"].toString()
+        assertThat(parseOffSearch(json("""{"hits":[$hit]}"""), FoodLang.ES)[0].name).isEqualTo("Yogur griego")
+    }
+
+    @Test
     fun readsSearchResultsAndSkipsProductsWithoutEnergy() {
         val results = parseOffSearch(json(offSearch))
         assertThat(results).hasSize(1)
@@ -143,6 +153,8 @@ class FoodsTest {
         )
         fun ids(query: String) = searchGenericFoods(list, query, FoodLang.ES).map { it.food.id }
         assertThat(ids("papas cocidas")).containsExactly("a")
+        // Whole-word matches first: «papas» means potatoes, «Papaya» only starts with «papa».
+        assertThat(ids("papas")).containsExactly("a", "b").inOrder()
         assertThat(ids("jugo")).isEmpty()
         assertThat(searchGenericFoods(list, "banana", FoodLang.ES).map { it.name }).containsExactly("Plátano")
     }

@@ -17,6 +17,7 @@ import {
   NutritionEntryFields,
   rawNutritionDraft,
   resultToNutritionDraft,
+  type IngredientDraft,
   type NutritionDraft,
   type NutritionPayload,
 } from "@/components/meals/nutrition-fields";
@@ -33,6 +34,10 @@ interface MealFormProps {
   /** Pre-filled values for a new meal (search, barcode, AI); empty form when absent. */
   initial?: NutritionDraft | null;
   onSaved: (meal: MealDTO) => void;
+  /** «Buscar alimento» in the form (opens search / barcode to add one more food). */
+  onSearchFood?: () => void;
+  /** A food picked while the form is open, appended once per id. */
+  appendRequest?: { id: number; ingredient: IngredientDraft } | null;
 }
 
 /**
@@ -40,7 +45,16 @@ interface MealFormProps {
  * nutrition or a single manual total, notes. In a sheet that closes by
  * dragging down or tapping outside, asking first when there are unsaved edits.
  */
-export function MealForm({ open, onOpenChange, logDate, meal, initial = null, onSaved }: MealFormProps) {
+export function MealForm({
+  open,
+  onOpenChange,
+  logDate,
+  meal,
+  initial = null,
+  onSaved,
+  onSearchFood,
+  appendRequest = null,
+}: MealFormProps) {
   const [dirty, setDirty] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
@@ -74,6 +88,8 @@ export function MealForm({ open, onOpenChange, logDate, meal, initial = null, on
               onSaved(saved);
             }}
             onDirtyChange={setDirty}
+            onSearchFood={onSearchFood}
+            appendRequest={appendRequest}
           />
         ) : null}
       </Sheet>
@@ -102,13 +118,24 @@ interface MealFormFieldsProps {
   onCancel: () => void;
   onSaved: (meal: MealDTO) => void;
   onDirtyChange: (dirty: boolean) => void;
+  onSearchFood?: () => void;
+  appendRequest: { id: number; ingredient: IngredientDraft } | null;
 }
 
 /**
  * Rendered only while the sheet is open, so its state initializes
  * directly from the meal being edited — no reset effects needed.
  */
-function MealFormFields({ meal, initial, logDate, onCancel, onSaved, onDirtyChange }: MealFormFieldsProps) {
+function MealFormFields({
+  meal,
+  initial,
+  logDate,
+  onCancel,
+  onSaved,
+  onDirtyChange,
+  onSearchFood,
+  appendRequest,
+}: MealFormFieldsProps) {
   const [pending, setPending] = useState(false);
   const [draft] = useState(() => (meal ? resultToNutritionDraft(meal) : initial ?? rawNutritionDraft()));
   // A pre-filled form is unsaved work from the start: dragging it away must ask.
@@ -146,6 +173,8 @@ function MealFormFields({ meal, initial, logDate, onCancel, onSaved, onDirtyChan
       onCancel={onCancel}
       onSubmit={handleSubmit}
       onDirtyChange={reportDirty}
+      onSearchFood={onSearchFood}
+      appendRequest={appendRequest}
     />
   );
 }
