@@ -20,7 +20,7 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 8 | Onboarding (first launch) | ☑ | ☑ | #12 |
 | 9 | On-device AI (Android: LiteRT-LM + Gemma 4) | — | ☑ | #12 |
 | 10 | Local AI on the web (optional, see D9) | ☑ | — | #12 |
-| 11 | Docs, F-Droid metadata, release | ☐ | ☐ | |
+| 11 | Docs, F-Droid metadata, release | ☑ docs | ☑ docs · F-Droid by the user | #12 |
 
 Legend: ☐ todo · ◐ in progress · ☑ done. **Workflow (user's choice): everything goes on the
 single branch `ai-features` and the single PR #12; each phase is one commit** (a phase may be
@@ -106,6 +106,10 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
   On-device estimates no longer use constrained decoding: on the emulator Gemma 4 returned
   valid JSON with every name «:»; the prompt + tolerant parser are used, with one retry.
   PR not merged yet: waiting for the user to try the new APK and report the error detail.
+- 2026-09-27 — User confirmed photo estimates work with the new APK. PR #12 merged into `main`
+  (merge commit, one commit per phase kept). Left for the user: F-Droid publishing (metadata,
+  screenshots, anti-feature NonFreeNet for the optional cloud AI, version bump, and checking
+  that the prebuilt LiteRT-LM `.so` from Google Maven is accepted).
 
 ---
 
