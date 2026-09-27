@@ -7,7 +7,7 @@ import type { SessionsRepository } from "@/server/repositories/sessions-repo";
 import type { AuthServiceDeps } from "@/server/services/auth-service";
 import type { StatsServiceDeps } from "@/server/services/stats-service";
 import type { MealRow, MealTemplateRow, WeightRow, UserRow } from "@/server/db/schema";
-import type { CalorieProfile, MealTemplateDTO, WeightDTO } from "@/lib/core/types";
+import type { CalorieProfile, MealDTO, MealTemplateDTO, WeightDTO } from "@/lib/core/types";
 
 /**
  * Infraestructura en memoria para probar rutas HTTP (handlers de la API) sin
@@ -437,6 +437,28 @@ export function weightDto(overrides: Partial<WeightDTO> = {}): WeightDTO {
     bodyFatPct: null,
     note: null,
     updatedAt: "2026-06-15T08:00:00.000Z",
+    ...overrides,
+  };
+}
+
+/** DTO de comida (lo que devuelve la API) con valores por defecto sanos. */
+export function mealDto(overrides: Partial<MealDTO> = {}): MealDTO {
+  return {
+    id: "m-1",
+    logDate: "2026-06-15",
+    title: "Comida",
+    notes: null,
+    entryMode: "total_only",
+    ingredients: [],
+    totalCalories: 500,
+    totalProtein: 30,
+    totalCarbs: 50,
+    totalFat: 15,
+    resolvedCalories: 500,
+    resolvedProtein: 30,
+    resolvedCarbs: 50,
+    resolvedFat: 15,
+    updatedAt: "2026-06-15T12:00:00.000Z",
     ...overrides,
   };
 }

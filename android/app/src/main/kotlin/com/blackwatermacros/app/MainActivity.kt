@@ -31,10 +31,9 @@ import com.blackwatermacros.app.ui.BottomNavBar
 import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
 import com.blackwatermacros.app.ui.MethodologyScreen
-import com.blackwatermacros.app.ui.PesoScreen
 import com.blackwatermacros.app.ui.ProfileScreen
 import com.blackwatermacros.app.ui.SettingsScreen
-import com.blackwatermacros.app.ui.StatsScreen
+import com.blackwatermacros.app.ui.ProgressScreen
 
 /**
  * "Blackwater" palette — a warm, organic dark-forest look with a single warm
@@ -117,8 +116,7 @@ class MainActivity : AppCompatActivity() {
 
 private val AllTabRoutes = setOf(
     AppTab.HOY.route,
-    AppTab.PESO.route,
-    AppTab.ESTADISTICAS.route,
+    AppTab.PROGRESO.route,
     AppTab.AJUSTES.route,
 )
 
@@ -177,14 +175,11 @@ private fun AppNavHost(
                 modifier = Modifier.padding(innerPadding),
                 onOpenSettings = { navController.navigateToTab(AppTab.AJUSTES) },
                 onOpenProfile = { navController.navigate("perfil") },
-                onOpenWeight = { navController.navigateToTab(AppTab.PESO) },
+                onOpenWeight = { navController.navigateToTab(AppTab.PROGRESO) },
             )
         }
-        composable(AppTab.PESO.route) {
-            PesoScreen(modifier = Modifier.padding(innerPadding))
-        }
-        composable(AppTab.ESTADISTICAS.route) {
-            StatsScreen(
+        composable(AppTab.PROGRESO.route) {
+            ProgressScreen(
                 onOpenMetodologia = { navController.navigate("metodologia") },
                 modifier = Modifier.padding(innerPadding),
             )

@@ -14,13 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Scale
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,17 +50,11 @@ enum class AppTab(
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home,
     ),
-    PESO(
-        route = "peso",
-        labelRes = R.string.tab_weight,
-        selectedIcon = Icons.Filled.Scale,
-        unselectedIcon = Icons.Outlined.Scale,
-    ),
-    ESTADISTICAS(
-        route = "estadisticas",
-        labelRes = R.string.tab_stats,
-        selectedIcon = Icons.Filled.BarChart,
-        unselectedIcon = Icons.Outlined.BarChart,
+    PROGRESO(
+        route = "progreso",
+        labelRes = R.string.tab_progress,
+        selectedIcon = Icons.AutoMirrored.Filled.TrendingUp,
+        unselectedIcon = Icons.AutoMirrored.Outlined.TrendingUp,
     ),
     AJUSTES(
         route = "ajustes",

@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3Icon, HomeIcon, ScaleIcon, SettingsIcon } from "lucide-react";
+import { HomeIcon, SettingsIcon, TrendingUpIcon } from "lucide-react";
 import { t } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/", label: t.nav.hoy, icon: HomeIcon },
-  { href: "/peso", label: t.nav.peso, icon: ScaleIcon },
-  { href: "/estadisticas", label: t.nav.estadisticas, icon: BarChart3Icon },
+  { href: "/progreso", label: t.nav.progreso, icon: TrendingUpIcon },
   { href: "/ajustes", label: t.nav.ajustes, icon: SettingsIcon },
 ];
 

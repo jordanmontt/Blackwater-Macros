@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ActivityIcon, BookOpenIcon, DumbbellIcon, FlameIcon, ScaleIcon, TrendingUpIcon, UtensilsCrossedIcon, CalendarDaysIcon, SigmaIcon } from "lucide-react";
+import { ActivityIcon, BookOpenIcon, DumbbellIcon, FlameIcon, ScaleIcon, TrendingUpIcon, UtensilsCrossedIcon, SigmaIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -45,10 +45,6 @@ export default function MetodologiaPage() {
           {t.metodologia.rateFormula}
         </FormulaBlock>
         <p>{t.metodologia.rateBody}</p>
-      </MethodologyCard>
-
-      <MethodologyCard icon={<CalendarDaysIcon />} title={t.metodologia.weeklyAvgTitle}>
-        <p>{t.metodologia.weeklyAvgBody}</p>
       </MethodologyCard>
 
       <MethodologyCard icon={<UtensilsCrossedIcon />} title={t.metodologia.nutritionTitle}>

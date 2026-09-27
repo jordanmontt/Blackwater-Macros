@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Peso and Estadísticas were merged into Progreso; keep old links and
+  // installed shortcuts working.
+  async redirects() {
+    return [
+      { source: "/peso", destination: "/progreso", permanent: false },
+      { source: "/estadisticas", destination: "/progreso", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

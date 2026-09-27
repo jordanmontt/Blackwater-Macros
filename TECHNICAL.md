@@ -29,7 +29,7 @@ For general usage and setup, read [README.md](./README.md) first.
 src/
   app/                      # App Router: pages (static) + /api routes (serverless)
     page.tsx                # "Comidas" — daily meal log (client component)
-    admin/ ajustes/ estadisticas/ login/ metodologia/ peso/
+    admin/ ajustes/ login/ metodologia/ progreso/
     api/                    # Route handlers; every folder = one endpoint family
       auth/login|logout|session/
       admin/users/
@@ -323,8 +323,7 @@ overwrite.
 | Page | File | Highlights |
 |---|---|---|
 | Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), template chips, meal list, MealForm dialog, delete confirm, floating add-meal button |
-| Peso | `app/peso/page.tsx` | Current-weight summary (peso actual, grasa actual, cambio grasa 7 días), combined weight+fat chart, entries grouped by day, floating register button |
-| Estadísticas | `app/estadisticas/page.tsx` | Range tabs, 6 composition MiniStat cards, combined weight/body fat chart, weekly averages, macro summary + 4 macro trend charts; ⓘ links to /metodologia |
+| Progreso | `app/progreso/page.tsx` | Peso + Estadísticas merged (old URLs redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «N de M días registrados», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), link to Perfil, Metodología link, CSV export buttons, template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
@@ -410,7 +409,7 @@ free-text quantity field is exempt — it holds strings like "30-40 g".
 - Days are **date keys** (`YYYY-MM-DD`) computed in the *browser's* local timezone
   (`todayKey()`). For stats, the client sends its `today` so the server anchors
   ranges correctly for each user.
-- Weights are **exact instants** (`TIMESTAMPTZ` ISO strings); the peso page groups
+- Weights are **exact instants** (`TIMESTAMPTZ` ISO strings); the Progreso page groups
   them by local day via string slice and renders with es-ES formatters
   (`lib/core/dates.ts`: `formatDateKeyLong`, `formatTimestamp`, `nowDateTimeLocalValue`,
   `parseLocalDateTime`).
@@ -596,7 +595,7 @@ Three projects, one run (`npm test`):
 |---|---|---|
 | `unit` | node | Pure-function edge cases (`stats`, `dates`, password vectors, CSV escaping) |
 | `behavior` | node | Black-box requirements written in Spanish, exercising **services** through injected in-memory fakes — no HTTP, no DB |
-| `behavior-ui` | happy-dom | Renders actual pages and components (`today-page`, `peso-page`, `ajustes-page`, `perfil-page`, `recommendations-card`, `day-navigator`, …) with mocked `@/lib/api` |
+| `behavior-ui` | happy-dom | Renders actual pages and components (`today-page`, `progreso-page`, `ajustes-page`, `perfil-page`, `recommendations-card`, `day-navigator`, …) with mocked `@/lib/api` |
 
 Notes:
 - **happy-dom, not jsdom**: Node ≥20.19 supports `require(esm)` but the pinned
@@ -648,7 +647,7 @@ Gotchas learned the hard way:
 
 | Want to… | Touch |
 |---|---|
-| New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → **port to Kotlin `:core` with its mirror test** → card/chart in Estadísticas on web and Android → explain in `/metodologia` + `i18n/es.ts` + Android `meth_*` strings |
+| New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → **port to Kotlin `:core` with its mirror test** → card/chart in Progreso on web and Android → explain in `/metodologia` + `i18n/es.ts` + Android `meth_*` strings |
 | Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → Perfil/Ajustes page → read via session endpoint. Android: `ProfileEntity` + migration, `WireCalorieProfile`, `profileBody` (explicit nulls) and the Perfil screen |
 | New field on meals/templates/weights (synced) | DB column + zod schema + DTO (web); Android: wire DTO, Room entity **+ `Migration`** (bump `LocalDatabase` version; never destructive: local-only users have no other copy), mappers, `FakeServer`; add a round-trip case to `OfflineSyncTest` |
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in `i18n/es.ts`; proxy already protects it. Android: screen + route in `MainActivity`, strings in the 5 `strings.xml` |
@@ -673,7 +672,7 @@ database on the phone; nothing in the UI waits for the network.** The account is
 optional add-on that turns on a background sync.
 
 ```
-Screens (Comidas · Peso · Estadísticas · Ajustes)
+Screens (Comidas · Progreso · Ajustes)
         │ read/write — always local, instant
         ▼
 AppRepository ── Room (meals, templates, weights, profile)
@@ -740,8 +739,8 @@ app/src/main/kotlin/com/blackwatermacros/app/
                                             #   templates row, reorderable meals, undo delete
     MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue) + validation
     NutritionRecommendationsCard.kt, RecommendationsViewModel.kt  # calorie/protein card + intake bars
-    PesoScreen/ViewModel, WeightFormDialog  # weights (validation = server limits)
-    StatsScreen/ViewModel, chart/*          # local stats; Canvas charts (text sizes in sp)
+    ProgressScreen/ViewModel, WeightFormDialog  # Progreso: local stats + weigh-ins (validation = server limits)
+    chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a target band)
     SettingsScreen/ViewModel, SettingsComponents.kt  # Ajustes (account, templates, data, theme, language)
     ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
     LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen

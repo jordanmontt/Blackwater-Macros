@@ -55,6 +55,7 @@ Robolectric, no emulator needed).
 | `data/OfflineSyncTest.kt` | End to end with a real in-memory Room database, the real Retrofit client and `FakeServer` (a MockWebServer dispatcher that behaves like the Next.js routes): local-only mode never touches the network; a meal saved offline survives and uploads once, retries never duplicate; edits, deletes and reorders upload; web edits/deletions are pulled; an edit made during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data (upload / discard) and wrong credentials; logout and «delete all data» wipe only the phone; undo delete; CSV import de-duplication; a captive-portal/HTML response fails the sync without losing data |
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and `{ "error": … }` envelopes |
 | `data/CsvBackupTest.kt` | CSV export/import round trip; reads a file exported by the web; skips rows the server would reject; unknown files |
+| `ui/ProgressLogicTest.kt` | Progreso numbers: one period for everything, macro averages over logged days (+ split, targets), weigh-ins of the period |
 | `ui/ValidationTest.kt` | Meal form, weight and profile limits (same as `src/server/validation.ts`); recommendation states, latest body fat for protein, measured expenditure from meals + weigh-ins; sync indicator states |
 | `ui/TranslationsTest.kt` | Every language has every string and plural with the same placeholders |
 | `data/ResponseErrorMapperTest.kt`, `data/NiceTicksTest.kt` | Error envelope decoding; chart axis ticks |
@@ -73,6 +74,7 @@ platforms, both should be tested:
 | `routes-*` (wire contract) | `ApiContractTest` + `FakeServer` |
 | `csv-export` | `CsvBackupTest` |
 | `stats-overview`, `tests/unit/stats-builder` | `:core` `StatsBuilderTest` (Android computes stats locally) |
+| `progreso-page` (period, averages over logged days, weigh-ins) | `ProgressLogicTest` |
 | `recommendations-card`, `perfil-page` (recommendation rules) | `ValidationTest` (`recommend`) |
 | `*-page.test.tsx` (screens) | Not automated yet — Compose UI tests are a known gap; screens are checked manually on an emulator |
 

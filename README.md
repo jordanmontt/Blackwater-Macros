@@ -24,10 +24,11 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
   real por balance energético y lo muestra con su margen de error junto al estimado.
 - **Perfil** (Ajustes → Perfil): objetivo deportivo y datos corporales.
 - **Plantillas**: guarda comidas repetitivas ("Desayuno") y aplícalas en un toque.
-- **Peso**: varios registros al día con fecha y hora autocompletadas.
-- **Estadísticas**: series diarias de kcal y proteína con línea de tendencia
-  (media móvil de 7 días) y día pico marcado, evolución del peso con tendencia,
-  ritmo semanal (kg/semana), cambio total, medias semanales y mínimos/máximos.
+- **Progreso**: un selector de periodo para toda la pantalla; peso actual,
+  tendencia (media móvil de 7 días), cambio, ritmo semanal y grasa corporal con su
+  gráfico; calorías diarias con la franja del objetivo; «Promedio de macros» de los
+  días registrados con el reparto de calorías; y los registros de peso (varios al día,
+  con fecha y hora autocompletadas).
 - **Página de metodología** (`/metodologia`): explica con fórmulas y referencias
   cómo se calcula cada métrica.
 - **Exportación CSV** de comidas y pesos (en Android también importación, con el
@@ -107,7 +108,7 @@ en segundo plano con el mismo backend que la web (`PUT /api/<tipo>/:id` idempote
 listas completas). Funciona sin conexión: lo que registras en el gimnasio se guarda al
 instante y se sube solo cuando vuelve la red, aunque cierres la app.
 
-- **Comidas**, **Peso**, **Estadísticas** (calculadas en el teléfono) y **Ajustes**
+- **Comidas**, **Progreso** (calculado en el teléfono) y **Ajustes**
   (cuenta y sincronización, **Perfil**, plantillas, exportar/importar CSV con el mismo
   formato que la web, borrar los datos del teléfono, tema Sistema/Claro/Oscuro, idioma,
   Metodología y Admin).

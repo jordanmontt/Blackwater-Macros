@@ -9,9 +9,9 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 
 | # | Phase | Web | Android | PR |
 |---|-------|-----|---------|----|
-| 0 | Plan + decisions confirmed | ☑ | ☑ | branch `ai-features` |
-| 1 | Core foundations (pure TS + Kotlin) | ☑ | ☑ | branch `ai/1-core` |
-| 2 | Progress tab (merge Peso + Estadísticas) | ☐ | ☐ | |
+| 0 | Plan + decisions confirmed | ☑ | ☑ | #12 |
+| 1 | Core foundations (pure TS + Kotlin) | ☑ | ☑ | #12 |
+| 2 | Progress tab (merge Peso + Estadísticas) | ☑ | ☑ | #12 |
 | 3 | New «Añadir comida» flow: sheet, review form, copy from another day, manual | ☐ | ☐ | |
 | 4 | Food search + barcode (Open Food Facts + bundled generic foods) | ☐ | ☐ | |
 | 5 | AI settings + AI client (cloud providers, keys, test) | ☐ | ☐ | |
@@ -22,9 +22,9 @@ work: tick the boxes, add a line to the **Log**, record any decision that change
 | 10 | Local AI on the web (optional, see D9) | ☐ | — | |
 | 11 | Docs, F-Droid metadata, release | ☐ | ☐ | |
 
-Legend: ☐ todo · ◐ in progress · ☑ done (merged). One phase = one branch
-`ai/<n>-<slug>` from `main` = one PR. Web and Android of a phase may be separate PRs if the
-session budget is tight (`ai/<n>a-web`, `ai/<n>b-android`).
+Legend: ☐ todo · ◐ in progress · ☑ done. **Workflow (user's choice): everything goes on the
+single branch `ai-features` and the single PR #12; each phase is one commit** (a phase may be
+split into «web» and «Android» commits if a session runs out of budget). Never open another PR.
 
 ## Log
 
@@ -33,7 +33,10 @@ session budget is tight (`ai/<n>a-web`, `ai/<n>b-android`).
   allow nutrition-diary apps with attribution; CIQUAL is Etalab 2.0; BEDCA has no reuse licence.
 - 2026-09-27 — Phase 1 done on `ai/1-core` (branched from `ai-features`, so its PR also carries
   the plan). Gate green: web 358 tests, core sync OK, Android core/app tests + lint + assemble.
-  Next: phase 2 (Progreso tab), branch `ai/2-progress` from `main` once phase 1 is merged.
+  Next: phase 2 (Progreso tab).
+- 2026-09-27 — User asked for **one PR only**: branches consolidated into `ai-features`
+  (PR #11 closed, replaced by #12). Phase 2 done as one commit. Next: phase 3, then phase 4
+  (the user asked to continue with 4 after this; 4 plugs into 3's add-food flow).
 - 2026-09-27 — User created a free Gemini key at https://aistudio.google.com/api-keys (that is
   the URL the guide must use). The key is entered by the user in the app (phase 5); it must
   never be pasted into chat, committed, or put in fixtures. Tests use recorded/mock responses.
@@ -298,12 +301,20 @@ browser (demo mode: «Explorar datos de demo» on /login). New Android strings g
       `src/lib/core/README.md`. `:core` now depends on `kotlinx-serialization-json` (JSON trees).
 
 ### Phase 2 — Progreso tab
-- [ ] Web: `src/app/progreso/page.tsx` (merge `peso` + `estadisticas`), redirects from `/peso`
-      and `/estadisticas`, nav in `components/app-nav.tsx`, i18n. Behavior tests updated
-      (`peso-page`, `stats-overview`, new `progreso-page`).
-- [ ] Android: `ProgressScreen.kt` + `ProgressViewModel.kt` (merge `PesoScreen`/`StatsScreen`),
-      `BottomNavBar.kt` (4 tabs, Coach placeholder hidden until phase 7), strings ×5.
-- [ ] Metodología: remove weekly average section, describe logged-days averages.
+- [x] Web: `src/app/progreso/page.tsx` (merge `peso` + `estadisticas`), redirects from `/peso`
+      and `/estadisticas` (`next.config.ts`), nav in `components/app-nav.tsx`, i18n (unused
+      peso/stats keys removed). Shared `components/weight-form-dialog.tsx` and
+      `lib/use-recommendations.ts` (also used by the Comidas card). Behavior test
+      `progreso-page` replaces `peso-page`; `tests/helpers/repos.ts` got `mealDto`.
+- [x] Android: `ProgressScreen.kt` + `ProgressViewModel.kt` (pure `buildProgress`, tested in
+      `ProgressLogicTest`) replace `PesoScreen`/`StatsScreen` and their VMs; `BottomNavBar.kt`
+      has 3 tabs (Coach tab arrives in phase 7); `TrendChart` got an optional target `band`;
+      strings ×5 (unused stats_* removed).
+- [x] Metodología (web + Android ×5): weekly-average section removed; weight summary and
+      daily-nutrition texts describe the Progreso card, logged-days averages and the kcal split.
+- Note: the stats series (`StatsSummary.calories`) has every day of the period with 0 when
+  unlogged, so `macroAverages(summary.calories)` is used directly; the calories chart plots
+  logged days only (a 0 would drag the trend down).
 
 ### Phase 3 — «Añadir comida» flow
 - [ ] Shared «meal draft» state (web hook / Android ViewModel) used by the review form.
