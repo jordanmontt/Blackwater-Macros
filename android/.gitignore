@@ -21,3 +21,7 @@ captures/
 
 # Kotlin
 # (derived build outputs live under each module/build/)
+# Release signing (never commit)
+keystore.properties
+*.jks
+*.keystore

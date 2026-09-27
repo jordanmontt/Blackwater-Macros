@@ -86,6 +86,11 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
   dark theme), «Registrar peso» labelled button in Progreso, choice of on-device model.
   Debug builds start slowly on the 3 GB emulator (24 s interpreted, ~5 s once compiled):
   a release build with R8 + baseline profile is part of the size work.
+- 2026-09-27 — Release build for sharing: R8 + resource shrinking (`app/proguard-rules.pro`
+  keeps LiteRT-LM and zxing-cpp JNI classes), one APK per ABI (release only), compressed
+  native libs; signed with a key from `keystore.properties` if present, else the debug key
+  (installable test builds). arm64 APK **14.8 MB** (debug was 81 MB). Smoke-tested on the
+  emulator: food search (bundled + Open Food Facts), Coach screen, on-device engine loads.
 
 ---
 

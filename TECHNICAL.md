@@ -891,7 +891,11 @@ yet; screens are verified manually on an emulator.
 
 ### 14.7 Not done yet (candidates for a next version)
 
-- **Release & F-Droid:** no release signing config and no F-Droid metadata
+- **Release build:** `./gradlew :app:assembleRelease` → one APK per ABI in
+  `app/build/outputs/apk/release/` (arm64 ~15 MB), R8-shrunk. Signed with `keystore.properties`
+  (storeFile, storePassword, keyAlias, keyPassword; never committed) when present, else with the
+  debug key (fine for sharing test builds, not for a store).
+- **Release & F-Droid:** no F-Droid metadata
   (`fastlane/metadata/android/…` or an fdroiddata recipe) yet; builds shared so far are
   debug APKs. Bump `versionCode`/`versionName` for every release.
 - **Room migrations:** the local database is at version 1 with `exportSchema = false`.
