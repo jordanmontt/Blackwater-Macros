@@ -153,7 +153,7 @@
     <string name="rec_protein_title">Protein recommendation</string>
     <string name="unit_kcal_day">kcal/day</string>
     <string name="unit_g_day">g/day</string>
-    <string name="rec_estimated_average">estimated average: %1$s</string>
+    <string name="rec_estimated_average">Estimated average: %1$s</string>
     <string name="rec_bmr">Basal metabolic rate (BMR): %1$s kcal/day</string>
     <string name="rec_tdee">Estimated daily energy expenditure (TDEE): %1$s kcal/day</string>
     <string name="rec_need_weight">Log your weight to see recommendations</string>

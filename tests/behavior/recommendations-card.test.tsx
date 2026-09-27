@@ -74,7 +74,7 @@ describe("tarjetas de recomendación", () => {
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
     // la etiqueta aparece dentro de un párrafo con el rango → matcher de substring
-    const labels = await screen.findAllByText((content) => content.includes("promedio estimado"));
+    const labels = await screen.findAllByText((content) => content.includes("Promedio estimado"));
     expect(labels.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -97,5 +97,13 @@ describe("tarjetas de recomendación", () => {
 
     expect(await screen.findByText((content) => content.startsWith("Metabolismo basal (TMB):"))).toBeInTheDocument();
     expect(screen.getByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"))).toBeInTheDocument();
+  });
+
+  it("muestra promedio, TMB y TDEE antes de la barra de progreso", async () => {
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    const tdee = await screen.findByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"));
+    const missing = screen.getByText(/te faltan \d+–\d+ kcal/);
+    // TDEE aparece antes que el estado de la barra en el orden del documento.
+    expect(tdee.compareDocumentPosition(missing) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });

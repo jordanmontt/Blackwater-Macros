@@ -152,7 +152,7 @@
     <string name="rec_protein_title">Eiweißempfehlung</string>
     <string name="unit_kcal_day">kcal/Tag</string>
     <string name="unit_g_day">g/Tag</string>
-    <string name="rec_estimated_average">geschätzter Durchschnitt: %1$s</string>
+    <string name="rec_estimated_average">Geschätzter Durchschnitt: %1$s</string>
     <string name="rec_bmr">Grundumsatz (GU): %1$s kcal/Tag</string>
     <string name="rec_tdee">Geschätzter täglicher Energieverbrauch (TDEE): %1$s kcal/Tag</string>
     <string name="rec_need_weight">Erfasse dein Gewicht, um Empfehlungen zu sehen</string>

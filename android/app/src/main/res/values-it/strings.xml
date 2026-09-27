@@ -152,7 +152,7 @@
     <string name="rec_protein_title">Raccomandazione proteine</string>
     <string name="unit_kcal_day">kcal/giorno</string>
     <string name="unit_g_day">g/giorno</string>
-    <string name="rec_estimated_average">media stimata: %1$s</string>
+    <string name="rec_estimated_average">Media stimata: %1$s</string>
     <string name="rec_bmr">Metabolismo basale (MB): %1$s kcal/giorno</string>
     <string name="rec_tdee">Dispendio energetico giornaliero stimato (TDEE): %1$s kcal/giorno</string>
     <string name="rec_need_weight">Registra il tuo peso per vedere le raccomandazioni</string>

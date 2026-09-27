@@ -152,7 +152,7 @@
     <string name="rec_protein_title">Recomendación de proteína</string>
     <string name="unit_kcal_day">kcal/día</string>
     <string name="unit_g_day">g/día</string>
-    <string name="rec_estimated_average">promedio estimado: %1$s</string>
+    <string name="rec_estimated_average">Promedio estimado: %1$s</string>
     <string name="rec_bmr">Metabolismo basal (TMB): %1$s kcal/día</string>
     <string name="rec_tdee">Gasto calórico diario estimado (TDEE): %1$s kcal/día</string>
     <string name="rec_need_weight">Registra tu peso para ver recomendaciones</string>

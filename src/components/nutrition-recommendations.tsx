@@ -169,6 +169,15 @@ export function NutritionRecommendationsCard({
               })}{" "}
               {t.calorias.perDay}
             </p>
+            {/* Where the target comes from (same breakdown as Ajustes → Perfil). */}
+            <div className="space-y-0.5 text-xs text-muted-foreground">
+              <p>
+                {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)} {t.calorias.perDay}
+              </p>
+              <p>
+                {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)} {t.calorias.perDay}
+              </p>
+            </div>
             <IntakeBar
               current={dailyCalories}
               rangeMin={calorieRec.targetMin}
@@ -182,15 +191,6 @@ export function NutritionRecommendationsCard({
                 t.calorias.inRange,
               )}
             />
-            {/* Where the target comes from (same breakdown as Ajustes → Perfil). */}
-            <div className="space-y-0.5 text-xs text-muted-foreground">
-              <p>
-                {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)} {t.calorias.perDay}
-              </p>
-              <p>
-                {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)} {t.calorias.perDay}
-              </p>
-            </div>
           </section>
         ) : null}
 

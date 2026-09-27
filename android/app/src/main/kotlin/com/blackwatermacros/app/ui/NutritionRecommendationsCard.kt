@@ -34,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.blackwatermacros.app.core.CalorieRecommendation
 import com.blackwatermacros.app.core.Goal
 import kotlin.math.round
 
@@ -86,10 +85,12 @@ fun NutritionRecommendationsCard(
                             rangeMin = calorie.targetMin,
                             rangeMax = calorie.targetMax,
                             barUnit = "kcal",
+                            // Where the target comes from (same as Perfil), shown before the bar.
+                            details = listOf(
+                                stringResource(R.string.rec_bmr, formatNumber(calorie.bmr)),
+                                stringResource(R.string.rec_tdee, formatNumber(calorie.tdee)),
+                            ),
                         )
-                        // Same breakdown as Perfil: where the target comes from.
-                        Spacer(Modifier.height(6.dp))
-                        CalorieBreakdown(calorie)
                     }
                     if (calorie != null && protein != null) {
                         Spacer(Modifier.height(16.dp))
@@ -147,6 +148,7 @@ internal fun RecommendationSection(
     rangeMax: Double,
     barUnit: String = "",
     showBar: Boolean = true,
+    details: List<String> = emptyList(),
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -180,6 +182,9 @@ internal fun RecommendationSection(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        details.forEach {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         if (showBar) {
             Spacer(Modifier.height(10.dp))
             IntakeBar(current, rangeMin, rangeMax, barUnit)
@@ -255,16 +260,4 @@ internal fun Goal.labelRes(): Int = when (this) {
     Goal.CUT -> R.string.goal_cut
     Goal.MAINTAIN -> R.string.goal_maintain
     Goal.SURPLUS -> R.string.goal_surplus
-}
-
-@Composable
-private fun CalorieBreakdown(calorie: CalorieRecommendation) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        listOf(
-            stringResource(R.string.rec_bmr, formatNumber(calorie.bmr)),
-            stringResource(R.string.rec_tdee, formatNumber(calorie.tdee)),
-        ).forEach {
-            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
 }

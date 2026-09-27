@@ -152,7 +152,7 @@
     <string name="rec_protein_title">Recommandation de protéines</string>
     <string name="unit_kcal_day">kcal/jour</string>
     <string name="unit_g_day">g/jour</string>
-    <string name="rec_estimated_average">moyenne estimée : %1$s</string>
+    <string name="rec_estimated_average">Moyenne estimée : %1$s</string>
     <string name="rec_bmr">Métabolisme de base (MB) : %1$s kcal/jour</string>
     <string name="rec_tdee">Dépense énergétique quotidienne estimée (DEJ) : %1$s kcal/jour</string>
     <string name="rec_need_weight">Enregistrez votre poids pour voir les recommandations</string>
