@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.blackwatermacros.app.core.DataPoint
 import com.blackwatermacros.app.core.movingAverageByDays
 import com.blackwatermacros.app.core.round1
@@ -82,7 +83,7 @@ fun TrendChart(
                     detectTapGestures { offset ->
                         val n = points.size
                         if (n > 0) {
-                            val left = 34.dp.toPx()
+                            val left = 44.dp.toPx()
                             val plotWidth = size.width - 6.dp.toPx() - left
                             val frac = ((offset.x - left) / plotWidth).coerceIn(0f, 1f)
                             val idx = (frac * (n - 1)).roundToInt()
@@ -93,22 +94,22 @@ fun TrendChart(
         ) {
             val chartWidth = size.width
             val plotHeight = size.height
-            val leftAxisWidth = 34.dp.toPx()
+            val leftAxisWidth = 44.dp.toPx()
             val plotTop = 44.dp.toPx()
             val plotLeft = leftAxisWidth
             val plotRight = chartWidth - 6.dp.toPx()
             val plotWidth = plotRight - plotLeft
-            val plotBottom = plotHeight - 18.dp.toPx()
+            val plotBottom = plotHeight - 24.dp.toPx()
 
             val fillArgb = labelColor.toArgb()
             val axisPaint = android.graphics.Paint().apply {
                 setColor(fillArgb)
-                textSize = 18f
+                textSize = AxisTextSize.toPx()
                 textAlign = android.graphics.Paint.Align.RIGHT
             }
             val axisTitlePaint = android.graphics.Paint().apply {
                 setColor(fillArgb)
-                textSize = 18f
+                textSize = AxisTextSize.toPx()
                 textAlign = android.graphics.Paint.Align.RIGHT
             }
 
@@ -214,10 +215,10 @@ fun TrendChart(
                 }
                 val tooltipPaint = android.graphics.Paint().apply {
                     setColor(fillArgb)
-                    textSize = 20f
+                    textSize = TooltipTextSize.toPx()
                     textAlign = android.graphics.Paint.Align.LEFT
                 }
-                val lineH = 26f
+                val lineH = tooltipPaint.textSize * 1.4f
                 val pad = 10.dp.toPx()
                 val tw = lines.maxOf { tooltipPaint.measureText(it) } + pad * 2
                 val th = lineH * lines.size + pad
@@ -268,3 +269,6 @@ private fun LegendDot(color: Color, label: String) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+/** Chart text sizes in sp, so labels follow the phone's font size (they were raw pixels, tiny on dense screens). */
+internal val AxisTextSize = 12.sp
+internal val TooltipTextSize = 13.sp

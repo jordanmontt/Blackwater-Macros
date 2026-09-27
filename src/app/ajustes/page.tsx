@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -84,7 +83,6 @@ export default function AjustesPage() {
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 md:pt-6">
       <header className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Logo size="header" priority />
           <h1 className="text-lg font-semibold">{t.ajustes.title}</h1>
         </div>
       </header>

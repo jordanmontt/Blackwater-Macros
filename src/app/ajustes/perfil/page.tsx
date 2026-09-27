@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeftIcon, DumbbellIcon, FlameIcon } from "lucide-react";
 import { toast } from "sonner";
-import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -140,7 +139,6 @@ export default function PerfilPage() {
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 md:pt-6">
       <header className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Logo size="header" priority />
           <h1 className="text-lg font-semibold">{t.perfil.title}</h1>
         </div>
         <Button

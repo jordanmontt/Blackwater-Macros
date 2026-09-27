@@ -106,7 +106,7 @@ fun SettingsScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { CenteredTopAppBar(title = stringResource(R.string.tab_settings), leading = { TabHeaderLogo() }) },
+        topBar = { CenteredTopAppBar(title = stringResource(R.string.tab_settings)) },
     ) { innerPadding ->
         Column(
             Modifier

@@ -2,7 +2,6 @@ package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
@@ -74,7 +73,7 @@ fun CenteredTopAppBar(
     }
 }
 
-/** The Blackwater 20 kg plate (same logo as the web), shown at the start of each tab's header. */
+/** The Blackwater 20 kg plate (same logo as the web and the app icon). */
 @Composable
 fun AppLogo(modifier: Modifier = Modifier, size: Dp = 32.dp) {
     Image(
@@ -82,9 +81,4 @@ fun AppLogo(modifier: Modifier = Modifier, size: Dp = 32.dp) {
         contentDescription = null,
         modifier = modifier.size(size),
     )
-}
-
-@Composable
-fun TabHeaderLogo() {
-    AppLogo(Modifier.padding(start = 16.dp))
 }

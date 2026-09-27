@@ -24,8 +24,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -137,6 +143,7 @@ fun CompactField(
     readOnly: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
+    var focused by remember { mutableStateOf(false) }
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
@@ -144,13 +151,15 @@ fun CompactField(
         readOnly = readOnly,
         singleLine = true,
         textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp),
+        // Default caret is black: invisible on the dark theme.
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions(keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Text),
         decorationBox = { innerTextField ->
             Row(
                 Modifier
-                    .defaultMinSize(minHeight = 26.dp)
-                    .fieldBackground(enabled)
-                    .padding(start = 10.dp, end = if (trailingIcon != null && readOnly) 4.dp else 10.dp, top = 3.dp, bottom = 3.dp),
+                    .defaultMinSize(minHeight = 44.dp)
+                    .fieldBackground(enabled, focused && !readOnly)
+                    .padding(start = 12.dp, end = if (trailingIcon != null && readOnly) 6.dp else 12.dp, top = 8.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
@@ -163,30 +172,33 @@ fun CompactField(
                 }
             }
         },
-        modifier = modifier,
+        modifier = modifier.onFocusChanged { focused = it.isFocused },
     )
 }
 
 /** Compact multi-line text area mirroring the web `Textarea`. */
 @Composable
 fun CompactTextArea(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
+    var focused by remember { mutableStateOf(false) }
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
         textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp),
+        // Default caret is black: invisible on the dark theme.
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         decorationBox = { innerTextField ->
             Box(
                 Modifier
-                    .defaultMinSize(minHeight = 64.dp)
-                    .fieldBackground(enabled = true)
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                    .defaultMinSize(minHeight = 72.dp)
+                    .fieldBackground(enabled = true, focused = focused)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 contentAlignment = Alignment.TopStart,
             ) {
                 if (value.isEmpty()) Placeholder(stringResource(R.string.form_notes_placeholder))
                 innerTextField()
             }
         },
-        modifier = modifier,
+        modifier = modifier.onFocusChanged { focused = it.isFocused },
     )
 }
 
@@ -195,15 +207,20 @@ private fun Placeholder(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        // Clearly fainter than typed text, so a hint like «Desayuno» is not mistaken for a value.
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
     )
 }
 
 @Composable
-private fun Modifier.fieldBackground(enabled: Boolean): Modifier {
-    val outline = MaterialTheme.colorScheme.outline
-    return background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
-        .border(BorderStroke(1.dp, if (enabled) outline else outline.copy(alpha = 0.38f)), RoundedCornerShape(8.dp))
+private fun Modifier.fieldBackground(enabled: Boolean, focused: Boolean = false): Modifier {
+    val colors = MaterialTheme.colorScheme
+    val border = when {
+        focused -> BorderStroke(2.dp, colors.primary)
+        enabled -> BorderStroke(1.dp, colors.outline)
+        else -> BorderStroke(1.dp, colors.outline.copy(alpha = 0.38f))
+    }
+    return background(colors.surface, RoundedCornerShape(8.dp)).border(border, RoundedCornerShape(8.dp))
 }
 
 // --- Parsing & validation (web `nutrition-fields.tsx` semantics) ---
