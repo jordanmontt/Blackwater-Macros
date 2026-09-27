@@ -29,6 +29,9 @@ session budget is tight (`ai/<n>a-web`, `ai/<n>b-android`).
 ## Log
 
 - 2026-09-27 — Plan written (branch `ai-features`). Methodology v2 (PR #10) merged before.
+- 2026-09-27 — User created a free Gemini key at https://aistudio.google.com/api-keys (that is
+  the URL the guide must use). The key is entered by the user in the app (phase 5); it must
+  never be pasted into chat, committed, or put in fixtures. Tests use recorded/mock responses.
 
 ---
 
@@ -190,7 +193,7 @@ Usar para coach:  (•) Nube  ( ) Dispositivo
 [x] El coach puede ver mis datos
 ```
 
-**Free Google key guide** (onboarding and here): 1) Abre aistudio.google.com/apikey e inicia
+**Free Google key guide** (onboarding and here): 1) Abre aistudio.google.com/api-keys e inicia
 sesión con tu cuenta de Google. 2) Pulsa «Create API key». 3) Cópiala y pégala aquí.
 Privacy note (verified 2026-09-27 in the Gemini API terms): on the free tier Google may use
 prompts and photos to improve its products and humans may review them — **except** in the EEA,
