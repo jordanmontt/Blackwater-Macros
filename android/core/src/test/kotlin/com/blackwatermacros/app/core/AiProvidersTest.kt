@@ -147,6 +147,18 @@ class AiProvidersTest {
         assertThat(aiErrorKind(429, "")).isEqualTo(AiErrorKind.QUOTA)
         assertThat(aiErrorKind(402, "")).isEqualTo(AiErrorKind.QUOTA)
         assertThat(aiErrorKind(404, "")).isEqualTo(AiErrorKind.NOT_FOUND)
-        assertThat(aiErrorKind(500, "")).isEqualTo(AiErrorKind.PROVIDER)
+        assertThat(aiErrorKind(503, "")).isEqualTo(AiErrorKind.UNAVAILABLE)
+        assertThat(aiErrorKind(500, "")).isEqualTo(AiErrorKind.UNAVAILABLE)
+        assertThat(aiErrorKind(418, "")).isEqualTo(AiErrorKind.PROVIDER)
+    }
+
+    @Test
+    fun readsTheProvidersOwnErrorMessage() {
+        assertThat(aiErrorDetail("""{"error":{"code":503,"message":"The model is overloaded. Please try again later.","status":"UNAVAILABLE"}}"""))
+            .isEqualTo("The model is overloaded. Please try again later.")
+        assertThat(aiErrorDetail("""{"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}""")).isEqualTo("Overloaded")
+        assertThat(aiErrorDetail("""{"error":"Bad gateway"}""")).isEqualTo("Bad gateway")
+        assertThat(aiErrorDetail("<html>  502\n Bad Gateway </html>")).isEqualTo("<html> 502 Bad Gateway </html>")
+        assertThat(aiErrorDetail("x".repeat(500))).hasLength(200)
     }
 }

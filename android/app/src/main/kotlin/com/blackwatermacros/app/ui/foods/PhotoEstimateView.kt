@@ -228,6 +228,11 @@ fun PhotoEstimateView(
                     .padding(12.dp),
             ) {
                 Text(error, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                val detail = (state as? PhotoEstimateState.Failed)?.detail.orEmpty()
+                if (detail.isNotBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(detail, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 if (onManual != null && state is PhotoEstimateState.Failed) {
                     Spacer(Modifier.height(8.dp))
                     OutlinedButton(onClick = onManual) { Text(stringResource(R.string.add_food_manual)) }

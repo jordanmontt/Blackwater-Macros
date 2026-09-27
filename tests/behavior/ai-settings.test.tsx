@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AiSettingsCard } from "@/components/settings/ai-settings-card";
-import { AiError, aiComplete, aiStream } from "@/lib/ai/client";
+import { AiError, aiComplete, aiStream, RETRY_DELAYS_MS } from "@/lib/ai/client";
 import { getAiSettings } from "@/lib/ai/settings";
 import type { AiConfig, AiInput } from "@/lib/core/ai-providers";
 import { t } from "@/i18n";
@@ -139,6 +139,21 @@ describe("cliente de IA", () => {
     for await (const piece of aiStream(openai, input)) pieces.push(piece);
     expect(pieces).toEqual(["Ho", "la"]);
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).stream).toBe(true);
+  });
+
+  it("reintenta si el proveedor está saturado y luego explica el error con sus palabras", async () => {
+    RETRY_DELAYS_MS.splice(0, RETRY_DELAYS_MS.length, 0, 0);
+    const overloaded = '{"error":{"code":503,"message":"The model is overloaded. Please try again later.","status":"UNAVAILABLE"}}';
+    fetchMock.mockResolvedValueOnce(new Response(overloaded, { status: 503 }));
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ choices: [{ message: { content: "Hola" } }] })));
+    await expect(aiComplete(openai, input)).resolves.toBe("Hola");
+
+    fetchMock.mockImplementation(async () => new Response(overloaded, { status: 503 }));
+    const error = await aiComplete(openai, input).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(AiError);
+    expect((error as AiError).kind).toBe("unavailable");
+    expect((error as AiError).detail).toBe("503: The model is overloaded. Please try again later.");
+    expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
   it("distingue sin conexión, límite y respuesta vacía", async () => {

@@ -15,6 +15,8 @@ export interface ChatMessage {
   text: string;
   /** Set on an assistant message whose answer failed. */
   error?: AiFailure;
+  /** The provider's (or the browser model's) own words about the failure. */
+  errorDetail?: string;
 }
 
 export interface ChatState {
@@ -97,7 +99,8 @@ export async function sendCoachMessage(text: string): Promise<void> {
   } catch (error) {
     if (!signal.aborted) {
       const kind: AiFailure = error instanceof AiError ? error.kind : "provider";
-      patchLast((message) => ({ ...message, error: kind }));
+      const detail = error instanceof AiError ? error.detail : error instanceof Error ? error.message.slice(0, 200) : "";
+      patchLast((message) => ({ ...message, error: kind, errorDetail: detail }));
     }
   } finally {
     if (controller?.signal === signal) controller = null;

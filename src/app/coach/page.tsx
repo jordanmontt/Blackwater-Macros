@@ -152,7 +152,10 @@ function MessageBubble({ message, pending }: { message: ChatMessage; pending: bo
         )}
       >
         {message.error ? (
-          <p className="text-destructive">{t.ai.errors[message.error]}</p>
+          <>
+            <p className="text-destructive">{t.ai.errors[message.error]}</p>
+            {message.errorDetail ? <p className="mt-0.5 text-xs text-muted-foreground">{message.errorDetail}</p> : null}
+          </>
         ) : message.text === "" && pending ? (
           <p className="text-muted-foreground">{t.coach.thinking}</p>
         ) : mine ? (

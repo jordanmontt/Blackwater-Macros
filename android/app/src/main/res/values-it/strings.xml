@@ -494,4 +494,10 @@
         <item quantity="many">%d modelli</item>
         <item quantity="other">%d modelli</item>
     </plurals>
+    <string name="meth_ai_title">Stime con l\'IA</string>
+    <string name="meth_ai_body" formatted="false">Le foto e il testo («3 banane») diventano alimenti, grammi e macro grazie a un modello linguistico: il fornitore scelto in Impostazioni → IA, oppure il modello sul tuo telefono. È una stima: il modello non pesa il cibo, lo giudica dalla foto, dai riferimenti di dimensione (piatto, posate, la tua mano), dall\'etichetta nutrizionale se la fotografi e da ciò che descrivi.\n\nL\'app chiede una risposta in un formato fisso, controlla che contenga alimenti e macro validi e apre sempre il modulo di revisione prima di salvare: nulla di ciò che dice l\'IA viene registrato senza la tua conferma. I modelli sul dispositivo sono più piccoli di quelli nel cloud e sbagliano di più.\n\nIl coach usa i numeri calcolati dall\'app (i tuoi obiettivi, il dispendio misurato e la proiezione del peso) invece di calcolarne di propri. La proiezione a 30 giorni prolunga la retta di tendenza delle ultime 4 settimane con il suo margine del 95 %; non tiene conto di cambiamenti futuri nella tua dieta. Non è un consiglio medico.</string>
+    <string name="meth_sources_title">Fonti dei dati</string>
+    <string name="meth_sources_body">Alimenti generici (offline): Swiss Food Composition Database dell\'Ufficio federale della sicurezza alimentare e di veterinaria (USAV, Svizzera) e tabella Ciqual 2020 di Anses (Francia, Licence Ouverte / Etalab 2.0). I nomi in spagnolo sono aggiunti da questo progetto.\n\nProdotti e codici a barre: Open Food Facts, banca dati aperta sotto la Open Database License (ODbL). I dati di ogni prodotto provengono dai suoi collaboratori e possono contenere errori. I valori sono per 100 g dell\'alimento come descritto dalla fonte.</string>
+    <string name="ai_error_unavailable">Il servizio di IA è sovraccarico o non disponibile al momento. Riprova tra poco.</string>
+    <string name="ai_error_local">Il modello del telefono non ha potuto rispondere. Riprova o usa il cloud in Impostazioni → IA.</string>
 </resources>

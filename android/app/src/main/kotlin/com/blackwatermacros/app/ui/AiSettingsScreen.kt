@@ -198,12 +198,16 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
                             Spacer(Modifier.width(6.dp))
                             Text(stringResource(R.string.ai_test_ok), style = MaterialTheme.typography.bodySmall)
                         }
-                        is AiTestState.Failed -> Text(
-                            stringResource(state.failure.messageRes()),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.weight(1f),
-                        )
+                        is AiTestState.Failed -> Column(Modifier.weight(1f)) {
+                            Text(
+                                stringResource(state.failure.messageRes()),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                            if (state.detail.isNotBlank()) {
+                                Text(state.detail, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
                         else -> Unit
                     }
                 }

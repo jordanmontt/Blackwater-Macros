@@ -226,11 +226,20 @@ private fun MessageBubble(message: ChatMessage, pending: Boolean) {
                 .padding(horizontal = 14.dp, vertical = 9.dp),
         ) {
             when {
-                message.error != null -> Text(
-                    stringResource(message.error.messageRes()),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
+                message.error != null -> Column {
+                    Text(
+                        stringResource(message.error.messageRes()),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    if (message.errorDetail.isNotBlank()) {
+                        Text(
+                            message.errorDetail,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
                 message.text.isEmpty() && pending -> Text(
                     stringResource(R.string.coach_thinking),
                     style = MaterialTheme.typography.bodyMedium,

@@ -45,6 +45,7 @@ class AiClientTest {
                     chain.proceed(chain.request().newBuilder().url(redirected).header("X-Original-Host", original.host).build())
                 }
                 .build(),
+            retryDelaysMs = listOf(0L, 0L),
         )
     }
 
@@ -98,6 +99,24 @@ class AiClientTest {
         assertThat(failureOf { client.test(AiConfig(AiProvider.GEMINI, "", "")) }).isEqualTo(AiFailure.NOT_CONFIGURED)
         assertThat(failureOf { client.test(AiConfig(AiProvider.CUSTOM, "", "gemma3", "not a url")) }).isEqualTo(AiFailure.OFFLINE)
         assertThat(server.requestCount).isEqualTo(2)
+    }
+
+    @Test
+    fun `an overloaded provider is retried, then explained with its own words`() = runBlocking {
+        val overloaded = """{"error":{"code":503,"message":"The model is overloaded. Please try again later.","status":"UNAVAILABLE"}}"""
+        server.enqueue(MockResponse().setResponseCode(503).setBody(overloaded))
+        server.enqueue(MockResponse().setBody("""{"choices":[{"message":{"content":"Hola"}}]}"""))
+        assertThat(client.complete(openai, input)).isEqualTo("Hola")
+
+        repeat(3) { server.enqueue(MockResponse().setResponseCode(503).setBody(overloaded)) }
+        try {
+            client.complete(openai, input)
+            fail("expected an AiException")
+        } catch (e: AiException) {
+            assertThat(e.failure).isEqualTo(AiFailure.UNAVAILABLE)
+            assertThat(e.detail).isEqualTo("503: The model is overloaded. Please try again later.")
+        }
+        assertThat(server.requestCount).isEqualTo(5)
     }
 
     @Test

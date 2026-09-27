@@ -13,7 +13,11 @@ import { AI_PROVIDERS, aiConfigOf, saveAiSettings, useAiSettings } from "@/lib/a
 import { BrowserModelSection } from "@/components/settings/browser-model-section";
 import { formatTemplate, t } from "@/i18n";
 
-type TestState = { status: "idle" } | { status: "testing" } | { status: "ok" } | { status: "error"; message: string };
+type TestState =
+  | { status: "idle" }
+  | { status: "testing" }
+  | { status: "ok" }
+  | { status: "error"; message: string; detail: string };
 
 export const AI_STUDIO_URL = "https://aistudio.google.com/api-keys";
 
@@ -42,7 +46,7 @@ export function AiSettingsCard() {
     } catch (error) {
       if (controller.signal.aborted) return;
       const kind = error instanceof AiError ? error.kind : "provider";
-      setTest({ status: "error", message: t.ai.errors[kind] });
+      setTest({ status: "error", message: t.ai.errors[kind], detail: error instanceof AiError ? error.detail : "" });
     }
   }
 
@@ -174,7 +178,10 @@ export function AiSettingsCard() {
                 <CheckCircle2Icon className="size-4" /> {t.ai.testOk}
               </span>
             ) : test.status === "error" ? (
-              <span className="text-destructive">{test.message}</span>
+              <>
+                <span className="text-destructive">{test.message}</span>
+                {test.detail ? <span className="block text-xs text-muted-foreground">{test.detail}</span> : null}
+              </>
             ) : null}
           </p>
         </div>

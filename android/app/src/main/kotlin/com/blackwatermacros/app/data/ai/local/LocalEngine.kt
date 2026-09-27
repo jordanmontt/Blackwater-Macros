@@ -72,7 +72,7 @@ class LocalEngine(private val context: Context) {
                 Log.w(TAG, "Backend $backend failed", it)
                 if (backend is Backend.GPU) cpuOnly = true
             }.getOrNull()
-        } ?: throw AiException(AiFailure.PROVIDER, "the model could not be loaded")
+        } ?: throw AiException(AiFailure.LOCAL_MODEL, "the model could not be loaded")
         engine = created
         return created
     }
@@ -105,7 +105,7 @@ class LocalEngine(private val context: Context) {
             throw e
         } catch (e: Exception) {
             Log.w(TAG, "Request failed (cpuOnly=$cpuOnly)", e)
-            if (cpuOnly || produced) throw AiException(AiFailure.PROVIDER, e.message.orEmpty())
+            if (cpuOnly || produced) throw AiException(AiFailure.LOCAL_MODEL, e.message.orEmpty().lineSequence().first().take(200))
             cpuOnly = true
             engine?.close()
             engine = null
@@ -117,7 +117,7 @@ class LocalEngine(private val context: Context) {
                 throw retry
             } catch (retry: Exception) {
                 Log.w(TAG, "Request failed on the CPU too", retry)
-                throw AiException(AiFailure.PROVIDER, retry.message.orEmpty())
+                throw AiException(AiFailure.LOCAL_MODEL, retry.message.orEmpty().lineSequence().first().take(200))
             }
         }
     }

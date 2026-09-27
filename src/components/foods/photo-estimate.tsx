@@ -39,6 +39,7 @@ export function PhotoEstimate({
   const [description, setDescription] = useState(autoDescription ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState("");
   const cameraInput = useRef<HTMLInputElement>(null);
   const galleryInput = useRef<HTMLInputElement>(null);
   const abort = useRef<AbortController | null>(null);
@@ -57,12 +58,15 @@ export function PhotoEstimate({
     abort.current = controller;
     setBusy(true);
     setError(null);
+    setErrorDetail("");
     try {
       const estimate = await estimateMeal({ description: text, photos: images }, controller.signal);
       if (!controller.signal.aborted) onEstimate(estimate);
     } catch (caught) {
       if (controller.signal.aborted) return;
+      const detail = caught instanceof AiError ? caught.detail : caught instanceof Error ? caught.message.slice(0, 200) : "";
       setError(t.ai.errors[caught instanceof AiError ? caught.kind : "provider"]);
+      setErrorDetail(detail);
     } finally {
       if (!controller.signal.aborted) setBusy(false);
     }
@@ -202,6 +206,7 @@ export function PhotoEstimate({
       {error ? (
         <div role="alert" className="space-y-2 rounded-lg border border-destructive/40 p-3 text-sm text-destructive">
           <p>{error}</p>
+          {errorDetail ? <p className="text-xs text-muted-foreground">{errorDetail}</p> : null}
           {onManual ? (
             <Button variant="outline" size="sm" onClick={onManual}>
               {t.addFood.manual}

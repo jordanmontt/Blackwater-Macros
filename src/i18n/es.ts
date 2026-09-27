@@ -219,6 +219,10 @@ export const t = {
   },
   metodologia: {
     title: "Metodología",
+    aiTitle: "Estimaciones con IA",
+    aiBody: ["Las fotos y el texto («3 plátanos») se convierten en alimentos, gramos y macros con un modelo de lenguaje: el proveedor que elijas en Ajustes → IA, o el modelo de tu teléfono o de tu navegador. Es una estimación: el modelo no pesa la comida, la juzga por la foto, por las referencias de tamaño (plato, cubiertos, tu mano), por la etiqueta nutricional si la fotografías y por lo que describes.", "La app pide la respuesta en un formato fijo, comprueba que tenga alimentos y macros válidos y siempre abre el formulario de revisión antes de guardar: nada de lo que dice la IA se registra sin que lo confirmes. Los modelos locales son más pequeños que los de la nube y se equivocan más.", "El coach usa los números que calcula la app (tus objetivos, el gasto medido y la proyección de peso) en lugar de calcular los suyos. La proyección a 30 días prolonga la recta de tendencia de las últimas 4 semanas con su margen del 95 %; no tiene en cuenta cambios futuros en tu dieta. No es consejo médico."],
+    sourcesTitle: "Fuentes de datos",
+    sourcesBody: ["Alimentos genéricos (sin conexión): Swiss Food Composition Database de la Oficina Federal de Seguridad Alimentaria y Veterinaria de Suiza (FSVO) y tabla Ciqual 2020 de Anses (Francia, Licence Ouverte / Etalab 2.0). Los nombres en español los añade este proyecto.", "Productos y códigos de barras: Open Food Facts, base de datos abierta bajo la Open Database License (ODbL). Los datos de cada producto los aportan sus colaboradores y pueden contener errores. Los valores son por 100 g del alimento tal como lo describe la fuente."],
     intro:
       "Cómo se calculan las estadísticas y las recomendaciones de calorías y proteína, con las fórmulas exactas y las referencias en las que se basan.",
     scaleVsTrendTitle: "Peso en báscula vs tendencia",
@@ -354,6 +358,7 @@ export const t = {
       offline: "No se pudo conectar. Revisa tu conexión o la dirección del servidor.",
       empty: "La IA no ha devuelto respuesta. Inténtalo de nuevo.",
       provider: "El proveedor devolvió un error. Inténtalo de nuevo.",
+      unavailable: "El servicio de IA está saturado o caído en este momento. Inténtalo en un rato.",
       unreadable: "La IA no devolvió una estimación válida. Inténtalo de nuevo o escríbelo a mano.",
     },
     providerShort: {

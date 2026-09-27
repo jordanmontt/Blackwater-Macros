@@ -44,6 +44,8 @@ data class ChatMessage(
     val text: String,
     /** Set on an assistant message whose answer failed. */
     val error: AiFailure? = null,
+    /** The provider's (or engine's) own words about the failure. */
+    val errorDetail: String = "",
 )
 
 data class ChatState(val messages: List<ChatMessage> = emptyList(), val streaming: Boolean = false)
@@ -129,9 +131,9 @@ class CoachViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AiException) {
-                patchLast { it.copy(error = e.failure) }
+                patchLast { it.copy(error = e.failure, errorDetail = e.detail) }
             } catch (e: Exception) {
-                patchLast { it.copy(error = AiFailure.PROVIDER) }
+                patchLast { it.copy(error = AiFailure.PROVIDER, errorDetail = e.message.orEmpty().take(200)) }
             } finally {
                 _state.value = _state.value.copy(streaming = false)
             }

@@ -207,7 +207,7 @@ export function isAiConfigured(config: AiConfig): boolean {
   return config.apiKey.trim() !== "";
 }
 
-export type AiErrorKind = "invalid_key" | "quota" | "not_found" | "provider";
+export type AiErrorKind = "invalid_key" | "quota" | "not_found" | "unavailable" | "provider";
 
 /**
  * What went wrong, for a message the user understands. Gemini answers a wrong
@@ -218,5 +218,24 @@ export function aiErrorKind(status: number, body: string): AiErrorKind {
   if (status === 400 && /api[_ -]?key/i.test(body)) return "invalid_key";
   if (status === 402 || status === 429) return "quota";
   if (status === 404) return "not_found";
+  // Overloaded or down for a moment (Gemini often answers 503): worth retrying.
+  if (status === 500 || status === 502 || status === 503 || status === 504) return "unavailable";
   return "provider";
+}
+
+/**
+ * The provider's own error text (`{"error": {"message": …}}` for Gemini, OpenAI,
+ * OpenRouter and Anthropic), trimmed, so the user can see what went wrong.
+ */
+export function aiErrorDetail(body: string): string {
+  let message: unknown = null;
+  try {
+    const json = asRecord(JSON.parse(body));
+    const error = json?.error;
+    message = typeof error === "string" ? error : asRecord(error)?.message ?? json?.message;
+  } catch {
+    message = null;
+  }
+  const text = typeof message === "string" ? message : body;
+  return text.replace(/\s+/g, " ").trim().slice(0, 200);
 }

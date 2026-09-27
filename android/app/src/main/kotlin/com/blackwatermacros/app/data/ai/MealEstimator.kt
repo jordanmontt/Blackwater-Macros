@@ -30,7 +30,16 @@ class MealEstimator(
         val userText = buildMealEstimateUserText(description, photos.size)
         val text = if (settings.current.photoEngine == AiEngineChoice.DEVICE && local != null) {
             if (photos.isNotEmpty() && !local.supportsImages()) throw AiException(AiFailure.NO_VISION)
-            local.complete(system, userText, photos, LocalEngine.MEAL_ESTIMATE_SCHEMA)
+            // No constrained decoding: with Gemma 4 it returned valid JSON with garbled text
+            // (every name «:»). The prompt describes the JSON and the parser is tolerant;
+            // an unreadable answer gets one more try.
+            val first = local.complete(system, userText, photos, jsonSchema = null)
+            if (parseMealEstimate(first) is MealEstimateResult.Ok) {
+                first
+            } else {
+                if (BuildConfig.DEBUG) Log.d("MealEstimator", "Unreadable local answer: ${first.take(500)}")
+                local.complete(system, userText, photos, jsonSchema = null)
+            }
         } else {
             client.complete(
                 settings.current.config,

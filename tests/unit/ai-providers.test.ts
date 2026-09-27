@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  aiErrorDetail,
   aiErrorKind,
   buildAiRequest,
   DEFAULT_MODELS,
@@ -164,6 +165,18 @@ describe("isAiConfigured and aiErrorKind", () => {
     expect(aiErrorKind(429, "")).toBe("quota");
     expect(aiErrorKind(402, "")).toBe("quota");
     expect(aiErrorKind(404, "")).toBe("not_found");
-    expect(aiErrorKind(500, "")).toBe("provider");
+    expect(aiErrorKind(503, "")).toBe("unavailable");
+    expect(aiErrorKind(500, "")).toBe("unavailable");
+    expect(aiErrorKind(418, "")).toBe("provider");
+  });
+
+  it("reads the provider's own error message", () => {
+    expect(aiErrorDetail('{"error":{"code":503,"message":"The model is overloaded. Please try again later.","status":"UNAVAILABLE"}}')).toBe(
+      "The model is overloaded. Please try again later.",
+    );
+    expect(aiErrorDetail('{"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}')).toBe("Overloaded");
+    expect(aiErrorDetail('{"error":"Bad gateway"}')).toBe("Bad gateway");
+    expect(aiErrorDetail("<html>  502\n Bad Gateway </html>")).toBe("<html> 502 Bad Gateway </html>");
+    expect(aiErrorDetail("x".repeat(500))).toHaveLength(200);
   });
 });

@@ -1,4 +1,5 @@
 import {
+  aiErrorDetail,
   aiErrorKind,
   buildAiRequest,
   isAiConfigured,
@@ -18,13 +19,41 @@ export type AiFailure = AiErrorKind | "not_configured" | "offline" | "empty" | "
 
 export class AiError extends Error {
   readonly kind: AiFailure;
+  /** The provider's (or engine's) own words, shown small under the message. */
+  readonly detail: string;
   constructor(kind: AiFailure, detail = "") {
     super(detail || kind);
     this.kind = kind;
+    this.detail = detail;
   }
 }
 
+/** Waits before retrying an overloaded provider (Gemini answers 503 now and then). */
+export const RETRY_DELAYS_MS = [1500, 4000];
+
+function wait(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    signal?.addEventListener("abort", () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+}
+
 async function send(config: AiConfig, input: AiInput, signal?: AbortSignal): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await sendOnce(config, input, signal);
+    } catch (error) {
+      const retry = error instanceof AiError && error.kind === "unavailable" && attempt < RETRY_DELAYS_MS.length;
+      if (!retry || signal?.aborted) throw error;
+      await wait(RETRY_DELAYS_MS[attempt], signal);
+    }
+  }
+}
+
+async function sendOnce(config: AiConfig, input: AiInput, signal?: AbortSignal): Promise<Response> {
   if (!isAiConfigured(config)) throw new AiError("not_configured");
   const request = buildAiRequest(config, input);
   let response: Response;
@@ -36,7 +65,7 @@ async function send(config: AiConfig, input: AiInput, signal?: AbortSignal): Pro
   }
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    throw new AiError(aiErrorKind(response.status, body), body.slice(0, 300));
+    throw new AiError(aiErrorKind(response.status, body), `${response.status}: ${aiErrorDetail(body)}`);
   }
   return response;
 }

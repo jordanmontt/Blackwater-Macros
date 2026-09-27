@@ -483,4 +483,10 @@
         <item quantity="one">%d template</item>
         <item quantity="other">%d templates</item>
     </plurals>
+    <string name="meth_ai_title">AI estimates</string>
+    <string name="meth_ai_body" formatted="false">Photos and text («3 bananas») become foods, grams and macros with a language model: the provider you choose in Settings → AI, or the model on your phone. It is an estimate: the model does not weigh the food, it judges it from the photo, the size references (plate, cutlery, your hand), the nutrition label if you photograph it and what you describe.\n\nThe app asks for a fixed answer format, checks that it has valid foods and macros and always opens the review form before saving: nothing the AI says is logged unless you confirm it. On-device models are smaller than cloud ones and make more mistakes.\n\nThe coach uses the numbers the app computes (your targets, measured expenditure and weight projection) instead of working out its own. The 30-day projection extends the trend line of the last 4 weeks with its 95 % margin; it does not account for future changes in your diet. It is not medical advice.</string>
+    <string name="meth_sources_title">Data sources</string>
+    <string name="meth_sources_body">Generic foods (offline): Swiss Food Composition Database of the Swiss Federal Food Safety and Veterinary Office (FSVO) and the Ciqual 2020 table by Anses (France, Licence Ouverte / Etalab 2.0). Spanish names are added by this project.\n\nProducts and barcodes: Open Food Facts, an open database under the Open Database License (ODbL). Each product\'s data comes from its contributors and may contain errors. Values are per 100 g of the food as described by the source.</string>
+    <string name="ai_error_unavailable">The AI service is overloaded or down right now. Try again in a moment.</string>
+    <string name="ai_error_local">The model on this phone could not answer. Try again, or use the cloud in Settings → AI.</string>
 </resources>

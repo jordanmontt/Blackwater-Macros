@@ -99,6 +99,8 @@ fun MethodologyScreen(onBack: () -> Unit) {
                 ),
                 afterRes = R.string.meth_measured_after,
             )
+            MethodCard(R.string.meth_ai_title, R.string.meth_ai_body)
+            MethodCard(R.string.meth_sources_title, R.string.meth_sources_body)
             ReferencesCard()
             Spacer(Modifier.height(24.dp))
             }

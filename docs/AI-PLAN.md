@@ -96,6 +96,16 @@ split into «web» and «Android» commits if a session runs out of budget). Nev
   button shown, no console errors. The 1 GB download and a local Coach answer were not run
   (the user asked not to test the Coach); behaviour covered by mocked tests. README
   «Funcionalidades» now lists the AI features.
+- 2026-09-27 — Phase 11 (docs, without F-Droid publishing, which the user will do): Metodología
+  gained «Estimaciones con IA» and «Fuentes de datos» (Swiss FCDB, Ciqual/Etalab 2.0, Open Food
+  Facts/ODbL) on web and Android ×5. User reported on the phone: photo estimates always «El
+  proveedor devolvió un error», the coach sometimes. Changes: `aiErrorKind` has «unavailable»
+  (500/502/503/504, e.g. Gemini's «model is overloaded»), retried twice (1.5 s, 4 s) on both
+  platforms; every error now shows the provider's own message (`aiErrorDetail`) under the
+  user message, so the real cause is visible; on-device failures have their own message.
+  On-device estimates no longer use constrained decoding: on the emulator Gemma 4 returned
+  valid JSON with every name «:»; the prompt + tolerant parser are used, with one retry.
+  PR not merged yet: waiting for the user to try the new APK and report the error detail.
 
 ---
 

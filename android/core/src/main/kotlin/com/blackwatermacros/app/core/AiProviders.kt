@@ -233,7 +233,7 @@ fun isAiConfigured(config: AiConfig): Boolean =
     if (config.provider == AiProvider.CUSTOM) config.baseUrl.isNotBlank() && config.model.isNotBlank()
     else config.apiKey.isNotBlank()
 
-enum class AiErrorKind { INVALID_KEY, QUOTA, NOT_FOUND, PROVIDER }
+enum class AiErrorKind { INVALID_KEY, QUOTA, NOT_FOUND, UNAVAILABLE, PROVIDER }
 
 private val API_KEY_MENTION = Regex("api[_ -]?key", RegexOption.IGNORE_CASE)
 
@@ -246,5 +246,20 @@ fun aiErrorKind(status: Int, body: String): AiErrorKind = when {
     status == 400 && API_KEY_MENTION.containsMatchIn(body) -> AiErrorKind.INVALID_KEY
     status == 402 || status == 429 -> AiErrorKind.QUOTA
     status == 404 -> AiErrorKind.NOT_FOUND
+    // Overloaded or down for a moment (Gemini often answers 503): worth retrying.
+    status == 500 || status == 502 || status == 503 || status == 504 -> AiErrorKind.UNAVAILABLE
     else -> AiErrorKind.PROVIDER
+}
+
+private val SPACES = Regex("\\s+")
+
+/**
+ * The provider's own error text (`{"error": {"message": …}}` for Gemini, OpenAI,
+ * OpenRouter and Anthropic), trimmed, so the user can see what went wrong.
+ */
+fun aiErrorDetail(body: String): String {
+    val json = runCatching { Json.parseToJsonElement(body) }.getOrNull().obj()
+    val error = json?.get("error")
+    val message = error.str() ?: error.obj()?.get("message").str() ?: json?.get("message").str()
+    return (message ?: body).replace(SPACES, " ").trim().take(200)
 }

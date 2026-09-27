@@ -31,7 +31,7 @@ sealed interface AiTestState {
     data object Idle : AiTestState
     data object Testing : AiTestState
     data object Ok : AiTestState
-    data class Failed(val failure: AiFailure) : AiTestState
+    data class Failed(val failure: AiFailure, val detail: String = "") : AiTestState
 }
 
 @StringRes
@@ -45,6 +45,8 @@ fun AiFailure.messageRes(): Int = when (this) {
     AiFailure.UNREADABLE -> R.string.ai_error_unreadable
     AiFailure.PROVIDER -> R.string.ai_error_provider
     AiFailure.NO_VISION -> R.string.local_model_no_vision
+    AiFailure.UNAVAILABLE -> R.string.ai_error_unavailable
+    AiFailure.LOCAL_MODEL -> R.string.ai_error_local
 }
 
 @StringRes
@@ -122,9 +124,9 @@ class AiSettingsViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AiException) {
-                AiTestState.Failed(e.failure)
+                AiTestState.Failed(e.failure, e.detail)
             } catch (e: Exception) {
-                AiTestState.Failed(AiFailure.PROVIDER)
+                AiTestState.Failed(AiFailure.PROVIDER, e.message.orEmpty().take(200))
             }
         }
     }

@@ -43,7 +43,7 @@ sealed interface PhotoEstimateState {
     /** Nothing to estimate yet: no photo and no description. */
     data object NeedInput : PhotoEstimateState
     data object PhotoError : PhotoEstimateState
-    data class Failed(val failure: AiFailure) : PhotoEstimateState
+    data class Failed(val failure: AiFailure, val detail: String = "") : PhotoEstimateState
     data class Done(val estimate: MealEstimate) : PhotoEstimateState
 }
 
@@ -139,9 +139,9 @@ class PhotoEstimateViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AiException) {
-                PhotoEstimateState.Failed(e.failure)
+                PhotoEstimateState.Failed(e.failure, e.detail)
             } catch (e: Exception) {
-                PhotoEstimateState.Failed(AiFailure.PROVIDER)
+                PhotoEstimateState.Failed(AiFailure.PROVIDER, e.message.orEmpty().take(200))
             }
         }
     }
