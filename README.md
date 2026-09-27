@@ -1,7 +1,11 @@
 # Blackwater Macros
 
-Aplicación personal de seguimiento de **calorías, proteína y peso**.
-Minimalista, mobile-first, con modo claro/oscuro y datos en la nube.
+Aplicación personal de seguimiento de **calorías, macros y peso**. Dos clientes:
+
+- **Web** (Next.js): mobile-first, modo claro/oscuro, datos en la nube con cuentas por
+  invitación, y un modo demo sin cuenta.
+- **Android** (Kotlin/Compose, software libre pensado para F-Droid): funciona completa
+  **sin cuenta y sin conexión**; la cuenta es opcional y sincroniza con la web.
 
 > ¿Vas a modificar el código? Lee [TECHNICAL.md](./TECHNICAL.md): arquitectura,
 > modelo de datos, flujo de autenticación, API, tests y convenciones.
@@ -9,8 +13,12 @@ Minimalista, mobile-first, con modo claro/oscuro y datos en la nube.
 ## Funcionalidades
 
 - **Comidas por día**: título, ingredientes con cantidad y notas. Dos modos de
-  registro de nutrición: *por ingrediente* (la app suma calorías y proteína) o
-  *solo total* (introduces únicamente el total de la comida).
+  registro de nutrición: *por ingrediente* (la app suma calorías, proteína,
+  carbohidratos y grasa) o *solo total* (introduces únicamente el total de la comida).
+  Doble toque en la fecha para volver a hoy.
+- **Recomendaciones** de calorías (TMB, TDEE, rango según objetivo) y de proteína, con
+  barras de progreso de lo que llevas comido frente al objetivo.
+- **Perfil** (Ajustes → Perfil): objetivo deportivo y datos corporales.
 - **Plantillas**: guarda comidas repetitivas ("Desayuno") y aplícalas en un toque.
 - **Peso**: varios registros al día con fecha y hora autocompletadas.
 - **Estadísticas**: series diarias de kcal y proteína con línea de tendencia
@@ -18,9 +26,8 @@ Minimalista, mobile-first, con modo claro/oscuro y datos en la nube.
   ritmo semanal (kg/semana), cambio total, medias semanales y mínimos/máximos.
 - **Página de metodología** (`/metodologia`): explica con fórmulas y referencias
   cómo se calcula cada métrica.
-- **Exportación CSV** de comidas y pesos.
-- **Futuras métricas**: el esquema ya reserva `carbs`/`fat` en ingredientes y
-  columnas totales; activarlas no requiere migrar nada más que añadir campos.
+- **Exportación CSV** de comidas y pesos (en Android también importación, con el
+  mismo formato que la web).
 
 ## Pila técnica
 
@@ -33,6 +40,7 @@ Minimalista, mobile-first, con modo claro/oscuro y datos en la nube.
 | ORM | Drizzle ORM + drizzle-kit |
 | Autenticación | Usuario/contraseña con scrypt + sesiones en base de datos (cookie httpOnly) |
 | Tests | Vitest · Testing Library |
+| Android | Kotlin · Jetpack Compose · Room · WorkManager · Retrofit (sin servicios de Google) |
 
 Los usuarios se crean manualmente (no hay registro público).
 
@@ -96,10 +104,12 @@ listas completas). Funciona sin conexión: lo que registras en el gimnasio se gu
 instante y se sube solo cuando vuelve la red, aunque cierres la app.
 
 - **Comidas**, **Peso**, **Estadísticas** (calculadas en el teléfono) y **Ajustes**
-  (cuenta y sincronización, objetivo, perfil, plantillas, exportar/importar CSV con el
-  mismo formato que la web, tema Sistema/Claro/Oscuro, Metodología y Admin).
+  (cuenta y sincronización, **Perfil**, plantillas, exportar/importar CSV con el mismo
+  formato que la web, borrar los datos del teléfono, tema Sistema/Claro/Oscuro, idioma,
+  Metodología y Admin).
 - Idiomas: inglés (por defecto), español, francés, italiano y alemán — según el idioma
-  del teléfono.
+  del teléfono o elegido en Ajustes → Idioma.
+- Con cuenta, una nube en la cabecera de Comidas indica si todo está sincronizado.
 - Al iniciar sesión con datos locales se pregunta si subirlos o descartarlos; al cerrar
   sesión se borran del teléfono (avisando si hay cambios sin sincronizar).
 
@@ -111,6 +121,8 @@ Detalles en `TECHNICAL.md` §14.
 cd android
 ./gradlew test lint build      # toda la suite (core + app) y lint
 ```
+
+El APK de prueba queda en `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ### URL del backend
 
@@ -132,9 +144,9 @@ cd android
 adb shell am start -n com.blackwatermacros.app/.MainActivity
 ```
 
-El emulador usa la red del ordenador, así que alcanza el backend de producción
-sin más configuración. Inicia sesión, entra en **Ver comidas de hoy** y añade una
-comida con el botón **+**.
+La app abre directamente en **Comidas** y funciona sin cuenta; añade una comida con
+el botón **+**. Para probar la sincronización, **Ajustes → Cuenta → Iniciar sesión**
+(el emulador usa la red del ordenador y alcanza el backend de producción).
 
 > El archivo `android/local.properties` (ruta del SDK) es específico de tu máquina
 > y **no se sube** (está en `.gitignore`).
@@ -153,6 +165,7 @@ comida con el botón **+**.
 | `npm run create-user -- u p` | Crea (o actualiza) un usuario |
 | `npm run core:sync-check` | Comprueba que TS y Kotlin del core van en sincronía |
 | `npm run hooks:install` | Instala el aviso de sincronización al hacer commit |
+| `scripts/logo/render-icons.sh` | Regenera todos los iconos (Android y web) desde el logo vectorial |
 
 ## Cómo funciona (visión de alto nivel)
 
@@ -175,9 +188,10 @@ navegador ni del servidor** — para poder reimplementarse 1:1 en Android/Kotlin
 
 ## Decisiones de diseño importantes
 
-- **El backend guarda la lógica; las apps son solo interfaz.** Autenticación,
-  validación, cálculos y persistencia están en el backend. La web y la app
-  Android son UIs que hablan con la **misma API**.
+- **La web es un cliente fino; Android es "local primero".** En la web, el backend
+  guarda la lógica (autenticación, validación, persistencia). Android guarda todo en el
+  teléfono y funciona sin cuenta; con cuenta, sincroniza en segundo plano con la
+  **misma API** (subidas idempotentes `PUT /:id` + listas completas).
 - **Los tests son la fuente de verdad.** La suite del `core` es la especificación
   compartida entre web y Android: cada test web tiene su espejo Kotlin, velado por
   `npm run core:sync-check`.
@@ -210,12 +224,13 @@ src/
 tests/
   behavior/            Pruebas de comportamiento (caja negra, requisitos del usuario)
   unit/                Pruebas técnicas de piezas puras (el core, casos límite)
+scripts/
+  logo/                Fuente vectorial del logo y script que genera todos los iconos
 docs/
-  TECHNICAL.md         Arquitectura detallada (fuente de verdad para desarrolladores)
-  api.md               Contrato de la API
-  ANDROID-PLAN.md      Plan de la app Android y contrato de mantenimiento
-  ANDROID-TEST-SPEC.md Cómo se espejan los tests web ⇄ Kotlin
-android/               (en construcción) La futura app nativa Android/Kotlin
+  api.md               Contrato de la API (incluye el protocolo de sincronización Android)
+  ANDROID-TEST-SPEC.md Tests Android, contrato core TS ⇄ Kotlin y checklist de mantenimiento
+android/               App nativa Android: módulos :core (algoritmos) y :app (UI + datos)
+TECHNICAL.md           Arquitectura detallada (fuente de verdad para desarrolladores)
 ```
 
 El detalle completo de cada capa (flujo de una petición, esquema de base de datos,
@@ -233,8 +248,8 @@ referencia de la API, patrones de React y de tests) está en
 > **Importante para mantenerlo (solo/a):** el core se implementa dos veces —
 > TypeScript (web) y Kotlin (Android). Si tocas un test de `tests/unit/`, **tienes
 > que tocar también su espejo Kotlin** (y viceversa). `npm run core:sync-check`
-> avisa si olvidas uno de los dos lados y **bloquea el merge en CI**. La app Android
-> y su calendario de trabajo están en `docs/ANDROID-PLAN.md`.
+> avisa si olvidas uno de los dos lados y **bloquea el merge en CI**. Las reglas
+> completas y los tests de Android están en `docs/ANDROID-TEST-SPEC.md`.
 
 ## Despliegue (gratis)
 

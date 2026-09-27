@@ -1,105 +1,88 @@
-# Android Test Specification
+# Android tests and the TS ⇄ Kotlin core contract
 
-This document maps the existing web test suite to corresponding Android (Kotlin)
-tests. The web tests are the **source of truth** for behavior. Each Android test
-must reproduce the same user-visible outcome.
+How the Android app is tested, how its tests relate to the web suite, and the
+rules that keep the two platforms consistent. Architecture lives in
+[`TECHNICAL.md`](../TECHNICAL.md) §14; the wire contract in [`api.md`](./api.md).
 
-> **Maintenance contract (Option A):** the pure algorithms are implemented twice
-> (TS in `src/lib/core/*` and a Kotlin port), with `tests/unit/*.test.ts` as the
-> shared spec. Any change to a `tests/unit/*.test.ts` file REQUIRES a mirrored
-> change to the corresponding Kotlin `*Test.kt`, and vice-versa. This is enforced
-> by `scripts/check-core-sync.ts` (via `android/test-sync/manifest.json`), which
-> **fails CI** on unpaired changes. See `docs/ANDROID-PLAN.md`.
+## 1. The core contract (pure math implemented twice)
 
-## Guiding principles
+The pure algorithms in `src/lib/core/*.ts` (meal totals, protein, calories/BMR,
+dates, stats, the stats builder, CSV) are implemented **twice**: in TypeScript for
+the web/server and as a Kotlin port in the pure-JVM `:core` module
+(`android/core/`). Android needs them locally because it is local-first: it
+computes totals, recommendations and statistics on the phone, without the server.
 
-- Pure algorithms (`src/lib/core/*`) are reimplemented in Kotlin in the **`:core`**
-  module (`android/core/src/main/kotlin/…/core/`); port the unit tests **1:1** to JUnit
-  under `android/core/src/test/kotlin/…/core/`. `:core` is pure JVM (no Android deps),
-  so these tests run without an Android SDK.
-- HTTP/API behavior is validated against the same endpoints; the route tests in
-  `tests/behavior/routes-*.test.ts` define the wire contract (see `docs/api.md`).
-- UI tests are *behavioral* (what the user sees/does), not implementation-specific.
-  Port the flows, not the markup.
+`tests/unit/*.test.ts` is the **specification for both**. Each assertion has a
+Kotlin JUnit mirror with the same inputs and the same expected numbers
+(reproducing `Math.round` / `toFixed` behavior exactly).
 
-## Unit tests (pure algorithms — port directly to Kotlin JUnit)
-
-| Web test | Functions under test | Android (Kotlin) |
-| -------- | -------------------- | ---------------- |
+| Web spec | Functions | Kotlin mirror (`android/core/src/test/…/core/`) |
+| -------- | --------- | ---------------- |
 | `tests/unit/nutrition.test.ts` | `sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2` | `NutritionTest.kt` |
 | `tests/unit/protein.test.ts` | `calculateProteinRecommendation` | `ProteinTest.kt` |
 | `tests/unit/calories.test.ts` | `calculateBMR`, `getActivityMultiplier`, `isCalorieProfileComplete`, `calculateCalorieRecommendation` | `CaloriesTest.kt` |
-| `tests/unit/dates.test.ts` | `isValidDateKey`, `toDateKey`, `addDaysToKey`, `daysBetweenKeys`, `parseLocalDateTime`, formatters | `DatesTest.kt` (use `java.time`) |
-| `tests/unit/stats.test.ts` | `movingAverageByDays`, `linearSlopePerDay`, `linearRatePerWeek`, `weeklyAverages`, `buildDailyNutritionSeries`, `rangeToDays` | `StatsTest.kt` |
+| `tests/unit/dates.test.ts` | date keys, `parseLocalDateTime`, es-ES formatters | `DatesTest.kt` |
+| `tests/unit/stats.test.ts` | `movingAverageByDays`, `linearRatePerWeek`, `weeklyAverages`, `buildDailyNutritionSeries`, `rangeToDays` | `StatsTest.kt` |
 | `tests/unit/stats-builder.test.ts` | `buildStatsFromData` | `StatsBuilderTest.kt` |
-| `tests/unit/auth-and-csv.test.ts` (CSV part only) | `toCsv` | `CsvTest.kt` |
+| `tests/unit/auth-and-csv.test.ts` (CSV part) | `toCsv` | `CsvTest.kt` |
 
-Each assertion must produce the identical result. Watch floating-point behavior:
-`Math.round`, `toFixed` semantics must be reproduced faithfully in Kotlin.
+**The rule:** changing a core algorithm means changing the TS implementation, its
+TS test, the Kotlin implementation and its Kotlin test **together**.
 
-## Service / business-rule tests (port to Kotlin with Room in-memory)
+**Enforced by** `npm run core:sync-check` (`scripts/check-core-sync.ts`), driven by
+`android/test-sync/manifest.json` (one row per pair above). It warns locally and
+**fails CI** when only one side of a pair changed. `npm run hooks:install` adds a
+pre-commit reminder. Adding, removing or renaming a core domain means updating the
+manifest and this table.
 
-These validate the same business rules but use the Android local repository
-(Room in-memory) as the fake backend instead of the in-memory Maps.
+Why not share one implementation (Kotlin Multiplatform / WebAssembly)? For ~750
+lines of stable, test-pinned math, duplication is cheaper for a solo project. Revisit
+if the core grows large or changes often.
 
-| Web test | Business rules | Android (Kotlin) |
-| -------- | -------------- | ---------------- |
-| `tests/behavior/meal-management.test.ts` | Create/edit/delete/reorder meals; user isolation; sorting | `MealRepositoryTest.kt` |
-| `tests/behavior/weights-service.test.ts` | Weight CRUD, ordering, optional fields | `WeightRepositoryTest.kt` |
-| `tests/behavior/nutrition-entry.test.ts` | Entry modes, resolved totals | `NutritionEntryTest.kt` |
-| `tests/behavior/stats-overview.test.ts` | Stats aggregation over local data | `StatsOverviewTest.kt` |
+## 2. Android-only tests (`android/app/src/test/`)
 
-## API contract tests (Retrofit / MockWebServer)
+Run with `./gradlew :app:testDebugUnitTest` (JVM; Room and Android classes via
+Robolectric, no emulator needed).
 
-These validate that the Android client produces and consumes the exact wire
-format. Reference `tests/behavior/routes-*.test.ts` and `docs/api.md`.
+| Test | What it proves |
+| ---- | -------------- |
+| `data/OfflineSyncTest.kt` | End to end with a real in-memory Room database, the real Retrofit client and `FakeServer` (a MockWebServer dispatcher that behaves like the Next.js routes): local-only mode never touches the network; a meal saved offline survives and uploads once, retries never duplicate; edits, deletes and reorders upload; web edits/deletions are pulled; an edit made during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data (upload / discard) and wrong credentials; logout and «delete all data» wipe only the phone; undo delete; CSV import de-duplication; a captive-portal/HTML response fails the sync without losing data |
+| `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and `{ "error": … }` envelopes |
+| `data/CsvBackupTest.kt` | CSV export/import round trip; reads a file exported by the web; skips rows the server would reject; unknown files |
+| `ui/ValidationTest.kt` | Meal form, weight and profile limits (same as `src/server/validation.ts`); recommendation states; sync indicator states |
+| `ui/TranslationsTest.kt` | Every language has every string and plural with the same placeholders |
+| `data/ResponseErrorMapperTest.kt`, `data/NiceTicksTest.kt` | Error envelope decoding; chart axis ticks |
 
-| Web test | Endpoints | Android (Kotlin) |
-| -------- | --------- | ---------------- |
-| `tests/behavior/routes-auth.test.ts` | login/logout/session (incl. Bearer) | `AuthApiTest.kt` |
-| `tests/behavior/routes-meals.test.ts` | `/api/meals` CRUD + reorder | `MealApiTest.kt` |
-| `tests/behavior/routes-templates.test.ts` | `/api/templates` CRUD | `TemplateApiTest.kt` |
-| `tests/behavior/routes-weights.test.ts` | `/api/weights` CRUD | `WeightApiTest.kt` |
-| `tests/behavior/routes-stats.test.ts` | `/api/stats` | `StatsApiTest.kt` |
-| `tests/behavior/routes-settings.test.ts` | `/api/settings` | `SettingsApiTest.kt` |
-| `tests/behavior/routes-export.test.ts` | `/api/export/*` | `ExportApiTest.kt` |
-| `tests/behavior/routes-admin.test.ts` | `/api/admin/users` | `AdminApiTest.kt` |
+Server side of sync: `tests/behavior/routes-sync-upsert.test.ts` (web suite) covers
+the idempotent `PUT /api/<kind>/:id` endpoints the app uploads with.
 
-Contract elements to assert: status codes (200/201/400/401/403/404/409), JSON
-shapes (`{ "meals": [...] }`, `{ "error": "..." }`), decimal `.` separator,
-`YYYY-MM-DD` and ISO-8601 date formats.
+## 3. Correspondence with the web suite
 
-## UI / Compose tests (Jetpack Compose UI tests)
+Web behavior tests describe *user requirements*. When a requirement exists on both
+platforms, both should be tested:
 
-Port the *user flows* from the React page tests. BEHAVIOR is the spec, not markup.
+| Web test | Android counterpart |
+| -------- | ------------------- |
+| `meal-management`, `nutrition-entry`, `weights-service` (services) | `OfflineSyncTest` (repository behavior) + `ValidationTest` (form rules) |
+| `routes-*` (wire contract) | `ApiContractTest` + `FakeServer` |
+| `csv-export` | `CsvBackupTest` |
+| `stats-overview`, `tests/unit/stats-builder` | `:core` `StatsBuilderTest` (Android computes stats locally) |
+| `recommendations-card`, `perfil-page` (recommendation rules) | `ValidationTest` (`recommend`) |
+| `*-page.test.tsx` (screens) | Not automated yet — Compose UI tests are a known gap; screens are checked manually on an emulator |
 
-| Web test | User flow | Android (Compose) |
-| -------- | --------- | ----------------- |
-| `tests/behavior/today-page.test.tsx` | Daily totals, day navigation, template application with loading state, no double submit | `TodayScreenTest.kt` |
-| `tests/behavior/peso-page.test.tsx` | Add/edit weight, chart display | `WeightScreenTest.kt` |
-| `tests/behavior/ajustes-page.test.tsx` | Calorie profile settings, recommendations | `SettingsScreenTest.kt` |
-| `tests/behavior/login-page.test.tsx` | Login, error states, session restore | `LoginScreenTest.kt` |
-| `tests/behavior/admin-page.test.tsx` | User management (admin) | `AdminScreenTest.kt` |
-| `tests/behavior/recommendations-card.test.tsx` | Calorie/protein recommendations card | `RecommendationsTest.kt` |
+## 4. Maintenance checklist
 
-## New behavior Android must add (not covered by web tests)
+After changing either platform:
 
-These require new tests beyond the web suite because they only exist on Android:
+- [ ] `src/lib/core/*.ts` changed → TS test **and** Kotlin implementation + `*Test.kt` changed (CI enforces).
+- [ ] API or server validation changed → `docs/api.md`, the web route tests, `ApiContractTest`/`FakeServer`, and the Android validation (`FormFields.kt`, `WeightFormDialog.kt`, `ProfileViewModel.kt`) updated together. A value the phone accepts but the server rejects stays pending forever.
+- [ ] DB schema changed → `db:push`, `tests/helpers/repos.ts`, the Android wire models, Room entities **with a Room migration** (users without an account have no other copy of their data).
+- [ ] New Android UI text → added to all five `res/values*/strings.xml` (`TranslationsTest` fails otherwise).
 
-| Behavior | Required tests |
-| -------- | -------------- |
-| Offline-first storage | Room in-memory CRUD tests; surviving process death |
-| Sync engine | Push/pull delta sync, offline write queue, retry with backoff |
-| Conflict resolution (last-write-wins) | Two devices edit same record; server `updatedAt` comparison wins (meals, templates and weights each expose `updatedAt` and the server refreshes it on every update) |
-| Offline stats | `buildStatsFromData` port runs on cached local data |
-| 401 → re-login | Expired token intercepted → login screen; token cleared |
+Verification gate:
 
-## Verification gate (mirror of web)
-
-Android must pass its own:
-- `./gradlew test` (unit, service, API contract)
-- `./gradlew connectedAndroidTest` (instrumentation/UI) when devices available
-- Lint and full build must be green.
-
-A web test change that alters behavior MUST be mirrored by a corresponding
-change in the Android suite (and vice-versa), keeping both platforms in lockstep.
+```bash
+npx tsc --noEmit && npm run lint && npm test && npm run build
+npm run core:sync-check
+(cd android && ./gradlew :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug)
+```

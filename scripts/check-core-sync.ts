@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
  *   - Unpaired changes (only one side of a pair edited) always fail under CI.
  *   - A pair missing on either side is an ERROR once `android/` is scaffolded.
  *
- * See docs/ANDROID-PLAN.md and android/test-sync/manifest.json.
+ * See docs/ANDROID-TEST-SPEC.md §1 and android/test-sync/manifest.json.
  */
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -96,12 +96,12 @@ for (const pair of manifest.specs) {
 
   if (!tsExists) {
     error(`Falta la prueba TypeScript: ${pair.ts}`);
-    info(`Completa ambos lados del par (ver docs/ANDROID-PLAN.md).`);
+    info(`Completa ambos lados del par (ver docs/ANDROID-TEST-SPEC.md §1).`);
     continue;
   }
   if (!ktExists && androidScaffolded) {
     error(`Falta la prueba Kotlin: ${pair.kt}`);
-    info(`Completa ambos lados del par (ver docs/ANDROID-PLAN.md).`);
+    info(`Completa ambos lados del par (ver docs/ANDROID-TEST-SPEC.md §1).`);
     continue;
   }
   if (!ktExists) {

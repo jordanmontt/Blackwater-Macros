@@ -80,13 +80,14 @@ as the shared behavioral specification. See `src/lib/core/README.md`.
 **Clients:** the web is a deliberately **thin client** — the backend owns all
 CRUD, auth, validation and persistence. Android is **local-first** (its own Room
 database, optional account sync — see §14), but it computes with the same `:core`
-math and validates with the same limits as `validation.ts`. The *only* deliberate duplication in
-the codebase is this pure, test-pinned math, which exists in both the TS `lib/core`
-and the Kotlin `:core` module. That duplication is an accepted solo-project tradeoff
-(the alternative — compiling the shared Kotlin core to WebAssembly so web and
-Android use one implementation — was rejected); it stays safe because the math is
-pure and each TS spec has a Kotlin mirror enforced by `core:sync-check`. See
-`docs/ANDROID-PLAN.md` §2.
+math and validates with the same limits as `validation.ts`. The main deliberate
+duplication in the codebase is this pure, test-pinned math, which exists in both the
+TS `lib/core` and the Kotlin `:core` module. That duplication is an accepted
+solo-project tradeoff (compiling one shared implementation to WebAssembly / Kotlin
+Multiplatform was rejected); it stays safe because the math is pure and each TS spec
+has a Kotlin mirror enforced by `core:sync-check`. See `docs/ANDROID-TEST-SPEC.md` §1.
+Validation limits are the other duplication (server zod schemas ⇄ Android forms) and
+have no automatic guard — change them together.
 
 ---
 
@@ -145,11 +146,11 @@ the service always writes an explicit value.
 
 ```ts
 { name: string; quantity?: string; calories?: number; protein?: number;
-  carbs?: number; fat?: number }   // carbs/fat reserved, not collected yet
+  carbs?: number; fat?: number }
 ```
 
-Adding future macros requires: schema type already allows it → extend
-`ingredientInputSchema` + `resolveMealTotals` → add UI fields. No migration.
+Calories, protein, carbs and fat are collected per ingredient (or as totals in
+`total_only` mode) and resolved into the `resolved_*` columns on every write.
 
 ---
 
@@ -305,10 +306,9 @@ Each repository also has `upsert(userId, id, data)`: UPDATE scoped by user, else
 overwrite.
 
 > **Full wire contract** (request/response shapes, auth, error format, Android
-> integration notes) lives in [`docs/api.md`](./docs/api.md). The mapping of web
-> tests to Kotlin/Android tests lives in [`docs/ANDROID-TEST-SPEC.md`](./docs/ANDROID-TEST-SPEC.md).
-> The Android implementation & maintenance plan (incl. the TS ⇄ Kotlin sync guard)
-> lives in [`docs/ANDROID-PLAN.md`](./docs/ANDROID-PLAN.md).
+> sync protocol) lives in [`docs/api.md`](./docs/api.md). Android tests, the TS ⇄
+> Kotlin core contract and the maintenance checklist live in
+> [`docs/ANDROID-TEST-SPEC.md`](./docs/ANDROID-TEST-SPEC.md).
 
 ---
 
@@ -318,7 +318,7 @@ overwrite.
 
 | Page | File | Highlights |
 |---|---|---|
-| Comidas | `app/page.tsx` | Day navigation, single daily-totals card, template chips, meal list, MealForm dialog, delete confirm, merged nutrition recommendations card, floating add-meal button |
+| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), template chips, meal list, MealForm dialog, delete confirm, floating add-meal button |
 | Peso | `app/peso/page.tsx` | Current-weight summary (peso actual, grasa actual, cambio grasa 7 días), combined weight+fat chart, entries grouped by day, floating register button |
 | Estadísticas | `app/estadisticas/page.tsx` | Range tabs, 6 composition MiniStat cards, combined weight/body fat chart, weekly averages, macro summary + 4 macro trend charts; ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), link to Perfil, Metodología link, CSV export buttons, template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
@@ -557,7 +557,7 @@ Three projects, one run (`npm test`):
 |---|---|---|
 | `unit` | node | Pure-function edge cases (`stats`, `dates`, password vectors, CSV escaping) |
 | `behavior` | node | Black-box requirements written in Spanish, exercising **services** through injected in-memory fakes — no HTTP, no DB |
-| `behavior-ui` | happy-dom | Renders actual pages (`today-page.test.tsx`) with mocked `@/lib/api` |
+| `behavior-ui` | happy-dom | Renders actual pages and components (`today-page`, `peso-page`, `ajustes-page`, `perfil-page`, `recommendations-card`, `day-navigator`, …) with mocked `@/lib/api` |
 
 Notes:
 - **happy-dom, not jsdom**: Node ≥20.19 supports `require(esm)` but the pinned
@@ -571,10 +571,12 @@ Notes:
   ven inmediatamente"), never internals. If you add a feature, add its behavior
   test first.
 
-Verification gate before pushing:
+Verification gate before pushing (web, core contract, Android):
 
 ```bash
 npx tsc --noEmit && npm run lint && npm test && npm run build
+npm run core:sync-check
+(cd android && ./gradlew :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug)
 ```
 
 ---
@@ -607,20 +609,23 @@ Gotchas learned the hard way:
 
 | Want to… | Touch |
 |---|---|
-| Add carbs/fat tracking | schema type comment already reserves fields → extend `validation.ts` + `resolveMealTotals` + `MealForm` fields + stats series |
-| New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → card/chart in Estadísticas → explain in `/metodologia` + `i18n/es.ts` |
-| Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → toggle in Ajustes page → read via session endpoint |
-| New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in `i18n/es.ts`; proxy already protects it |
-| Second language | copy `i18n/es.ts` → `en.ts`, export a dictionary selector (structure is ready, nothing else hardcodes Spanish) |
+| New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → **port to Kotlin `:core` with its mirror test** → card/chart in Estadísticas on web and Android → explain in `/metodologia` + `i18n/es.ts` + Android `meth_*` strings |
+| Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → Perfil/Ajustes page → read via session endpoint. Android: `ProfileEntity` + migration, `WireCalorieProfile`, `profileBody` (explicit nulls) and the Perfil screen |
+| New field on meals/templates/weights (synced) | DB column + zod schema + DTO (web); Android: wire DTO, Room entity **+ `Migration`** (bump `LocalDatabase` version; never destructive: local-only users have no other copy), mappers, `FakeServer`; add a round-trip case to `OfflineSyncTest` |
+| New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in `i18n/es.ts`; proxy already protects it. Android: screen + route in `MainActivity`, strings in the 5 `strings.xml` |
+| New Android text | add the key to `res/values/strings.xml` (English) and `values-es/fr/it/de`; use `stringResource` / `pluralStringResource`. `TranslationsTest` checks keys and placeholders |
+| Second web language | copy `i18n/es.ts` → `en.ts`, export a dictionary selector (structure is ready, nothing else hardcodes Spanish) |
+| Change the logo | edit `scripts/logo/render.html`, run `scripts/logo/render-icons.sh` (writes every Android and web icon) |
+| Release the Android app | see §14.7 (signing + F-Droid metadata are not set up yet) |
 | Real migrations | switch from `db:push` to `db:generate` + `db:migrate` (both scripted already) once schema changes risk data loss |
 
 ---
 
 ## 14. Android app (`android/`)
 
-Native Kotlin/Compose app, published as free software (F-Droid target: no Google
-services). Two Gradle modules. Wire contract: `docs/api.md` (§ Android Integration
-Notes); plan and history: `docs/ANDROID-PLAN.md`.
+Native Kotlin/Compose app, meant to be published as free software on F-Droid (no
+Google services anywhere). Two Gradle modules. Wire contract: `docs/api.md`
+(§ Android Integration Notes); tests and maintenance rules: `docs/ANDROID-TEST-SPEC.md`.
 
 ### 14.1 Local-first design (the one idea to keep in mind)
 
@@ -676,72 +681,104 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
 ```
 app/src/main/kotlin/com/blackwatermacros/app/
   AppGraph.kt                # service locator + BlackwaterApp (Application) — builds everything once
-  MainActivity.kt            # theme (from AppPreferences), NavHost: 4 tabs + login/metodologia/admin pages;
+  MainActivity.kt            # AppCompatActivity (per-app language); theme from AppPreferences;
+                             #   NavHost: 4 tabs + login / perfil / metodologia / admin pages;
                              #   requests a sync on every onStart when logged in
   data/
-    local/LocalDatabase.kt   # Room entities (pending/deleted flags) + DAOs
+    local/LocalDatabase.kt   # Room entities (pending/deleted flags) + DAOs (version 1)
     local/Mappers.kt         # DTO ⇄ entity, totals via :core resolveMealTotals, nowIso() edit stamp
-    AppRepository.kt         # the only data API the screens use (Flows + writes + CSV import)
+    AppRepository.kt         # the only data API the screens use (Flows + writes + undo + CSV import)
     AccountStore.kt          # persisted account (token, username, isAdmin, sessionExpired, lastSyncAt)
-    AccountController.kt     # verify → connect (upload/discard local data) → logout (wipe)
+    AccountController.kt     # verify → connect (upload/discard) → logout / deleteLocalData (wipe)
     AppPreferences.kt        # theme (Sistema/Claro/Oscuro)
     CsvBackup.kt             # CSV export/import in the web export's exact format
     sync/SyncEngine.kt       # push + pull, typed SyncOutcome/SyncProblem, never throws
-    sync/SyncScheduler.kt    # WorkManager unique work (network constraint, backoff) + SyncWorker
-    ApiService.kt, ApiClient.kt, WireModels.kt, JsonConfig.kt (profileBody: explicit nulls)
+    sync/SyncScheduler.kt    # SyncScheduler interface + WorkManager implementation + SyncWorker
+    ApiService.kt, ApiClient.kt, WireModels.kt, JsonConfig.kt (profileBody: explicit nulls),
+    BearerAuthInterceptor.kt, ResponseErrorMapper.kt (admin error messages)
   ui/
-    Format.kt                # dates/numbers in the app language (appLocale(): phone locale if supported, else English)
-    MealForm.kt, FormFields.kt   # one meal/template form (MealFormValue) + validation
-    HoyScreen/…, PesoScreen/…, StatsScreen/…, SettingsScreen/…, LoginScreen/…, AdminScreen/…
+    HoyScreen/ViewModel, MealCard           # Comidas: day navigator, totals, recommendations,
+                                            #   templates row, reorderable meals, undo delete
+    MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue) + validation
+    NutritionRecommendationsCard.kt, RecommendationsViewModel.kt  # calorie/protein card + intake bars
+    PesoScreen/ViewModel, WeightFormDialog  # weights (validation = server limits)
+    StatsScreen/ViewModel, chart/*          # local stats; Canvas charts (text sizes in sp)
+    SettingsScreen/ViewModel, SettingsComponents.kt  # Ajustes (account, templates, data, theme, language)
+    ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
+    LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen
+    SyncIndicator.kt                        # cloud in the Comidas header (logged in only)
+    Format.kt                               # dates/numbers + app language (appLocale, setAppLanguage)
+    Theme.kt, CenteredTopAppBar.kt, BottomNavBar.kt  # tokens, AppCard, header, bottom bar, AppLogo
 ```
 
 ### 14.3 Languages
 
 All UI text lives in `res/values*/strings.xml`: English (default, also the fallback for
-any other phone language), Spanish, French, Italian and German. The app follows the
-phone language; on Android 13+ it can also be changed per app in system settings
-(`generateLocaleConfig`) or in Ajustes → Idioma (`setAppLanguage` in `ui/Format.kt`,
-AndroidX AppCompat per-app locales: the system setting on 13+, stored by AppCompat's
-`AppLocalesMetadataHolderService` before). Dates and numbers use `ui/Format.kt` (not the es-ES formatters
-of `:core`). `TranslationsTest` fails if a language misses a key or a placeholder. CSV
-column names stay Spanish on purpose (they are the web's file format).
+any other phone language), Spanish, French, Italian and German — edit these XML files
+directly. The app follows the phone language; it can also be changed in Ajustes →
+Idioma (`setAppLanguage` in `ui/Format.kt`, AndroidX AppCompat per-app locales: the
+system per-app setting on Android 13+, stored by AppCompat's
+`AppLocalesMetadataHolderService` before) or in Android 13+ system settings
+(`generateLocaleConfig`). Dates and numbers are formatted with `ui/Format.kt` in the
+app language (not with `:core`'s es-ES formatters). `TranslationsTest` fails if a
+language misses a key or a placeholder. CSV column names stay Spanish on purpose
+(they are the web's file format). The app label is «Blackwater Macros».
 
-**Logo:** the 20 kg «BW» plate with a steel hub. `scripts/logo/render.html` is the single
-vector source; `scripts/logo/render-icons.sh` renders every size with headless Chrome:
-the Android adaptive icon (foreground = the plate filling the visible area, background
-`ic_launcher_background` = the rim green, so launchers show just the plate; monochrome
-layer for themed icons; round legacy icons), `drawable-nodpi/logo_plate.png` (login page),
-and the web's `public/logo.png`, `src/app/icon.png` and PWA icons (maskable = plate in
-the 80 % safe circle on rim green). `public/logo.svg` is a copy of the vector. The app
-label is «Blackwater Macros». Tab headers have no logo (same on the web).
+### 14.4 Look & feel (kept in sync with the web)
 
-**Comidas date:** double-tap the date to jump back to today (web: double-click /
-double-tap, `touch-manipulation` so phones deliver it). The calorie recommendation card
-shows the BMR and TDEE lines on both platforms.
+- **Palette:** `MainActivity.kt` Light/DarkColors; the web's `globals.css` uses the same
+  values. One warm «ember» accent (tertiary) for the floating add button, the selected
+  tab pill and an over-target progress fill.
+- **Cards:** `AppCard` (surfaceContainer + hairline `outlineVariant` border) everywhere.
+- **Text fields:** `CompactField` / `CompactTextArea` — 40 dp high, caret in the primary
+  color (the default black caret is invisible in dark mode), fainter placeholders, a
+  2 dp primary border on the focused field.
+- **Charts:** hand-drawn Compose Canvas; all text sizes in sp (`AxisTextSize`,
+  `TooltipTextSize`) so they follow the phone's font size.
+- **Intake bars** (Comidas): outlined track = what is left, solid fill = eaten (ember past
+  the target), two markers = target range, «eaten / min–max unit» next to the status.
+  The calorie card lists Promedio estimado, TMB and TDEE before the bar. Same design on
+  the web (`components/nutrition-recommendations.tsx`).
+- **Comidas:** double-tap the date → today; deleting a meal shows Undo instead of a
+  confirmation; single-ingredient meals don't repeat the numbers of the totals;
+  ingredient columns have fixed widths that scale with the font size.
+- **Logo:** the 20 kg «BW» plate with a steel hub. `scripts/logo/render.html` is the
+  single vector source; `scripts/logo/render-icons.sh` renders every size with headless
+  Chrome: the Android adaptive icon (foreground = the plate filling the visible area,
+  background `ic_launcher_background` = the rim green, so launchers show just the plate;
+  monochrome layer for themed icons; round legacy icons), `drawable-nodpi/logo_plate.png`
+  (login page), and the web's `public/logo.png`, `src/app/icon.png` and PWA icons
+  (maskable = plate in the 80 % safe circle on rim green). `public/logo.svg` is a copy of
+  the vector. Tab headers have no logo (same on the web).
 
-### 14.4 Configuration
+### 14.5 Configuration
 
 - **Base URL:** `BuildConfig.API_BASE_URL`, default `https://blackwater-macros.jordanmontt.fr/`,
   override with `-Papp.baseUrl=<url>`. Only used after logging in.
+- **Version:** `versionCode 1` / `versionName "0.1.0"` in `app/build.gradle.kts`.
 - **Toolchain:** `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.1.20, Compose BOM, Room,
-  WorkManager, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk` 36,
-  `minSdk` 24 + desugaring for `java.time`.
+  WorkManager, AppCompat, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk`
+  36, `minSdk` 24 + desugaring for `java.time`.
 - **Local SDK:** `android/local.properties` (`sdk.dir=…`), gitignored.
 - **JDK 21.0.2 on Apple Silicon** has a JIT bug that crashes Gradle during `lint`; use a
   newer JDK or pass `-Dorg.gradle.jvmargs="-Xmx3g -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=512m"`.
 
-### 14.5 Tests (`./gradlew :core:test :app:testDebugUnitTest`)
+### 14.6 Tests
 
-- `OfflineSyncTest` (Robolectric + in-memory Room + `FakeServer` MockWebServer
-  dispatcher): local-only mode, offline save then upload, idempotent re-sync, edits/deletes/
-  reorder upload, web changes & deletions pulled, profile nulls, expired session,
-  login upload/discard, logout wipe, delete-all-data, CSV import dedupe, broken responses (captive portal).
-- `ApiContractTest` (wire format), `CsvBackupTest` (round-trip + web file),
-  `ValidationTest` (form/weight/profile limits, recommendation states), `TranslationsTest`.
-- Server side: `tests/behavior/routes-sync-upsert.test.ts` covers the PUT endpoints.
+`./gradlew :core:test :app:testDebugUnitTest` — JVM only, Room via Robolectric. What each
+test covers, the TS ⇄ Kotlin core contract and the maintenance checklist are in
+[`docs/ANDROID-TEST-SPEC.md`](./docs/ANDROID-TEST-SPEC.md). Compose UI tests don't exist
+yet; screens are verified manually on an emulator.
 
-### 14.6 Not done yet
+### 14.7 Not done yet (candidates for a next version)
 
-Incremental (delta) sync — full pull is fine at personal scale; F-Droid metadata and a
-release signing setup; UI (Compose) tests. Error messages returned by the server (only
-visible in the Admin page) stay in Spanish.
+- **Release & F-Droid:** no release signing config and no F-Droid metadata
+  (`fastlane/metadata/android/…` or an fdroiddata recipe) yet; builds shared so far are
+  debug APKs. Bump `versionCode`/`versionName` for every release.
+- **Room migrations:** the local database is at version 1 with `exportSchema = false`.
+  Before the first schema change, turn on schema export and write a real `Migration`
+  (never `fallbackToDestructiveMigration`: users without an account would lose everything).
+- **Incremental sync:** every sync pulls the full lists — fine at personal scale; a
+  `?since=` delta endpoint with server tombstones would be needed for large histories.
+- **Compose UI tests** for the main flows.
+- **Admin:** error messages returned by the server stay in Spanish.
