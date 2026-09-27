@@ -45,6 +45,8 @@ import com.blackwatermacros.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.core.Goal
+import com.blackwatermacros.app.core.ProteinBasis
+import com.blackwatermacros.app.core.ProteinRecommendation
 import kotlin.math.round
 
 /**
@@ -96,9 +98,12 @@ fun NutritionRecommendationsCard(
                             rangeMax = calorie.targetMax,
                             barUnit = "kcal",
                             // Where the target comes from (same as Perfil), shown before the bar.
-                            details = listOf(
+                            details = listOfNotNull(
                                 stringResource(R.string.rec_bmr, formatNumber(calorie.bmr)),
                                 stringResource(R.string.rec_tdee, formatNumber(calorie.tdee)),
+                                ready.expenditure?.let {
+                                    stringResource(R.string.rec_measured_tdee, formatNumber(it.tdee), formatNumber(it.margin))
+                                },
                             ),
                         )
                     }
@@ -110,18 +115,31 @@ fun NutritionRecommendationsCard(
                             title = stringResource(R.string.rec_protein_title),
                             icon = Icons.Filled.FitnessCenter,
                             goal = protein.goal,
-                            rangeValue = "${formatNumber(protein.bwRange.min)} – ${formatNumber(protein.bwRange.max)}",
+                            rangeValue = "${formatNumber(protein.range.min)} – ${formatNumber(protein.range.max)}",
                             rangeUnit = stringResource(R.string.unit_g_day),
                             detail = stringResource(R.string.rec_estimated_average, "${formatNumber(protein.target)} ${stringResource(R.string.unit_g_day)}"),
                             current = dailyProtein,
-                            rangeMin = protein.bwRange.min,
-                            rangeMax = protein.bwRange.max,
+                            rangeMin = protein.range.min,
+                            rangeMax = protein.range.max,
                             barUnit = "g",
+                            details = listOf(proteinPerKg(protein)),
                         )
                     }
                 }
             }
         }
+    }
+}
+
+/** "1.4 – 2.0 g/kg", or per kg of lean mass when the cut uses body fat. */
+@Composable
+internal fun proteinPerKg(protein: ProteinRecommendation): String {
+    val min = formatNumber(protein.perKg.min, 1)
+    val max = formatNumber(protein.perKg.max, 1)
+    return if (protein.basis == ProteinBasis.LEAN_MASS) {
+        stringResource(R.string.rec_per_kg_lean, min, max, formatNumber(protein.basisKg, 1))
+    } else {
+        stringResource(R.string.rec_per_kg, min, max)
     }
 }
 

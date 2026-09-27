@@ -123,6 +123,8 @@ export interface CalorieProfile {
 
 export interface CalorieRecommendation {
   bmr: number;
+  /** PAL used for the TDEE (TDEE / BMR), rounded to 2 decimals for display. */
+  activityFactor: number;
   tdee: number;
   target: number;
   targetMin: number;
@@ -135,10 +137,31 @@ export interface ProteinRange {
   max: number;
 }
 
+/** What the g/kg factors multiply: total body weight or lean (fat-free) mass. */
+export type ProteinBasis = "bodyWeight" | "leanMass";
+
 export interface ProteinRecommendation {
   goal: Goal;
-  bodyWeightKg: number;
-  bwRange: ProteinRange;
-  bwPerKg: ProteinRange;
+  basis: ProteinBasis;
+  /** The kilograms the factors multiply (body weight, or lean mass when basis is leanMass). */
+  basisKg: number;
+  /** Grams per day. */
+  range: ProteinRange;
+  /** g per kg of `basisKg`. */
+  perKg: ProteinRange;
   target: number;
+}
+
+export interface ExpenditureEstimate {
+  /** Measured total daily energy expenditure, kcal/day. */
+  tdee: number;
+  /** ± kcal/day, 95 % margin from the uncertainty of the weight trend. */
+  margin: number;
+  /** Mean intake over the logged days of the window, kcal/day. */
+  avgIntake: number;
+  /** Weight trend over the window (least-squares slope), kg/week. */
+  weightChangePerWeek: number;
+  loggedDays: number;
+  weighIns: number;
+  windowDays: number;
 }

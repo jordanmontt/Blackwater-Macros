@@ -17,6 +17,11 @@
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/CaloriesTest.kt"
     },
     {
+      "source": "src/lib/core/expenditure.ts",
+      "ts": "tests/unit/expenditure.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/ExpenditureTest.kt"
+    },
+    {
       "source": "src/lib/core/dates.ts",
       "ts": "tests/unit/dates.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/DatesTest.kt"

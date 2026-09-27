@@ -16,8 +16,12 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
   registro de nutrición: *por ingrediente* (la app suma calorías, proteína,
   carbohidratos y grasa) o *solo total* (introduces únicamente el total de la comida).
   Doble toque en la fecha para volver a hoy.
-- **Recomendaciones** de calorías (TMB, TDEE, rango según objetivo) y de proteína, con
-  barras de progreso de lo que llevas comido frente al objetivo.
+- **Recomendaciones** de calorías (TMB, nivel de actividad calculado a partir de tus días
+  de gimnasio y minutos de caminata, TDEE, rango según objetivo) y de proteína (por
+  masa magra en definición si registras tu % de grasa), con barras de progreso de lo
+  que llevas comido frente al objetivo.
+- **Gasto medido**: con 4 semanas de comidas y pesajes frecuentes, la app mide tu gasto
+  real por balance energético y lo muestra con su margen de error junto al estimado.
 - **Perfil** (Ajustes → Perfil): objetivo deportivo y datos corporales.
 - **Plantillas**: guarda comidas repetitivas ("Desayuno") y aplícalas en un toque.
 - **Peso**: varios registros al día con fecha y hora autocompletadas.

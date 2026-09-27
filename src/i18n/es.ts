@@ -146,6 +146,7 @@ export const t = {
     goalLabel: "Objetivo actual",
     bwRange: "Por peso corporal",
     perKg: "({min} – {max} g/kg)",
+    perKgLeanMass: "({min} – {max} g/kg de masa magra: {kg} kg)",
     currentIntake: "Ingesta de hoy",
     inRange: "en rango",
     belowRange: "por debajo",
@@ -181,20 +182,29 @@ export const t = {
     aboveRange: "por encima",
     missingCalories: "te faltan {min}–{max} kcal",
     exceededCalories: "te pasaste de {min} kcal",
+    activityFactor: "Factor de actividad: {n} × TMB",
+    measuredTdee: "Gasto medido",
+    measuredTdeeValue: "{n} ± {margin} kcal/día",
+    measuredTdeeDetail:
+      "Últimas 4 semanas: comiste {intake} kcal/día de media ({days} días registrados) y tu peso cambió {rate} kg/semana.",
+    measuredTdeePending:
+      "El gasto medido aparecerá con 4 semanas de datos: comidas registradas al menos 3 de cada 4 días y pesajes unas 3 veces por semana.",
   },
   metodologia: {
     title: "Metodología",
     intro:
-      "Cómo se calculan cada una de las métricas que aparecen en Estadísticas, con las fórmulas exactas y las referencias en las que se basan.",
+      "Cómo se calculan las estadísticas y las recomendaciones de calorías y proteína, con las fórmulas exactas y las referencias en las que se basan.",
     scaleVsTrendTitle: "Peso en báscula vs tendencia",
     scaleVsTrendBody:
       "El «peso actual» es tu última entrada registrada. La «tendencia actual» es el valor más reciente de la media móvil de 7 días. El «cambio total» compara la primera y la última entrada del rango seleccionado. El «mínimo» y el «máximo» son los valores extremos de tus entradas dentro del rango.",
     movingAvgTitle: "Media móvil de 7 días (tendencia)",
     movingAvgFormulaLabel: "Para cada día d:",
+    movingAvgWindow: "W(d) = { entradas con fecha en [d − 6, d] }",
     movingAvgBody:
-      "Se promedian todas tus entradas cuya fecha cae dentro de la ventana de 7 días que termina en d. Los días sin registro no cuentan ni se rellenan con ceros: si solo pesaste 3 veces esa semana, la media es de esas 3 entradas. Esto atenúa el ruido diario (agua, sal, contenido intestinal) manteniendo la señal real de grasa, que cambia despacio. Es la práctica habitual recomendada en la literatura de auto-pesaje y la base del concepto de «peso de tendencia» popularizado por The Hacker's Diet.",
+      "Se promedian todas tus entradas cuya fecha cae dentro de la ventana de 7 días que termina en d. Los días sin registro no cuentan ni se rellenan con ceros: si solo te pesaste 3 veces esa semana, la media es de esas 3 entradas. Esto atenúa el ruido diario (agua, sal, contenido intestinal) y deja ver la tendencia real, que cambia despacio. Pesarse con frecuencia y fijarse en la tendencia en lugar del dato del día es lo que respalda la literatura sobre auto-pesaje (Zheng et al. 2015). The Hacker's Diet popularizó esta misma idea de «peso de tendencia», aunque con una media móvil exponencial; aquí se usa una media simple de 7 días, más fácil de interpretar.",
     rateTitle: "Ritmo semanal (kg/semana)",
     rateFormulaLabel: "Pendiente por mínimos cuadrados ordinarios:",
+    rateFormula: "ritmo = β × 7 [kg/semana]",
     rateBody:
       "x son los días transcurridos desde la primera entrada del rango e y el peso registrado. La pendiente β se multiplica por 7 para expresarla por semana. La regresión usa tus entradas crudas del rango visible: captura mejor la dirección a largo plazo que comparar solo dos puntos concretos.",
     weeklyAvgTitle: "Media semanal del peso",
@@ -202,23 +212,36 @@ export const t = {
       "Las semanas empiezan el lunes. Se hace la media aritmética de todas las entradas de cada semana; las semanas sin ninguna entrada no aparecen.",
     nutritionTitle: "Calorías, proteína, carbohidratos y grasa diarios",
     nutritionBody:
-      "El total de cada día es la suma de tus comidas de ese día (las calorías, proteína, carbohidratos y grasa se calculan al guardar, ya sea sumando ingredientes o tomando tu total manual). Los días sin comidas cuentan como 0: así los huecos reflejan honestamente la adherencia en lugar de desaparecer. La «media» es la media aritmética del rango, el «día pico» el valor máximo, y la línea de tendencia aplica exactamente la misma media móvil de 7 días descrita arriba.",
+      "El total de cada día es la suma de tus comidas de ese día (las calorías, proteína, carbohidratos y grasa se calculan al guardar, ya sea sumando ingredientes o tomando tu total manual). En estas gráficas, los días sin comidas cuentan como 0: así los huecos reflejan honestamente la adherencia en lugar de desaparecer. La «media» es la media aritmética del rango, el «día pico» el valor máximo, y la línea de tendencia aplica exactamente la misma media móvil de 7 días descrita arriba. (El gasto medido, en cambio, excluye los días sin registrar; ver más abajo.)",
     proteinRecTitle: "Recomendaciones de proteína diaria",
     proteinRecBody:
-      "La cantidad de proteína que necesitas depende de tu objetivo, tu peso y tu composición corporal. La app calcula un rango diario multiplicando tu peso por un factor según tu objetivo.",
+      "La proteína se calcula multiplicando un factor en g/kg, que depende de tu objetivo, por tu último peso registrado. El número grande es el punto medio del rango.",
     proteinRecRanges:
-      "Mantener músculo (1.2–1.6 g/kg/día): suficiente para la mayoría de personas activas. Volumen (1.6–2.0 g/kg/día): por encima de 1.6 g/kg los beneficios adicionales empiezan a disminuir, pero hasta 2.0 cubre la variabilidad individual. Definición (1.6–2.2 g/kg de peso corporal): durante un déficit calórico la proteína ayuda a preservar músculo.",
+      "Mantenimiento: 1,4–2,0 g/kg, el rango de la posición de la ISSN para personas que entrenan (Jäger et al. 2017). Volumen: 1,6–2,2 g/kg. El metaanálisis de Morton et al. (2018) sitúa en ~1,6 g/kg el punto a partir del cual el beneficio sobre la masa muscular deja de crecer, con un intervalo de confianza que llega a 2,2 g/kg, que es el rango que recomiendan Iraki et al. (2019) para el volumen. Definición: 1,8–2,7 g/kg. En déficit se necesita más proteína para conservar músculo; este rango equivale aproximadamente a los 2,3–3,1 g/kg de masa magra recomendados en déficit (Helms et al. 2014, IJSNEM; Jäger et al. 2017) para un porcentaje de grasa típico.",
     proteinRecFfm:
-      "La recomendación se calcula exclusivamente sobre el peso corporal total.",
+      "Si estás en definición y has registrado tu porcentaje de grasa en algún pesaje, la app usa el más reciente para calcular tu masa magra (peso × (1 − % grasa)) y aplica 2,3–3,1 g/kg sobre ella. Es más preciso: la grasa apenas aumenta las necesidades de proteína, así que un factor por peso total se pasa en personas con más grasa y se queda corto en las muy delgadas. En mantenimiento y volumen se usa el peso total, que es como expresan esos rangos los estudios. En adultos con sobrepeso u obesidad, más de 1,3 g/kg de peso ya ayuda a conservar masa muscular y fuerza durante la pérdida de peso (Kokura et al. 2024), y en general aumentar la proteína favorece la masa magra, sobre todo junto con entrenamiento de fuerza (Nunes et al. 2022).",
     tdeeTitle: "Estimación del gasto calórico diario (TDEE)",
     tdeeBody:
-      "El gasto calórico total se estima en dos pasos: primero se calcula el metabolismo basal (TMB) con la ecuación de Mifflin-St Jeor (1990), considerada la más precisa para personas no deportistas (Frankenfield et al. 2005, 82% de precisión dentro de ±10%). Luego se multiplica por un factor de actividad basado en la frecuencia del gimnasio, la duración de las sesiones y el tiempo de caminata diario.",
+      "El gasto total se estima en dos pasos. Primero, el metabolismo basal (TMB) con la ecuación de Mifflin-St Jeor (1990), la más fiable en adultos sanos, con y sin obesidad, según la revisión sistemática de Frankenfield et al. (2005). Después se multiplica por tu nivel de actividad física (PAL), que la app calcula a partir de lo que haces en lugar de pedirte que elijas una categoría.",
     tdeeFormula:
-      "Hombres: TMB = (10 × peso_kg) + (6.25 × altura_cm) - (5 × edad) + 5\nMujeres: TMB = (10 × peso_kg) + (6.25 × altura_cm) - (5 × edad) - 161\nTDEE = TMB × factor de actividad",
+      "Hombres: TMB = (10 × peso_kg) + (6,25 × altura_cm) − (5 × edad) + 5\nMujeres: TMB = (10 × peso_kg) + (6,25 × altura_cm) − (5 × edad) − 161\ngym = días de gym × minutos por sesión / 7   [min/día]\nPAL = ((1440 − gym − caminata) × 1,4 + gym × 4,0 + caminata × 3,5) / 1440\nTDEE = TMB × PAL",
     tdeeActivity:
-      "Los factores de actividad van de 1.2 (sedentario) a 1.9 (muy activo). La investigación muestra que la gente tiende a sobreestimar su nivel de actividad, por lo que los umbrales se calibran de forma conservadora.",
+      "Es el método factorial de FAO/OMS/UNU (2004): los 1440 minutos del día se reparten en bloques y cada uno cuenta según su intensidad, en múltiplos del metabolismo basal. Los minutos sin ejercicio (dormir, estar sentado, tareas ligeras) cuentan 1,4, el extremo bajo del rango «sedentario o ligero» (PAL 1,40–1,69). El gimnasio cuenta 4,0: el Compendio de Actividades Físicas 2024 asigna 3,5–6 MET al entrenamiento de fuerza, y una sesión real incluye descansos entre series. Caminar cuenta 3,5 (paso moderado, 4–5 km/h). Por ejemplo, 3 sesiones de 60 minutos a la semana y 30 minutos de caminata al día dan un PAL de 1,49; sin ejercicio, 1,40.",
+    tdeeWhyNotScale:
+      "¿Por qué no una escala de actividad? Muchas apps piden elegir tu nivel (de sedentario a muy activo), pero la gente tiende a sobreestimar su actividad cuando la describe (Prince et al. 2008). Calcularla a partir de días, minutos y caminata evita ese sesgo, y cada minuto extra de ejercicio sube el resultado de forma continua, sin saltos entre categorías. El modelo es deliberadamente conservador y no incluye otras actividades (trabajo físico, deportes); si tu día es más activo, el gasto medido lo reflejará.",
     tdeeGoals:
-      "Definición: TDEE − 400 kcal (rango: −500 a −300). Mantenimiento: TDEE ± 100 kcal. Volumen: TDEE + 300 kcal (rango: +200 a +400).",
+      "El objetivo suma o resta una cantidad fija al TDEE: definición −400 kcal (rango −500 a −300), mantenimiento ±100 kcal, volumen +300 kcal (rango +200 a +400). Con la aproximación de ~7700 kcal por kg (Hall 2008), −400 kcal/día son unos 0,35 kg/semana, un ritmo prudente: Helms et al. (2014, JISSN) recomiendan perder un 0,5–1 % del peso por semana para conservar músculo (0,35–0,7 kg para 70 kg). +300 kcal/día son unos 0,27 kg/semana, en línea con el 0,25–0,5 % semanal que proponen Iraki et al. (2019) para el volumen.",
+    measuredTitle: "Gasto medido (balance energético)",
+    measuredBody:
+      "La fórmula es una estimación de población: dos personas con los mismos datos pueden gastar varios cientos de kcal distintas. Cuando hay datos suficientes, la app mide tu gasto real a partir de lo que comes y de cómo cambia tu peso, como hacen apps adaptativas como MacroFactor: si tu peso se mantiene, gastas lo que comes; si sube o baja, la diferencia es la energía que almacenas o pierdes.",
+    measuredFormula:
+      "Ventana: los 28 días anteriores a hoy\ningesta = media de kcal de los días con comidas registradas\nβ = pendiente de la regresión del peso [kg/día]\ngasto = ingesta − β × 7700\nmargen = 1,96 × σ / √Σ(xᵢ − x̄)² × 7700",
+    measuredData:
+      "Hoy no cuenta, porque aún lo estás registrando. Los días sin comidas se excluyen: contarlos como 0 kcal haría parecer que gastas mucho menos. Aun así, tu peso refleja también lo que comiste esos días, así que se exigen al menos 21 días registrados de 28 (3 de cada 4).",
+    measuredUncertainty:
+      "Un pesaje puede variar ±0,5–1 kg de un día a otro por agua, sal o glucógeno, y medio kilo de error en la tendencia de 4 semanas son más de 100 kcal/día. Por eso la app calcula el margen de error estadístico de la pendiente. σ es la dispersión de tus pesajes alrededor de la línea de tendencia, nunca menos de 0,5 kg, para que unos pocos pesajes alineados por casualidad no parezcan precisos. Σ(xᵢ − x̄)² crece con el número de pesajes y con lo repartidos que estén. El gasto medido solo se muestra, con su ± al 95 %, cuando el margen es de ±300 kcal/día o menos y hay al menos 4 días de pesaje que abarcan 14 días o más. En la práctica: pesándote una vez a la semana no se alcanza; unas 3 veces por semana, sí; a diario, el margen baja a unas ±180 kcal.",
+    measuredLimits:
+      "No sustituye a tu objetivo: el rango recomendado sigue saliendo de la fórmula, para que no oscile con el ruido de la báscula. Úsalo como contraste: si durante varias semanas difiere del TDEE estimado, es la mejor referencia de tu gasto real. Su precisión depende de registrar las comidas con exactitud (si te quedas corto al registrar, el gasto parecerá más bajo), y al empezar o cambiar de dieta los cambios de agua y glucógeno pueden distorsionarlo las primeras semanas. Los 7700 kcal/kg también son una aproximación: el valor real depende de cuánto de lo que se gana o se pierde es grasa y cuánto tejido magro (Hall 2008).",
     referencesTitle: "Referencias",
   },
   ajustes: {

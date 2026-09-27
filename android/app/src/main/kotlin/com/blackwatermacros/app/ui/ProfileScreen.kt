@@ -211,7 +211,25 @@ private fun RecommendationsCard(loaded: ProfileUiState.Loaded) {
                         showBar = false,
                     )
                     CardDescription(stringResource(R.string.rec_bmr, formatNumber(calorie.bmr)))
+                    CardDescription(stringResource(R.string.rec_activity_factor, formatNumber(calorie.activityFactor, 2)))
                     CardDescription(stringResource(R.string.rec_tdee, formatNumber(calorie.tdee)))
+                    val measured = loaded.expenditure
+                    if (measured != null) {
+                        CardDescription(
+                            stringResource(R.string.rec_measured_tdee, formatNumber(measured.tdee), formatNumber(measured.margin)),
+                        )
+                        val rate = measured.weightChangePerWeek
+                        CardDescription(
+                            stringResource(
+                                R.string.rec_measured_detail,
+                                formatNumber(measured.avgIntake),
+                                formatNumber(measured.loggedDays.toDouble()),
+                                (if (rate > 0) "+" else "") + formatNumber(rate, 2),
+                            ),
+                        )
+                    } else {
+                        CardDescription(stringResource(R.string.rec_measured_pending))
+                    }
                 }
             }
             if (protein != null) {
@@ -219,13 +237,13 @@ private fun RecommendationsCard(loaded: ProfileUiState.Loaded) {
                     title = stringResource(R.string.rec_protein_title),
                     icon = Icons.Filled.FitnessCenter,
                     goal = protein.goal,
-                    rangeValue = "${formatNumber(protein.bwRange.min)} – ${formatNumber(protein.bwRange.max)}",
+                    rangeValue = "${formatNumber(protein.range.min)} – ${formatNumber(protein.range.max)}",
                     rangeUnit = gDay,
                     detail = stringResource(R.string.rec_estimated_average, "${formatNumber(protein.target)} $gDay") +
-                        " · ${formatNumber(protein.bwPerKg.min, 1)} – ${formatNumber(protein.bwPerKg.max, 1)} g/kg",
+                        " · " + proteinPerKg(protein),
                     current = 0.0,
-                    rangeMin = protein.bwRange.min,
-                    rangeMax = protein.bwRange.max,
+                    rangeMin = protein.range.min,
+                    rangeMax = protein.range.max,
                     showBar = false,
                 )
             }

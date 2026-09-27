@@ -28,8 +28,9 @@ specification for both platforms — each assertion maps 1:1 to a Kotlin JUnit t
 | ------------------ | -------------------------------------------------------------------- |
 | `types.ts`         | Wire-format DTOs and enums shared by client and server               |
 | `nutrition.ts`     | Meal/ingredient totals and rounding (`sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2`) |
-| `protein.ts`       | Protein intake recommendation (`calculateProteinRecommendation`)     |
-| `calories.ts`      | BMR, activity multiplier, calorie targets (Mifflin-St Jeor)          |
+| `protein.ts`       | Protein intake recommendation, per kg of body weight or lean mass (`calculateProteinRecommendation`) |
+| `calories.ts`      | BMR (Mifflin-St Jeor), factorial activity level (PAL), calorie targets |
+| `expenditure.ts`   | Measured TDEE from intake and weight trend, with its 95 % margin (`estimateExpenditure`) |
 | `dates.ts`         | Date-key arithmetic and es-ES formatting                             |
 | `stats.ts`         | Moving average, linear regression, weekly averages, series building  |
 | `stats-builder.ts` | Master `buildStatsFromData` used by server and demo mode             |

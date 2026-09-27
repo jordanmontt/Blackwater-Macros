@@ -5,6 +5,7 @@ import { DumbbellIcon, FlameIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
+import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import { formatNumberEs } from "@/lib/core/dates";
 import { calculateCalorieRecommendation } from "@/lib/core/calories";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
@@ -143,6 +144,9 @@ export function NutritionRecommendationsCard({
   const calorieProfile = sessionRes.data?.calorieProfile ?? emptyProfile();
 
   const latestWeight = weights?.at(-1) ?? null;
+  // Body fat is not logged at every weigh-in: use the most recent one there is.
+  const bodyFatPct = weights?.findLast((w) => w.bodyFatPct !== null)?.bodyFatPct ?? null;
+  const measured = useMeasuredExpenditure();
 
   const calorieRec = useMemo(
     () => (latestWeight ? calculateCalorieRecommendation(calorieProfile, latestWeight.weightKg, new Date().getFullYear()) : null),
@@ -152,9 +156,9 @@ export function NutritionRecommendationsCard({
   const proteinRec = useMemo(
     () =>
       latestWeight && calorieProfile.calorieGoal
-        ? calculateProteinRecommendation(latestWeight.weightKg, calorieProfile.calorieGoal)
+        ? calculateProteinRecommendation(latestWeight.weightKg, calorieProfile.calorieGoal, bodyFatPct)
         : null,
-    [latestWeight, calorieProfile.calorieGoal],
+    [latestWeight, calorieProfile.calorieGoal, bodyFatPct],
   );
 
   if (!latestWeight) {
@@ -200,6 +204,17 @@ export function NutritionRecommendationsCard({
                 {t.calorias.tdee}:{" "}
                 <span className="whitespace-nowrap">{formatNumberEs(calorieRec.tdee)} {t.calorias.perDay}</span>
               </p>
+              {measured ? (
+                <p>
+                  {t.calorias.measuredTdee}:{" "}
+                  <span className="whitespace-nowrap">
+                    {formatTemplate(t.calorias.measuredTdeeValue, {
+                      n: formatNumberEs(measured.tdee),
+                      margin: formatNumberEs(measured.margin),
+                    })}
+                  </span>
+                </p>
+              ) : null}
             </div>
             {/* mt-auto: both columns' bars sit at the bottom, aligned side by side on desktop. */}
             <div className="mt-auto pt-1">
@@ -230,28 +245,34 @@ export function NutritionRecommendationsCard({
               </span>
             </div>
             <p className="text-2xl font-semibold tabular-nums">
-              {proteinRec.bwRange.min} – {proteinRec.bwRange.max}{" "}
+              {proteinRec.range.min} – {proteinRec.range.max}{" "}
               <span className="text-sm font-normal text-muted-foreground">g/día</span>
             </p>
             <p className="text-xs text-muted-foreground">
               {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} g/día
             </p>
             <p className="text-xs text-muted-foreground">
-              {formatTemplate(t.protein.perKg, {
-                min: proteinRec.bwPerKg.min,
-                max: proteinRec.bwPerKg.max,
-              })}
+              {proteinRec.basis === "leanMass"
+                ? formatTemplate(t.protein.perKgLeanMass, {
+                    min: formatNumberEs(proteinRec.perKg.min, 1),
+                    max: formatNumberEs(proteinRec.perKg.max, 1),
+                    kg: formatNumberEs(proteinRec.basisKg, 1),
+                  })
+                : formatTemplate(t.protein.perKg, {
+                    min: formatNumberEs(proteinRec.perKg.min, 1),
+                    max: formatNumberEs(proteinRec.perKg.max, 1),
+                  })}
             </p>
             <div className="mt-auto pt-1">
               <IntakeBar
                 current={dailyProtein}
-                rangeMin={proteinRec.bwRange.min}
-                rangeMax={proteinRec.bwRange.max}
+                rangeMin={proteinRec.range.min}
+                rangeMax={proteinRec.range.max}
                 unit="g"
                 {...intakeStatus(
                   dailyProtein,
-                  proteinRec.bwRange.min,
-                  proteinRec.bwRange.max,
+                  proteinRec.range.min,
+                  proteinRec.range.max,
                   t.protein.missingProtein,
                   t.protein.exceededProtein,
                   t.protein.inRange,

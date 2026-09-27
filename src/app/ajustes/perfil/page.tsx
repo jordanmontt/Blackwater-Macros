@@ -16,12 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, ApiError } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
+import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 import { calculateCalorieRecommendation } from "@/lib/core/calories";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
 import { formatNumberEs } from "@/lib/core/dates";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 
 const GOAL_LABELS: Record<Goal, string> = {
   cut: t.ajustes.goalCut,
@@ -53,6 +54,9 @@ export default function PerfilPage() {
 
   const session = sessionRes.data;
   const latestWeight = weightsRes.data?.at(-1)?.weightKg ?? null;
+  // Body fat is not logged at every weigh-in: use the most recent one there is.
+  const bodyFatPct = weightsRes.data?.findLast((w) => w.bodyFatPct !== null)?.bodyFatPct ?? null;
+  const measured = useMeasuredExpenditure();
 
   // Siembra el perfil de calorías desde la sesión solo mientras el usuario no
   // haya tocado el formulario (evita pisar ediciones a mitad de escritura).
@@ -132,7 +136,7 @@ export default function PerfilPage() {
     : null;
 
   const proteinRec = latestWeight && calorieProfile.calorieGoal
-    ? calculateProteinRecommendation(latestWeight, calorieProfile.calorieGoal)
+    ? calculateProteinRecommendation(latestWeight, calorieProfile.calorieGoal, bodyFatPct)
     : null;
 
   return (
@@ -329,8 +333,31 @@ export default function PerfilPage() {
                     {t.calorias.bmr}: {formatNumberEs(calorieRec.bmr)}
                   </p>
                   <p className="text-xs text-muted-foreground">
+                    {formatTemplate(t.calorias.activityFactor, { n: formatNumberEs(calorieRec.activityFactor, 2) })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
                     {t.calorias.tdee}: {formatNumberEs(calorieRec.tdee)}
                   </p>
+                  {measured ? (
+                    <>
+                      <p className="text-xs text-muted-foreground">
+                        {t.calorias.measuredTdee}:{" "}
+                        {formatTemplate(t.calorias.measuredTdeeValue, {
+                          n: formatNumberEs(measured.tdee),
+                          margin: formatNumberEs(measured.margin),
+                        })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatTemplate(t.calorias.measuredTdeeDetail, {
+                          intake: formatNumberEs(measured.avgIntake),
+                          days: measured.loggedDays,
+                          rate: `${measured.weightChangePerWeek > 0 ? "+" : ""}${formatNumberEs(measured.weightChangePerWeek, 2)}`,
+                        })}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{t.calorias.measuredTdeePending}</p>
+                  )}
                 </div>
               )}
               {proteinRec && (
@@ -339,8 +366,17 @@ export default function PerfilPage() {
                     <DumbbellIcon className="size-3.5" /> {t.ajustes.proteinRecLabel}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {proteinRec.bwRange.min} – {proteinRec.bwRange.max} g/día{" "}
-                    ({proteinRec.bwPerKg.min} – {proteinRec.bwPerKg.max} g/kg)
+                    {proteinRec.range.min} – {proteinRec.range.max} g/día{" "}
+                    {proteinRec.basis === "leanMass"
+                      ? formatTemplate(t.protein.perKgLeanMass, {
+                          min: formatNumberEs(proteinRec.perKg.min, 1),
+                          max: formatNumberEs(proteinRec.perKg.max, 1),
+                          kg: formatNumberEs(proteinRec.basisKg, 1),
+                        })
+                      : formatTemplate(t.protein.perKg, {
+                          min: formatNumberEs(proteinRec.perKg.min, 1),
+                          max: formatNumberEs(proteinRec.perKg.max, 1),
+                        })}
                   </p>
                 </div>
               )}
