@@ -20,7 +20,7 @@ import { useCachedResource } from "@/lib/use-cached-resource";
 import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
-import { calculateCalorieRecommendation } from "@/lib/core/calories";
+import { calculateCalorieRecommendation, isCalorieProfileComplete } from "@/lib/core/calories";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
 import { formatTemplate, t } from "@/i18n";
 
@@ -187,7 +187,9 @@ export default function PerfilPage() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">{t.calorias.recommendationTitle}</CardTitle>
-          <CardDescription>{t.calorias.noProfile}</CardDescription>
+          {isCalorieProfileComplete(calorieProfile) ? null : (
+            <CardDescription>{t.calorias.noProfile}</CardDescription>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">

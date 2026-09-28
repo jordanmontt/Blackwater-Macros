@@ -12,7 +12,8 @@ import { emptyCalorieProfile } from "../helpers/repos";
  *  - elegir un objetivo guarda el perfil calórico con un breve debounce,
  *  - no guarda mientras haya errores de validación,
  *  - con peso y perfil completos muestra las recomendaciones, el factor de
- *    actividad y, sin 4 semanas de datos, qué falta para el gasto medido,
+ *    actividad y, sin 4 semanas de datos, qué falta para el gasto medido;
+ *    pide «introduce tus datos» solo mientras el perfil está incompleto,
  *  - vuelve a Ajustes.
  */
 
@@ -100,6 +101,13 @@ describe("pantalla Perfil", () => {
     // 3 × 60 min de gym y 30 min de caminata → 1,49 × TMB
     expect(await screen.findByText("Factor de actividad: 1,49 × TMB")).toBeInTheDocument();
     expect(screen.getByText(t.calorias.measuredTdeePending)).toBeInTheDocument();
+    // Nothing left to enter: the «introduce tus datos» hint is gone.
+    expect(screen.queryByText(t.calorias.noProfile)).not.toBeInTheDocument();
+  });
+
+  it("con el perfil incompleto pide los datos que faltan", async () => {
+    render(<PerfilPage />);
+    expect(await screen.findByText(t.calorias.noProfile)).toBeInTheDocument();
   });
 
   it("tiene un enlace para volver a Ajustes", async () => {

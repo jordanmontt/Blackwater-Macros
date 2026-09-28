@@ -115,6 +115,12 @@ interface MealSeed {
   probability: number;
 }
 
+/**
+ * Portions for the demo person (84 kg man who lifts 3×/week, cutting): about
+ * 2 200 kcal a day on average, his cut target, so that the measured
+ * expenditure lands near the formula (≈ 2 600) as it would for a real user
+ * who logs everything.
+ */
 const breakfasts: MealSeed[] = [
   {
     title: "Desayuno",
@@ -124,6 +130,7 @@ const breakfasts: MealSeed[] = [
       { name: "4 huevos", quantity: "240 g", calories: 280, protein: 24, carbs: 2, fat: 20 },
       { name: "2 cucharillas de aceite de oliva", calories: 80, protein: 0, carbs: 0, fat: 9 },
       { name: "30-40 gramos queso Gouda", quantity: "35 g", calories: 115, protein: 8.4, carbs: 1, fat: 9 },
+      { name: "Pan de centeno", quantity: "60 g", calories: 150, protein: 5, carbs: 28, fat: 1 },
     ],
   },
   {
@@ -131,8 +138,9 @@ const breakfasts: MealSeed[] = [
     mode: "per_ingredient",
     probability: 1,
     ingredients: [
-      { name: "Tostada integral", quantity: "60 g", calories: 150, protein: 6, carbs: 26, fat: 2 },
+      { name: "2 tostadas integrales", quantity: "120 g", calories: 300, protein: 12, carbs: 52, fat: 4 },
       { name: "Aguacate", quantity: "½ unidad", calories: 120, protein: 1.5, carbs: 6, fat: 11 },
+      { name: "Jamón serrano", quantity: "40 g", calories: 90, protein: 12, carbs: 0, fat: 5 },
       { name: "Café con leche", calories: 40, protein: 2, carbs: 4, fat: 2 },
     ],
   },
@@ -141,9 +149,10 @@ const breakfasts: MealSeed[] = [
     mode: "per_ingredient",
     probability: 1,
     ingredients: [
-      { name: "Yogur griego", quantity: "170 g", calories: 100, protein: 17, carbs: 6, fat: 5 },
-      { name: "Copos de avena", quantity: "40 g", calories: 150, protein: 5, carbs: 25, fat: 3 },
+      { name: "Yogur griego", quantity: "170 g", calories: 100, protein: 17, carbs: 6, fat: 1 },
+      { name: "Copos de avena", quantity: "60 g", calories: 225, protein: 8, carbs: 38, fat: 4 },
       { name: "Plátano", calories: 90, protein: 1, carbs: 22, fat: 0 },
+      { name: "Crema de cacahuete", quantity: "15 g", calories: 90, protein: 4, carbs: 3, fat: 8 },
     ],
   },
 ];
@@ -154,18 +163,18 @@ const lunches: MealSeed[] = [
     mode: "total_only",
     probability: 1,
     ingredients: [{ name: "Menú del día (sin detallar)" }],
-    totalCalories: 850,
-    totalProtein: 45,
-    totalCarbs: 80,
-    totalFat: 35,
+    totalCalories: 950,
+    totalProtein: 50,
+    totalCarbs: 95,
+    totalFat: 38,
   },
   {
     title: "Comida",
     mode: "per_ingredient",
     probability: 1,
     ingredients: [
-      { name: "Pechuga de pollo a la plancha", quantity: "180 g", calories: 300, protein: 55, carbs: 0, fat: 7 },
-      { name: "Arroz blanco cocido", quantity: "150 g", calories: 195, protein: 4, carbs: 42, fat: 0 },
+      { name: "Pechuga de pollo a la plancha", quantity: "200 g", calories: 330, protein: 61, carbs: 0, fat: 8 },
+      { name: "Arroz blanco cocido", quantity: "250 g", calories: 325, protein: 7, carbs: 70, fat: 1 },
       { name: "Ensalada verde", calories: 50, protein: 1, carbs: 6, fat: 3 },
       { name: "Aceite de oliva", quantity: "1 cucharada", calories: 90, protein: 0, carbs: 0, fat: 10 },
     ],
@@ -175,8 +184,9 @@ const lunches: MealSeed[] = [
     mode: "per_ingredient",
     probability: 1,
     ingredients: [
-      { name: "Lentejas guisadas", quantity: "350 g", calories: 420, protein: 27, carbs: 55, fat: 8 },
-      { name: "Pan", quantity: "60 g", calories: 160, protein: 5, carbs: 30, fat: 2 },
+      { name: "Lentejas guisadas", quantity: "400 g", calories: 480, protein: 31, carbs: 63, fat: 9 },
+      { name: "Pan", quantity: "80 g", calories: 210, protein: 7, carbs: 40, fat: 2 },
+      { name: "Naranja", calories: 70, protein: 1, carbs: 15, fat: 0 },
     ],
   },
 ];
@@ -187,8 +197,9 @@ const dinners: MealSeed[] = [
     mode: "per_ingredient",
     probability: 1,
     ingredients: [
-      { name: "Salmón al horno", quantity: "150 g", calories: 310, protein: 34, carbs: 0, fat: 20 },
+      { name: "Salmón al horno", quantity: "180 g", calories: 370, protein: 41, carbs: 0, fat: 24 },
       { name: "Verduras asadas", calories: 90, protein: 3, carbs: 10, fat: 5 },
+      { name: "Patata cocida", quantity: "200 g", calories: 170, protein: 4, carbs: 37, fat: 0 },
     ],
   },
   {
@@ -199,6 +210,7 @@ const dinners: MealSeed[] = [
       { name: "Tortilla francesa", quantity: "3 huevos", calories: 210, protein: 18, carbs: 2, fat: 15 },
       { name: "Ensalada de tomate", calories: 60, protein: 1, carbs: 8, fat: 3 },
       { name: "Queso fresco", quantity: "100 g", calories: 90, protein: 12, carbs: 3, fat: 4 },
+      { name: "Pan", quantity: "60 g", calories: 160, protein: 5, carbs: 30, fat: 2 },
     ],
   },
   {
@@ -219,21 +231,32 @@ const snacks: MealSeed[] = [
     mode: "total_only",
     probability: 1,
     ingredients: [],
-    totalCalories: 220,
-    totalProtein: 14,
-    totalCarbs: 25,
-    totalFat: 8,
+    totalCalories: 300,
+    totalProtein: 20,
+    totalCarbs: 32,
+    totalFat: 10,
   },
   {
     title: "Merienda",
     mode: "per_ingredient",
     probability: 1,
     ingredients: [
-      { name: "Puñado de almendras", quantity: "25 g", calories: 145, protein: 5, carbs: 5, fat: 12 },
+      { name: "Puñado de almendras", quantity: "30 g", calories: 175, protein: 6, carbs: 6, fat: 15 },
       { name: "Manzana", calories: 80, protein: 0, carbs: 18, fat: 0 },
     ],
   },
 ];
+
+/** On gym days (3 of 7). */
+const shake: MealSeed = {
+  title: "Batido post-entreno",
+  mode: "per_ingredient",
+  probability: 1,
+  ingredients: [
+    { name: "Proteína whey", quantity: "30 g", calories: 120, protein: 24, carbs: 3, fat: 2 },
+    { name: "Leche semidesnatada", quantity: "300 ml", calories: 140, protein: 10, carbs: 14, fat: 5 },
+  ],
+};
 
 const DAYS = 45;
 const SEED = 20260823;
@@ -329,7 +352,8 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
     if (rand() < 0.97) plan.push(pick(breakfasts));
     if (rand() < 0.98) plan.push(pick(lunches));
     if (rand() < 0.92) plan.push(pick(dinners));
-    if (rand() < 0.55) plan.push(pick(snacks));
+    if (rand() < 0.85) plan.push(pick(snacks));
+    if (rand() < 3 / 7) plan.push(shake);
 
     for (const seed of plan) {
       if (seed.probability < 1 && rand() > seed.probability) continue;
@@ -374,7 +398,8 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
     }
 
     if (rand() < 0.9) {
-      const baseWeight = 84 - ((DAYS - daysAgo) / DAYS) * 1.8;
+      // ≈ 0.36 kg/week, what a 400 kcal/day deficit gives at 7700 kcal/kg.
+      const baseWeight = 84 - ((DAYS - daysAgo) / DAYS) * 2.3;
       const weightKg = Math.round((baseWeight + (rand() - 0.5) * 0.7) * 10) / 10;
       const baseBfPct = 19 - ((DAYS - daysAgo) / DAYS) * 3;
       const bodyFatPct =
