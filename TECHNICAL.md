@@ -1644,9 +1644,12 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
 - **Base URL:** `BuildConfig.API_BASE_URL`, default `https://blackwater-macros.jordanmontt.fr/`,
   override with `-Papp.baseUrl=<url>`. Only used after logging in.
 - **Version:** `versionCode 1` / `versionName "0.1.0"` in `app/build.gradle.kts`.
-- **Toolchain:** `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.4.20, Compose BOM, Room,
+- **Toolchain:** `gradle/libs.versions.toml` (AGP 9.4.1 with its built-in Kotlin support — no
+  separate `org.jetbrains.kotlin.android` plugin —, Kotlin 2.4.20, Compose BOM, Room,
   WorkManager, AppCompat, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk`
-  37 (Android 17), `minSdk` 24 (Android 7) + desugaring for `java.time`.
+  37 (Android 17), `minSdk` 24 (Android 7) + desugaring for `java.time`. Gradle 9.8.0 via the
+  wrapper, with `distributionSha256Sum` pinned (AGP 9.4 needs Gradle ≥ 9.6). Android Studio is
+  not needed: everything builds from the command line.
 - **Local SDK:** `android/local.properties` (`sdk.dir=…`), gitignored.
 - **JDK 21.0.2 on Apple Silicon** has a JIT bug that crashes Gradle during `lint`; use a
   newer JDK or pass `-Dorg.gradle.jvmargs="-Xmx3g -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=512m"`.
@@ -1674,15 +1677,34 @@ UI tests don't exist yet; screens are verified manually on a device.
 - **Compose UI tests** for the main flows.
 - **Lint warnings left on purpose** (`:app:lintDebug` passes): `IconDuplicates` (the launcher
   icon is the same drawing at every density), `Typos` (false positives: «weigh-in in», German
-  «seit dem», «sie sie»), `PluralsCandidate` (the counts are always several: «up to 5 photos»),
-  `Recycle` in `SettingsScreen.writeText` (the stream is closed by `.use`).
+  «seit dem», «sie sie»), `PluralsCandidate` (the counts are always several: «up to 5 photos»).
 - **Target Android 17 (API 37)** since 2026-09-28, checked against Google's list of changes for
   apps targeting 17 (only the local-network rule mattered, see below) and on a Pixel 10a. Old
-  phones are unaffected: `minSdk` 24 decides who can install. AGP 8.13 predates API 37 and
-  says so (`android.suppressUnsupportedCompileSdk=37.0` in `gradle.properties` silences it);
-  upgrade AGP when convenient. Raise the target again for each new Android, after reading
+  phones are unaffected: `minSdk` 24 decides who can install. Raise the target again for each new Android, after reading
   its «behavior changes: apps targeting…» page.
-- **«Otro servidor» on Android is https only:** Android blocks plain `http://`, and from
-  Android 17 reaching the home network also needs a runtime permission, so a computer at home
-  with an `http://192.168…` address is not reachable from the phone (the texts say so). On the
-  web, `http://localhost` (Ollama on the same computer) works; other machines need https.
+- **«Otro servidor» on Android is https only (a choice, 2026-09-28):** Android blocks plain
+  `http://`, and from Android 17 reaching the home network also needs a runtime permission, so
+  a computer at home with an `http://192.168…` address is not reachable from the phone (the
+  texts say so). On the web, `http://localhost` (Ollama on the same computer) works; other
+  machines need https. Chosen to keep things simple: no new permission, no security exception.
+  **To allow a home server later** (e.g. Ollama or LM Studio on a computer on the same Wi-Fi):
+  1. *Plain http:* add `res/xml/network_security_config.xml` and point to it with
+     `android:networkSecurityConfig` in `AndroidManifest.xml`. Domain rules cannot express IP
+     ranges, so either allow cleartext for the whole app (`<base-config
+     cleartextTrafficPermitted="true">` — weakens the guarantee that everything else is
+     https) or list the host names users will type (`<domain-config
+     cleartextTrafficPermitted="true"><domain>ollama.local</domain>…`). A middle way: keep the
+     base config https-only and ask users to run the server behind https (Caddy, Tailscale).
+  2. *Local network permission (Android 17, targetSdk 37):* declare
+     `<uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />` and request it
+     at runtime, only when the provider is «Otro servidor» and the address is on the home
+     network (private IP ranges, `*.local`), before the first request — e.g. from
+     `AiSettingsViewModel.runTest`/`refreshModels` and before the coach or photo call. Without
+     it the connection fails like being offline.
+  3. *Texts:* restore the example `http://192.168.1.10:11434/v1` in `ai_base_url_hint`, the
+     placeholder in `AiSettingsScreen.kt`, the provider label «(Ollama, LM Studio…)» and
+     `ai_local_hint` («Un modelo en tu propio ordenador es privado…»), in the five
+     `strings.xml`; check `TranslationsTest`.
+  4. *Test* on a phone with Android 17 against a real Ollama on the same Wi-Fi, and on an older
+     phone (the permission does not exist there). The web needs nothing new: a page served over
+     https cannot call `http://` machines other than `localhost` (browser rule).

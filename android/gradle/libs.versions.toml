@@ -1,7 +1,7 @@
 [versions]
 exifinterface = "1.4.1"
 # Build
-agp = "8.13.0"
+agp = "9.4.1"
 kotlin = "2.4.20"
 
 # Core module is pure JVM; app module targets Android
