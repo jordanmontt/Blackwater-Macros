@@ -357,7 +357,7 @@ export const it: Dictionary = {
     modelListError: "Non è stato possibile caricare l'elenco dei modelli. {message}",
     modelListNeedsKey: "Aggiungi la chiave per scegliere tra i modelli disponibili.",
     baseUrl: "Indirizzo del server",
-    baseUrlHint: "L'indirizzo compatibile con OpenAI, che termina con /v1 (es. http://192.168.1.10:11434/v1 per Ollama).",
+    baseUrlHint: "L'indirizzo compatibile con OpenAI, che termina con /v1 (es. http://localhost:11434/v1 per Ollama su questo computer; gli altri computer richiedono https).",
     localHint: "Un modello sul tuo computer è privato, ma di solito meno preciso del cloud.",
     test: "Prova",
     testing: "Prova in corso…",

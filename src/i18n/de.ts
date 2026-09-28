@@ -357,7 +357,7 @@ export const de: Dictionary = {
     modelListError: "Die Modellliste konnte nicht geladen werden. {message}",
     modelListNeedsKey: "Füge den Schlüssel hinzu, um aus den verfügbaren Modellen zu wählen.",
     baseUrl: "Serveradresse",
-    baseUrlHint: "Die OpenAI-kompatible Adresse, endend auf /v1 (z. B. http://192.168.1.10:11434/v1 für Ollama).",
+    baseUrlHint: "Die OpenAI-kompatible Adresse, endet auf /v1 (z. B. http://localhost:11434/v1 für Ollama auf diesem Computer; andere Geräte brauchen https).",
     localHint: "Ein Modell auf deinem eigenen Computer ist privat, aber meist ungenauer als die Cloud.",
     test: "Testen",
     testing: "Wird getestet…",

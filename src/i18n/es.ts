@@ -348,7 +348,7 @@ export const t = {
     modelListError: "No se pudo cargar la lista de modelos. {message}",
     modelListNeedsKey: "Añade la clave para elegir entre los modelos disponibles.",
     baseUrl: "Dirección del servidor",
-    baseUrlHint: "La dirección compatible con OpenAI, acabada en /v1 (p. ej. http://192.168.1.10:11434/v1 para Ollama).",
+    baseUrlHint: "La dirección compatible con OpenAI, acabada en /v1 (p. ej. http://localhost:11434/v1 para Ollama en este ordenador; otros equipos necesitan https).",
     localHint: "Un modelo en tu propio ordenador es privado, pero suele ser menos preciso que la nube.",
     test: "Probar",
     testing: "Probando…",

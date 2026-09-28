@@ -1646,7 +1646,7 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
 - **Version:** `versionCode 1` / `versionName "0.1.0"` in `app/build.gradle.kts`.
 - **Toolchain:** `gradle/libs.versions.toml` (AGP 8.13, Kotlin 2.4.20, Compose BOM, Room,
   WorkManager, AppCompat, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk`
-  36, `minSdk` 24 + desugaring for `java.time`.
+  37 (Android 17), `minSdk` 24 (Android 7) + desugaring for `java.time`.
 - **Local SDK:** `android/local.properties` (`sdk.dir=…`), gitignored.
 - **JDK 21.0.2 on Apple Silicon** has a JIT bug that crashes Gradle during `lint`; use a
   newer JDK or pass `-Dorg.gradle.jvmargs="-Xmx3g -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=512m"`.
@@ -1675,5 +1675,14 @@ UI tests don't exist yet; screens are verified manually on a device.
 - **Lint warnings left on purpose** (`:app:lintDebug` passes): `IconDuplicates` (the launcher
   icon is the same drawing at every density), `Typos` (false positives: «weigh-in in», German
   «seit dem», «sie sie»), `PluralsCandidate` (the counts are always several: «up to 5 photos»),
-  `Recycle` in `SettingsScreen.writeText` (the stream is closed by `.use`), `OldTargetApi`
-  (raise `targetSdk` deliberately, after checking the new platform's behaviour changes).
+  `Recycle` in `SettingsScreen.writeText` (the stream is closed by `.use`).
+- **Target Android 17 (API 37)** since 2026-09-28, checked against Google's list of changes for
+  apps targeting 17 (only the local-network rule mattered, see below) and on a Pixel 10a. Old
+  phones are unaffected: `minSdk` 24 decides who can install. AGP 8.13 predates API 37 and
+  says so (`android.suppressUnsupportedCompileSdk=37.0` in `gradle.properties` silences it);
+  upgrade AGP when convenient. Raise the target again for each new Android, after reading
+  its «behavior changes: apps targeting…» page.
+- **«Otro servidor» on Android is https only:** Android blocks plain `http://`, and from
+  Android 17 reaching the home network also needs a runtime permission, so a computer at home
+  with an `http://192.168…` address is not reachable from the phone (the texts say so). On the
+  web, `http://localhost` (Ollama on the same computer) works; other machines need https.

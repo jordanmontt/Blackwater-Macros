@@ -351,7 +351,7 @@
     <string name="ai_provider_openai">OpenAI (ChatGPT)</string>
     <string name="ai_provider_anthropic">Anthropic (Claude)</string>
     <string name="ai_provider_openrouter">OpenRouter</string>
-    <string name="ai_provider_custom">Otro compatible con OpenAI (Ollama, LM Studio…)</string>
+    <string name="ai_provider_custom">Otro servidor compatible con OpenAI</string>
     <string name="ai_api_key">Clave API</string>
     <string name="ai_api_key_optional">Clave API (si el servidor la pide)</string>
     <string name="ai_show_key">Mostrar la clave</string>
@@ -359,8 +359,8 @@
     <string name="ai_model">Modelo</string>
     <string name="ai_model_hint">Déjalo vacío para usar %1$s.</string>
     <string name="ai_base_url">Dirección del servidor</string>
-    <string name="ai_base_url_hint">La dirección compatible con OpenAI, acabada en /v1 (p. ej. http://192.168.1.10:11434/v1 para Ollama en tu ordenador).</string>
-    <string name="ai_local_hint">Un modelo en tu propio ordenador es privado, pero suele ser menos preciso que la nube.</string>
+    <string name="ai_base_url_hint">La dirección https compatible con OpenAI, acabada en /v1.</string>
+    <string name="ai_local_hint">El teléfono solo se conecta a servidores seguros (https): un ordenador de casa con una dirección http no es accesible desde aquí.</string>
     <string name="ai_test">Probar</string>
     <string name="ai_testing">Probando…</string>
     <string name="ai_test_ok">Funciona. Ya puedes usar las fotos y el coach.</string>

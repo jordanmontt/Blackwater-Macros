@@ -138,7 +138,7 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
                     CompactField(
                         value = settings.baseUrl,
                         onValueChange = viewModel::setBaseUrl,
-                        placeholder = "http://192.168.1.10:11434/v1",
+                        placeholder = "https://example.com/v1",
                         keyboardType = KeyboardType.Uri,
                         modifier = Modifier.fillMaxWidth(),
                     )

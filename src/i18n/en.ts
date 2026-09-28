@@ -357,7 +357,7 @@ export const en: Dictionary = {
     modelListError: "The model list could not be loaded. {message}",
     modelListNeedsKey: "Add the key to choose from the available models.",
     baseUrl: "Server address",
-    baseUrlHint: "The OpenAI-compatible address, ending in /v1 (e.g. http://192.168.1.10:11434/v1 for Ollama).",
+    baseUrlHint: "The OpenAI-compatible address, ending in /v1 (e.g. http://localhost:11434/v1 for Ollama on this computer; other machines need https).",
     localHint: "A model on your own computer is private, but usually less precise than the cloud.",
     test: "Test",
     testing: "Testing…",
