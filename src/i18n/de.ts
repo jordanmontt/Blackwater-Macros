@@ -151,7 +151,7 @@ export const de: Dictionary = {
     caloriesTitle: "Tägliche Kalorien",
     targetBand: "Ziel",
     macrosTitle: "Durchschnittliche Makros",
-    loggedDays: "{n} von {m} Tagen erfasst",
+    loggedDays: "Erfasste Tage: {n} von {m}",
     perLoggedDay: "Durchschnitt pro erfasstem Tag.",
     target: "Ziel {min}–{max}",
     caloriesSplit: "Kalorienverteilung",
@@ -253,7 +253,7 @@ export const de: Dictionary = {
       "x ist die Anzahl der Tage seit dem ersten Eintrag des Zeitraums und y das erfasste Gewicht. Die Steigung β wird mit 7 multipliziert, um sie pro Woche anzugeben. Die Regression verwendet deine Rohwerte im sichtbaren Zeitraum: Sie erfasst die langfristige Richtung besser als der Vergleich von nur zwei Punkten.",
     nutritionTitle: "Tägliche Kalorien, Protein, Kohlenhydrate und Fett",
     nutritionBody:
-      "Die Summe jedes Tages ist die Summe der Mahlzeiten dieses Tages (Kalorien, Protein, Kohlenhydrate und Fett werden beim Speichern berechnet, indem die Zutaten addiert oder dein manueller Gesamtwert übernommen wird). Das Diagramm zeigt die erfassten Tage mit demselben gleitenden 7-Tage-Durchschnitt und, wenn dein Profil vollständig ist, den Bereich deines Kalorienziels. Die «durchschnittlichen Makros» sind der Mittelwert der Tage mit erfassten Mahlzeiten: Nicht erfasste Tage zählen nicht, denn sie als 0 zu zählen hieße, du hättest weniger gegessen als tatsächlich; «N von M Tagen erfasst» zeigt, wie vollständig die Daten sind. Die Kalorienverteilung rechnet mit 4 kcal pro Gramm Protein und Kohlenhydrate und 9 kcal pro Gramm Fett.",
+      "Die Summe jedes Tages ist die Summe der Mahlzeiten dieses Tages (Kalorien, Protein, Kohlenhydrate und Fett werden beim Speichern berechnet, indem die Zutaten addiert oder dein manueller Gesamtwert übernommen wird). Das Diagramm zeigt die erfassten Tage mit demselben gleitenden 7-Tage-Durchschnitt und, wenn dein Profil vollständig ist, den Bereich deines Kalorienziels. Die «durchschnittlichen Makros» sind der Mittelwert der Tage mit erfassten Mahlzeiten: Nicht erfasste Tage zählen nicht, denn sie als 0 zu zählen hieße, du hättest weniger gegessen als tatsächlich; «Erfasste Tage: N von M» zeigt, wie vollständig die Daten sind. Die Kalorienverteilung rechnet mit 4 kcal pro Gramm Protein und Kohlenhydrate und 9 kcal pro Gramm Fett.",
     proteinRecTitle: "Tägliche Proteinempfehlungen",
     proteinRecBody:
       "Das Protein wird berechnet, indem ein Faktor in g/kg, der von deinem Ziel abhängt, mit deinem zuletzt erfassten Gewicht multipliziert wird. Die große Zahl ist die Mitte des Bereichs.",

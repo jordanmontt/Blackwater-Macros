@@ -151,7 +151,7 @@ export const fr: Dictionary = {
     caloriesTitle: "Calories quotidiennes",
     targetBand: "Objectif",
     macrosTitle: "Moyenne des macros",
-    loggedDays: "{n} jours enregistrés sur {m}",
+    loggedDays: "Jours saisis : {n} sur {m}",
     perLoggedDay: "Moyenne par jour enregistré.",
     target: "objectif {min}–{max}",
     caloriesSplit: "Répartition des calories",
@@ -253,7 +253,7 @@ export const fr: Dictionary = {
       "x est le nombre de jours depuis la première entrée de la période et y le poids enregistré. La pente β est multipliée par 7 pour l'exprimer par semaine. La régression utilise vos entrées brutes de la période visible : elle saisit mieux la direction à long terme que la comparaison de deux points seulement.",
     nutritionTitle: "Calories, protéines, glucides et lipides quotidiens",
     nutritionBody:
-      "Le total de chaque jour est la somme des repas de ce jour (calories, protéines, glucides et lipides sont calculés à l'enregistrement, en additionnant les ingrédients ou en prenant votre total manuel). Le graphique montre les jours enregistrés avec la même moyenne mobile sur 7 jours et, si votre profil est complet, la bande de votre objectif calorique. La «moyenne des macros» est la moyenne des jours avec des repas enregistrés : les jours non enregistrés ne comptent pas, car les compter comme 0 dirait que vous avez mangé moins qu'en réalité ; «N jours enregistrés sur M» indique à quel point la donnée est complète. La répartition des calories utilise 4 kcal par gramme de protéines et de glucides et 9 kcal par gramme de lipides.",
+      "Le total de chaque jour est la somme des repas de ce jour (calories, protéines, glucides et lipides sont calculés à l'enregistrement, en additionnant les ingrédients ou en prenant votre total manuel). Le graphique montre les jours enregistrés avec la même moyenne mobile sur 7 jours et, si votre profil est complet, la bande de votre objectif calorique. La «moyenne des macros» est la moyenne des jours avec des repas enregistrés : les jours non enregistrés ne comptent pas, car les compter comme 0 dirait que vous avez mangé moins qu'en réalité ; «Jours saisis : N sur M» indique à quel point la donnée est complète. La répartition des calories utilise 4 kcal par gramme de protéines et de glucides et 9 kcal par gramme de lipides.",
     proteinRecTitle: "Recommandations de protéines quotidiennes",
     proteinRecBody:
       "Les protéines se calculent en multipliant un facteur en g/kg, qui dépend de votre objectif, par votre dernier poids enregistré. Le grand chiffre est le milieu de la fourchette.",

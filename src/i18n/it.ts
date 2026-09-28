@@ -151,7 +151,7 @@ export const it: Dictionary = {
     caloriesTitle: "Calorie giornaliere",
     targetBand: "Obiettivo",
     macrosTitle: "Media dei macro",
-    loggedDays: "{n} giorni registrati su {m}",
+    loggedDays: "Giorni registrati: {n} su {m}",
     perLoggedDay: "Media per giorno registrato.",
     target: "obiettivo {min}–{max}",
     caloriesSplit: "Ripartizione delle calorie",
@@ -253,7 +253,7 @@ export const it: Dictionary = {
       "x è il numero di giorni dalla prima voce dell'intervallo e y il peso registrato. La pendenza β si moltiplica per 7 per esprimerla a settimana. La regressione usa le tue voci grezze dell'intervallo visibile: coglie la direzione di lungo periodo meglio che confrontare solo due punti.",
     nutritionTitle: "Calorie, proteine, carboidrati e grassi giornalieri",
     nutritionBody:
-      "Il totale di ogni giorno è la somma dei pasti di quel giorno (calorie, proteine, carboidrati e grassi si calcolano al salvataggio, sommando gli ingredienti o prendendo il tuo totale manuale). Il grafico mostra i giorni registrati con la stessa media mobile a 7 giorni e, se il tuo profilo è completo, la fascia del tuo obiettivo calorico. La «media dei macro» è la media dei giorni con pasti registrati: i giorni non registrati non contano, perché contarli come 0 direbbe che hai mangiato meno di quanto hai fatto; «N giorni registrati su M» mostra quanto sono completi i dati. La ripartizione delle calorie usa 4 kcal per grammo di proteine e carboidrati e 9 kcal per grammo di grassi.",
+      "Il totale di ogni giorno è la somma dei pasti di quel giorno (calorie, proteine, carboidrati e grassi si calcolano al salvataggio, sommando gli ingredienti o prendendo il tuo totale manuale). Il grafico mostra i giorni registrati con la stessa media mobile a 7 giorni e, se il tuo profilo è completo, la fascia del tuo obiettivo calorico. La «media dei macro» è la media dei giorni con pasti registrati: i giorni non registrati non contano, perché contarli come 0 direbbe che hai mangiato meno di quanto hai fatto; «Giorni registrati: N su M» mostra quanto sono completi i dati. La ripartizione delle calorie usa 4 kcal per grammo di proteine e carboidrati e 9 kcal per grammo di grassi.",
     proteinRecTitle: "Raccomandazioni di proteine giornaliere",
     proteinRecBody:
       "Le proteine si calcolano moltiplicando un fattore in g/kg, che dipende dal tuo obiettivo, per il tuo ultimo peso registrato. Il numero grande è il centro dell'intervallo.",

@@ -151,7 +151,7 @@ export const en: Dictionary = {
     caloriesTitle: "Daily calories",
     targetBand: "Target",
     macrosTitle: "Average macros",
-    loggedDays: "{n} of {m} days logged",
+    loggedDays: "Days logged: {n} of {m}",
     perLoggedDay: "Average per logged day.",
     target: "target {min}–{max}",
     caloriesSplit: "Calorie split",
@@ -253,7 +253,7 @@ export const en: Dictionary = {
       "x is the number of days since the first entry of the range and y the logged weight. The slope β is multiplied by 7 to express it per week. The regression uses your raw entries in the visible range: it captures the long-term direction better than comparing just two points.",
     nutritionTitle: "Daily calories, protein, carbs and fat",
     nutritionBody:
-      "Each day's total is the sum of that day's meals (calories, protein, carbs and fat are calculated when saving, adding up ingredients or taking your manual total). The chart shows the logged days with the same 7-day moving average and, if your profile is complete, your calorie target band. «Average macros» is the mean of the days with logged meals: unlogged days do not count, because counting them as 0 would say you ate less than you did; «N of M days logged» shows how complete the data is. The calorie split uses 4 kcal per gram of protein and carbs and 9 kcal per gram of fat.",
+      "Each day's total is the sum of that day's meals (calories, protein, carbs and fat are calculated when saving, adding up ingredients or taking your manual total). The chart shows the logged days with the same 7-day moving average and, if your profile is complete, your calorie target band. «Average macros» is the mean of the days with logged meals: unlogged days do not count, because counting them as 0 would say you ate less than you did; «Days logged: N of M» shows how complete the data is. The calorie split uses 4 kcal per gram of protein and carbs and 9 kcal per gram of fat.",
     proteinRecTitle: "Daily protein recommendations",
     proteinRecBody:
       "Protein is calculated by multiplying a g/kg factor, which depends on your goal, by your latest logged weight. The big number is the middle of the range.",

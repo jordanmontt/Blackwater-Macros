@@ -149,7 +149,7 @@ export const t = {
     caloriesTitle: "Calorías diarias",
     targetBand: "Objetivo",
     macrosTitle: "Promedio de macros",
-    loggedDays: "{n} de {m} días registrados",
+    loggedDays: "Días registrados: {n} de {m}",
     perLoggedDay: "Media por día registrado.",
     target: "objetivo {min}–{max}",
     caloriesSplit: "Reparto de las calorías",
@@ -243,7 +243,7 @@ export const t = {
       "x son los días transcurridos desde la primera entrada del rango e y el peso registrado. La pendiente β se multiplica por 7 para expresarla por semana. La regresión usa tus entradas crudas del rango visible: captura mejor la dirección a largo plazo que comparar solo dos puntos concretos.",
     nutritionTitle: "Calorías, proteína, carbohidratos y grasa diarios",
     nutritionBody:
-      "El total de cada día es la suma de tus comidas de ese día (las calorías, proteína, carbohidratos y grasa se calculan al guardar, sumando ingredientes o tomando tu total manual). El gráfico muestra los días registrados con la misma media móvil de 7 días y, si tu perfil está completo, la franja de tu objetivo de calorías. El «Promedio de macros» es la media de los días con comidas registradas: los días sin registrar no cuentan, porque contarlos como 0 diría que comiste menos de lo que comiste; «N de M días registrados» indica lo completo que es el dato. El reparto de las calorías usa 4 kcal por gramo de proteína y de carbohidratos y 9 kcal por gramo de grasa.",
+      "El total de cada día es la suma de tus comidas de ese día (las calorías, proteína, carbohidratos y grasa se calculan al guardar, sumando ingredientes o tomando tu total manual). El gráfico muestra los días registrados con la misma media móvil de 7 días y, si tu perfil está completo, la franja de tu objetivo de calorías. El «Promedio de macros» es la media de los días con comidas registradas: los días sin registrar no cuentan, porque contarlos como 0 diría que comiste menos de lo que comiste; «Días registrados: N de M» indica lo completo que es el dato. El reparto de las calorías usa 4 kcal por gramo de proteína y de carbohidratos y 9 kcal por gramo de grasa.",
     proteinRecTitle: "Recomendaciones de proteína diaria",
     proteinRecBody:
       "La proteína se calcula multiplicando un factor en g/kg, que depende de tu objetivo, por tu último peso registrado. El número grande es el punto medio del rango.",

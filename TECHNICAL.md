@@ -857,7 +857,7 @@ mirrors the database with the server:
 | Page | File | Highlights |
 |---|---|---|
 | Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), meal list, delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
-| Progreso | `app/progreso/page.tsx` | Peso + Estadísticas merged (old URLs redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «N de M días registrados», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
+| Progreso | `app/progreso/page.tsx` | Peso + Estadísticas merged (old URLs redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), link to Perfil, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
@@ -1147,7 +1147,7 @@ rest of the calorie profile.
 | D5 | Two selectors in Ajustes → IA: photos and coach each run in the cloud or on the device. |
 | D6 | On-device model on Android: LiteRT-LM, downloaded on demand; models without vision are coach-only. |
 | D7 | Only open food databases (Ciqual, Swiss FCDB, Open Food Facts), Spanish names added by the project; BEDCA excluded (no reuse licence); every source credited. |
-| D8 | Progreso averages over logged days only, with «N de M días registrados». |
+| D8 | Progreso averages over logged days only, with «Días registrados: N de M». |
 | D9 | Local AI on the web: one small WebLLM model for the coach, only with WebGPU. |
 | D10 | Web keys in that browser's `localStorage`; the browser calls the provider directly. |
 | D11 | The coach receives a compact summary of the user's data, toggle «El coach puede ver mis datos» (on by default). |
