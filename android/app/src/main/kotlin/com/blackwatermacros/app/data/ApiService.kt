@@ -11,7 +11,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
- * Retrofit interface for the endpoints the Android app uses (see `docs/api.md`):
+ * Retrofit interface for the endpoints the Android app uses:
  * sync (full lists + idempotent `PUT /:id` + `DELETE`), auth, settings and admin.
  * The app never creates/edits through POST/PATCH — writes are local first and
  * pushed later by `SyncEngine`. All paths are **absolute from the

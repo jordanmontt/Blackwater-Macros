@@ -32,7 +32,7 @@ export interface ChatState {
 export const COACH_HISTORY_MESSAGES = 20;
 
 /**
- * The Coach conversation (D3): module memory only. It survives switching tabs
+ * The Coach conversation: module memory only. It survives switching tabs
  * and is gone when the page is reloaded or closed; nothing is stored anywhere.
  */
 let state: ChatState = { messages: [], streaming: false };

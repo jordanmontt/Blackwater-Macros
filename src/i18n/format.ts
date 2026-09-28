@@ -41,12 +41,6 @@ export function formatDateKeyShort(key: string): string {
   );
 }
 
-/** «07:30». */
-export function formatTimestamp(iso: string): string {
-  return formatter("time", (locale) => new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" })).format(
-    new Date(iso),
-  );
-}
 
 /** «27 sept 2026». */
 export function formatDateMedium(value: Date): string {

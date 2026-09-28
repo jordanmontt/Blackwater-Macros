@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.media.ExifInterface
+import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
@@ -33,7 +33,7 @@ class ScaledPhoto(val image: AiImage, val preview: Bitmap)
 /**
  * Reads a photo into memory as a small JPEG (~80 %, ≤ 1024 px, upright).
  * Nothing is written anywhere: the caller deletes any camera file right after
- * (docs/AI-PLAN.md principle 4).
+ * (photos are never stored).
  */
 object PhotoCodec {
     fun downscale(context: Context, uri: Uri, quality: Int = 80): ScaledPhoto {

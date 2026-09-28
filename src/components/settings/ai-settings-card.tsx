@@ -22,7 +22,7 @@ type TestState =
 
 export const AI_STUDIO_URL = "https://aistudio.google.com/api-keys";
 
-/** Ajustes → IA (§4.4 of docs/AI-PLAN.md). Everything is saved as you type, in this browser only. */
+/** Ajustes → IA. Everything is saved as you type, in this browser only. */
 export function AiSettingsCard() {
   const settings = useAiSettings();
   const provider = settings.provider;

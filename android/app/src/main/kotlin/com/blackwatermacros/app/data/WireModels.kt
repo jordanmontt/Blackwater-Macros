@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Wire-format DTOs mirroring `docs/api.md`. JSON uses camelCase for field names
+ * Wire-format DTOs mirroring the server's API (TECHNICAL.md §5). JSON uses camelCase for field names
  * (matches Kotlin properties by default) and `.` as the decimal separator.
  * A dedicated `Json` instance is configured for these models. Some `:core` enums
  * are re-declared here with `@SerialName` because their wire strings differ from

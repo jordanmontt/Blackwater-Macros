@@ -5,7 +5,7 @@ import type { MLCEngineInterface } from "@mlc-ai/web-llm";
 import type { AiMessage } from "@/lib/core/ai-providers";
 
 /**
- * Local AI on the web (D9, phase 10): one small open model run by WebLLM on the
+ * Local AI on the web: one small open model run by WebLLM on the
  * browser's GPU (WebGPU), for the Coach only. Nothing leaves the browser once
  * the model is downloaded; the files stay in the browser's cache. WebLLM is
  * imported only when used, so it costs nothing to the normal pages.

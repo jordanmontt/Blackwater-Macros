@@ -10,7 +10,7 @@ import type { CalorieProfile, WeightDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
 
 /**
- * Requisitos de los primeros pasos en la web (D12):
+ * Requisitos de los primeros pasos en la web:
  *  - tras el primer inicio de sesión, con el perfil incompleto, Comidas lleva a
  *    /bienvenida una sola vez; con el perfil completo no,
  *  - «Tus datos» guarda el perfil (con una actividad por defecto) y el peso actual,

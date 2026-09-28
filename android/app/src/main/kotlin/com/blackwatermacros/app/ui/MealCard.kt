@@ -175,7 +175,7 @@ fun MealCard(
 }
 
 @Composable
-private fun MacroBadge(text: String, filled: Boolean = false, modifier: Modifier = Modifier) {
+private fun MacroBadge(text: String, modifier: Modifier = Modifier, filled: Boolean = false) {
     Surface(
         shape = RoundedCornerShape(50),
         color = if (filled) {

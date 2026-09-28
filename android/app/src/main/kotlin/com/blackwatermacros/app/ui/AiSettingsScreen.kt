@@ -60,7 +60,7 @@ import com.blackwatermacros.app.core.DEFAULT_MODELS
 
 const val AI_STUDIO_URL = "https://aistudio.google.com/api-keys"
 
-/** Ajustes → Inteligencia artificial (§4.4 of docs/AI-PLAN.md). */
+/** Ajustes → Inteligencia artificial. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewModel()) {

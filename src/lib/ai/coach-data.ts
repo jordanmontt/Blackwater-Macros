@@ -6,7 +6,7 @@ import { EXPENDITURE_WINDOW_DAYS, estimateExpenditure } from "@/lib/core/expendi
 import { calculateProteinRecommendation } from "@/lib/core/protein";
 
 /**
- * The coach's view of the user's data (docs/AI-PLAN.md §6), read fresh at each
+ * The coach's view of the user's data, read fresh at each
  * question: profile, targets, measured expenditure, the last 4 weeks of meals
  * and the weigh-ins. Same numbers as the Comidas card and Progreso.
  */

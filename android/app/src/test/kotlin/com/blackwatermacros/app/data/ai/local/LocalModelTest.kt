@@ -27,7 +27,7 @@ import java.io.File
 import java.security.MessageDigest
 
 /**
- * On-device model (D5/D6): the resumable, checksum-verified download; which
+ * On-device model: the resumable, checksum-verified download; which
  * phones can run it; where each feature runs. The model itself (native code)
  * is checked on a device, not here.
  */

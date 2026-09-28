@@ -22,7 +22,7 @@ export function markOnboardingDone(): void {
   }
 }
 
-/** D12 on the web: after login, once, while the profile is still incomplete. */
+/** On the web: after login, once, while the profile is still incomplete. */
 export function needsOnboarding(done: boolean, profile: CalorieProfile): boolean {
   return !done && !isCalorieProfileComplete(profile);
 }

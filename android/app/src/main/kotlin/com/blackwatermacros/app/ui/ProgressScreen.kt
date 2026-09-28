@@ -72,8 +72,8 @@ import com.blackwatermacros.app.ui.chart.WeightFatChart
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProgressScreen(
-    onOpenMetodologia: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onOpenMetodologia: () -> Unit = {},
     viewModel: ProgressViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()

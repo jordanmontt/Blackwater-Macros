@@ -208,7 +208,7 @@ private fun AppNavHost(
     innerPadding: PaddingValues,
 ) {
     // No login gate: the app is fully usable offline; the account is optional (Ajustes → Cuenta).
-    // A fresh install opens on the first steps (D12); decided once, off the main thread.
+    // A fresh install opens on the first steps; decided once, off the main thread.
     // Once done (the usual case) no database read is needed, so nothing waits.
     val startDestination by produceState(if (AppGraph.preferences.onboardingDone) AppTab.HOY.route else null) {
         if (value != null) return@produceState

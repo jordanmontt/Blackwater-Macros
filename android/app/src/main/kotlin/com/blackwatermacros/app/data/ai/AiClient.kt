@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 /** Web `AiFailure`: what the user is told when a call fails. */
 enum class AiFailure {
     NOT_CONFIGURED, INVALID_KEY, QUOTA, NOT_FOUND, OFFLINE, EMPTY, UNREADABLE, PROVIDER,
-    /** The on-device model does not take images (D6). */
+    /** The on-device model does not take images. */
     NO_VISION,
     /** The provider is overloaded or down for a moment (after retrying). */
     UNAVAILABLE,

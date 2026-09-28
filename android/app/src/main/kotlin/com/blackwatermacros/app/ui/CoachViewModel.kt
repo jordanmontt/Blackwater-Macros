@@ -95,9 +95,9 @@ fun historyForModel(messages: List<ChatMessage>, newImages: Int = 0): List<AiMes
 }
 
 /**
- * Coach (web `lib/ai/coach-chat.ts`): memory only (D3), scoped to the activity
+ * Coach (web `lib/ai/coach-chat.ts`): memory only, scoped to the activity
  * so it survives switching tabs and is gone when the app closes. Each question
- * carries a fresh summary of the user's data when the D11 toggle is on.
+ * carries a fresh summary of the user's data when «El coach puede ver mis datos» is on.
  */
 class CoachViewModel(
     private val repository: AppRepository = AppGraph.repository,

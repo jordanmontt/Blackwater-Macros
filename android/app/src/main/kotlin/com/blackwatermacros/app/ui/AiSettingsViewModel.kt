@@ -128,7 +128,7 @@ class AiSettingsViewModel(
 
     fun selectModel(model: LocalModelSpec) = models.select(model)
 
-    /** D6: null until known; false = the model takes no images, photos stay in the cloud. */
+    /** Whether the downloaded model reads photos: null until known; false = the model takes no images, photos stay in the cloud. */
     val deviceVision: StateFlow<Boolean?> = models.state
         .map { if (it == LocalModelState.Ready) local.supportsImages() else null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

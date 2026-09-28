@@ -1,6 +1,7 @@
 package com.blackwatermacros.app
 
 import android.app.Application
+import android.annotation.SuppressLint
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,10 @@ import com.blackwatermacros.app.data.sync.WorkManagerSyncScheduler
 /**
  * App-wide singletons, built once in [BlackwaterApp.onCreate]. A plain service
  * locator: ViewModels read from here instead of building their own clients.
+ * Everything here gets the Application context (never an Activity), so holding
+ * it for the life of the process is not a leak.
  */
+@SuppressLint("StaticFieldLeak")
 object AppGraph {
     lateinit var account: AccountStore
         private set

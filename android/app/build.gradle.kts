@@ -133,6 +133,8 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
     implementation(libs.zxing.cpp)
+    // EXIF rotation of photos (the platform class has known bugs on older Android versions).
+    implementation(libs.exifinterface)
     implementation(libs.litertlm)
 
     coreLibraryDesugaring(libs.android.jdk.desugaring)

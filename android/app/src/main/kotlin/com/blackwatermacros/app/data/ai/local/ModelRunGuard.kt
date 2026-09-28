@@ -1,9 +1,11 @@
 package com.blackwatermacros.app.data.ai.local
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.ApplicationExitInfo
 import android.content.Context
 import android.os.Build
+import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,13 +28,13 @@ class ModelRunGuard(private val context: Context) {
         checkLastRun()
     }
 
-    /** Written synchronously: the process may die a moment later. */
+    /** Written synchronously (`commit`): the process may be killed a moment later. */
     fun started(modelName: String) {
-        prefs.edit().putString(KEY_RUNNING, modelName).putLong(KEY_SINCE, System.currentTimeMillis()).commit()
+        prefs.edit(commit = true) { putString(KEY_RUNNING, modelName).putLong(KEY_SINCE, System.currentTimeMillis()) }
     }
 
     fun finished() {
-        prefs.edit().remove(KEY_RUNNING).remove(KEY_SINCE).commit()
+        prefs.edit(commit = true) { remove(KEY_RUNNING).remove(KEY_SINCE) }
     }
 
     fun dismiss() {
@@ -61,6 +63,7 @@ class ModelRunGuard(private val context: Context) {
  * bare SIGKILL (how it shows on some phones). Swiping the app away, a crash or
  * an update have their own reasons and are not blamed on memory.
  */
+@SuppressLint("InlinedApi") // Compile-time constants; the reasons only exist on Android 11+, where it is called.
 fun killedForMemory(markedAt: Long, exitAt: Long, reason: Int, status: Int): Boolean =
     exitAt >= markedAt && (
         reason == ApplicationExitInfo.REASON_LOW_MEMORY ||

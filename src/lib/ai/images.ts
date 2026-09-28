@@ -12,7 +12,7 @@ export function fitWithin(width: number, height: number, max = MAX_PHOTO_SIDE): 
 
 /**
  * A photo as a small JPEG for the AI. Only in memory: nothing is written to
- * storage, the gallery or our server (docs/AI-PLAN.md principle 4).
+ * storage, the gallery or our server.
  */
 export async function downscalePhoto(file: Blob, quality = 0.8): Promise<AiImage> {
   const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });

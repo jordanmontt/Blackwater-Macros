@@ -55,3 +55,8 @@ replay_pid*.log
 scripts/foods/.cache/
 __pycache__/
 public/wasm/
+
+# Release signing (never commit): see TECHNICAL.md, Android release
+/android/keystore.properties
+*.jks
+*.keystore

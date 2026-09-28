@@ -48,7 +48,7 @@ import com.blackwatermacros.app.data.ai.local.LocalModelState
 import kotlin.math.roundToInt
 
 /**
- * «Modelo en el dispositivo» (§4.4, D5/D6): download or delete Gemma, then
+ * «Modelo en el dispositivo»: download or delete Gemma, then
  * choose where photos and the coach run. Warnings before the 2.6 GB download.
  */
 @OptIn(ExperimentalMaterial3Api::class)

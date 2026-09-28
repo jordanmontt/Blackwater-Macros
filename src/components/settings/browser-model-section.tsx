@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { formatTemplate, t } from "@/i18n";
 
 /**
- * «Modelo en este navegador» (D9): download a small model once and let the
+ * «Modelo en este navegador»: download a small model once and let the
  * coach run on it. Hidden behind a one-line reason where WebGPU is missing.
  */
 export function BrowserModelSection() {

@@ -264,15 +264,14 @@ tests/
 scripts/
   logo/                Fuente vectorial del logo y script que genera todos los iconos
 docs/
-  api.md               Contrato de la API (incluye el protocolo de sincronización Android)
-  ANDROID-TEST-SPEC.md Tests Android, contrato core TS ⇄ Kotlin y checklist de mantenimiento
+  FDROID-PLAN.md       Plan pendiente: publicación en F-Droid, cuentas y cifrado de extremo a extremo
 android/               App nativa Android: módulos :core (algoritmos) y :app (UI + datos)
-TECHNICAL.md           Arquitectura detallada (fuente de verdad para desarrolladores)
+TECHNICAL.md           La referencia técnica: arquitectura, API, tests, reglas TS ⇄ Kotlin y decisiones
 ```
 
-El detalle completo de cada capa (flujo de una petición, esquema de base de datos,
-referencia de la API, patrones de React y de tests) está en
-[TECHNICAL.md](./TECHNICAL.md).
+Todo el detalle técnico (flujo de una petición, esquema de base de datos, contrato de la
+API, tests de web y Android, reglas TS ⇄ Kotlin, decisiones de diseño) está en un solo
+documento: [TECHNICAL.md](./TECHNICAL.md).
 
 ## Tests
 
@@ -286,7 +285,7 @@ referencia de la API, patrones de React y de tests) está en
 > TypeScript (web) y Kotlin (Android). Si tocas un test de `tests/unit/`, **tienes
 > que tocar también su espejo Kotlin** (y viceversa). `npm run core:sync-check`
 > avisa si olvidas uno de los dos lados y **bloquea el merge en CI**. Las reglas
-> completas y los tests de Android están en `docs/ANDROID-TEST-SPEC.md`.
+> completas y los tests de Android están en [TECHNICAL.md](./TECHNICAL.md) §11.
 
 ## Despliegue (gratis)
 

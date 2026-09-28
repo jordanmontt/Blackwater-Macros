@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * A model the user can download to run on the phone (D6): a LiteRT-LM file on
+ * A model the user can download to run on the phone: a LiteRT-LM file on
  * Hugging Face, checked against its SHA-256. The built-in ones below are
  * joined by the catalog on the Blackwater site (`LocalModelCatalog`), so new
  * models appear without a new version of the app.

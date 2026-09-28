@@ -20,7 +20,7 @@ import com.blackwatermacros.app.data.ai.local.LocalEngine
 class MealEstimator(
     private val client: AiClient,
     private val settings: AiSettingsStore,
-    /** The on-device model, when the user chose it for photos (D5). */
+    /** The on-device model, when the user chose it for photos. */
     private val local: LocalEngine? = null,
 ) {
 

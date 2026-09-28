@@ -47,7 +47,7 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
     private var idleRelease: Job? = null
     private var visionCache: Boolean? = null
 
-    /** D6: whether this model file takes images (asked to the model itself, then remembered). */
+    /** Whether this model file takes images (asked to the model itself, then remembered). */
     suspend fun supportsImages(): Boolean = withContext(Dispatchers.IO) {
         val model = LocalModels.installed(context) ?: return@withContext false
         if (!model.vision) return@withContext false

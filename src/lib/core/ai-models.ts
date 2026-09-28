@@ -1,4 +1,4 @@
-import { DEFAULT_MODELS, type AiConfig, type AiProvider } from "./ai-providers";
+import type { AiConfig, AiProvider } from "./ai-providers";
 
 /**
  * The models a key can use, asked to the provider itself (nothing hard-coded):
@@ -125,9 +125,4 @@ export function parseModelList(provider: AiProvider, body: unknown): AiModelOpti
     if (isAlias(a) !== isAlias(b)) return isAlias(a) ? -1 : 1;
     return naturalCompare(b.id, a.id);
   });
-}
-
-/** The model the app uses when the user picks none (shown as «Predeterminado (…)»). */
-export function defaultModel(provider: AiProvider): string {
-  return DEFAULT_MODELS[provider];
 }

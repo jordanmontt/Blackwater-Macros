@@ -3,6 +3,7 @@ package com.blackwatermacros.app.data.ai.local
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import androidx.core.content.edit
 import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -71,7 +72,7 @@ class LocalModelManager(private val context: Context) {
     /** Choose which model to download; only while none is on the phone or downloading. */
     fun select(model: LocalModelSpec) {
         if (LocalModels.installed(context) != null || state.value is LocalModelState.Downloading) return
-        prefs.edit().putString(KEY_SELECTED, model.id).apply()
+        prefs.edit { putString(KEY_SELECTED, model.id) }
         _selected.value = model
     }
 

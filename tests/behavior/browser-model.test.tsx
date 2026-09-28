@@ -10,7 +10,7 @@ import type { CalorieProfile } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 
 /**
- * Requisitos del modelo en el navegador (D9, fase 10):
+ * Requisitos del modelo en el navegador:
  *  - sin WebGPU lo dice en una línea y no ofrece descargar nada,
  *  - con WebGPU descarga el modelo (con progreso) y deja elegir «Nube / Este navegador»
  *    para el coach,

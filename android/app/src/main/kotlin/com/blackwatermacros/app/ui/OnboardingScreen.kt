@@ -51,7 +51,7 @@ import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
 
 /**
- * First launch (§4.5 of docs/AI-PLAN.md): welcome with «Iniciar sesión» first,
+ * First launch: welcome with «Iniciar sesión» first,
  * your data, the optional AI key, done. «Saltar» from the second step on.
  */
 @Composable

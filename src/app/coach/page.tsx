@@ -16,7 +16,7 @@ import type { AiImage } from "@/lib/core/ai-providers";
 import { formatTemplate, t } from "@/i18n";
 
 /**
- * Coach (§4.3 of docs/AI-PLAN.md): a chat about food, the diet and progress.
+ * Coach: a chat about food, the diet and progress.
  * The conversation lives in memory only; each question carries a fresh
  * summary of the user's data when «El coach puede ver mis datos» is on.
  */

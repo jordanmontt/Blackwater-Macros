@@ -24,7 +24,7 @@ type Step = "datos" | "ia" | "listo";
 const STEPS: Step[] = ["datos", "ia", "listo"];
 
 /**
- * First steps after the first login (§4.5 of docs/AI-PLAN.md, D12): your data
+ * First steps after the first login: your data
  * (profile + current weight), the optional AI key, done. «Saltar» always works.
  */
 export default function BienvenidaPage() {

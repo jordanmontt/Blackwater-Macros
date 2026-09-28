@@ -58,7 +58,7 @@ class PhotoEstimateViewModel(
     localModel: StateFlow<LocalModelState> = AppGraph.localModels.state,
 ) : ViewModel() {
 
-    /** Cloud with a key, or the on-device model downloaded, whichever «Fotos» uses (D5). */
+    /** Cloud with a key, or the on-device model downloaded, whichever «Fotos» uses. */
     val aiReady: StateFlow<Boolean> = combine(settings.settings, localModel) { current, model ->
         usableEngine(current.photoEngine, current.ready, model == LocalModelState.Ready) != null
     }.stateIn(viewModelScope, SharingStarted.Eagerly, settings.current.ready)

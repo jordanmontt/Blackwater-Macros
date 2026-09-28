@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { DEFAULT_MODELS, isAiConfigured, type AiConfig, type AiProvider } from "@/lib/core/ai-providers";
 
 /**
- * Ajustes → IA, kept only in this browser's localStorage (D10): the key never
+ * Ajustes → IA, kept only in this browser's localStorage: the key never
  * reaches the Blackwater server, it goes straight to the chosen provider.
  * One key and model per provider, so switching back and forth keeps them.
  */
@@ -15,9 +15,9 @@ export interface AiSettings {
   models: Partial<Record<AiProvider, string>>;
   /** Only for the «custom» provider (Ollama, LM Studio…). */
   baseUrl: string;
-  /** D11: the coach receives a summary of your data with each question. */
+  /** The coach receives a summary of your data with each question. */
   coachSeesData: boolean;
-  /** D5/D9: the coach runs in the cloud or on the model downloaded into this browser. */
+  /** The coach runs in the cloud or on the model downloaded into this browser. */
   coachEngine: "cloud" | "browser";
 }
 
@@ -114,7 +114,7 @@ export function isAiReady(settings: AiSettings): boolean {
   return isAiConfigured(aiConfigOf(settings));
 }
 
-/** The coach can answer: with the cloud key, or with the model in this browser (D9). */
+/** The coach can answer: with the cloud key, or with the model in this browser. */
 export function isCoachReady(settings: AiSettings, browserModelReady: boolean): boolean {
   return settings.coachEngine === "browser" ? browserModelReady : isAiReady(settings);
 }

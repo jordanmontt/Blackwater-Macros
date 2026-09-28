@@ -19,7 +19,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-/** D5: where each AI feature runs. */
+/** Where each AI feature runs: the cloud or the model on the phone. */
 enum class AiEngineChoice(val id: String) {
     CLOUD("cloud"),
     DEVICE("device");
@@ -43,7 +43,7 @@ data class AiSettings(
     val models: Map<AiProvider, String> = emptyMap(),
     /** Only for [AiProvider.CUSTOM] (Ollama, LM Studio…). */
     val baseUrl: String = "",
-    /** D11: the coach receives a summary of your data with each question. */
+    /** The coach receives a summary of your data with each question. */
     val coachSeesData: Boolean = true,
     val photoEngine: AiEngineChoice = AiEngineChoice.CLOUD,
     val coachEngine: AiEngineChoice = AiEngineChoice.CLOUD,

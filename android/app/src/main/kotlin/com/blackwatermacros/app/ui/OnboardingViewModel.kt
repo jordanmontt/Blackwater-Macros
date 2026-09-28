@@ -21,7 +21,7 @@ import java.time.Instant
 enum class OnboardingStep { WELCOME, DATA, AI, DONE }
 
 /**
- * D12 on Android: the first steps show on a fresh install only — not done yet,
+ * On Android: the first steps show on a fresh install only — not done yet,
  * no account, and nothing logged on this phone (so an update never shows them
  * to someone who already uses the app).
  */

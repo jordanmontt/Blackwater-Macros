@@ -11,7 +11,7 @@ import retrofit2.HttpException
 
 /**
  * MockWebServer contract tests porting the wire contract from
- * `tests/behavior/routes-*.test.ts` (see `docs/api.md`). These are pure JVM tests
+ * `tests/behavior/routes-*.test.ts`. These are pure JVM tests
  * (Retrofit + MockWebServer) and do not require an Android SDK. Retrofit suspend
  * calls are driven with `runTest`.
  */

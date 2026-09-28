@@ -22,7 +22,7 @@ fun UiText.asString(): String = when (this) {
 
 /**
  * Decodes the backend error envelope `{ "error": "<Spanish text>", "code": "<code>" }`
- * (see `docs/api.md`). The code is shown in the app language (`server_error_*`
+ * (TECHNICAL.md §5.3). The code is shown in the app language (`server_error_*`
  * strings, the same codes as the web's `src/lib/server-errors.ts`); the Spanish
  * text only when the code is unknown to this version of the app.
  */
