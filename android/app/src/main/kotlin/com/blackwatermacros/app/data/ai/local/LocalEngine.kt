@@ -31,13 +31,13 @@ import kotlinx.coroutines.withContext
  * loaded on first use (seconds) and kept while the app lives; one request at
  * a time. Same shapes as the cloud client: a streamed chat and a whole answer.
  */
-class LocalEngine(private val context: Context) {
+class LocalEngine(private val context: Context, private val guard: ModelRunGuard? = null) {
 
     private val mutex = Mutex()
     private var engine: Engine? = null
+    /** Whether [engine] has the image encoder loaded (only when a request brings photos). */
+    private var engineHasVision = false
     private var visionCache: Boolean? = null
-    /** Set once the GPU failed on this phone (some fail only when the first message runs). */
-    private var cpuOnly = false
 
     /** D6: whether this model file takes images (asked to the model itself, then remembered). */
     suspend fun supportsImages(): Boolean = withContext(Dispatchers.IO) {
@@ -50,31 +50,44 @@ class LocalEngine(private val context: Context) {
             .also { visionCache = it }
     }
 
-    private fun loaded(): Engine {
-        engine?.let { return it }
+    /**
+     * The engine, loaded on first use, on the CPU. The GPU was tried first until
+     * a Pixel 10a (8 GB, Mali GPU) showed the cost: a Mali GPU keeps a second copy
+     * of the weights, so Gemma 4 E4B reached ~5.3 GB and Android killed the app;
+     * on the CPU the weights are read from a file (the XNNPack cache in cacheDir)
+     * and it peaked at ~4.2 GB and answered. Slower, but it fits. The image
+     * encoder is loaded only when a request brings photos.
+     */
+    private fun loaded(vision: Boolean): Engine {
+        engine?.let { current ->
+            if (engineHasVision || !vision) return current
+            current.close()
+            engine = null
+        }
         val installed = LocalModels.installed(context) ?: throw AiException(AiFailure.NOT_CONFIGURED, "model not downloaded")
-        val model = LocalModels.file(context, installed)
-        // GPU is much faster where it works; not every phone (or emulator) has a usable one.
-        val backends = if (cpuOnly) listOf(Backend.CPU()) else listOf(Backend.GPU(), Backend.CPU())
-        val created = backends.firstNotNullOfOrNull { backend ->
-            runCatching {
-                Engine(
-                    EngineConfig(
-                        modelPath = model.absolutePath,
-                        backend = backend,
-                        visionBackend = backend,
-                        maxNumTokens = MAX_TOKENS,
-                        maxNumImages = MAX_IMAGES,
-                        cacheDir = context.cacheDir.absolutePath,
-                    ),
-                ).also { it.initialize() }
-            }.onFailure {
-                Log.w(TAG, "Backend $backend failed", it)
-                if (backend is Backend.GPU) cpuOnly = true
-            }.getOrNull()
-        } ?: throw AiException(AiFailure.LOCAL_MODEL, "the model could not be loaded")
-        engine = created
-        return created
+        // Caches from GPU runs (before it was CPU only) are dead weight: only the XNNPack copy is used.
+        context.cacheDir.listFiles()?.filter { it.name.startsWith(installed.fileName) && !it.name.endsWith(".xnnpack_cache") }
+            ?.forEach { it.delete() }
+        val candidate = Engine(
+            EngineConfig(
+                modelPath = LocalModels.file(context, installed).absolutePath,
+                backend = Backend.CPU(),
+                visionBackend = if (vision) Backend.CPU() else null,
+                maxNumTokens = MAX_TOKENS,
+                maxNumImages = if (vision) MAX_IMAGES else null,
+                cacheDir = context.cacheDir.absolutePath,
+            ),
+        )
+        try {
+            candidate.initialize()
+        } catch (e: Exception) {
+            runCatching { candidate.close() }
+            Log.w(TAG, "The model could not be loaded", e)
+            throw AiException(AiFailure.LOCAL_MODEL, e.message.orEmpty().lineSequence().first().take(200))
+        }
+        engine = candidate
+        engineHasVision = vision
+        return candidate
     }
 
     private fun config(system: String, history: List<AiMessage>, json: Boolean) = ConversationConfig(
@@ -90,49 +103,31 @@ class LocalEngine(private val context: Context) {
 
     private fun Message.text(): String = contents.contents.filterIsInstance<Content.Text>().joinToString("") { it.text }
 
-    /**
-     * Runs [block] on the loaded engine; if it fails on the GPU before producing
-     * anything, the engine is reloaded on the CPU and [block] runs once more.
-     */
-    private suspend fun <T> withEngine(block: suspend (Engine, () -> Boolean) -> T): T {
-        var produced = false
-        val markProduced = { produced = true; true }
-        return try {
-            block(loaded(), markProduced)
+    /** Runs [block] on the loaded engine, marked for [ModelRunGuard] while it works. */
+    private suspend fun <T> withEngine(vision: Boolean, block: suspend (Engine) -> T): T {
+        guard?.started(LocalModels.installed(context)?.name.orEmpty())
+        try {
+            return block(loaded(vision))
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: AiException) {
             throw e
         } catch (e: Exception) {
-            Log.w(TAG, "Request failed (cpuOnly=$cpuOnly)", e)
-            if (cpuOnly || produced) throw AiException(AiFailure.LOCAL_MODEL, e.message.orEmpty().lineSequence().first().take(200))
-            cpuOnly = true
-            engine?.close()
-            engine = null
-            try {
-                block(loaded(), markProduced)
-            } catch (retry: kotlinx.coroutines.CancellationException) {
-                throw retry
-            } catch (retry: AiException) {
-                throw retry
-            } catch (retry: Exception) {
-                Log.w(TAG, "Request failed on the CPU too", retry)
-                throw AiException(AiFailure.LOCAL_MODEL, retry.message.orEmpty().lineSequence().first().take(200))
-            }
+            Log.w(TAG, "Request failed", e)
+            throw AiException(AiFailure.LOCAL_MODEL, e.message.orEmpty().lineSequence().first().take(200))
+        } finally {
+            guard?.finished()
         }
     }
 
     /** The coach: the answer as it is written. [messages] ends with the user's question. */
     fun stream(system: String, messages: List<AiMessage>): Flow<String> = flow {
         mutex.withLock {
-            withEngine { engine, markProduced ->
+            withEngine(vision = messages.last().images.isNotEmpty()) { engine ->
                 engine.createConversation(config(system, messages.dropLast(1), json = false)).use { conversation ->
                     conversation.sendMessageAsync(contents(messages.last().text, messages.last().images)).collect { piece ->
                         val text = piece.text()
-                        if (text.isNotEmpty()) {
-                            markProduced()
-                            emit(text)
-                        }
+                        if (text.isNotEmpty()) emit(text)
                     }
                 }
             }
@@ -143,7 +138,7 @@ class LocalEngine(private val context: Context) {
     suspend fun complete(system: String, text: String, images: List<AiImage>, jsonSchema: String?): String =
         withContext(Dispatchers.IO) {
             mutex.withLock {
-                withEngine { engine, _ ->
+                withEngine(vision = images.isNotEmpty()) { engine ->
                     engine.createConversation(config(system, emptyList(), json = jsonSchema != null)).use { conversation ->
                         val answer = StringBuilder()
                         conversation.sendMessageAsync(
@@ -160,6 +155,7 @@ class LocalEngine(private val context: Context) {
     suspend fun release() = mutex.withLock {
         engine?.close()
         engine = null
+        engineHasVision = false
         visionCache = null
     }
 

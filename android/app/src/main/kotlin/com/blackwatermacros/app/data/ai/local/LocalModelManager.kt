@@ -59,6 +59,8 @@ class LocalModelManager(private val context: Context) {
 
     fun support(model: LocalModelSpec): DeviceSupport = deviceSupport(context, model)
 
+    val phoneRamBytes: Long get() = totalRamBytes(context)
+
     private val anyModelRuns: Boolean by lazy { LocalModels.ALL.any { support(it) != DeviceSupport.UNSUPPORTED_ABI } }
 
     val state: StateFlow<LocalModelState> =

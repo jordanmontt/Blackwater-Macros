@@ -16,6 +16,7 @@ import com.blackwatermacros.app.data.ai.AiClient
 import com.blackwatermacros.app.data.ai.AiSettingsStore
 import com.blackwatermacros.app.data.ai.MealEstimator
 import com.blackwatermacros.app.data.ai.local.LocalEngine
+import com.blackwatermacros.app.data.ai.local.ModelRunGuard
 import com.blackwatermacros.app.data.ai.local.LocalModelManager
 import com.blackwatermacros.app.data.foods.GenericFoodsStore
 import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
@@ -59,6 +60,8 @@ object AppGraph {
     lateinit var localModels: LocalModelManager
         private set
     lateinit var localEngine: LocalEngine
+    /** Notices when Android killed the app for memory while the phone's model ran. */
+    lateinit var modelRunGuard: ModelRunGuard
         private set
 
     fun init(context: Context) {
@@ -76,7 +79,8 @@ object AppGraph {
         aiSettings = AiSettingsStore(context)
         ai = AiClient.create()
         localModels = LocalModelManager(context)
-        localEngine = LocalEngine(context)
+        modelRunGuard = ModelRunGuard(context)
+        localEngine = LocalEngine(context, modelRunGuard)
         mealEstimator = MealEstimator(ai, aiSettings, localEngine)
         accounts = AccountController(
             account = account,

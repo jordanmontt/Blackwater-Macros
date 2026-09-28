@@ -457,10 +457,10 @@
     <string name="local_model_checksum_failed">The downloaded file was damaged and has been deleted. Try again.</string>
     <string name="local_model_failed">The download failed. Try again.</string>
     <string name="local_model_choose">Model</string>
-    <string name="local_model_needs_ram">This phone does not have enough RAM for this model (it needs about %1$s GB). Choose a lighter one.</string>
-    <string name="local_model_note_e2b">Recommended. Reads photos. About 6 GB of RAM.</string>
-    <string name="local_model_note_e4b">More precise, slower and bigger. Reads photos. About 8 GB of RAM.</string>
-    <string name="local_model_note_qwen">Light. Coach only (does not read photos). About 4 GB of RAM.</string>
+    <string name="local_model_low_ram">This phone has %1$s GB of RAM and this model works best with %2$s GB or more. It may run out of memory, and then Android closes the app. A lighter model is safer.</string>
+    <string name="local_model_note_e2b">Recommended. Reads photos. Best with 6 GB of RAM or more.</string>
+    <string name="local_model_note_e4b">More precise, slower and bigger. Reads photos. Best with 8 GB of RAM or more.</string>
+    <string name="local_model_note_qwen">Light. Coach only (does not read photos). 4 GB of RAM is enough.</string>
     <string name="local_model_download">Download (%1$s GB)</string>
     <string name="local_model_waiting">Waiting for Wi-Fi…</string>
     <string name="local_model_progress">Downloading… %1$d %%</string>
@@ -470,7 +470,7 @@
     <string name="local_model_no_vision">This model cannot read photos: photos use the cloud.</string>
     <string name="local_model_delete">Delete the model</string>
     <string name="local_model_confirm_title">Download the model?</string>
-    <string name="local_model_warning">It takes %1$s GB of space and needs about %2$s GB of RAM. It downloads in the background, over Wi-Fi unless you allow mobile data. It is less precise than the cloud.</string>
+    <string name="local_model_warning">It takes %1$s GB of space, plus about %3$s GB of working files the first time it runs, and works best with %2$s GB of RAM or more. It downloads in the background, over Wi-Fi unless you allow mobile data. It is less precise than the cloud.</string>
     <string name="local_model_mobile_data">Also use mobile data</string>
     <string name="local_model_confirm">Download</string>
     <string name="local_model_delete_body">This frees %1$s GB. Photos and the coach go back to the cloud.</string>
@@ -540,4 +540,6 @@
     <string name="coach_photos_on_device">Photos stay on this phone: the model reads them here and they are gone when the conversation closes.</string>
     <string name="coach_photos_text_only">The model on this phone only reads text. To send photos, download Gemma or use the cloud (Settings → AI).</string>
     <string name="error_generic">Something went wrong. Try again.</string>
+    <string name="local_model_oom_title">The phone ran out of memory</string>
+    <string name="local_model_oom_body">%1$s needed more memory than the phone had free, so Android closed the app. Close other apps and try again, or use a lighter model or the cloud (Settings → AI).</string>
 </resources>

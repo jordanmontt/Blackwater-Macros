@@ -17,6 +17,7 @@ import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
+import android.app.ApplicationExitInfo
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
@@ -98,18 +99,30 @@ class LocalModelTest {
     }
 
     @Test
-    fun `only 64-bit ARM phones with enough RAM for the chosen model can use it (debug allows emulators)`() {
+    fun `any model can be downloaded on 64-bit ARM, with a warning when the phone has less RAM than recommended`() {
         val gb = 1_000_000_000L
-        val e2b = LocalModels.GEMMA_4_E2B.minRamBytes
-        assertThat(deviceSupport(listOf("arm64-v8a"), 8 * gb, e2b, debug = false)).isEqualTo(DeviceSupport.SUPPORTED)
-        assertThat(deviceSupport(listOf("arm64-v8a"), 4 * gb, e2b, debug = false)).isEqualTo(DeviceSupport.NOT_ENOUGH_RAM)
-        assertThat(deviceSupport(listOf("arm64-v8a"), 4 * gb, LocalModels.QWEN_3_1_7B.minRamBytes, debug = false))
+        val e2b = LocalModels.GEMMA_4_E2B.recommendedRamBytes
+        val e4b = LocalModels.GEMMA_4_E4B.recommendedRamBytes
+        // A Pixel 10a («8 GB») reports 7.75 GB: E4B fits (measured on the CPU); a «6 GB» phone gets the warning.
+        assertThat(deviceSupport(listOf("arm64-v8a"), 7_750_000_000L, e4b, debug = false)).isEqualTo(DeviceSupport.SUPPORTED)
+        assertThat(deviceSupport(listOf("arm64-v8a"), 5_700_000_000L, e4b, debug = false)).isEqualTo(DeviceSupport.LOW_RAM)
+        assertThat(deviceSupport(listOf("arm64-v8a"), 5_700_000_000L, e2b, debug = false)).isEqualTo(DeviceSupport.SUPPORTED)
+        assertThat(deviceSupport(listOf("arm64-v8a"), 4 * gb, LocalModels.QWEN_3_1_7B.recommendedRamBytes, debug = false))
             .isEqualTo(DeviceSupport.SUPPORTED)
-        assertThat(deviceSupport(listOf("arm64-v8a"), 6 * gb, LocalModels.GEMMA_4_E4B.minRamBytes, debug = false))
-            .isEqualTo(DeviceSupport.NOT_ENOUGH_RAM)
         assertThat(deviceSupport(listOf("armeabi-v7a"), 8 * gb, e2b, debug = false)).isEqualTo(DeviceSupport.UNSUPPORTED_ABI)
         assertThat(deviceSupport(listOf("x86_64"), 3 * gb, e2b, debug = false)).isEqualTo(DeviceSupport.UNSUPPORTED_ABI)
-        assertThat(deviceSupport(listOf("x86_64"), 3 * gb, e2b, debug = true)).isEqualTo(DeviceSupport.SUPPORTED)
+        assertThat(deviceSupport(listOf("x86_64"), 3 * gb, e2b, debug = true)).isEqualTo(DeviceSupport.LOW_RAM)
+    }
+
+    @Test
+    fun `a run cut short by the low-memory killer is reported, other exits are not`() {
+        val marked = 1_000L
+        assertThat(killedForMemory(marked, 2_000L, ApplicationExitInfo.REASON_LOW_MEMORY, 0)).isTrue()
+        assertThat(killedForMemory(marked, 2_000L, ApplicationExitInfo.REASON_SIGNALED, 9)).isTrue()
+        // Swiped away, crashed, or an exit from before the run started.
+        assertThat(killedForMemory(marked, 2_000L, ApplicationExitInfo.REASON_USER_REQUESTED, 0)).isFalse()
+        assertThat(killedForMemory(marked, 2_000L, ApplicationExitInfo.REASON_CRASH_NATIVE, 11)).isFalse()
+        assertThat(killedForMemory(marked, 500L, ApplicationExitInfo.REASON_LOW_MEMORY, 0)).isFalse()
     }
 
     @Test

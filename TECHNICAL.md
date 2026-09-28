@@ -634,9 +634,19 @@ rest of the calorie profile.
   a time) run by LiteRT-LM (`data/ai/local/`). Downloaded
   on request by a WorkManager foreground job (Wi-Fi by default, resumable, checksum) into
   `noBackupFilesDir/models`. `AiSettings.photoEngine` / `coachEngine` choose cloud or phone;
-  `usableEngine` decides readiness. `LocalEngine` loads once (GPU, else CPU; a request that
-  fails on GPU is retried on CPU), serves one request at a time, JSON via constrained
-  decoding. Needs Kotlin ≥ 2.4 (the library's metadata).
+  `usableEngine` decides readiness. `LocalEngine` loads once and serves one request at a
+  time, **on the CPU only**: on a Pixel 10a («8 GB», Mali GPU, which keeps a second copy of
+  the weights) Gemma 4 E4B on the GPU reached ~5.3 GB and Android's low-memory killer closed
+  the app; on the CPU it peaked at ~4.2 GB and answered. The CPU engine writes a working copy
+  of the weights to `cacheDir` (`<model>…xnnpack_cache`, ~65 % of the file, read from disk
+  instead of RAM); it is deleted with the model, and stale GPU caches are removed on load.
+  The image encoder loads only for a request with photos (also on the CPU).
+  Needs Kotlin ≥ 2.4 (the library's metadata).
+- **Memory:** every model can be downloaded; below `recommendedPhoneGb` (E2B 6, E4B 8, Qwen 4
+  GB phones) the download shows a warning. A low-memory kill cannot be caught, so
+  `ModelRunGuard` marks each run; if the next start finds the mark and
+  `ApplicationExitInfo` says «low memory», the app shows «El teléfono se quedó sin memoria»
+  naming the model.
 - **Local AI on the web** (D9, Coach only): `lib/ai/browser-model.ts` runs Qwen3 1.7B with
   WebLLM on WebGPU (imported lazily, own chunk). Ajustes → IA → «Modelo en este navegador»
   checks `navigator.gpu` (a one-line reason when missing), downloads ~1 GB into the

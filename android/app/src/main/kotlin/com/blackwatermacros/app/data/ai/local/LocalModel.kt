@@ -20,13 +20,26 @@ data class LocalModelSpec(
     val fileName: String,
     val sizeBytes: Long,
     val sha256: String,
-    /** Below this the model does not fit next to the system and other apps. */
-    val minRamBytes: Long,
+    /**
+     * The RAM a phone should have, as sold («8 GB»). With less it may run out of
+     * memory (Android then closes the app): the download is still allowed, with a
+     * warning. Measured on the CPU on a Pixel 10a («8 GB»): Gemma 4 E4B peaked at ~4.2 GB.
+     */
+    val recommendedPhoneGb: Int,
     /** Reads photos (else: coach only, photos use the cloud). */
     val vision: Boolean,
     @StringRes val noteRes: Int,
 ) {
     val url: String get() = "https://huggingface.co/litert-community/$repo/resolve/main/$fileName"
+
+    /** A phone sold as «8 GB» reports ~7.5–7.8 GB to apps (the rest is reserved). */
+    val recommendedRamBytes: Long get() = recommendedPhoneGb * 880_000_000L
+
+    /**
+     * On first use the CPU engine writes a working copy of the weights to the cache
+     * (~65 % of the file for Gemma 4 E4B); it is what keeps the RAM low.
+     */
+    val workingCopyBytes: Long get() = (sizeBytes * 0.65).toLong()
 }
 
 object LocalModels {
@@ -37,7 +50,7 @@ object LocalModels {
         fileName = "gemma-4-E2B-it.litertlm",
         sizeBytes = 2_588_147_712L,
         sha256 = "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
-        minRamBytes = 5_500_000_000L,
+        recommendedPhoneGb = 6,
         vision = true,
         noteRes = R.string.local_model_note_e2b,
     )
@@ -48,7 +61,7 @@ object LocalModels {
         fileName = "gemma-4-E4B-it.litertlm",
         sizeBytes = 3_659_530_240L,
         sha256 = "0b2a8980ce155fd97673d8e820b4d29d9c7d99b8fa6806f425d969b145bd52e0",
-        minRamBytes = 7_500_000_000L,
+        recommendedPhoneGb = 8,
         vision = true,
         noteRes = R.string.local_model_note_e4b,
     )
@@ -59,7 +72,7 @@ object LocalModels {
         fileName = "Qwen3-1.7B_dynamic_wi4b32_afp32.litertlm",
         sizeBytes = 977_184_032L,
         sha256 = "2eeffef7b51bc3e1225ea69fe7aa5f417397934b56a5b6c20cc068d6fd2c918b",
-        minRamBytes = 3_500_000_000L,
+        recommendedPhoneGb = 4,
         vision = false,
         noteRes = R.string.local_model_note_qwen,
     )
@@ -87,18 +100,22 @@ object LocalModels {
             val belongsToKept = keep != null && file.name.startsWith(keep.fileName)
             if (!belongsToKept) file.delete()
         }
+        // The engine's working copies in the cache («<model file>_…xnnpack_cache», GPU caches).
+        context.cacheDir.listFiles()?.forEach { file ->
+            val ofAModel = ALL.any { file.name.startsWith(it.fileName) }
+            val ofKept = keep != null && file.name.startsWith(keep.fileName)
+            if (ofAModel && !ofKept) file.delete()
+        }
     }
 }
 
-enum class DeviceSupport { SUPPORTED, UNSUPPORTED_ABI, NOT_ENOUGH_RAM }
+/** [LOW_RAM]: it can be downloaded, with a warning that the phone may run out of memory. */
+enum class DeviceSupport { SUPPORTED, UNSUPPORTED_ABI, LOW_RAM }
 
-/**
- * LiteRT-LM ships arm64 code (x86_64 only for emulators). A debug build skips
- * the RAM check so the flow can be tried on an emulator.
- */
-fun deviceSupport(abis: List<String>, totalRamBytes: Long, minRamBytes: Long, debug: Boolean): DeviceSupport = when {
+/** LiteRT-LM ships arm64 code (x86_64 only for emulators, in debug builds). */
+fun deviceSupport(abis: List<String>, totalRamBytes: Long, recommendedRamBytes: Long, debug: Boolean): DeviceSupport = when {
     "arm64-v8a" !in abis && !(debug && "x86_64" in abis) -> DeviceSupport.UNSUPPORTED_ABI
-    totalRamBytes < minRamBytes && !debug -> DeviceSupport.NOT_ENOUGH_RAM
+    totalRamBytes < recommendedRamBytes -> DeviceSupport.LOW_RAM
     else -> DeviceSupport.SUPPORTED
 }
 
@@ -109,4 +126,4 @@ fun totalRamBytes(context: Context): Long {
 }
 
 fun deviceSupport(context: Context, model: LocalModelSpec): DeviceSupport =
-    deviceSupport(Build.SUPPORTED_ABIS.toList(), totalRamBytes(context), model.minRamBytes, BuildConfig.DEBUG)
+    deviceSupport(Build.SUPPORTED_ABIS.toList(), totalRamBytes(context), model.recommendedRamBytes, BuildConfig.DEBUG)

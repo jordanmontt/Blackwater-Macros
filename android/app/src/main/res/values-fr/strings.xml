@@ -467,10 +467,10 @@
     <string name="local_model_checksum_failed">Le fichier téléchargé était endommagé et a été supprimé. Réessayez.</string>
     <string name="local_model_failed">Le téléchargement a échoué. Réessayez.</string>
     <string name="local_model_choose">Modèle</string>
-    <string name="local_model_needs_ram">Ce téléphone n\'a pas assez de RAM pour ce modèle (il faut environ %1$s Go). Choisissez-en un plus léger.</string>
-    <string name="local_model_note_e2b">Recommandé. Lit les photos. Environ 6 Go de RAM.</string>
-    <string name="local_model_note_e4b">Plus précis, plus lent et plus gros. Lit les photos. Environ 8 Go de RAM.</string>
-    <string name="local_model_note_qwen">Léger. Coach seulement (ne lit pas les photos). Environ 4 Go de RAM.</string>
+    <string name="local_model_low_ram">Ce téléphone a %1$s Go de RAM et ce modèle fonctionne mieux avec %2$s Go ou plus. Il peut manquer de mémoire, et Android ferme alors l\'app. Un modèle plus léger est plus sûr.</string>
+    <string name="local_model_note_e2b">Recommandé. Lit les photos. Idéal avec 6 Go de RAM ou plus.</string>
+    <string name="local_model_note_e4b">Plus précis, plus lent et plus gros. Lit les photos. Idéal avec 8 Go de RAM ou plus.</string>
+    <string name="local_model_note_qwen">Léger. Coach seulement (ne lit pas les photos). 4 Go de RAM suffisent.</string>
     <string name="local_model_download">Télécharger (%1$s Go)</string>
     <string name="local_model_waiting">En attente du Wi-Fi…</string>
     <string name="local_model_progress">Téléchargement… %1$d %%</string>
@@ -480,7 +480,7 @@
     <string name="local_model_no_vision">Ce modèle ne lit pas les photos : les photos passent par le cloud.</string>
     <string name="local_model_delete">Supprimer le modèle</string>
     <string name="local_model_confirm_title">Télécharger le modèle ?</string>
-    <string name="local_model_warning">Il occupe %1$s Go et demande environ %2$s Go de RAM. Il se télécharge en arrière-plan, en Wi-Fi sauf si vous autorisez les données mobiles. Il est moins précis que le cloud.</string>
+    <string name="local_model_warning">Il occupe %1$s Go, plus environ %3$s Go de fichiers de travail à la première utilisation, et fonctionne mieux avec %2$s Go de RAM ou plus. Il se télécharge en arrière-plan, en Wi-Fi sauf si vous autorisez les données mobiles. Il est moins précis que le cloud.</string>
     <string name="local_model_mobile_data">Utiliser aussi les données mobiles</string>
     <string name="local_model_confirm">Télécharger</string>
     <string name="local_model_delete_body">Libère %1$s Go. Les photos et le coach repassent par le cloud.</string>
@@ -551,4 +551,6 @@
     <string name="coach_photos_on_device">Les photos restent sur ce téléphone : le modèle les lit ici et elles disparaissent à la fin de la conversation.</string>
     <string name="coach_photos_text_only">Le modèle de ce téléphone ne lit que du texte. Pour envoyer des photos, téléchargez Gemma ou utilisez le cloud (Réglages → IA).</string>
     <string name="error_generic">Une erreur est survenue. Réessayez.</string>
+    <string name="local_model_oom_title">Le téléphone a manqué de mémoire</string>
+    <string name="local_model_oom_body">%1$s a eu besoin de plus de mémoire que le téléphone n\'en avait de libre, et Android a donc fermé l\'app. Fermez d\'autres apps et réessayez, ou utilisez un modèle plus léger ou le cloud (Réglages → IA).</string>
 </resources>

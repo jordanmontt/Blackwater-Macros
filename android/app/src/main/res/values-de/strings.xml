@@ -456,10 +456,10 @@
     <string name="local_model_checksum_failed">Die heruntergeladene Datei war beschädigt und wurde gelöscht. Versuche es erneut.</string>
     <string name="local_model_failed">Der Download ist fehlgeschlagen. Versuche es erneut.</string>
     <string name="local_model_choose">Modell</string>
-    <string name="local_model_needs_ram">Dieses Telefon hat nicht genug RAM für dieses Modell (es braucht etwa %1$s GB). Wähle ein leichteres.</string>
-    <string name="local_model_note_e2b">Empfohlen. Liest Fotos. Etwa 6 GB RAM.</string>
-    <string name="local_model_note_e4b">Genauer, langsamer und größer. Liest Fotos. Etwa 8 GB RAM.</string>
-    <string name="local_model_note_qwen">Leicht. Nur für den Coach (liest keine Fotos). Etwa 4 GB RAM.</string>
+    <string name="local_model_low_ram">Dieses Handy hat %1$s GB RAM, und dieses Modell läuft am besten mit %2$s GB oder mehr. Der Speicher kann knapp werden, dann schließt Android die App. Ein leichteres Modell ist sicherer.</string>
+    <string name="local_model_note_e2b">Empfohlen. Liest Fotos. Am besten mit 6 GB RAM oder mehr.</string>
+    <string name="local_model_note_e4b">Genauer, langsamer und größer. Liest Fotos. Am besten mit 8 GB RAM oder mehr.</string>
+    <string name="local_model_note_qwen">Leicht. Nur für den Coach (liest keine Fotos). 4 GB RAM reichen.</string>
     <string name="local_model_download">Herunterladen (%1$s GB)</string>
     <string name="local_model_waiting">Warte auf WLAN…</string>
     <string name="local_model_progress">Wird heruntergeladen… %1$d %%</string>
@@ -469,7 +469,7 @@
     <string name="local_model_no_vision">Dieses Modell kann keine Fotos lesen: Fotos laufen über die Cloud.</string>
     <string name="local_model_delete">Modell löschen</string>
     <string name="local_model_confirm_title">Modell herunterladen?</string>
-    <string name="local_model_warning">Es belegt %1$s GB und braucht etwa %2$s GB RAM. Der Download läuft im Hintergrund, über WLAN, außer du erlaubst mobile Daten. Es ist ungenauer als die Cloud.</string>
+    <string name="local_model_warning">Es belegt %1$s GB, beim ersten Einsatz dazu etwa %3$s GB Arbeitsdateien, und läuft am besten mit %2$s GB RAM oder mehr. Der Download läuft im Hintergrund, über WLAN, außer du erlaubst mobile Daten. Es ist ungenauer als die Cloud.</string>
     <string name="local_model_mobile_data">Auch mobile Daten verwenden</string>
     <string name="local_model_confirm">Herunterladen</string>
     <string name="local_model_delete_body">Gibt %1$s GB frei. Fotos und Coach laufen wieder über die Cloud.</string>
@@ -491,13 +491,13 @@
     <string name="ai_error_local">Das Modell auf dem Telefon konnte nicht antworten. Versuche es erneut oder nutze die Cloud unter Einstellungen → KI.</string>
 
     <!-- Server errors by code (src/lib/server-errors.ts; texts shared with src/i18n/*.ts) -->
-    <string name="server_error_network">Keine Verbindung. Versuchen Sie es erneut.</string>
+    <string name="server_error_network">Keine Verbindung. Versuch es noch einmal.</string>
     <string name="server_error_http">Serverfehler (%1$d)</string>
-    <string name="server_error_unauthenticated">Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an.</string>
-    <string name="server_error_forbidden">Sie haben keine Berechtigung dafür.</string>
+    <string name="server_error_unauthenticated">Deine Sitzung ist abgelaufen. Melde dich erneut an.</string>
+    <string name="server_error_forbidden">Du hast keine Berechtigung dafür.</string>
     <string name="server_error_invalid_json">Ungültiger JSON-Inhalt</string>
     <string name="server_error_invalid_data">Ungültige Daten</string>
-    <string name="server_error_internal">Interner Serverfehler. Versuchen Sie es erneut.</string>
+    <string name="server_error_internal">Interner Serverfehler. Versuch es noch einmal.</string>
     <string name="server_error_not_found">Nicht gefunden</string>
     <string name="server_error_meal_not_found">Mahlzeit nicht gefunden</string>
     <string name="server_error_template_not_found">Vorlage nicht gefunden</string>
@@ -510,8 +510,8 @@
     <string name="server_error_username_too_short">Der Benutzername muss mindestens 3 Zeichen haben</string>
     <string name="server_error_password_too_short">Das Passwort muss mindestens 8 Zeichen haben</string>
     <string name="server_error_no_changes">Es gibt keine Änderungen</string>
-    <string name="server_error_cannot_demote_self">Sie können sich nicht selbst die Administratorrolle entziehen</string>
-    <string name="server_error_cannot_delete_self">Sie können sich nicht selbst löschen</string>
+    <string name="server_error_cannot_demote_self">Du kannst dir nicht selbst die Administratorrolle entziehen</string>
+    <string name="server_error_cannot_delete_self">Du kannst dich nicht selbst löschen</string>
     <string name="server_error_last_admin">Es muss mindestens ein Administrator bleiben</string>
     <string name="server_error_invalid_id">Ungültige Kennung</string>
     <string name="server_error_invalid_date">Das Datum muss das Format JJJJ-MM-TT haben</string>
@@ -532,11 +532,13 @@
     <string name="weight_deleted">Eintrag gelöscht</string>
     <string name="template_deleted">Vorlage gelöscht</string>
     <string name="coach_add_photo">Foto hinzufügen</string>
-    <string name="coach_photo_prompt">Was können Sie mir zu diesem Foto sagen?</string>
+    <string name="coach_photo_prompt">Was kannst du mir zu diesem Foto sagen?</string>
     <string name="coach_photo_sent">Gesendetes Foto %1$d</string>
     <string name="coach_photo_remove">Foto %1$d entfernen</string>
-    <string name="coach_photos_kept">Fotos werden nicht gespeichert: Sie gehen mit Ihrer Frage an %1$s und verschwinden, wenn das Gespräch endet.</string>
+    <string name="coach_photos_kept">Fotos werden nicht gespeichert: Sie gehen mit deiner Frage an %1$s und verschwinden, wenn das Gespräch endet.</string>
     <string name="coach_photos_on_device">Die Fotos bleiben auf diesem Handy: Das Modell liest sie hier, und sie verschwinden, wenn das Gespräch endet.</string>
-    <string name="coach_photos_text_only">Das Modell auf diesem Handy liest nur Text. Um Fotos zu senden, laden Sie Gemma herunter oder nutzen Sie die Cloud (Einstellungen → KI).</string>
-    <string name="error_generic">Etwas ist schiefgelaufen. Versuchen Sie es erneut.</string>
+    <string name="coach_photos_text_only">Das Modell auf diesem Handy liest nur Text. Um Fotos zu senden, lade Gemma herunter oder nutze die Cloud (Einstellungen → KI).</string>
+    <string name="error_generic">Etwas ist schiefgelaufen. Versuch es noch einmal.</string>
+    <string name="local_model_oom_title">Dem Handy ging der Speicher aus</string>
+    <string name="local_model_oom_body">%1$s brauchte mehr Speicher, als auf dem Handy frei war, deshalb hat Android die App geschlossen. Schließ andere Apps und versuch es noch einmal, oder nutze ein leichteres Modell oder die Cloud (Einstellungen → KI).</string>
 </resources>

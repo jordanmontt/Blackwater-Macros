@@ -73,6 +73,9 @@ class AiSettingsViewModel(
 
     fun support(model: LocalModelSpec): DeviceSupport = models.support(model)
 
+    /** What the phone reports (an «8 GB» phone says ~7.5 GB). */
+    val phoneRamBytes: Long get() = models.phoneRamBytes
+
     fun selectModel(model: LocalModelSpec) = models.select(model)
 
     /** D6: null until known; false = the model takes no images, photos stay in the cloud. */

@@ -61,7 +61,9 @@ internal fun LocalModelSection(viewModel: AiSettingsViewModel) {
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     val notifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     val sizeGb = gigabytes(model.sizeBytes)
-    val ramGb = formatNumber(model.minRamBytes / 1e9, maxDecimals = 0)
+    val ramGb = model.recommendedPhoneGb.toString()
+    val workingGb = gigabytes(model.workingCopyBytes)
+    val phoneRamGb = formatNumber(viewModel.phoneRamBytes / 1e9, maxDecimals = 1)
 
     SettingsCard(stringResource(R.string.local_model_title)) {
         CardDescription(stringResource(R.string.local_model_description))
@@ -126,15 +128,16 @@ internal fun LocalModelSection(viewModel: AiSettingsViewModel) {
                     Spacer(Modifier.height(8.dp))
                 }
                 val support = viewModel.support(model)
-                if (support == DeviceSupport.NOT_ENOUGH_RAM) {
+                if (support == DeviceSupport.LOW_RAM) {
                     Text(
-                        stringResource(R.string.local_model_needs_ram, ramGb),
+                        stringResource(R.string.local_model_low_ram, phoneRamGb, ramGb),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                     )
                     Spacer(Modifier.height(8.dp))
                 }
-                Button(onClick = { confirmDownload = true }, enabled = support == DeviceSupport.SUPPORTED) {
+                // Any model can be downloaded; a phone with less RAM gets the warning above (and in the dialog).
+                Button(onClick = { confirmDownload = true }, enabled = support != DeviceSupport.UNSUPPORTED_ABI) {
                     Text(stringResource(R.string.local_model_download, sizeGb))
                 }
             }
@@ -191,7 +194,13 @@ internal fun LocalModelSection(viewModel: AiSettingsViewModel) {
             title = { Text(stringResource(R.string.local_model_confirm_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(R.string.local_model_warning, sizeGb, ramGb))
+                    Text(stringResource(R.string.local_model_warning, sizeGb, ramGb, workingGb))
+                    if (viewModel.support(model) == DeviceSupport.LOW_RAM) {
+                        Text(
+                            stringResource(R.string.local_model_low_ram, phoneRamGb, ramGb),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
                     Row(
                         Modifier.fillMaxWidth().clickable { anyNetwork = !anyNetwork },
                         verticalAlignment = Alignment.CenterVertically,

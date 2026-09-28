@@ -9,7 +9,11 @@ import com.blackwatermacros.app.data.ThemeMode
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -173,6 +177,19 @@ private fun AppRoot() {
             AppNavHost(
                 navController = navController,
                 innerPadding = innerPadding,
+            )
+        }
+
+        // Android killed the app for memory while the phone's model ran: say so now.
+        val outOfMemory by AppGraph.modelRunGuard.outOfMemory.collectAsStateWithLifecycle()
+        outOfMemory?.let { model ->
+            AlertDialog(
+                onDismissRequest = AppGraph.modelRunGuard::dismiss,
+                title = { Text(stringResource(R.string.local_model_oom_title)) },
+                text = { Text(stringResource(R.string.local_model_oom_body, model)) },
+                confirmButton = {
+                    TextButton(onClick = AppGraph.modelRunGuard::dismiss) { Text(stringResource(R.string.action_ok)) }
+                },
             )
         }
     }
