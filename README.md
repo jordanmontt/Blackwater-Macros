@@ -303,3 +303,16 @@ documento: [TECHNICAL.md](./TECHNICAL.md).
   los días; los pesos se guardan como instancias exactas en UTC.
 - **Sesiones**: token opaco de 32 bytes en cookie httpOnly, 90 días de validez,
   revocable en base de datos.
+
+## Licencia
+
+Copyright (C) 2026 jordanmontt
+
+Blackwater Macros es software libre: puedes redistribuirlo y modificarlo bajo los términos de
+la **GNU Affero General Public License** publicada por la Free Software Foundation, versión 3
+o (a tu elección) cualquier versión posterior. Se distribuye sin ninguna garantía. El texto
+completo está en [LICENSE](./LICENSE).
+
+La AGPL también cubre el servidor: si alguien ejecuta una versión modificada y la ofrece por
+la red, tiene que publicar su código fuente.
+

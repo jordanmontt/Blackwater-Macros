@@ -33,8 +33,8 @@ Legend: ☐ todo · ◐ in progress · ☑ done.
 |---|----------|-------|
 | F1 | The phone-model catalog is read from the **public repository**, not from the Blackwater server. | ✅ owner |
 | F2 | «Crear cuenta» shows **«Próximamente»** until paid accounts exist; later it opens a web page to sign up and pay. | ✅ owner |
-| F3 | Where the public repository lives (GitHub or Codeberg). | ❓ |
-| F4 | Licence of the code. | ❓ |
+| F3 | Public repository on **GitHub**, with a **Codeberg mirror** added when it goes public. | ✅ owner |
+| F4 | Licence: **AGPL-3.0-or-later** for everything (`LICENSE`, `package.json`, README). | ✅ owner, added 2026-09-28 |
 | F5 | End-to-end encryption and password recovery (see Part C: a truly end-to-end design cannot let the operator restore data alone). | ❓ |
 
 ---
@@ -53,16 +53,18 @@ special handling for LiteRT-LM's native libraries. Checked 2026-09-28 in
 
 ### A1. Make the repository public ❓ F3, F4
 
-- [ ] **Choose the host (F3).** GitHub (current, private) or Codeberg (non-profit, runs free
-      software, what Chompass uses). F-Droid accepts both. Codeberg avoids a non-free service in
-      the loop (relevant for A2, since the app will download the catalog from there).
-- [ ] **Choose the licence (F4)** and add `LICENSE` at the root (there is none today; F-Droid
-      requires one) plus `"license"` in `package.json`. Options:
-      - **GPL-3.0-or-later**: forks of the app must stay free.
-      - **AGPL-3.0-or-later**: same, and whoever runs a modified server must publish it —
-        protects the paid service from closed forks. Common for self-hostable services.
-      - **MIT/Apache-2.0**: anyone may do anything, including closed forks.
-      Suggested: AGPL-3.0 (server + web) and GPL-3.0 (Android) or AGPL for everything. ❓
+- [x] **Host (F3):** GitHub; when public, add a Codeberg mirror (Codeberg → «New migration» →
+      mirror of the GitHub repository, synced automatically). The F-Droid recipe and the
+      catalog URL (A2) point at GitHub; the mirror is a backup and a non-GitHub way to read
+      the code.
+- [x] **Licence (F4):** AGPL-3.0-or-later, `LICENSE` at the root (canonical text),
+      `"license"` in `package.json`, a section in the README.
+- [ ] **AGPL «source for network users»** (section 13): once the repository is public, the web
+      app must offer its users a link to the source — add «Código fuente» (link to the
+      repository) in Ajustes and on the login page. The Android app can show the same link in
+      Ajustes → Metodología (not required, but consistent).
+- [ ] Optional: a short licence header in source files (`SPDX-License-Identifier:
+      AGPL-3.0-or-later`); not required when `LICENSE` is at the root.
 - [ ] **Secrets check before publishing**: run `gitleaks detect` (or `trufflehog`) over the
       whole history. A quick check found no `.env`, keystore or credential file ever committed;
       `.env*` is ignored and `android/keystore.properties` was added to `.gitignore` on
