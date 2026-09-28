@@ -455,14 +455,14 @@ export const de: Dictionary = {
     notNow: "Nicht jetzt",
     doneTitle: "Alles bereit!",
     doneBody: "Füge deine erste Mahlzeit mit der Schaltfläche + hinzu. Erfasse alle paar Tage dein Gewicht, um deinen Fortschritt zu sehen.",
-    doneAi: "Die KI ist bereit: Probier «Foto» beim Hinzufügen von Essen und den Coach.",
+    doneAi: "Die KI ist bereit: Probier «Foto oder Text» beim Hinzufügen von Essen und den Coach.",
     start: "Loslegen",
     replay: "Tutorial anzeigen",
     replayHint: "Die ersten Schritte noch einmal ansehen.",
   },
   photo: {
-    title: "Foto",
-    hint: "Die KI schätzt die Makros",
+    title: "Foto oder Text",
+    hint: "Die KI berechnet die Makros",
     tipsTitle: "Für eine gute Schätzung",
     tips: [
       "Mach mehrere Fotos aus verschiedenen Winkeln.",

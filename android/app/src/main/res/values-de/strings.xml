@@ -369,8 +369,8 @@
     <string name="ai_error_provider">Der Anbieter hat einen Fehler gemeldet. Versuche es erneut.</string>
 
     <!-- Photo logging (phase 6) -->
-    <string name="photo_title">Foto</string>
-    <string name="photo_hint">Die KI schätzt die Makros</string>
+    <string name="photo_title">Foto oder Text</string>
+    <string name="photo_hint">Die KI berechnet die Makros</string>
     <string name="photo_tips_title">Für eine gute Schätzung</string>
     <string name="photo_tips">• Mach mehrere Fotos aus verschiedenen Winkeln.\n• Nimm eine Gabel oder deine Hand als Maßstab mit aufs Bild.\n• Fotografiere auch die Nährwerttabelle, falls vorhanden.\n• Beschreibe, was man nicht sieht: Öl, Soßen, Zucker.</string>
     <string name="photo_camera">Foto aufnehmen</string>
@@ -444,7 +444,7 @@
     <string name="onboarding_not_now">Jetzt nicht</string>
     <string name="onboarding_done_title">Fertig!</string>
     <string name="onboarding_done_body">Füge deine erste Mahlzeit mit der +-Taste hinzu. Erfasse dein Gewicht alle paar Tage, um deinen Fortschritt zu sehen.</string>
-    <string name="onboarding_done_ai">Die KI ist bereit: probiere «Foto» beim Hinzufügen und den Coach.</string>
+    <string name="onboarding_done_ai">Die KI ist bereit: probiere «Foto oder Text» beim Hinzufügen und den Coach.</string>
     <string name="onboarding_start">Loslegen</string>
     <string name="onboarding_replay">Tutorial ansehen</string>
     <string name="onboarding_replay_hint">Die ersten Schritte noch einmal ansehen.</string>

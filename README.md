@@ -41,7 +41,8 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
   en Android Gemma 4 E2B/E4B o Qwen3 1.7B (fotos y coach, sin internet); en la web
   Qwen3 1.7B para el coach en navegadores con WebGPU. El modelo en la nube se elige de una
   lista que da el propio proveedor para tu clave; la lista de modelos locales vive en
-  `public/models/local-models.json` y la app la actualiza sola al abrirse.
+  `public/models/local-models.json` y la app la lee al abrir Ajustes → IA (añadir un modelo no
+  exige una versión nueva de la app, salvo que el motor incluido no lo sepa ejecutar; ver TECHNICAL.md).
 - **Primeros pasos**: al empezar, tus datos (sexo, año, altura, peso, objetivo) y la
   clave de IA opcional; en Android, «Iniciar sesión» es la primera opción y la cuenta es
   opcional. «Ver tutorial» en Ajustes.

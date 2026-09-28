@@ -370,8 +370,8 @@
     <string name="ai_error_provider">The provider returned an error. Try again.</string>
 
     <!-- Photo logging (phase 6) -->
-    <string name="photo_title">Photo</string>
-    <string name="photo_hint">AI estimates the macros</string>
+    <string name="photo_title">Photo or text</string>
+    <string name="photo_hint">AI works out the macros</string>
     <string name="photo_tips_title">For a good estimate</string>
     <string name="photo_tips">• Take several photos from different angles.\n• Include a fork or your hand for scale.\n• Also photograph the nutrition label if there is one.\n• Describe what cannot be seen: oil, sauces, sugar.</string>
     <string name="photo_camera">Take photo</string>
@@ -445,7 +445,7 @@
     <string name="onboarding_not_now">Not now</string>
     <string name="onboarding_done_title">All set!</string>
     <string name="onboarding_done_body">Add your first meal with the + button. Log your weight every few days to see your progress.</string>
-    <string name="onboarding_done_ai">AI is ready: try «Photo» when adding food, and the coach.</string>
+    <string name="onboarding_done_ai">AI is ready: try «Photo or text» when adding food, and the coach.</string>
     <string name="onboarding_start">Start</string>
     <string name="onboarding_replay">Show the tutorial</string>
     <string name="onboarding_replay_hint">See the first steps again.</string>

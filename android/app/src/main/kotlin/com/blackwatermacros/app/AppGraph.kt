@@ -63,7 +63,7 @@ object AppGraph {
         private set
     lateinit var localModels: LocalModelManager
         private set
-    /** The phone models on offer, from the Blackwater site (cached; see [refreshOnOpen]). */
+    /** The phone models on offer, from the Blackwater site (cached; refreshed in Ajustes → IA). */
     lateinit var localCatalog: LocalModelCatalog
         private set
     private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -73,11 +73,12 @@ object AppGraph {
         private set
 
     /**
-     * Each time the app opens: the phone-model catalog and the cloud model list
-     * are refreshed in the background (the cached copies keep working offline).
+     * Each time the app opens, the cloud model list is refreshed in the background (at
+     * most once a day, only with a key: it goes to the provider the user chose). The
+     * phone-model catalog is not: our server is asked only when the user opens
+     * Ajustes → IA, so just opening the app contacts no Blackwater server without an account.
      */
     fun refreshOnOpen() {
-        backgroundScope.launch { localCatalog.refresh() }
         backgroundScope.launch { runCatching { modelLists.refresh(aiSettings.current.config) } }
     }
 

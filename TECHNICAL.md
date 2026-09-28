@@ -658,14 +658,33 @@ rest of the calorie profile.
   background to make room for the camera. Reloading takes ~20 s on the CPU.
   Needs Kotlin ≥ 2.4 (the library's metadata).
 - **Catalog of phone models:** `public/models/local-models.json` on the site (the proxy lets
-  `/models/` through without a session). The app reads it each time it opens
-  (`LocalModelCatalog`, at most every 10 min), keeps the last good copy in `filesDir` for offline
-  use and merges it with the built-in `LocalModels.BUILT_IN` (the site wins for the same id).
-  Adding a model = adding an entry and deploying the site: no new app version, as long as the
-  bundled LiteRT-LM runs it (`minAppVersionCode` hides it from older apps). Entries are
-  validated (download only from huggingface.co, SHA-256, size, file name); a wrong one is
-  skipped. `"hidden": true` retires a model without breaking phones that have it.
-  `tests/unit/local-models-catalog.test.ts` and `LocalModelCatalogTest` check the file.
+  `/models/` through without a session). The app asks for it only when Ajustes → IA is opened
+  (`LocalModelCatalog.refresh`, at most every 10 min) — never just because the app opened, so
+  a user without an account contacts no Blackwater server —, keeps the last good copy in
+  `filesDir` for offline use and merges it with the built-in `LocalModels.BUILT_IN` (the site
+  wins for the same id). Entries are validated (download only from huggingface.co, SHA-256,
+  size, file name); a wrong one is skipped. `tests/unit/local-models-catalog.test.ts` and
+  `LocalModelCatalogTest` check the file.
+- **What the catalog cannot do — the engine limit.** The catalog only says *which file to
+  download*; the model still runs on the LiteRT-LM engine bundled in the APK
+  (`litertlm` in `gradle/libs.versions.toml`). A newer file of a family this engine already
+  runs (e.g. another Gemma 4 or Qwen3 size, re-exported by `litert-community`) works straight
+  away. A new model family, a new `.litertlm` format version or new features (an audio or
+  vision encoder the engine does not know) may need a newer LiteRT-LM, i.e. a new app
+  version. For those, give the entry `"minAppVersionCode": <the first versionCode that runs
+  it>`: older apps hide it instead of offering a download that would fail. Try a new model on
+  a phone with a build of the current app before publishing the entry.
+- **Adding a phone model** (no app release needed, within the limit above):
+  1. Pick a `.litertlm` file on huggingface.co (open licence, not gated) and copy its
+     *resolve* URL (`https://huggingface.co/<org>/<repo>/resolve/main/<file>.litertlm`).
+  2. Take its exact size and SHA-256 from the file page on Hugging Face (the LFS details) or
+     with `curl -L -o model.litertlm <url> && stat -f%z model.litertlm && shasum -a 256 model.litertlm`.
+  3. Add an entry to `public/models/local-models.json`: `id` (new, lowercase), `name`, `url`,
+     `fileName`, `sizeBytes`, `sha256`, `recommendedPhoneGb` (measure on a phone: the app
+     peaks at roughly 1.2× the file size on the CPU), `vision`, `notes` in es/en/fr/it/de,
+     and `minAppVersionCode` if needed.
+  4. `npm test`, commit and push: the site redeploys and phones see it the next time Ajustes
+     → IA is opened. To retire a model, set `"hidden": true` (phones that have it keep it).
 - **Memory:** every model can be downloaded; below `recommendedPhoneGb` (E2B 6, E4B 8, Qwen 4
   GB phones) the download shows a warning. A low-memory kill cannot be caught, so
   `ModelRunGuard` marks each run; if the next start finds the mark and

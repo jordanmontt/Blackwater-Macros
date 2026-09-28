@@ -455,14 +455,14 @@ export const en: Dictionary = {
     notNow: "Not now",
     doneTitle: "All set!",
     doneBody: "Add your first meal with the + button. Log your weight every few days to see your progress.",
-    doneAi: "AI is ready: try «Photo» when adding food, and the coach.",
+    doneAi: "AI is ready: try «Photo or text» when adding food, and the coach.",
     start: "Start",
     replay: "Show the tutorial",
     replayHint: "See the first steps again.",
   },
   photo: {
-    title: "Photo",
-    hint: "AI estimates the macros",
+    title: "Photo or text",
+    hint: "AI works out the macros",
     tipsTitle: "For a good estimate",
     tips: [
       "Take several photos from different angles.",

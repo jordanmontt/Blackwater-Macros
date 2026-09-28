@@ -380,8 +380,8 @@
     <string name="ai_error_provider">El proveedor devolvió un error. Inténtalo de nuevo.</string>
 
     <!-- Photo logging (phase 6) -->
-    <string name="photo_title">Foto</string>
-    <string name="photo_hint">La IA estima los macros</string>
+    <string name="photo_title">Foto o texto</string>
+    <string name="photo_hint">La IA calcula los macros</string>
     <string name="photo_tips_title">Para una buena estimación</string>
     <string name="photo_tips">• Haz varias fotos desde distintos ángulos.\n• Incluye un tenedor o tu mano para la escala.\n• Fotografía también la etiqueta nutricional si la hay.\n• Describe lo que no se ve: aceite, salsas, azúcar.</string>
     <string name="photo_camera">Hacer foto</string>
@@ -455,7 +455,7 @@
     <string name="onboarding_not_now">Ahora no</string>
     <string name="onboarding_done_title">¡Listo!</string>
     <string name="onboarding_done_body">Añade tu primera comida con el botón +. Registra tu peso cada pocos días para ver tu progreso.</string>
-    <string name="onboarding_done_ai">La IA está lista: prueba «Foto» al añadir comida y el coach.</string>
+    <string name="onboarding_done_ai">La IA está lista: prueba «Foto o texto» al añadir comida y el coach.</string>
     <string name="onboarding_start">Empezar</string>
     <string name="onboarding_replay">Ver tutorial</string>
     <string name="onboarding_replay_hint">Vuelve a ver los primeros pasos.</string>

@@ -447,14 +447,14 @@ export const t = {
     notNow: "Ahora no",
     doneTitle: "¡Listo!",
     doneBody: "Añade tu primera comida con el botón +. Registra tu peso cada pocos días para ver tu progreso.",
-    doneAi: "La IA está lista: prueba «Foto» al añadir comida y el coach.",
+    doneAi: "La IA está lista: prueba «Foto o texto» al añadir comida y el coach.",
     start: "Empezar",
     replay: "Ver tutorial",
     replayHint: "Vuelve a ver los primeros pasos.",
   },
   photo: {
-    title: "Foto",
-    hint: "La IA estima los macros",
+    title: "Foto o texto",
+    hint: "La IA calcula los macros",
     tipsTitle: "Para una buena estimación",
     tips: [
       "Haz varias fotos desde distintos ángulos.",

@@ -22,10 +22,11 @@ import java.util.concurrent.TimeUnit
 /**
  * The phone models on offer, as the Blackwater site lists them
  * (`public/models/local-models.json`): edit that file and every phone sees the
- * new models the next time the app opens, without a new version of the app.
- * The last good copy is kept on the phone, so it works offline; with no copy
- * yet, the built-in models are used. Only the file is fetched: nothing about
- * the user is sent.
+ * new models the next time Ajustes → IA is opened, without a new version of
+ * the app. Asked only there (not when the app opens), so the app does not
+ * contact our server just by being opened. The last good copy is kept on the
+ * phone, so it works offline; with no copy yet, the built-in models are used.
+ * Only the file is fetched: nothing about the user is sent.
  */
 class LocalModelCatalog(
     private val context: Context,
@@ -46,7 +47,7 @@ class LocalModelCatalog(
             ?.let(LocalModels::useCatalog)
     }
 
-    /** Called each time the app opens; at most every [MIN_INTERVAL_MS]. Failures keep the copy. */
+    /** Called when Ajustes → IA opens; at most every [MIN_INTERVAL_MS]. Failures keep the copy. */
     suspend fun refresh() = withContext(Dispatchers.IO) {
         mutex.withLock {
             if (now() - lastFetch < MIN_INTERVAL_MS) return@withLock
@@ -69,7 +70,7 @@ class LocalModelCatalog(
     companion object {
         private const val TAG = "LocalModelCatalog"
         const val CACHE_FILE = "local-models.json"
-        /** Opening the app again a minute later does not ask again. */
+        /** Opening the screen again a minute later does not ask again. */
         const val MIN_INTERVAL_MS = 10 * 60 * 1000L
     }
 }

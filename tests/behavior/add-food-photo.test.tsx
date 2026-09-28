@@ -8,9 +8,10 @@ import { fitWithin } from "@/lib/ai/images";
 import { formatTemplate, t } from "@/i18n";
 
 /**
- * Requisitos de «Foto» (IA) en «Añadir comida»:
+ * Requisitos de «Foto o texto» (IA) en «Añadir comida»:
  *  - sin IA configurada, explica cómo configurarla (y no llama a nadie),
- *  - con fotos y/o descripción, la IA estima la comida y abre el formulario de
+ *  - con fotos, con solo texto (p. ej. los datos de una etiqueta) o con ambos, la
+ *    IA estima la comida y abre el formulario de
  *    revisión ya relleno, con la línea «Estimación de la IA (confianza …)»,
  *  - las fotos van solo al proveedor elegido, reducidas, y no se guardan,
  *  - «Estimar “…” con IA» desde Buscar estima el texto directamente,
@@ -154,6 +155,23 @@ describe("Añadir comida: foto con IA", () => {
         }),
       ),
     );
+  });
+
+  it("con solo texto (los datos de una etiqueta) estima sin foto", async () => {
+    configureGemini();
+    fetchMock.mockResolvedValue(geminiAnswer(ESTIMATE));
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    const sheet = await openPhoto(user);
+
+    const label = "Por 100 g: 555 kcal, 20 g proteína, 25 g grasa, 12 g carbohidratos. Peso total 350 g.";
+    await user.type(within(sheet).getByLabelText(t.photo.describe), label);
+    await user.click(within(sheet).getByRole("button", { name: t.photo.estimate }));
+
+    await screen.findByRole("dialog", { name: t.meal.newTitle });
+    const parts = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).contents[0].parts;
+    expect(parts).toHaveLength(1);
+    expect(parts[0].text).toContain(label);
   });
 
   it("pide una foto o una descripción antes de estimar", async () => {

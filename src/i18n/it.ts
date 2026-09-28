@@ -455,14 +455,14 @@ export const it: Dictionary = {
     notNow: "Non ora",
     doneTitle: "Tutto pronto!",
     doneBody: "Aggiungi il tuo primo pasto con il pulsante +. Registra il peso ogni pochi giorni per vedere i tuoi progressi.",
-    doneAi: "L'IA è pronta: prova «Foto» quando aggiungi cibo, e il coach.",
+    doneAi: "L'IA è pronta: prova «Foto o testo» quando aggiungi un pasto, e il coach.",
     start: "Inizia",
     replay: "Mostra il tutorial",
     replayHint: "Rivedi i primi passi.",
   },
   photo: {
-    title: "Foto",
-    hint: "L'IA stima i macro",
+    title: "Foto o testo",
+    hint: "L'IA calcola i macro",
     tipsTitle: "Per una buona stima",
     tips: [
       "Scatta più foto da angolazioni diverse.",

@@ -114,6 +114,8 @@ class AiSettingsViewModel(
 
     init {
         refreshModels()
+        // «Modelo en el teléfono» lives on this screen: only now is the site's catalog asked.
+        viewModelScope.launch { AppGraph.localCatalog.refresh() }
     }
 
     val modelState: StateFlow<LocalModelState> = models.state
