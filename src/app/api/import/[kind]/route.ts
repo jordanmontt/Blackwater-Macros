@@ -1,3 +1,4 @@
+import { jsonError } from "@/server/route-utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { mealInputSchema, weightInputSchema } from "@/server/validation";
@@ -21,6 +22,6 @@ export async function POST(request: Request, context: { params: Promise<{ kind: 
       const { weights } = weightsBody.parse(body);
       return NextResponse.json(await importWeights(repositories.weights, userId, weights));
     }
-    return NextResponse.json({ error: "Tipo de importación desconocido" }, { status: 404 });
+    return jsonError("not_found", 404);
   });
 }

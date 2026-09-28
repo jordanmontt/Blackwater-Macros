@@ -100,15 +100,7 @@ class PhotoEstimateViewModel(
     }
 
     private suspend fun addOne(context: Context, uri: Uri, deleteAfter: File?) {
-        val scaled = withContext(Dispatchers.IO) {
-            try {
-                runCatching { PhotoCodec.downscale(context.applicationContext, uri) }
-                    .onFailure { Log.w("PhotoEstimate", "Could not read a photo", it) }
-                    .getOrNull()
-            } finally {
-                deleteAfter?.delete()
-            }
-        }
+        val scaled = PhotoCodec.read(context, uri, deleteAfter)
         if (scaled == null) {
             _state.value = PhotoEstimateState.PhotoError
             return

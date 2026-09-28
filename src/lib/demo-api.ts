@@ -1,5 +1,8 @@
 import { buildStatsFromData } from "./core/stats-builder";
 import {
+  restoreDemoMeal,
+  restoreDemoTemplate,
+  restoreDemoWeight,
   createDemoMeal,
   createDemoTemplate,
   createDemoWeight,
@@ -56,6 +59,11 @@ export const demoApi = {
     return { ok: true };
   },
 
+  restoreMeal: async (meal: MealDTO, orderedIds: string[]): Promise<void> => {
+    restoreDemoMeal(meal);
+    reorderDemoMeals(orderedIds);
+  },
+
   reorderMeals: async (orderedIds: string[]): Promise<{ ok: true }> => {
     reorderDemoMeals(orderedIds);
     return { ok: true };
@@ -76,6 +84,8 @@ export const demoApi = {
     return template;
   },
 
+  restoreTemplate: async (template: MealTemplateDTO): Promise<void> => restoreDemoTemplate(template),
+
   deleteTemplate: async (id: string): Promise<{ ok: true }> => {
     deleteDemoTemplate(id);
     return { ok: true };
@@ -92,6 +102,8 @@ export const demoApi = {
     if (!weight) throw new Error("Registro no encontrado");
     return weight;
   },
+
+  restoreWeight: async (weight: WeightDTO): Promise<void> => restoreDemoWeight(weight),
 
   deleteWeight: async (id: string): Promise<{ ok: true }> => {
     deleteDemoWeight(id);

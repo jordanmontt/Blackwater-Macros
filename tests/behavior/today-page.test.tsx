@@ -13,9 +13,14 @@ import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
  *  - si no hay comidas, la pantalla lo deja claro e invita a añadir,
  *  - el botón + abre «Añadir comida»: escribir a mano, copiar de otro día o
  *    aplicar una plantilla (sin poder dispararla dos veces sin querer),
+ *  - borrar una comida pregunta antes y luego ofrece «Deshacer», que la devuelve
+ *    a su sitio,
  *  - el formulario se cierra al arrastrarlo/pulsar fuera, pero si hay cambios
  *    pregunta antes de descartarlos.
  */
+
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
+vi.mock("sonner", () => ({ toast: toastMock }));
 
 vi.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error {
@@ -33,6 +38,8 @@ vi.mock("@/lib/api", () => ({
     listTemplates: vi.fn(async () => [] as MealTemplateDTO[]),
     createMeal: vi.fn(async () => meal({ title: "nueva", kcal: 0, protein: 0 })),
     reorderMeals: vi.fn(async () => ({ ok: true as const })),
+    deleteMeal: vi.fn(async () => ({ ok: true as const })),
+    restoreMeal: vi.fn(async () => undefined),
     listWeights: vi.fn(async () => []),
     session: vi.fn(async () => ({
       username: "demo",
@@ -49,8 +56,10 @@ vi.mock("@/lib/api", () => ({
     })),
   } satisfies Pick<
     typeof import("@/lib/api").api,
-    "listMeals" | "listTemplates" | "createMeal" | "reorderMeals" | "listWeights" | "session"
+    "listMeals" | "listTemplates" | "createMeal" | "reorderMeals" | "deleteMeal" | "restoreMeal" | "listWeights" | "session"
   >,
+  errorText: (error: unknown) => (error instanceof Error ? error.message : "error"),
+  UNDO_TOAST_MS: 10_000,
 }));
 
 import { api } from "@/lib/api";
@@ -166,6 +175,29 @@ describe("pantalla Hoy", () => {
         totalCarbs: 30,
         totalFat: 15,
       }),
+    );
+  });
+
+  it("borra una comida tras confirmar y «Deshacer» la devuelve a su sitio", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await screen.findByText("Desayuno");
+
+    await user.click(screen.getAllByRole("button", { name: t.meal.delete })[0]);
+    const confirm = await screen.findByRole("alertdialog");
+    expect(vi.mocked(api.deleteMeal)).not.toHaveBeenCalled();
+    await user.click(within(confirm).getByRole("button", { name: t.meal.delete }));
+    expect(vi.mocked(api.deleteMeal)).toHaveBeenCalledWith("meal-Desayuno");
+
+    await vi.waitFor(() => expect(toastMock.success).toHaveBeenCalled());
+    const [message, options] = toastMock.success.mock.calls.at(-1)!;
+    expect(message).toBe(t.meal.deleted);
+    (options as { action: { onClick: () => void } }).action.onClick();
+    await vi.waitFor(() =>
+      expect(vi.mocked(api.restoreMeal)).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "meal-Desayuno" }),
+        ["meal-Desayuno", "meal-Comida"],
+      ),
     );
   });
 

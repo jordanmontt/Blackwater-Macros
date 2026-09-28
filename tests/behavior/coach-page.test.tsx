@@ -5,7 +5,7 @@ import CoachPage from "@/app/coach/page";
 import { historyForModel, resetCoach } from "@/lib/ai/coach-chat";
 import { todayKey } from "@/lib/core/dates";
 import type { CalorieProfile, MealDTO, WeightDTO } from "@/lib/core/types";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 
 /**
  * Requisitos de la pestaña «Coach»:
@@ -14,7 +14,9 @@ import { t } from "@/i18n";
  *  - cada pregunta lleva un resumen de tus datos (perfil, comidas, peso) si
  *    «El coach puede ver mis datos» está activado, y ninguno si no,
  *  - la conversación sigue (historial en memoria) hasta «Nueva conversación»,
- *  - los errores se explican y no se reenvían como historial.
+ *  - los errores se explican y no se reenvían como historial,
+ *  - se le pueden mandar fotos (con o sin texto); viajan solo al proveedor y,
+ *    en el historial, solo las más recientes.
  * `fetch` está simulado: nunca se llama a un proveedor real.
  */
 
@@ -48,6 +50,12 @@ vi.mock("@/lib/api", () => ({
       { id: "w1", measuredAt: new Date().toISOString(), weightKg: 62, bodyFatPct: null } as unknown as WeightDTO,
     ]),
   },
+}));
+
+vi.mock("@/lib/ai/images", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/ai/images")>()),
+  // jsdom has no canvas: the photo arrives already reduced.
+  downscalePhoto: vi.fn(async () => ({ mimeType: "image/jpeg", data: "Zm90bw==" })),
 }));
 
 import { api } from "@/lib/api";
@@ -155,6 +163,26 @@ describe("Coach", () => {
     expect(vi.mocked(api.listMeals)).not.toHaveBeenCalled();
   });
 
+  it("manda una foto sin texto: la ve el modelo, con una pregunta por defecto", async () => {
+    configure();
+    fetchMock.mockResolvedValueOnce(sse(["Parece una ensalada."]));
+    const user = userEvent.setup();
+    render(<CoachPage />);
+
+    await user.upload(screen.getByTestId("coach-photo-input"), new File(["x"], "plato.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByAltText(formatTemplate(t.photo.photoAlt, { n: 1 }))).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.coach.send }));
+
+    expect(await screen.findByText("Parece una ensalada.")).toBeInTheDocument();
+    expect(screen.getByAltText(formatTemplate(t.coach.photoSent, { n: 1 }))).toBeInTheDocument();
+    expect(requestBody(0).contents).toEqual([
+      {
+        role: "user",
+        parts: [{ inline_data: { mime_type: "image/jpeg", data: "Zm90bw==" } }, { text: t.coach.photoPrompt }],
+      },
+    ]);
+  });
+
   it("explica los errores y no los reenvía como historial", async () => {
     configure();
     fetchMock.mockResolvedValueOnce(new Response("{}", { status: 429 })).mockResolvedValueOnce(sse(["Vale."]));
@@ -185,5 +213,21 @@ describe("historyForModel", () => {
       { role: "user", text: "b" },
       { role: "assistant", text: "B" },
     ]);
+  });
+
+  it("reenvía las fotos con su pregunta, pero solo las más recientes", () => {
+    const photo = (data: string) => ({ mimeType: "image/jpeg", data });
+    const history = historyForModel(
+      [
+        { id: 1, role: "user", text: "", images: [photo("a"), photo("b"), photo("c")] },
+        { id: 2, role: "assistant", text: "Tres platos." },
+        { id: 3, role: "user", text: "¿Y este?", images: [photo("d"), photo("e")] },
+        { id: 4, role: "assistant", text: "Otro." },
+      ],
+      1,
+    );
+    // 1 new photo + 4 earlier ones = MAX_PHOTOS (5): the oldest message keeps only 2.
+    expect(history[0]).toEqual({ role: "user", text: t.coach.photoPrompt, images: [photo("a"), photo("b")] });
+    expect(history[2]).toEqual({ role: "user", text: "¿Y este?", images: [photo("d"), photo("e")] });
   });
 });

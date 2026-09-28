@@ -1,3 +1,4 @@
+import { jsonError } from "@/server/route-utils";
 import { NextResponse } from "next/server";
 import { withUserId, parseJsonBody } from "@/server/route-utils";
 import { repositories } from "@/server/composition";
@@ -19,6 +20,6 @@ export async function PUT(request: Request) {
       return NextResponse.json(settings);
     }
 
-    return NextResponse.json({ error: "Payload no válido" }, { status: 400 });
+    return jsonError("invalid_data", 400);
   });
 }

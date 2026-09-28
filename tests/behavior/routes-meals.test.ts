@@ -166,7 +166,7 @@ describe("rutas de comidas", () => {
       );
       expect(res.status).toBe(400);
       const body = await res.json();
-      expect(body.error).toBe("El título es obligatorio");
+      expect(body.code).toBe("title_required");
     });
 
     it("devuelve 400 si la fecha no es válida", async () => {
@@ -227,7 +227,7 @@ describe("rutas de comidas", () => {
         routeParams("m-otro"),
       );
       expect(res.status).toBe(404);
-      expect(await res.json()).toEqual({ error: "Comida no encontrada" });
+      expect(await res.json()).toMatchObject({ code: "meal_not_found" });
     });
   });
 

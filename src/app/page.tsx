@@ -30,7 +30,7 @@ import {
   type NutritionDraft,
 } from "@/components/meals/nutrition-fields";
 import { NutritionRecommendationsCard } from "@/components/nutrition-recommendations";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { writeCache } from "@/lib/client-cache";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { todayKey } from "@/lib/core/dates";
@@ -142,14 +142,30 @@ export default function HoyPage() {
     await refreshMeals(selectedDay);
   }
 
+  /** Asked first (the dialog), then deleted with an Undo that puts it back in its place. */
   async function handleDeleteConfirmed() {
     if (!deletingMeal) return;
+    const meal = deletingMeal;
+    const day = selectedDay;
+    const orderedIds = (meals ?? []).map((m) => m.id);
     try {
-      await api.deleteMeal(deletingMeal.id);
+      await api.deleteMeal(meal.id);
       setDeletingMeal(null);
-      await refreshMeals(selectedDay);
-    } catch {
-      toast.error(t.common.errorGeneric);
+      await refreshMeals(day);
+      toast.success(t.meal.deleted, {
+        duration: UNDO_TOAST_MS,
+        action: {
+          label: t.common.undo,
+          onClick: () => {
+            api
+              .restoreMeal(meal, orderedIds)
+              .then(() => refreshMeals(day))
+              .catch((error) => toast.error(errorText(error)));
+          },
+        },
+      });
+    } catch (error) {
+      toast.error(errorText(error));
     }
   }
 

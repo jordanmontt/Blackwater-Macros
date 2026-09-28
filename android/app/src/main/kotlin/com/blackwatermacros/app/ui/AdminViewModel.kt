@@ -8,6 +8,7 @@ import com.blackwatermacros.app.data.AdminUpdateUserRequest
 import com.blackwatermacros.app.data.AdminUserDTO
 import com.blackwatermacros.app.data.ApiService
 import com.blackwatermacros.app.data.ResponseErrorMapper
+import com.blackwatermacros.app.data.UiText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
 sealed interface AdminUiState {
     data object Loading : AdminUiState
     data class Loaded(val users: List<AdminUserDTO>, val currentUsername: String) : AdminUiState
-    data class Error(val message: String) : AdminUiState
+    data class Error(val message: UiText) : AdminUiState
 }
 
 class AdminViewModel : ViewModel() {
@@ -44,7 +45,7 @@ class AdminViewModel : ViewModel() {
         }
     }
 
-    fun create(username: String, password: String, onDone: (String?) -> Unit) {
+    fun create(username: String, password: String, onDone: (UiText?) -> Unit) {
         viewModelScope.launch {
             try {
                 api.createUser(AdminCreateUserRequest(username = username, password = password))
@@ -61,7 +62,7 @@ class AdminViewModel : ViewModel() {
         username: String,
         password: String?,
         isAdmin: Boolean?,
-        onDone: (String?) -> Unit,
+        onDone: (UiText?) -> Unit,
     ) {
         viewModelScope.launch {
             try {
@@ -78,7 +79,7 @@ class AdminViewModel : ViewModel() {
         }
     }
 
-    fun delete(id: String, onDone: (String?) -> Unit) {
+    fun delete(id: String, onDone: (UiText?) -> Unit) {
         viewModelScope.launch {
             try {
                 api.deleteUser(id)

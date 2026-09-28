@@ -105,6 +105,10 @@ class SettingsViewModel(
         viewModelScope.launch { repository.deleteTemplate(id) }
     }
 
+    fun restoreTemplate(template: TemplateDTO) {
+        viewModelScope.launch { repository.restoreTemplate(template) }
+    }
+
     // --- CSV (web-compatible format) ---
 
     suspend fun mealsCsv(): String = CsvBackup.mealsCsv(repository.allMeals().first())

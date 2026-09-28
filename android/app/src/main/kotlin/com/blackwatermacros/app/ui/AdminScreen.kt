@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.data.AdminUserDTO
+import com.blackwatermacros.app.data.UiText
+import com.blackwatermacros.app.data.asString
 
 @Composable
 fun AdminScreen(
@@ -54,6 +56,7 @@ fun AdminScreen(
     var createOpen by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<AdminUserDTO?>(null) }
     var deleting by remember { mutableStateOf<AdminUserDTO?>(null) }
+    var serverError by remember { mutableStateOf<UiText?>(null) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -84,7 +87,7 @@ fun AdminScreen(
             }
             is AdminUiState.Error -> Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                 Text(
-                    (state as AdminUiState.Error).message,
+                    (state as AdminUiState.Error).message.asString(),
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
                 )
@@ -152,9 +155,11 @@ fun AdminScreen(
             initialUsername = "",
             initialIsAdmin = false,
             isNew = true,
-            onDismiss = { createOpen = false },
+            serverError = serverError,
+            onDismiss = { createOpen = false; serverError = null },
             onSubmit = { username, password, _ ->
                 viewModel.create(username, password) { error ->
+                    serverError = error
                     if (error == null) createOpen = false
                 }
             },
@@ -169,9 +174,11 @@ fun AdminScreen(
             initialIsAdmin = user.isAdmin,
             isNew = false,
             editingSelf = user.username == (state as? AdminUiState.Loaded)?.currentUsername,
-            onDismiss = { editing = null },
+            serverError = serverError,
+            onDismiss = { editing = null; serverError = null },
             onSubmit = { username, password, isAdmin ->
                 viewModel.update(user, username, password, isAdmin) { error ->
+                    serverError = error
                     if (error == null) editing = null
                 }
             },
@@ -180,20 +187,26 @@ fun AdminScreen(
 
     deleting?.let { user ->
         AlertDialog(
-            onDismissRequest = { deleting = null },
+            onDismissRequest = { deleting = null; serverError = null },
             title = { Text(stringResource(R.string.admin_delete_title)) },
             text = {
-                Text(stringResource(R.string.admin_delete_body))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.admin_delete_body))
+                    serverError?.let { Text(it.asString(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.delete(user.id) { error -> if (error == null) deleting = null }
+                    viewModel.delete(user.id) { error ->
+                        serverError = error
+                        if (error == null) deleting = null
+                    }
                 }) {
                     Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = { deleting = null; serverError = null }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -274,6 +287,8 @@ private fun AdminUserDialog(
     initialIsAdmin: Boolean,
     isNew: Boolean,
     editingSelf: Boolean = false,
+    /** What the server said about the last attempt (e.g. «El usuario ya existe»), in the app language. */
+    serverError: UiText? = null,
     onDismiss: () -> Unit,
     onSubmit: (username: String, password: String, isAdmin: Boolean?) -> Unit,
 ) {
@@ -335,9 +350,10 @@ private fun AdminUserDialog(
                         onCheckedChange = { isAdmin = it },
                     )
                 }
-                if (error != null) {
+                val shownError = error ?: serverError?.asString()
+                if (shownError != null) {
                     Text(
-                        error!!,
+                        shownError,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                     )

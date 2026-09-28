@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   return withUserId(request, async () => {
     const url = new URL(request.url);
     const query = (url.searchParams.get("q") ?? "").trim();
-    if (query.length < 2 || query.length > 80) return jsonError("Búsqueda no válida", 400);
+    if (query.length < 2 || query.length > 80) return jsonError("invalid_search", 400);
     const langParam = url.searchParams.get("lang") as FoodLang | null;
     const lang = langParam && LANGS.includes(langParam) ? langParam : "es";
 
@@ -34,9 +34,9 @@ export async function GET(request: Request) {
         signal: AbortSignal.timeout(8000),
       });
     } catch {
-      return jsonError("Open Food Facts no responde", 502);
+      return jsonError("foods_unavailable", 502);
     }
-    if (!response.ok) return jsonError("Open Food Facts no responde", 502);
+    if (!response.ok) return jsonError("foods_unavailable", 502);
     const products = parseOffSearch(await response.json(), lang);
     return NextResponse.json({ products });
   });

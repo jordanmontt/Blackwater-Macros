@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { isValidDateKey } from "@/lib/core/dates";
 
+// Messages are `ServerErrorCode`s (lib/server-errors.ts): each client translates them.
+
 export const ingredientInputSchema = z.object({
-  name: z.string().trim().min(1, "El nombre del ingrediente es obligatorio").max(200),
+  name: z.string().trim().min(1, "ingredient_name_required").max(200),
   quantity: z.string().trim().min(1).max(200).optional(),
   calories: z.number().min(0).max(100_000).optional(),
   protein: z.number().min(0).max(10_000).optional(),
@@ -13,8 +15,8 @@ export const ingredientInputSchema = z.object({
 export const mealInputSchema = z.object({
   logDate: z
     .string()
-    .refine(isValidDateKey, "La fecha debe tener formato YYYY-MM-DD"),
-  title: z.string().trim().min(1, "El título es obligatorio").max(120),
+    .refine(isValidDateKey, "invalid_date"),
+  title: z.string().trim().min(1, "title_required").max(120),
   notes: z.string().trim().max(2_000).nullish(),
   entryMode: z.enum(["per_ingredient", "total_only"]),
   ingredients: z.array(ingredientInputSchema).max(100),
@@ -32,11 +34,11 @@ export const mealUpsertSchema = mealInputSchema.extend({
 });
 
 /** Client-generated record ids (offline sync) must be UUIDs — the DB column type. */
-export const recordIdSchema = z.string().uuid("Identificador no válido");
+export const recordIdSchema = z.string().uuid("invalid_id");
 
 export const templateInputSchema = z.object({
-  name: z.string().trim().min(1, "El nombre de la plantilla es obligatorio").max(120),
-  title: z.string().trim().min(1, "El título es obligatorio").max(120),
+  name: z.string().trim().min(1, "template_name_required").max(120),
+  title: z.string().trim().min(1, "title_required").max(120),
   notes: z.string().trim().max(2_000).nullish(),
   entryMode: z.enum(["per_ingredient", "total_only"]),
   ingredients: z.array(ingredientInputSchema).max(100),
@@ -50,10 +52,10 @@ export type TemplateInput = z.infer<typeof templateInputSchema>;
 
 export const weightInputSchema = z.object({
   measuredAt: z.string().refine((value) => !Number.isNaN(new Date(value).getTime()), {
-    message: "Fecha y hora no válidas",
+    message: "invalid_datetime",
   }),
-  weightKg: z.number().min(20, "Peso fuera de rango").max(400, "Peso fuera de rango"),
-  bodyFatPct: z.number().min(3, "Grasa corporal fuera de rango").max(60, "Grasa corporal fuera de rango").nullish(),
+  weightKg: z.number().min(20, "weight_out_of_range").max(400, "weight_out_of_range"),
+  bodyFatPct: z.number().min(3, "body_fat_out_of_range").max(60, "body_fat_out_of_range").nullish(),
   note: z.string().trim().max(500).nullish(),
 });
 
@@ -63,28 +65,28 @@ export const calorieProfileInputSchema = z.object({
   gender: z.enum(["male", "female"]).nullable(),
   birthYear: z
     .number()
-    .min(1920, "El año de nacimiento debe ser entre 1920 y 2010")
-    .max(2010, "El año de nacimiento debe ser entre 1920 y 2010")
+    .min(1920, "birth_year_out_of_range")
+    .max(2010, "birth_year_out_of_range")
     .nullable(),
   heightCm: z
     .number()
-    .min(100, "La altura debe estar entre 100 y 250 cm")
-    .max(250, "La altura debe estar entre 100 y 250 cm")
+    .min(100, "height_out_of_range")
+    .max(250, "height_out_of_range")
     .nullable(),
   gymDaysPerWeek: z
     .number()
-    .min(0, "Los días de gimnasio deben ser entre 0 y 7")
-    .max(7, "Los días de gimnasio deben ser entre 0 y 7")
+    .min(0, "gym_days_out_of_range")
+    .max(7, "gym_days_out_of_range")
     .nullable(),
   gymSessionMinutes: z
     .number()
-    .min(0, "La duración debe ser entre 0 y 300 minutos")
-    .max(300, "La duración debe ser entre 0 y 300 minutos")
+    .min(0, "gym_minutes_out_of_range")
+    .max(300, "gym_minutes_out_of_range")
     .nullable(),
   walkingMinutesPerDay: z
     .number()
-    .min(0, "El tiempo de caminata debe ser entre 0 y 480 minutos")
-    .max(480, "El tiempo de caminata debe ser entre 0 y 480 minutos")
+    .min(0, "walking_out_of_range")
+    .max(480, "walking_out_of_range")
     .nullable(),
   calorieGoal: z.enum(["cut", "maintain", "surplus"]).nullable(),
 });
@@ -97,8 +99,8 @@ export const loginInputSchema = z.object({
 });
 
 export const registerInputSchema = z.object({
-  username: z.string().trim().min(3, "El usuario debe tener al menos 3 caracteres").max(80),
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(200),
+  username: z.string().trim().min(3, "username_too_short").max(80),
+  password: z.string().min(8, "password_too_short").max(200),
 });
 
 export const adminUpdateUserSchema = z
@@ -106,19 +108,19 @@ export const adminUpdateUserSchema = z
     username: z
       .string()
       .trim()
-      .min(3, "El usuario debe tener al menos 3 caracteres")
+      .min(3, "username_too_short")
       .max(80)
       .optional(),
     password: z
       .string()
-      .min(8, "La contraseña debe tener al menos 8 caracteres")
+      .min(8, "password_too_short")
       .max(200)
       .optional(),
     isAdmin: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.username === undefined && data.password === undefined && data.isAdmin === undefined) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "No hay cambios que aplicar" });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "no_changes" });
     }
   });
 

@@ -1,3 +1,4 @@
+import { jsonError } from "@/server/route-utils";
 import {
   buildMealsCsv,
   buildWeightsCsv,
@@ -25,6 +26,6 @@ export async function GET(request: Request, context: { params: Promise<{ kind: s
       const weights = await repositories.weights.listForUser(userId);
       return csvResponse("peso.csv", buildWeightsCsv(weights));
     }
-    return Response.json({ error: "Recurso no encontrado" }, { status: 404 });
+    return jsonError("not_found", 404);
   });
 }

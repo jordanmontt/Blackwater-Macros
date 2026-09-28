@@ -11,7 +11,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   return withUserId(request, async (userId) => {
     const input = mealInputSchema.parse(await parseJsonBody(request));
     const meal = await updateMeal(repositories.meals, userId, id, input);
-    if (!meal) return jsonError("Comida no encontrada", 404);
+    if (!meal) return jsonError("meal_not_found", 404);
     return NextResponse.json({ meal });
   });
 }
@@ -23,7 +23,7 @@ export async function PUT(request: Request, context: RouteContext) {
     recordIdSchema.parse(id);
     const { sortOrder, ...input } = mealUpsertSchema.parse(await parseJsonBody(request));
     const meal = await upsertMeal(repositories.meals, userId, id, input, sortOrder);
-    if (!meal) return jsonError("Comida no encontrada", 404);
+    if (!meal) return jsonError("meal_not_found", 404);
     return NextResponse.json({ meal });
   });
 }
@@ -32,7 +32,7 @@ export async function DELETE(request: Request, context: RouteContext) {
   const { id } = await context.params;
   return withUserId(request, async (userId) => {
     const deleted = await deleteMeal(repositories.meals, userId, id);
-    if (!deleted) return jsonError("Comida no encontrada", 404);
+    if (!deleted) return jsonError("meal_not_found", 404);
     return NextResponse.json({ ok: true });
   });
 }

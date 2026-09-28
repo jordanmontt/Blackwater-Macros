@@ -1,18 +1,22 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { AiMessage } from "@/lib/core/ai-providers";
+import type { AiImage, AiMessage } from "@/lib/core/ai-providers";
 import { buildCoachSystemPrompt } from "@/lib/core/coach";
 import { AiError, aiStream, type AiFailure } from "@/lib/ai/client";
 import { loadCoachContext } from "@/lib/ai/coach-data";
 import { aiLanguage } from "@/lib/ai/estimate";
 import { browserChatStream } from "@/lib/ai/browser-model";
 import { aiConfigOf, getAiSettings } from "@/lib/ai/settings";
+import { MAX_PHOTOS } from "@/lib/ai/images";
+import { t } from "@/i18n";
 
 export interface ChatMessage {
   id: number;
   role: "user" | "assistant";
   text: string;
+  /** Photos sent with a question: small JPEGs, in memory only (never stored). */
+  images?: AiImage[];
   /** Set on an assistant message whose answer failed. */
   error?: AiFailure;
   /** The provider's (or the browser model's) own words about the failure. */
@@ -51,8 +55,12 @@ export function getChatState(): ChatState {
   return state;
 }
 
-/** The earlier turns the model sees: failed answers and their questions are left out. */
-export function historyForModel(messages: ChatMessage[]): AiMessage[] {
+/**
+ * The earlier turns the model sees: failed answers and their questions are left
+ * out. Photos travel again with their question so a follow-up («¿y cuánta
+ * proteína tiene?») still sees them, but only the newest [MAX_PHOTOS] of them.
+ */
+export function historyForModel(messages: ChatMessage[], newImages = 0): AiMessage[] {
   const turns: AiMessage[] = [];
   messages.forEach((message, index) => {
     if (message.error) return;
@@ -60,22 +68,36 @@ export function historyForModel(messages: ChatMessage[]): AiMessage[] {
     // A question without an answer (failed or stopped before any text) is left out too.
     if (message.role === "user" && next && (next.error || next.text.trim() === "")) return;
     if (message.role === "assistant" && message.text.trim() === "") return;
-    turns.push({ role: message.role, text: message.text });
+    turns.push({ role: message.role, text: modelText(message), images: message.images });
   });
   const recent = turns.slice(-COACH_HISTORY_MESSAGES);
+  let room = Math.max(0, MAX_PHOTOS - newImages);
+  for (let i = recent.length - 1; i >= 0; i--) {
+    const images = recent[i].images ?? [];
+    const kept = images.slice(0, room);
+    room -= kept.length;
+    recent[i] = kept.length > 0 ? { ...recent[i], images: kept } : { role: recent[i].role, text: recent[i].text };
+  }
   // Providers want the conversation to start with the user.
   while (recent.length > 0 && recent[0].role !== "user") recent.shift();
   return recent;
 }
 
-export async function sendCoachMessage(text: string): Promise<void> {
-  const question = text.trim();
-  if (question === "" || state.streaming) return;
-  const history = historyForModel(state.messages);
+/** A photo sent without words still needs a question for the model. */
+function modelText(message: ChatMessage): string {
+  return message.text.trim() === "" && message.images?.length ? t.coach.photoPrompt : message.text;
+}
+
+export async function sendCoachMessage(text: string, images: AiImage[] = []): Promise<void> {
+  const typed = text.trim();
+  if ((typed === "" && images.length === 0) || state.streaming) return;
+  const history = historyForModel(state.messages, images.length);
+  const asked: ChatMessage = { id: nextId++, role: "user", text: typed, images: images.length > 0 ? images : undefined };
+  const question = modelText(asked);
   set({
     messages: [
       ...state.messages,
-      { id: nextId++, role: "user", text: question },
+      asked,
       { id: nextId++, role: "assistant", text: "" },
     ],
     streaming: true,
@@ -86,7 +108,7 @@ export async function sendCoachMessage(text: string): Promise<void> {
     const settings = getAiSettings();
     const context = settings.coachSeesData ? await loadCoachContext() : null;
     const system = buildCoachSystemPrompt(aiLanguage(), context);
-    const messages: AiMessage[] = [...history, { role: "user", text: question }];
+    const messages: AiMessage[] = [...history, { role: "user", text: question, images: asked.images }];
     const stream =
       settings.coachEngine === "browser"
         ? browserChatStream(system, messages, signal)

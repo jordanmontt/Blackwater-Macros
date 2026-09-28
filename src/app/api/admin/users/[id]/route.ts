@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withAdmin, parseJsonBody, jsonError } from "@/server/route-utils";
+import { withAdmin, parseJsonBody, jsonError, zodErrorCode } from "@/server/route-utils";
 import { serviceDeps } from "@/server/composition";
 import { deleteUser, updateUser } from "@/server/services/admin-service";
 import { adminUpdateUserSchema, type AdminUpdateUserInput } from "@/server/validation";
@@ -14,12 +14,12 @@ export async function PATCH(
     try {
       body = await parseJsonBody(request);
     } catch {
-      return jsonError("Cuerpo JSON no válido", 400);
+      return jsonError("invalid_json", 400);
     }
 
     const parsed = adminUpdateUserSchema.safeParse(body);
     if (!parsed.success) {
-      return jsonError(parsed.error.issues[0]?.message ?? "Datos no válidos", 400);
+      return jsonError(zodErrorCode(parsed.error), 400);
     }
 
     const changes: AdminUpdateUserInput = parsed.data;

@@ -124,7 +124,7 @@
     <string name="weight_add">Enregistrer le poids</string>
     <string name="weight_edit">Modifier le poids</string>
     <string name="weight_delete_title">Supprimer l\'entrée ?</string>
-    <string name="weight_delete_body">Cette entrée de poids sera définitivement supprimée.</string>
+    <string name="weight_delete_body">Cette pesée sera supprimée.</string>
     <string name="weight_empty">Vous n\'avez encore enregistré aucun poids.</string>
     <string name="body_fat_value">%1$s %% de masse grasse</string>
     <string name="weight_kg">Poids (kg)</string>
@@ -206,7 +206,7 @@
     <string name="templates_title">Modèles</string>
     <string name="templates_empty">Vous n\'avez encore aucun modèle enregistré.</string>
     <string name="template_delete_title">Supprimer le modèle ?</string>
-    <string name="template_delete_body">Ce modèle sera supprimé. Cette action est irréversible.</string>
+    <string name="template_delete_body">Ce modèle sera supprimé.</string>
     <string name="data_title">Vos données</string>
     <string name="data_description">Exportez ou importez vos repas et votre poids en CSV (même format que la version web). Pratique comme sauvegarde ou pour changer de téléphone.</string>
     <string name="data_export_meals">Exporter les repas</string>
@@ -501,4 +501,54 @@
     <string name="meth_sources_body">Aliments génériques (hors ligne) : Swiss Food Composition Database de l\'Office fédéral de la sécurité alimentaire et des affaires vétérinaires (OSAV, Suisse) et table Ciqual 2020 de l\'Anses (France, Licence Ouverte / Etalab 2.0). Les noms en espagnol sont ajoutés par ce projet.\n\nProduits et codes-barres : Open Food Facts, base de données ouverte sous Open Database License (ODbL). Les données de chaque produit viennent de ses contributeurs et peuvent contenir des erreurs. Les valeurs sont pour 100 g de l\'aliment tel que décrit par la source.</string>
     <string name="ai_error_unavailable">Le service d\'IA est saturé ou indisponible pour le moment. Réessayez dans un instant.</string>
     <string name="ai_error_local">Le modèle du téléphone n\'a pas pu répondre. Réessayez ou utilisez le cloud dans Réglages → IA.</string>
+
+    <!-- Server errors by code (src/lib/server-errors.ts; texts shared with src/i18n/*.ts) -->
+    <string name="server_error_network">Pas de connexion. Réessayez.</string>
+    <string name="server_error_http">Erreur du serveur (%1$d)</string>
+    <string name="server_error_unauthenticated">Votre session a expiré. Reconnectez-vous.</string>
+    <string name="server_error_forbidden">Vous n\'avez pas l\'autorisation de faire cela.</string>
+    <string name="server_error_invalid_json">Corps JSON non valide</string>
+    <string name="server_error_invalid_data">Données non valides</string>
+    <string name="server_error_internal">Erreur interne du serveur. Réessayez.</string>
+    <string name="server_error_not_found">Introuvable</string>
+    <string name="server_error_meal_not_found">Repas introuvable</string>
+    <string name="server_error_template_not_found">Modèle introuvable</string>
+    <string name="server_error_weight_not_found">Entrée introuvable</string>
+    <string name="server_error_user_not_found">Utilisateur introuvable</string>
+    <string name="server_error_invalid_search">Recherche non valide</string>
+    <string name="server_error_foods_unavailable">Open Food Facts ne répond pas</string>
+    <string name="server_error_invalid_credentials">Utilisateur ou mot de passe incorrect</string>
+    <string name="server_error_username_exists">Cet utilisateur existe déjà</string>
+    <string name="server_error_username_too_short">L\'utilisateur doit contenir au moins 3 caractères</string>
+    <string name="server_error_password_too_short">Le mot de passe doit contenir au moins 8 caractères</string>
+    <string name="server_error_no_changes">Aucune modification à appliquer</string>
+    <string name="server_error_cannot_demote_self">Vous ne pouvez pas retirer votre propre rôle d\'administrateur</string>
+    <string name="server_error_cannot_delete_self">Vous ne pouvez pas vous supprimer vous-même</string>
+    <string name="server_error_last_admin">Il doit rester au moins un administrateur</string>
+    <string name="server_error_invalid_id">Identifiant non valide</string>
+    <string name="server_error_invalid_date">La date doit avoir le format AAAA-MM-JJ</string>
+    <string name="server_error_invalid_datetime">Date et heure non valides</string>
+    <string name="server_error_title_required">Le titre est obligatoire</string>
+    <string name="server_error_ingredient_name_required">Le nom de l\'ingrédient est obligatoire</string>
+    <string name="server_error_template_name_required">Le nom du modèle est obligatoire</string>
+    <string name="server_error_weight_out_of_range">Le poids doit être compris entre 20 et 400 kg</string>
+    <string name="server_error_body_fat_out_of_range">La masse grasse doit être comprise entre 3 et 60 %</string>
+    <string name="server_error_birth_year_out_of_range">L\'année de naissance doit être comprise entre 1920 et 2010</string>
+    <string name="server_error_height_out_of_range">La taille doit être comprise entre 100 et 250 cm</string>
+    <string name="server_error_gym_days_out_of_range">Les jours de salle doivent être compris entre 0 et 7</string>
+    <string name="server_error_gym_minutes_out_of_range">La durée doit être comprise entre 0 et 300 minutes</string>
+    <string name="server_error_walking_out_of_range">Le temps de marche doit être compris entre 0 et 480 minutes</string>
+
+    <string name="meal_delete_title">Supprimer le repas ?</string>
+    <string name="meal_delete_body">Ce repas et ses ingrédients seront supprimés.</string>
+    <string name="weight_deleted">Entrée supprimée</string>
+    <string name="template_deleted">Modèle supprimé</string>
+    <string name="coach_add_photo">Ajouter une photo</string>
+    <string name="coach_photo_prompt">Que pouvez-vous me dire de cette photo ?</string>
+    <string name="coach_photo_sent">Photo envoyée %1$d</string>
+    <string name="coach_photo_remove">Retirer la photo %1$d</string>
+    <string name="coach_photos_kept">Les photos ne sont pas conservées : elles sont envoyées à %1$s avec votre question et disparaissent à la fin de la conversation.</string>
+    <string name="coach_photos_on_device">Les photos restent sur ce téléphone : le modèle les lit ici et elles disparaissent à la fin de la conversation.</string>
+    <string name="coach_photos_text_only">Le modèle de ce téléphone ne lit que du texte. Pour envoyer des photos, téléchargez Gemma ou utilisez le cloud (Réglages → IA).</string>
+    <string name="error_generic">Une erreur est survenue. Réessayez.</string>
 </resources>

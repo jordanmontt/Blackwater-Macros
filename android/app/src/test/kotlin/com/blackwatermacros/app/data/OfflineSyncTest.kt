@@ -197,6 +197,30 @@ class OfflineSyncTest {
     }
 
     @Test
+    fun `undo after deleting a weigh-in or a template brings it back on the server`() = runBlocking<Unit> {
+        connect()
+        repository.saveWeight(null, WeightRequest(measuredAt = "2026-06-15T08:00", weightKg = 80.0))
+        repository.saveTemplate(null, TemplateRequest(name = "Avena", title = "Desayuno", entryMode = WireEntryMode.TOTAL_ONLY, totalCalories = 400.0))
+        sync.sync()
+        val weight = repository.weights().first().single()
+        val template = repository.templates().first().single()
+
+        repository.deleteWeight(weight.id)
+        repository.deleteTemplate(template.id)
+        sync.sync()
+        assertThat(backend.weights).isEmpty()
+        assertThat(backend.templates).isEmpty()
+
+        repository.restoreWeight(weight)
+        repository.restoreTemplate(template)
+        sync.sync()
+        assertThat(backend.weights.keys).containsExactly(weight.id)
+        assertThat(backend.templates.keys).containsExactly(template.id)
+        assertThat(repository.weights().first().map { it.weightKg }).containsExactly(80.0)
+        assertThat(repository.templates().first().map { it.name }).containsExactly("Avena")
+    }
+
+    @Test
     fun `reordering meals is uploaded`() = runBlocking<Unit> {
         connect()
         repository.saveMeal(null, breakfast().copy(title = "A"))

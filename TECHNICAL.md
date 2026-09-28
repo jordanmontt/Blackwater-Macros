@@ -328,7 +328,7 @@ overwrite.
 
 | Page | File | Highlights |
 |---|---|---|
-| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), meal list, delete confirm. The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
+| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), meal list, delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
 | Progreso | `app/progreso/page.tsx` | Peso + Estadísticas merged (old URLs redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «N de M días registrados», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), link to Perfil, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
@@ -440,10 +440,11 @@ renders nothing on the server and the app after mount, so there is no hydration 
 (a blank frame on first paint, then the page in the right language). Reading cookies
 makes the layout dynamic, which it already was in practice (session checks).
 
+**Server errors:** the API sends a code with each error and `lib/api.ts` shows `t.serverErrors[code]` (see `docs/api.md`), so validation and admin messages follow the language too.
+
 **Also per language:** dates and numbers (`i18n/format.ts`, `LOCALE_TAGS`), food search
 and barcode names (`currentLanguage()` → Open Food Facts `lc`), and the language the AI
-answers in (`aiLanguage()`). Stay Spanish on purpose: CSV column names (a file format) and
-server error messages (§14.7).
+answers in (`aiLanguage()`). Stays Spanish on purpose: CSV column names (a file format).
 
 Adding UI text = add the key to `es.ts` and the four others, then use it.
 
@@ -623,7 +624,11 @@ rest of the calorie profile.
   `buildCoachSystemPrompt(language, buildCoachContext(input))`, the input read fresh from the
   same data as the Comidas card (profile, targets, measured expenditure, 4 weeks of meals,
   60 days of weigh-ins); with «El coach puede ver mis datos» off the data is neither read
-  nor sent. The last 20 good turns go along as history.
+  nor sent. The last 20 good turns go along as history. **Photos** (up to 5 per question,
+  camera or gallery, same downscaling as «Foto», memory only): sent with the question and
+  again with the history, newest 5 in total; a photo without words asks
+  `coach.photoPrompt`. Cloud providers and Android models that read images (Gemma); the
+  web's browser model and Qwen are text-only, so the photo button explains that instead.
 - **On-device AI** (Android only, D5/D6): a model from the `LocalModels` catalog (Gemma 4 E2B
   default, Gemma 4 E4B, Qwen3 1.7B text-only; Apache-2.0, SHA-256 pinned; one on the phone at
   a time) run by LiteRT-LM (`data/ai/local/`). Downloaded
@@ -818,9 +823,12 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
   Metodología and Admin; goal, body data and recommendations live in a pushed
   **Perfil** page (`ProfileScreen`), like the web's `/ajustes/perfil`.
 - **Comidas header** shows a small cloud when logged in (synced / N pending / syncing /
-  needs attention); tapping it opens Ajustes. Deleting a meal is immediate with an
-  **Undo** snackbar (`AppRepository.restoreMeal` puts back the same id and position,
-  even if the delete already reached the server).
+  needs attention); tapping it opens Ajustes. Deleting a meal, weigh-in or template asks
+  first and then offers **Undo** in a snackbar (`offerUndo`; `AppRepository.restoreMeal` /
+  `restoreWeight` / `restoreTemplate` put back the same id and position, even if the
+  delete already reached the server). Same on the web (toast with «Deshacer»).
+- **Server errors** are shown in the app language: `ResponseErrorMapper` turns the
+  envelope's `code` into a `server_error_*` string (`UiText`), see `docs/api.md`.
 - **Statistics** are computed on the phone with `:core` `buildStatsFromData` (same
   numbers as `/api/stats`, which Android no longer calls).
 - **Validation** uses the server's limits (weight 20–400 kg, fat 3–60 %, profile
@@ -897,8 +905,8 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
   The calorie card lists Promedio estimado, TMB, TDEE and (when the data supports it) the
   measured expenditure ± margin before the bar; the protein card shows g/kg (of lean mass
   when a cut uses body fat). Same design on the web (`components/nutrition-recommendations.tsx`).
-- **Comidas:** double-tap the date → today; deleting a meal shows Undo instead of a
-  confirmation; single-ingredient meals don't repeat the numbers of the totals;
+- **Comidas:** double-tap the date → today; deleting a meal asks first, then offers Undo;
+  single-ingredient meals don't repeat the numbers of the totals;
   ingredient columns have fixed widths that scale with the font size.
 - **Logo:** the 20 kg «BW» plate with a steel hub. `scripts/logo/render.html` is the
   single vector source; `scripts/logo/render-icons.sh` renders every size with headless
@@ -943,4 +951,3 @@ yet; screens are verified manually on an emulator.
 - **Incremental sync:** every sync pulls the full lists — fine at personal scale; a
   `?since=` delta endpoint with server tombstones would be needed for large histories.
 - **Compose UI tests** for the main flows.
-- **Server errors:** messages returned by the API (validation, admin) stay in Spanish in every web language.

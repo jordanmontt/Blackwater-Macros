@@ -229,4 +229,4 @@ data class AdminUpdateUserRequest(
 // --- Error envelope ---
 
 @Serializable
-data class ApiError(val error: String)
+data class ApiError(val error: String? = null, val code: String? = null)

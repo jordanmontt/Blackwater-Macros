@@ -11,7 +11,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   return withUserId(request, async (userId) => {
     const input = weightInputSchema.parse(await parseJsonBody(request));
     const weight = await updateWeight(repositories.weights, userId, id, input);
-    if (!weight) return jsonError("Registro no encontrado", 404);
+    if (!weight) return jsonError("weight_not_found", 404);
     return NextResponse.json({ weight });
   });
 }
@@ -23,7 +23,7 @@ export async function PUT(request: Request, context: RouteContext) {
     recordIdSchema.parse(id);
     const input = weightInputSchema.parse(await parseJsonBody(request));
     const weight = await upsertWeight(repositories.weights, userId, id, input);
-    if (!weight) return jsonError("Registro no encontrado", 404);
+    if (!weight) return jsonError("weight_not_found", 404);
     return NextResponse.json({ weight });
   });
 }
@@ -32,7 +32,7 @@ export async function DELETE(request: Request, context: RouteContext) {
   const { id } = await context.params;
   return withUserId(request, async (userId) => {
     const deleted = await deleteWeight(repositories.weights, userId, id);
-    if (!deleted) return jsonError("Registro no encontrado", 404);
+    if (!deleted) return jsonError("weight_not_found", 404);
     return NextResponse.json({ ok: true });
   });
 }

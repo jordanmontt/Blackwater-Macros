@@ -74,9 +74,16 @@ Success `200`:
 
 ## Error Convention
 
-- All errors return JSON `{ "error": "<Spanish message>" }`.
-- Status codes: `400` validation, `401` unauthenticated, `403` forbidden, `404` not found, `409` conflict, `500` internal.
-- Messages are in Spanish (user-facing).
+- All errors return JSON `{ "error": "<Spanish message>", "code": "<code>" }`, e.g.
+  `{ "error": "El peso debe estar entre 20 y 400 kg", "code": "weight_out_of_range" }`.
+- Status codes: `400` validation, `401` unauthenticated, `403` forbidden, `404` not found, `409` conflict, `500` internal, `502` Open Food Facts down.
+- **Clients show the code, not the text**, in the app language: web `t.serverErrors[code]`
+  (`src/lib/server-errors.ts`), Android `server_error_<code>` strings
+  (`ResponseErrorMapper.CODES`). The Spanish `error` is the fallback for a code a client does
+  not know yet, and what the examples in this document show. The codes are the keys of
+  `serverErrors` in `src/i18n/es.ts`; a test on each side fails if the lists differ.
+- Validation errors carry the code of the first problem (`title_required`,
+  `weight_out_of_range`, `username_too_short`…), or `invalid_data`.
 
 ## General Conventions
 

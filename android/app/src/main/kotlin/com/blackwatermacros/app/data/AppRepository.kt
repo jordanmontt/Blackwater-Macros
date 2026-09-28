@@ -111,6 +111,12 @@ class AppRepository(
         changed()
     }
 
+    /** Undo of [deleteTemplate]: the same template (same id) back. */
+    suspend fun restoreTemplate(template: TemplateDTO) {
+        db.templates().upsert(template.toEntity().copy(pending = true, updatedAt = nowIso()))
+        changed()
+    }
+
     // --- Weights ---
 
     /** Sorted by `measuredAt`, oldest first. */
@@ -129,6 +135,12 @@ class AppRepository(
         } else {
             dao.get(id)?.let { dao.upsert(it.copy(deleted = true, pending = true, updatedAt = nowIso())) }
         }
+        changed()
+    }
+
+    /** Undo of [deleteWeight]: the same weigh-in (same id) back. */
+    suspend fun restoreWeight(weight: WeightDTO) {
+        db.weights().upsert(weight.toEntity().copy(pending = true, updatedAt = nowIso()))
         changed()
     }
 

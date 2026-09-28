@@ -3,6 +3,7 @@ package com.blackwatermacros.app.ui
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.blackwatermacros.app.core.AiImage
 import com.blackwatermacros.app.core.AiMessage
 import com.blackwatermacros.app.core.AiProvider
 import com.blackwatermacros.app.core.AiRole
@@ -45,6 +46,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import java.time.Instant
 
 /**
@@ -177,6 +179,42 @@ class CoachTest {
             ),
         )
         assertThat(history).containsExactly(AiMessage(AiRole.USER, "b"), AiMessage(AiRole.ASSISTANT, "B")).inOrder()
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE) // a real bitmap for the thumbnail
+    fun `a photo without words is sent with a default question`() {
+        server.enqueue(stream("Parece un plátano."))
+        val photo = AiImage("image/jpeg", "Zm90bw==")
+        viewModel.setPhotosForTest(listOf(photo))
+        runBlocking {
+            viewModel.send("", photoPrompt = "¿Qué me dices de esta foto?")
+            withTimeout(10_000) { viewModel.state.first { !it.streaming && it.messages.isNotEmpty() } }
+        }
+        val question = viewModel.state.value.messages.first()
+        assertThat(question.text).isEmpty()
+        assertThat(question.images).containsExactly(photo)
+        assertThat(viewModel.photos.value).isEmpty()
+        val parts = body()["contents"]!!.jsonArray.single().jsonObject["parts"]!!.jsonArray
+        assertThat(parts.toString()).contains("Zm90bw==")
+        assertThat(parts.toString()).contains("¿Qué me dices de esta foto?")
+    }
+
+    @Test
+    fun `history resends photos with their question, only the newest ones`() {
+        val photo = { data: String -> AiImage("image/jpeg", data) }
+        val history = historyForModel(
+            listOf(
+                ChatMessage(1, AiRole.USER, "", modelText = "¿Y esto?", images = listOf(photo("a"), photo("b"), photo("c"))),
+                ChatMessage(2, AiRole.ASSISTANT, "Tres platos."),
+                ChatMessage(3, AiRole.USER, "¿Y este?", images = listOf(photo("d"), photo("e"))),
+                ChatMessage(4, AiRole.ASSISTANT, "Otro."),
+            ),
+            newImages = 1,
+        )
+        // 1 new photo + 4 earlier ones = MAX_PHOTOS (5).
+        assertThat(history[0]).isEqualTo(AiMessage(AiRole.USER, "¿Y esto?", listOf(photo("a"), photo("b"))))
+        assertThat(history[2].images).containsExactly(photo("d"), photo("e")).inOrder()
     }
 
     @Test

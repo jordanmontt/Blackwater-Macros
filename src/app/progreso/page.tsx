@@ -30,7 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WeightFatChart, type WeightFatRow } from "@/components/weight-fat-chart";
 import { WeightFormDialog } from "@/components/weight-form-dialog";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import { useRecommendations } from "@/lib/use-recommendations";
@@ -78,12 +78,25 @@ export default function ProgresoPage() {
 
   async function handleDeleteConfirmed() {
     if (!deleting) return;
+    const weight = deleting;
     try {
-      await api.deleteWeight(deleting.id);
+      await api.deleteWeight(weight.id);
       setDeleting(null);
       await weightsRes.trigger();
-    } catch {
-      toast.error(t.common.errorGeneric);
+      toast.success(t.peso.deleted, {
+        duration: UNDO_TOAST_MS,
+        action: {
+          label: t.common.undo,
+          onClick: () => {
+            api
+              .restoreWeight(weight)
+              .then(() => weightsRes.trigger())
+              .catch((error) => toast.error(errorText(error)));
+          },
+        },
+      });
+    } catch (error) {
+      toast.error(errorText(error));
     }
   }
 

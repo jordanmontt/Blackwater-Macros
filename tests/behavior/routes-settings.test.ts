@@ -60,7 +60,7 @@ describe("ruta de ajustes", () => {
     authenticate();
     const res = await putSettings(settingsRequest({ foo: "bar" }));
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Payload no válido" });
+    expect(await res.json()).toMatchObject({ code: "invalid_data" });
   });
 
   it("guarda y devuelve el perfil calórico", async () => {
@@ -104,7 +104,7 @@ describe("ruta de ajustes", () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toBe("El año de nacimiento debe ser entre 1920 y 2010");
+    expect(body.code).toBe("birth_year_out_of_range");
   });
 
   it("permite guardar un perfil vacío", async () => {

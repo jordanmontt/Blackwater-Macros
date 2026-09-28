@@ -54,6 +54,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -106,6 +108,10 @@ fun SettingsScreen(
     val dataMessage by viewModel.dataMessage.collectAsStateWithLifecycle()
     val deletePrompt by viewModel.deletePrompt.collectAsStateWithLifecycle()
     var deletingTemplate by remember { mutableStateOf<TemplateDTO?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
+    val templateDeletedMessage = stringResource(R.string.template_deleted)
+    val undoLabel = stringResource(R.string.action_undo)
     var editingTemplate by remember { mutableStateOf<TemplateDTO?>(null) }
     var templateFormOpen by remember { mutableStateOf(false) }
 
@@ -113,6 +119,7 @@ fun SettingsScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { CenteredTopAppBar(title = stringResource(R.string.tab_settings)) },
     ) { innerPadding ->
         Column(
@@ -229,6 +236,9 @@ fun SettingsScreen(
                     onClick = {
                         viewModel.deleteTemplate(template.id)
                         deletingTemplate = null
+                        snackbarScope.offerUndo(snackbarHostState, templateDeletedMessage, undoLabel) {
+                            viewModel.restoreTemplate(template)
+                        }
                     },
                 ) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
             },

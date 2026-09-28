@@ -11,8 +11,8 @@ export class NotFoundError extends Error {
 }
 
 export class AdminGuardError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor(public readonly code: "cannot_demote_self" | "cannot_delete_self" | "last_admin") {
+    super(code);
     this.name = "AdminGuardError";
   }
 }
@@ -69,10 +69,10 @@ export async function updateUser(
   if (changes.isAdmin !== undefined && changes.isAdmin !== target.isAdmin) {
     if (changes.isAdmin === false) {
       if (actorId === targetId) {
-        throw new AdminGuardError("No puedes quitarte el rol de administrador a ti mismo");
+        throw new AdminGuardError("cannot_demote_self");
       }
       if (target.isAdmin && (await countAdmins(deps)) <= 1) {
-        throw new AdminGuardError("Debe quedar al menos un administrador");
+        throw new AdminGuardError("last_admin");
       }
     }
     data.isAdmin = changes.isAdmin;
@@ -96,10 +96,10 @@ export async function deleteUser(
   const target = await deps.users.findById(targetId);
   if (!target) throw new NotFoundError();
   if (actorId === targetId) {
-    throw new AdminGuardError("No puedes borrarte a ti mismo");
+    throw new AdminGuardError("cannot_delete_self");
   }
   if (target.isAdmin && (await countAdmins(deps)) <= 1) {
-    throw new AdminGuardError("Debe quedar al menos un administrador");
+    throw new AdminGuardError("last_admin");
   }
   await deps.users.delete(targetId);
 }

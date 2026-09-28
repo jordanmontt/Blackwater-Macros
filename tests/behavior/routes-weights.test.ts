@@ -100,7 +100,7 @@ describe("rutas de peso", () => {
       );
       expect(res.status).toBe(400);
       const body = await res.json();
-      expect(body.error).toBe("Peso fuera de rango");
+      expect(body.code).toBe("weight_out_of_range");
     });
   });
 
@@ -165,7 +165,7 @@ describe("rutas de peso", () => {
         routeParams("w-otro"),
       );
       expect(res.status).toBe(404);
-      expect(await res.json()).toEqual({ error: "Registro no encontrado" });
+      expect(await res.json()).toMatchObject({ code: "weight_not_found" });
     });
   });
 

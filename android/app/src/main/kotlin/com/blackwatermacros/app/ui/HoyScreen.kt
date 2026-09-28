@@ -36,9 +36,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -111,32 +111,18 @@ fun HoyScreen(
     val mealDeletedMessage = stringResource(R.string.meal_deleted)
     val undoLabel = stringResource(R.string.action_undo)
 
-    /** Deletes right away; the snackbar offers Undo instead of asking first. */
+    var deletingMeal by remember { mutableStateOf<MealDTO?>(null) }
+
+    /** Asked first (the dialog below), then deleted; the snackbar offers Undo. */
     fun deleteMeal(meal: MealDTO) {
         viewModel.deleteMeal(meal.id)
-        scope.launch {
-            snackbarHostState.currentSnackbarData?.dismiss()
-            val result = snackbarHostState.showSnackbar(
-                message = mealDeletedMessage,
-                actionLabel = undoLabel,
-                duration = SnackbarDuration.Long,
-            )
-            if (result == SnackbarResult.ActionPerformed) viewModel.restoreMeal(meal)
-        }
+        scope.offerUndo(snackbarHostState, mealDeletedMessage, undoLabel) { viewModel.restoreMeal(meal) }
     }
 
     /** Adds meals right away; the snackbar offers Undo. */
     fun addMeals(sources: List<MealFormValue>, message: String) {
         viewModel.addMeals(sources) { ids ->
-            scope.launch {
-                snackbarHostState.currentSnackbarData?.dismiss()
-                val result = snackbarHostState.showSnackbar(
-                    message = message,
-                    actionLabel = undoLabel,
-                    duration = SnackbarDuration.Long,
-                )
-                if (result == SnackbarResult.ActionPerformed) viewModel.deleteMeals(ids)
-            }
+            scope.offerUndo(snackbarHostState, message, undoLabel) { viewModel.deleteMeals(ids) }
         }
     }
 
@@ -205,7 +191,7 @@ fun HoyScreen(
                                 editingMeal = meal
                                 formOpen = true
                             },
-                            onDelete = ::deleteMeal,
+                            onDelete = { deletingMeal = it },
                             onOpenProfile = onOpenProfile,
                             onOpenWeight = onOpenWeight,
                             onReorder = { newList ->
@@ -217,6 +203,25 @@ fun HoyScreen(
                 }
             }
         }
+    }
+
+    deletingMeal?.let { meal ->
+        AlertDialog(
+            onDismissRequest = { deletingMeal = null },
+            title = { Text(stringResource(R.string.meal_delete_title)) },
+            text = { Text(stringResource(R.string.meal_delete_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    deletingMeal = null
+                    deleteMeal(meal)
+                }) {
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingMeal = null }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
     }
 
     if (addOpen) {

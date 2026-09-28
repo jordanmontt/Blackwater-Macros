@@ -1,5 +1,9 @@
 package com.blackwatermacros.app.ui
 
+import android.content.Context
+import android.net.Uri
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blackwatermacros.app.AppGraph
@@ -17,7 +21,12 @@ import com.blackwatermacros.app.core.buildCoachContext
 import com.blackwatermacros.app.core.buildCoachSystemPrompt
 import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.data.AppRepository
+import com.blackwatermacros.app.core.AiImage
 import com.blackwatermacros.app.data.ai.AiClient
+import com.blackwatermacros.app.data.ai.MAX_PHOTOS
+import com.blackwatermacros.app.data.ai.PhotoCodec
+import com.blackwatermacros.app.ui.foods.MealPhoto
+import java.io.File
 import com.blackwatermacros.app.data.ai.AiException
 import com.blackwatermacros.app.data.ai.AiFailure
 import com.blackwatermacros.app.data.ai.AiSettingsStore
@@ -41,11 +50,17 @@ import kotlinx.coroutines.launch
 data class ChatMessage(
     val id: Long,
     val role: AiRole,
+    /** What the user typed (may be empty when they only sent photos). */
     val text: String,
     /** Set on an assistant message whose answer failed. */
     val error: AiFailure? = null,
     /** The provider's (or engine's) own words about the failure. */
     val errorDetail: String = "",
+    /** What the model is asked: [text], or a default question for photos alone. */
+    val modelText: String = text,
+    /** Photos sent with a question: small JPEGs in memory only (never stored). */
+    val images: List<AiImage> = emptyList(),
+    val previews: List<ImageBitmap> = emptyList(),
 )
 
 data class ChatState(val messages: List<ChatMessage> = emptyList(), val streaming: Boolean = false)
@@ -56,17 +71,25 @@ const val COACH_HISTORY_MESSAGES = 20
 /**
  * The earlier turns the model sees (web `historyForModel`): failed or empty
  * answers and their questions are left out; it always starts with the user.
+ * Photos travel again with their question, but only the newest [MAX_PHOTOS]
+ * (counting the [newImages] of the question being sent).
  */
-fun historyForModel(messages: List<ChatMessage>): List<AiMessage> {
+fun historyForModel(messages: List<ChatMessage>, newImages: Int = 0): List<AiMessage> {
     val turns = mutableListOf<AiMessage>()
     messages.forEachIndexed { index, message ->
         if (message.error != null) return@forEachIndexed
         val next = messages.getOrNull(index + 1)
         if (message.role == AiRole.USER && next != null && (next.error != null || next.text.isBlank())) return@forEachIndexed
         if (message.role == AiRole.ASSISTANT && message.text.isBlank()) return@forEachIndexed
-        turns += AiMessage(message.role, message.text)
+        turns += AiMessage(message.role, message.modelText, message.images)
     }
     val recent = turns.takeLast(COACH_HISTORY_MESSAGES).toMutableList()
+    var room = (MAX_PHOTOS - newImages).coerceAtLeast(0)
+    for (i in recent.indices.reversed()) {
+        val kept = recent[i].images.take(room)
+        room -= kept.size
+        recent[i] = recent[i].copy(images = kept)
+    }
     while (recent.isNotEmpty() && recent.first().role != AiRole.USER) recent.removeAt(0)
     return recent
 }
@@ -105,14 +128,57 @@ class CoachViewModel(
         _state.value = _state.value.copy(messages = messages.dropLast(1) + update(messages.last()))
     }
 
-    fun send(text: String) {
-        val question = text.trim()
-        if (question.isEmpty() || _state.value.streaming) return
-        val history = historyForModel(_state.value.messages)
+    private val _photos = MutableStateFlow<List<MealPhoto>>(emptyList())
+    /** Photos for the next question (in memory only). */
+    val photos: StateFlow<List<MealPhoto>> = _photos.asStateFlow()
+    private var nextPhotoId = 1L
+
+    /** Photos go to the cloud provider, or to the phone's model when it reads images (Gemma). */
+    suspend fun canSendPhotos(): Boolean =
+        settings.current.coachEngine != AiEngineChoice.DEVICE || local?.supportsImages() == true
+
+    fun addPhotos(context: Context, uris: List<Uri>) {
+        viewModelScope.launch { uris.take(MAX_PHOTOS - _photos.value.size).forEach { addPhoto(context, it, null) } }
+    }
+
+    /** A camera photo: read into memory, then the file is deleted at once. */
+    fun addCameraFile(context: Context, file: File) {
+        viewModelScope.launch { addPhoto(context, Uri.fromFile(file), file) }
+    }
+
+    private suspend fun addPhoto(context: Context, uri: Uri, deleteAfter: File?) {
+        val scaled = PhotoCodec.read(context, uri, deleteAfter) ?: return
+        if (_photos.value.size < MAX_PHOTOS) {
+            _photos.value = _photos.value + MealPhoto(nextPhotoId++, scaled.image, scaled.preview.asImageBitmap())
+        }
+    }
+
+    @androidx.annotation.VisibleForTesting
+    internal fun setPhotosForTest(images: List<AiImage>) {
+        _photos.value = images.map { MealPhoto(nextPhotoId++, it, ImageBitmap(1, 1)) }
+    }
+
+    fun removePhoto(id: Long) {
+        _photos.value = _photos.value.filterNot { it.id == id }
+    }
+
+    /** [photoPrompt]: the question for photos sent without words («¿Qué me dices de esta foto?»). */
+    fun send(text: String, photoPrompt: String = "") {
+        val typed = text.trim()
+        val photos = _photos.value
+        if ((typed.isEmpty() && photos.isEmpty()) || _state.value.streaming) return
+        val history = historyForModel(_state.value.messages, photos.size)
+        val asked = ChatMessage(
+            id = nextId++,
+            role = AiRole.USER,
+            text = typed,
+            modelText = typed.ifEmpty { photoPrompt },
+            images = photos.map { it.image },
+            previews = photos.map { it.preview },
+        )
+        _photos.value = emptyList()
         _state.value = ChatState(
-            messages = _state.value.messages +
-                ChatMessage(nextId++, AiRole.USER, question) +
-                ChatMessage(nextId++, AiRole.ASSISTANT, ""),
+            messages = _state.value.messages + asked + ChatMessage(nextId++, AiRole.ASSISTANT, ""),
             streaming = true,
         )
         job = viewModelScope.launch {
@@ -120,8 +186,9 @@ class CoachViewModel(
                 val current = settings.current
                 val context = if (current.coachSeesData) buildCoachContext(loadCoachInput()) else null
                 val system = buildCoachSystemPrompt(language(), context)
-                val messages = history + AiMessage(AiRole.USER, question)
+                val messages = history + AiMessage(AiRole.USER, asked.modelText, asked.images)
                 val answer = if (current.coachEngine == AiEngineChoice.DEVICE && local != null) {
+                    if (asked.images.isNotEmpty() && !local.supportsImages()) throw AiException(AiFailure.NO_VISION)
                     local.stream(system, messages)
                 } else {
                     client.stream(current.config, AiInput(system, messages, json = false, stream = true, maxTokens = 4096))
@@ -151,6 +218,7 @@ class CoachViewModel(
     fun reset() {
         job?.cancel()
         job = null
+        _photos.value = emptyList()
         _state.value = ChatState()
     }
 

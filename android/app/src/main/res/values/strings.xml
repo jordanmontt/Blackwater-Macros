@@ -125,7 +125,7 @@
     <string name="weight_add">Log weight</string>
     <string name="weight_edit">Edit weight</string>
     <string name="weight_delete_title">Delete entry?</string>
-    <string name="weight_delete_body">This weight entry will be permanently deleted.</string>
+    <string name="weight_delete_body">This weight entry will be deleted.</string>
     <string name="weight_empty">You haven\'t logged any weight yet.</string>
     <string name="body_fat_value">%1$s%% body fat</string>
     <string name="weight_kg">Weight (kg)</string>
@@ -207,7 +207,7 @@
     <string name="templates_title">Templates</string>
     <string name="templates_empty">You don\'t have any saved templates yet.</string>
     <string name="template_delete_title">Delete template?</string>
-    <string name="template_delete_body">This template will be deleted. This cannot be undone.</string>
+    <string name="template_delete_body">This template will be deleted.</string>
     <string name="data_title">Your data</string>
     <string name="data_description">Export or import your meals and weight as CSV (same format as the web version). Useful as a backup or to move to another phone.</string>
     <string name="data_export_meals">Export meals</string>
@@ -490,4 +490,54 @@
     <string name="meth_sources_body">Generic foods (offline): Swiss Food Composition Database of the Swiss Federal Food Safety and Veterinary Office (FSVO) and the Ciqual 2020 table by Anses (France, Licence Ouverte / Etalab 2.0). Spanish names are added by this project.\n\nProducts and barcodes: Open Food Facts, an open database under the Open Database License (ODbL). Each product\'s data comes from its contributors and may contain errors. Values are per 100 g of the food as described by the source.</string>
     <string name="ai_error_unavailable">The AI service is overloaded or down right now. Try again in a moment.</string>
     <string name="ai_error_local">The model on this phone could not answer. Try again, or use the cloud in Settings → AI.</string>
+
+    <!-- Server errors by code (src/lib/server-errors.ts; texts shared with src/i18n/*.ts) -->
+    <string name="server_error_network">No connection. Try again.</string>
+    <string name="server_error_http">Server error (%1$d)</string>
+    <string name="server_error_unauthenticated">Your session has expired. Log in again.</string>
+    <string name="server_error_forbidden">You do not have permission to do this.</string>
+    <string name="server_error_invalid_json">Invalid JSON body</string>
+    <string name="server_error_invalid_data">Invalid data</string>
+    <string name="server_error_internal">Internal server error. Try again.</string>
+    <string name="server_error_not_found">Not found</string>
+    <string name="server_error_meal_not_found">Meal not found</string>
+    <string name="server_error_template_not_found">Template not found</string>
+    <string name="server_error_weight_not_found">Entry not found</string>
+    <string name="server_error_user_not_found">User not found</string>
+    <string name="server_error_invalid_search">Invalid search</string>
+    <string name="server_error_foods_unavailable">Open Food Facts is not responding</string>
+    <string name="server_error_invalid_credentials">Wrong username or password</string>
+    <string name="server_error_username_exists">That username already exists</string>
+    <string name="server_error_username_too_short">The username must have at least 3 characters</string>
+    <string name="server_error_password_too_short">The password must have at least 8 characters</string>
+    <string name="server_error_no_changes">There are no changes to apply</string>
+    <string name="server_error_cannot_demote_self">You cannot remove your own administrator role</string>
+    <string name="server_error_cannot_delete_self">You cannot delete yourself</string>
+    <string name="server_error_last_admin">There must be at least one administrator</string>
+    <string name="server_error_invalid_id">Invalid identifier</string>
+    <string name="server_error_invalid_date">The date must have the format YYYY-MM-DD</string>
+    <string name="server_error_invalid_datetime">Invalid date and time</string>
+    <string name="server_error_title_required">The title is required</string>
+    <string name="server_error_ingredient_name_required">The ingredient name is required</string>
+    <string name="server_error_template_name_required">The template name is required</string>
+    <string name="server_error_weight_out_of_range">The weight must be between 20 and 400 kg</string>
+    <string name="server_error_body_fat_out_of_range">Body fat must be between 3 and 60 %</string>
+    <string name="server_error_birth_year_out_of_range">The year of birth must be between 1920 and 2010</string>
+    <string name="server_error_height_out_of_range">The height must be between 100 and 250 cm</string>
+    <string name="server_error_gym_days_out_of_range">Gym days must be between 0 and 7</string>
+    <string name="server_error_gym_minutes_out_of_range">The length must be between 0 and 300 minutes</string>
+    <string name="server_error_walking_out_of_range">Walking time must be between 0 and 480 minutes</string>
+
+    <string name="meal_delete_title">Delete meal?</string>
+    <string name="meal_delete_body">This meal and its ingredients will be deleted.</string>
+    <string name="weight_deleted">Entry deleted</string>
+    <string name="template_deleted">Template deleted</string>
+    <string name="coach_add_photo">Add photo</string>
+    <string name="coach_photo_prompt">What can you tell me about this photo?</string>
+    <string name="coach_photo_sent">Sent photo %1$d</string>
+    <string name="coach_photo_remove">Remove photo %1$d</string>
+    <string name="coach_photos_kept">Photos are not stored: they go to %1$s with your question and are gone when the conversation closes.</string>
+    <string name="coach_photos_on_device">Photos stay on this phone: the model reads them here and they are gone when the conversation closes.</string>
+    <string name="coach_photos_text_only">The model on this phone only reads text. To send photos, download Gemma or use the cloud (Settings → AI).</string>
+    <string name="error_generic">Something went wrong. Try again.</string>
 </resources>

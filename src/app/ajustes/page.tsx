@@ -17,11 +17,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TemplateForm } from "@/components/meals/template-form";
 import { parseBackupCsv } from "@/lib/csv-import";
 import { AiSettingsCard } from "@/components/settings/ai-settings-card";
 import { LanguageCard } from "@/components/settings/language-card";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { exitDemoMode } from "@/lib/demo-store";
 import { useDemoMode } from "@/lib/use-demo-mode";
 import { useCachedResource } from "@/lib/use-cached-resource";
@@ -37,6 +47,7 @@ export default function AjustesPage() {
   const demoMode = useDemoMode();
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MealTemplateDTO | null>(null);
+  const [deletingTemplate, setDeletingTemplate] = useState<MealTemplateDTO | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const importInput = useRef<HTMLInputElement>(null);
@@ -99,12 +110,28 @@ export default function AjustesPage() {
     }
   }
 
-  async function handleDeleteTemplate(id: string) {
+  /** Asked first (the dialog), then deleted with an Undo. */
+  async function handleDeleteTemplate() {
+    if (!deletingTemplate) return;
+    const template = deletingTemplate;
     try {
-      await api.deleteTemplate(id);
+      await api.deleteTemplate(template.id);
+      setDeletingTemplate(null);
       await templatesRes.trigger();
+      toast.success(t.ajustes.templateDeleted, {
+        duration: UNDO_TOAST_MS,
+        action: {
+          label: t.common.undo,
+          onClick: () => {
+            api
+              .restoreTemplate(template)
+              .then(() => templatesRes.trigger())
+              .catch((error) => toast.error(errorText(error)));
+          },
+        },
+      });
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
+      toast.error(errorText(error));
     }
   }
 
@@ -236,7 +263,7 @@ export default function AjustesPage() {
                       variant="ghost"
                       size="icon"
                       aria-label={t.meal.delete}
-                      onClick={() => void handleDeleteTemplate(template.id)}
+                      onClick={() => setDeletingTemplate(template)}
                     >
                       <Trash2Icon className="text-muted-foreground" />
                     </Button>
@@ -370,6 +397,28 @@ export default function AjustesPage() {
         </Card>
       ) : null}
 
+
+      <AlertDialog
+        open={deletingTemplate !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletingTemplate(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.ajustes.deleteTemplateTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {formatTemplate(t.ajustes.deleteTemplateBody, { name: deletingTemplate?.name ?? "" })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t.meal.cancel}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => void handleDeleteTemplate()}>
+              {t.meal.delete}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

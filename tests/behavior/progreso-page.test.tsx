@@ -13,7 +13,8 @@ import { t } from "@/i18n";
  *  - resumen de peso (actual, tendencia, cambio, ritmo, grasa) y su gráfico,
  *  - gráfico de calorías y «Promedio de macros» solo sobre los días registrados
  *    («N de M días registrados»), con el reparto de calorías y los objetivos,
- *  - la lista de pesajes del periodo, con añadir, editar y borrar.
+ *  - la lista de pesajes del periodo, con añadir, editar y borrar (pregunta
+ *    antes y luego ofrece «Deshacer»).
  */
 
 let weights: WeightDTO[] = [];
@@ -28,6 +29,9 @@ const profile: CalorieProfile = {
   walkingMinutesPerDay: 30,
   calorieGoal: "maintain",
 };
+
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
+vi.mock("sonner", () => ({ toast: toastMock }));
 
 vi.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error {
@@ -52,10 +56,13 @@ vi.mock("@/lib/api", () => ({
     createWeight: vi.fn(async () => weightDto({ id: "w-new", weightKg: 77.4 })),
     updateWeight: vi.fn(async () => weightDto({ id: "w-1", weightKg: 78 })),
     deleteWeight: vi.fn(async () => ({ ok: true as const })),
+    restoreWeight: vi.fn(async () => undefined),
   } satisfies Pick<
     typeof import("@/lib/api").api,
-    "listWeights" | "listMeals" | "session" | "stats" | "createWeight" | "updateWeight" | "deleteWeight"
+    "listWeights" | "listMeals" | "session" | "stats" | "createWeight" | "updateWeight" | "deleteWeight" | "restoreWeight"
   >,
+  errorText: (error: unknown) => (error instanceof Error ? error.message : "error"),
+  UNDO_TOAST_MS: 10_000,
 }));
 
 vi.mock("@/components/weight-fat-chart", async () => {
@@ -194,7 +201,7 @@ describe("pantalla Progreso", () => {
     expect(vi.mocked(api.updateWeight)).toHaveBeenCalledWith("w-1", expect.objectContaining({ weightKg: 79.8 }));
   });
 
-  it("borra un pesaje tras confirmar", async () => {
+  it("borra un pesaje tras confirmar y ofrece deshacerlo", async () => {
     const user = userEvent.setup();
     weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(1)) })];
     render(<ProgresoPage />);
@@ -204,6 +211,14 @@ describe("pantalla Progreso", () => {
     await user.click(within(confirm).getByRole("button", { name: t.peso.delete }));
 
     expect(vi.mocked(api.deleteWeight)).toHaveBeenCalledWith("w-1");
+
+    await vi.waitFor(() => expect(toastMock.success).toHaveBeenCalled());
+    const [message, options] = toastMock.success.mock.calls.at(-1)!;
+    expect(message).toBe(t.peso.deleted);
+    (options as { action: { label: string; onClick: () => void } }).action.onClick();
+    await vi.waitFor(() =>
+      expect(vi.mocked(api.restoreWeight)).toHaveBeenCalledWith(expect.objectContaining({ id: "w-1" })),
+    );
   });
 });
 

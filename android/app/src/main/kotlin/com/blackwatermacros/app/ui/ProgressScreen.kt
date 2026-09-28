@@ -34,6 +34,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -43,6 +45,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,6 +81,10 @@ fun ProgressScreen(
     var formWeight by remember { mutableStateOf<WeightDTO?>(null) }
     var formOpen by remember { mutableStateOf(false) }
     var deletingWeight by remember { mutableStateOf<WeightDTO?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val weightDeletedMessage = stringResource(R.string.weight_deleted)
+    val undoLabel = stringResource(R.string.action_undo)
 
     fun openForm(weight: WeightDTO?) {
         formWeight = weight
@@ -88,6 +95,7 @@ fun ProgressScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenteredTopAppBar(
                 title = stringResource(R.string.tab_progress),
@@ -149,6 +157,7 @@ fun ProgressScreen(
                 TextButton(onClick = {
                     viewModel.deleteWeight(w.id)
                     deletingWeight = null
+                    scope.offerUndo(snackbarHostState, weightDeletedMessage, undoLabel) { viewModel.restoreWeight(w) }
                 }) {
                     Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }

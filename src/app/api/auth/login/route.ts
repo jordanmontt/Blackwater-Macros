@@ -1,3 +1,4 @@
+import { jsonError } from "@/server/route-utils";
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from "@/server/auth/session";
 import { login, InvalidCredentialsError } from "@/server/services/auth-service";
@@ -9,12 +10,12 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Cuerpo JSON no válido" }, { status: 400 });
+    return jsonError("invalid_json", 400);
   }
 
   const parsed = loginInputSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Datos no válidos" }, { status: 400 });
+    return jsonError("invalid_data", 400);
   }
 
   try {
@@ -27,9 +28,9 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+      return jsonError("invalid_credentials", 401);
     }
     console.error("login failed", error);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    return jsonError("internal", 500);
   }
 }

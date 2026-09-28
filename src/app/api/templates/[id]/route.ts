@@ -11,7 +11,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   return withUserId(request, async (userId) => {
     const input = templateInputSchema.parse(await parseJsonBody(request));
     const template = await updateTemplate(repositories.templates, userId, id, input);
-    if (!template) return jsonError("Plantilla no encontrada", 404);
+    if (!template) return jsonError("template_not_found", 404);
     return NextResponse.json({ template });
   });
 }
@@ -23,7 +23,7 @@ export async function PUT(request: Request, context: RouteContext) {
     recordIdSchema.parse(id);
     const input = templateInputSchema.parse(await parseJsonBody(request));
     const template = await upsertTemplate(repositories.templates, userId, id, input);
-    if (!template) return jsonError("Plantilla no encontrada", 404);
+    if (!template) return jsonError("template_not_found", 404);
     return NextResponse.json({ template });
   });
 }
@@ -32,7 +32,7 @@ export async function DELETE(request: Request, context: RouteContext) {
   const { id } = await context.params;
   return withUserId(request, async (userId) => {
     const deleted = await deleteTemplate(repositories.templates, userId, id);
-    if (!deleted) return jsonError("Plantilla no encontrada", 404);
+    if (!deleted) return jsonError("template_not_found", 404);
     return NextResponse.json({ ok: true });
   });
 }

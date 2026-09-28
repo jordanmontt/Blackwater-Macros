@@ -174,6 +174,6 @@ describe("ruta de exportación CSV", () => {
     authenticate();
     const res = await getExport(new Request("http://test/api/export/raro"), routeParams("raro"));
     expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({ error: "Recurso no encontrado" });
+    expect(await res.json()).toMatchObject({ code: "not_found" });
   });
 });

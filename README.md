@@ -30,8 +30,10 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
   guardas. También «Estimar “3 plátanos” con IA» desde Buscar. Las fotos no se guardan:
   se reducen en memoria, se envían al proveedor que elijas y se descartan.
 - **Coach**: pestaña de chat sobre tu comida y tu progreso («¿Cuál será mi peso en 30
-  días?», «¿Qué ceno?»…). Recibe un resumen de tus datos solo si lo permites y la
-  conversación no se guarda.
+  días?», «¿Qué ceno?»…), también con fotos (del plato, de una etiqueta…). Recibe un
+  resumen de tus datos solo si lo permites y la conversación no se guarda.
+- **Borrar con red de seguridad**: borrar una comida, un pesaje o una plantilla pide
+  confirmación y luego ofrece «Deshacer», en la web y en Android.
 - **IA a tu elección** (Ajustes → Inteligencia artificial): Google Gemini (clave gratis,
   con guía), OpenAI, Anthropic, OpenRouter o un servidor propio compatible con OpenAI
   (Ollama, LM Studio). La clave se queda en tu dispositivo (en Android, cifrada y fuera

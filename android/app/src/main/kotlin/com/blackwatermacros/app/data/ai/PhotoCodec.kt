@@ -7,11 +7,15 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.util.Base64
+import android.util.Log
 import com.blackwatermacros.app.core.AiImage
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Longest side of a photo sent to the AI (web `lib/ai/images.ts`). */
 const val MAX_PHOTO_SIDE = 1024
@@ -62,6 +66,17 @@ object PhotoCodec {
             out.toByteArray()
         }
         return ScaledPhoto(AiImage("image/jpeg", Base64.encodeToString(jpeg, Base64.NO_WRAP)), scaled)
+    }
+
+    /** [downscale] off the main thread; null when it is not a readable image. [deleteAfter]: a camera file, deleted at once. */
+    suspend fun read(context: Context, uri: Uri, deleteAfter: File? = null): ScaledPhoto? = withContext(Dispatchers.IO) {
+        try {
+            runCatching { downscale(context.applicationContext, uri) }
+                .onFailure { Log.w("PhotoCodec", "Could not read a photo", it) }
+                .getOrNull()
+        } finally {
+            deleteAfter?.delete()
+        }
     }
 
     private fun ExifInterface.rotationDegrees(): Int = when (

@@ -2,7 +2,8 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowUpIcon, MessageSquarePlusIcon, SparklesIcon, SquareIcon } from "lucide-react";
+import { ArrowUpIcon, ImagePlusIcon, MessageSquarePlusIcon, SparklesIcon, SquareIcon, XIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +11,8 @@ import { resetCoach, sendCoachMessage, stopCoach, useCoachChat, type ChatMessage
 import { isCoachReady, useAiSettings } from "@/lib/ai/settings";
 import { BROWSER_MODEL, checkBrowserModel, useBrowserModel } from "@/lib/ai/browser-model";
 import { cn } from "@/lib/utils";
+import { downscalePhoto, MAX_PHOTOS } from "@/lib/ai/images";
+import type { AiImage } from "@/lib/core/ai-providers";
 import { formatTemplate, t } from "@/i18n";
 
 /**
@@ -21,6 +24,9 @@ export default function CoachPage() {
   const settings = useAiSettings();
   const chat = useCoachChat();
   const [draft, setDraft] = useState("");
+  // Photos for the next question: in memory only, dropped once sent or removed.
+  const [photos, setPhotos] = useState<AiImage[]>([]);
+  const photoInput = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const browserModel = useBrowserModel();
   const ready = isCoachReady(settings, browserModel.status === "ready");
@@ -36,9 +42,28 @@ export default function CoachPage() {
   }, [chat.messages.length, lastText]);
 
   function send(text: string) {
-    if (text.trim() === "" || chat.streaming) return;
+    if ((text.trim() === "" && photos.length === 0) || chat.streaming) return;
     setDraft("");
-    void sendCoachMessage(text);
+    setPhotos([]);
+    void sendCoachMessage(text, photos);
+  }
+
+  function pickPhotos() {
+    // The browser model reads text only (WebLLM); photos need a cloud provider.
+    if (onBrowser) toast.info(t.coach.photosBrowser);
+    else photoInput.current?.click();
+  }
+
+  async function addPhotos(files: FileList | null) {
+    const added: AiImage[] = [];
+    for (const file of Array.from(files ?? []).slice(0, MAX_PHOTOS - photos.length)) {
+      try {
+        added.push(await downscalePhoto(file));
+      } catch {
+        toast.error(t.photo.photoError);
+      }
+    }
+    setPhotos((current) => [...current, ...added].slice(0, MAX_PHOTOS));
   }
 
   return (
@@ -102,7 +127,56 @@ export default function CoachPage() {
               send(draft);
             }}
           >
+            {photos.length > 0 ? (
+              <div className="space-y-1">
+                <ul className="flex gap-2 overflow-x-auto pt-1.5">
+                  {photos.map((photo, index) => (
+                    <li key={index} className="relative shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- in-memory data URL, never uploaded to us */}
+                      <img
+                        src={`data:${photo.mimeType};base64,${photo.data}`}
+                        alt={formatTemplate(t.photo.photoAlt, { n: index + 1 })}
+                        className="size-14 rounded-lg border object-cover"
+                      />
+                      <button
+                        type="button"
+                        aria-label={formatTemplate(t.photo.removePhoto, { n: index + 1 })}
+                        onClick={() => setPhotos((current) => current.filter((_, i) => i !== index))}
+                        className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full border bg-background shadow-sm"
+                      >
+                        <XIcon className="size-3" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[11px] leading-snug text-muted-foreground">
+                  {formatTemplate(t.coach.photosKept, { provider: t.ai.providerShort[settings.provider] })}
+                </p>
+              </div>
+            ) : null}
             <div className="flex items-end gap-2">
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                aria-label={t.coach.addPhoto}
+                disabled={chat.streaming || photos.length >= MAX_PHOTOS}
+                onClick={pickPhotos}
+              >
+                <ImagePlusIcon />
+              </Button>
+              <input
+                ref={photoInput}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                data-testid="coach-photo-input"
+                onChange={(event) => {
+                  void addPhotos(event.target.files);
+                  event.target.value = "";
+                }}
+              />
               <Textarea
                 aria-label={t.coach.placeholder}
                 placeholder={t.coach.placeholder}
@@ -122,7 +196,7 @@ export default function CoachPage() {
                   <SquareIcon />
                 </Button>
               ) : (
-                <Button type="submit" size="icon" aria-label={t.coach.send} disabled={draft.trim() === ""}>
+                <Button type="submit" size="icon" aria-label={t.coach.send} disabled={draft.trim() === "" && photos.length === 0}>
                   <ArrowUpIcon />
                 </Button>
               )}
@@ -159,7 +233,22 @@ function MessageBubble({ message, pending }: { message: ChatMessage; pending: bo
         ) : message.text === "" && pending ? (
           <p className="text-muted-foreground">{t.coach.thinking}</p>
         ) : mine ? (
-          <p className="whitespace-pre-wrap">{message.text}</p>
+          <>
+            {message.images?.length ? (
+              <div className="-mx-1 mb-1 flex flex-wrap justify-end gap-1">
+                {message.images.map((image, index) => (
+                  // eslint-disable-next-line @next/next/no-img-element -- in-memory data URL
+                  <img
+                    key={index}
+                    src={`data:${image.mimeType};base64,${image.data}`}
+                    alt={formatTemplate(t.coach.photoSent, { n: index + 1 })}
+                    className="size-24 rounded-lg object-cover"
+                  />
+                ))}
+              </div>
+            ) : null}
+            {message.text ? <p className="whitespace-pre-wrap">{message.text}</p> : null}
+          </>
         ) : (
           <SimpleMarkdown text={message.text} />
         )}

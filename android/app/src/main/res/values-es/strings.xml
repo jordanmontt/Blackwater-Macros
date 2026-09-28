@@ -124,7 +124,7 @@
     <string name="weight_add">Registrar peso</string>
     <string name="weight_edit">Editar peso</string>
     <string name="weight_delete_title">¿Eliminar registro?</string>
-    <string name="weight_delete_body">Este registro de peso se borrará permanentemente.</string>
+    <string name="weight_delete_body">Se borrará este registro de peso.</string>
     <string name="weight_empty">Todavía no has registrado ningún peso.</string>
     <string name="body_fat_value">%1$s%% grasa</string>
     <string name="weight_kg">Peso (kg)</string>
@@ -206,7 +206,7 @@
     <string name="templates_title">Plantillas</string>
     <string name="templates_empty">Aún no tienes plantillas guardadas.</string>
     <string name="template_delete_title">¿Eliminar plantilla?</string>
-    <string name="template_delete_body">Se borrará esta plantilla. Esta acción no se puede deshacer.</string>
+    <string name="template_delete_body">Se borrará esta plantilla.</string>
     <string name="data_title">Tus datos</string>
     <string name="data_description">Exporta o importa tus comidas y tu peso en CSV (el mismo formato que la versión web). Útil como copia de seguridad o para cambiar de teléfono.</string>
     <string name="data_export_meals">Exportar comidas</string>
@@ -501,4 +501,54 @@
     <string name="meth_sources_body">Alimentos genéricos (sin conexión): Swiss Food Composition Database de la Oficina Federal de Seguridad Alimentaria y Veterinaria de Suiza (FSVO) y tabla Ciqual 2020 de Anses (Francia, Licence Ouverte / Etalab 2.0). Los nombres en español los añade este proyecto.\n\nProductos y códigos de barras: Open Food Facts, base de datos abierta bajo la Open Database License (ODbL). Los datos de cada producto los aportan sus colaboradores y pueden contener errores. Los valores son por 100 g del alimento tal como lo describe la fuente.</string>
     <string name="ai_error_unavailable">El servicio de IA está saturado o caído en este momento. Inténtalo en un rato.</string>
     <string name="ai_error_local">El modelo del teléfono no pudo responder. Inténtalo de nuevo o usa la nube en Ajustes → IA.</string>
+
+    <!-- Server errors by code (src/lib/server-errors.ts; texts shared with src/i18n/*.ts) -->
+    <string name="server_error_network">Sin conexión. Inténtalo de nuevo.</string>
+    <string name="server_error_http">Error del servidor (%1$d)</string>
+    <string name="server_error_unauthenticated">Tu sesión ha caducado. Inicia sesión de nuevo.</string>
+    <string name="server_error_forbidden">No tienes permiso para hacer esto.</string>
+    <string name="server_error_invalid_json">Cuerpo JSON no válido</string>
+    <string name="server_error_invalid_data">Datos no válidos</string>
+    <string name="server_error_internal">Error interno del servidor. Inténtalo de nuevo.</string>
+    <string name="server_error_not_found">Recurso no encontrado</string>
+    <string name="server_error_meal_not_found">Comida no encontrada</string>
+    <string name="server_error_template_not_found">Plantilla no encontrada</string>
+    <string name="server_error_weight_not_found">Registro no encontrado</string>
+    <string name="server_error_user_not_found">Usuario no encontrado</string>
+    <string name="server_error_invalid_search">Búsqueda no válida</string>
+    <string name="server_error_foods_unavailable">Open Food Facts no responde</string>
+    <string name="server_error_invalid_credentials">Usuario o contraseña incorrectos</string>
+    <string name="server_error_username_exists">El usuario ya existe</string>
+    <string name="server_error_username_too_short">El usuario debe tener al menos 3 caracteres</string>
+    <string name="server_error_password_too_short">La contraseña debe tener al menos 8 caracteres</string>
+    <string name="server_error_no_changes">No hay cambios que aplicar</string>
+    <string name="server_error_cannot_demote_self">No puedes quitarte el rol de administrador a ti mismo</string>
+    <string name="server_error_cannot_delete_self">No puedes borrarte a ti mismo</string>
+    <string name="server_error_last_admin">Debe quedar al menos un administrador</string>
+    <string name="server_error_invalid_id">Identificador no válido</string>
+    <string name="server_error_invalid_date">La fecha debe tener formato AAAA-MM-DD</string>
+    <string name="server_error_invalid_datetime">Fecha y hora no válidas</string>
+    <string name="server_error_title_required">El título es obligatorio</string>
+    <string name="server_error_ingredient_name_required">El nombre del ingrediente es obligatorio</string>
+    <string name="server_error_template_name_required">El nombre de la plantilla es obligatorio</string>
+    <string name="server_error_weight_out_of_range">El peso debe estar entre 20 y 400 kg</string>
+    <string name="server_error_body_fat_out_of_range">La grasa corporal debe estar entre 3 y 60 %</string>
+    <string name="server_error_birth_year_out_of_range">El año de nacimiento debe ser entre 1920 y 2010</string>
+    <string name="server_error_height_out_of_range">La altura debe estar entre 100 y 250 cm</string>
+    <string name="server_error_gym_days_out_of_range">Los días de gimnasio deben ser entre 0 y 7</string>
+    <string name="server_error_gym_minutes_out_of_range">La duración debe ser entre 0 y 300 minutos</string>
+    <string name="server_error_walking_out_of_range">El tiempo de caminata debe ser entre 0 y 480 minutos</string>
+
+    <string name="meal_delete_title">¿Eliminar comida?</string>
+    <string name="meal_delete_body">Se borrará esta comida y sus ingredientes.</string>
+    <string name="weight_deleted">Registro eliminado</string>
+    <string name="template_deleted">Plantilla eliminada</string>
+    <string name="coach_add_photo">Añadir foto</string>
+    <string name="coach_photo_prompt">¿Qué me dices de esta foto?</string>
+    <string name="coach_photo_sent">Foto enviada %1$d</string>
+    <string name="coach_photo_remove">Quitar foto %1$d</string>
+    <string name="coach_photos_kept">Las fotos no se guardan: se envían a %1$s con tu pregunta y desaparecen al cerrar la conversación.</string>
+    <string name="coach_photos_on_device">Las fotos no salen del teléfono: el modelo las lee aquí y desaparecen al cerrar la conversación.</string>
+    <string name="coach_photos_text_only">El modelo del teléfono solo lee texto. Para enviar fotos, descarga Gemma o usa la nube (Ajustes → IA).</string>
+    <string name="error_generic">Algo salió mal. Inténtalo de nuevo.</string>
 </resources>

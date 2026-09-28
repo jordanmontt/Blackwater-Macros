@@ -1,11 +1,5 @@
 package com.blackwatermacros.app.ui.foods
 
-import android.Manifest
-import android.content.ActivityNotFoundException
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,7 +33,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,10 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.blackwatermacros.app.PHOTO_CACHE_DIR
 import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.EstimateConfidence
 import com.blackwatermacros.app.core.MealEstimate
@@ -60,7 +50,6 @@ import com.blackwatermacros.app.data.ai.MAX_PHOTOS
 import com.blackwatermacros.app.ui.CompactTextArea
 import com.blackwatermacros.app.ui.FieldLabel
 import com.blackwatermacros.app.ui.messageRes
-import java.io.File
 
 /**
  * «Foto» in «Añadir comida» (§4.1): tips, up to five photos from the camera or
@@ -97,32 +86,10 @@ fun PhotoEstimateView(
         return
     }
 
-    // The camera writes into a temporary cache file; its path survives rotation.
-    var pendingPath by rememberSaveable { mutableStateOf<String?>(null) }
-    val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
-        val file = pendingPath?.let(::File)
-        pendingPath = null
-        if (file == null) return@rememberLauncherForActivityResult
-        if (saved) viewModel.addCameraFile(context, file) else file.delete()
-    }
-    fun launchCamera() {
-        val dir = File(context.cacheDir, PHOTO_CACHE_DIR).apply { mkdirs() }
-        val file = File.createTempFile("meal", ".jpg", dir)
-        pendingPath = file.absolutePath
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.photos", file)
-        try {
-            takePicture.launch(uri)
-        } catch (e: ActivityNotFoundException) {
-            file.delete()
-            pendingPath = null
-        }
-    }
-    val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) launchCamera()
-    }
-    val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS)) { uris ->
-        viewModel.addPhotos(context, uris)
-    }
+    val pickers = rememberPhotoPickers(
+        onCameraFile = { viewModel.addCameraFile(context, it) },
+        onGallery = { viewModel.addPhotos(context, it) },
+    )
     val busy = state == PhotoEstimateState.Estimating
     val full = photos.size >= MAX_PHOTOS
 
@@ -176,10 +143,7 @@ fun PhotoEstimateView(
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(
-                onClick = {
-                    val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-                    if (granted) launchCamera() else cameraPermission.launch(Manifest.permission.CAMERA)
-                },
+                onClick = pickers.openCamera,
                 enabled = !full && !busy,
                 modifier = Modifier.weight(1f),
             ) {
@@ -188,7 +152,7 @@ fun PhotoEstimateView(
                 Text(stringResource(R.string.photo_camera))
             }
             OutlinedButton(
-                onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                onClick = pickers.openGallery,
                 enabled = !full && !busy,
                 modifier = Modifier.weight(1f),
             ) {

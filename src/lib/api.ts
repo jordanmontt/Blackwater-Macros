@@ -13,14 +13,26 @@ import type { FoodLang, FoodProduct } from "./core/foods";
 import { demoApi } from "./demo-api";
 import { isDemoMode } from "./demo-store";
 import { clearCache, invalidate } from "./client-cache";
+import { isServerErrorCode, type ServerErrorCode } from "./server-errors";
+import { formatTemplate, t } from "@/i18n";
 
 export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    /** The server's error code, when it sent one (`lib/server-errors.ts`). */
+    public code?: ServerErrorCode,
   ) {
     super(message);
   }
+}
+
+/** The server's error in the app language: its code's text, else its own words, else the status. */
+function errorMessage(status: number, body: unknown): { message: string; code?: ServerErrorCode } {
+  const envelope = body && typeof body === "object" ? (body as { error?: unknown; code?: unknown }) : {};
+  if (isServerErrorCode(envelope.code)) return { message: t.serverErrors[envelope.code], code: envelope.code };
+  if (typeof envelope.error === "string") return { message: envelope.error };
+  return { message: formatTemplate(t.serverErrors.http, { status }) };
 }
 
 /** Evento disparado cuando una respuesta 401 expira la sesión del cliente. */
@@ -34,7 +46,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       headers: { "Content-Type": "application/json", ...init?.headers },
     });
   } catch {
-    throw new ApiError(0, "Error de red");
+    throw new ApiError(0, t.serverErrors.network, "network");
   }
 
   if (response.status === 401 && !path.startsWith("/api/auth/login")) {
@@ -44,7 +56,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       sessionStorage.setItem(REDIRECT_KEY, String(Date.now()));
       window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
     }
-    throw new ApiError(401, "No autenticado");
+    throw new ApiError(401, t.serverErrors.unauthenticated, "unauthenticated");
   }
 
   const body = response.headers.get("content-type")?.includes("application/json")
@@ -52,11 +64,32 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     : null;
 
   if (!response.ok) {
-    const message =
-      body && typeof body.error === "string" ? body.error : `Error ${response.status}`;
-    throw new ApiError(response.status, message);
+    const { message, code } = errorMessage(response.status, body);
+    throw new ApiError(response.status, message, code);
   }
   return body as T;
+}
+
+/** What the server needs to recreate a meal or template (it recomputes the resolved totals). */
+function nutritionOf(source: MealDTO | MealTemplateDTO): Omit<MealPayload, "logDate"> {
+  return {
+    title: source.title,
+    notes: source.notes,
+    entryMode: source.entryMode,
+    ingredients: source.ingredients,
+    totalCalories: source.totalCalories,
+    totalProtein: source.totalProtein,
+    totalCarbs: source.totalCarbs,
+    totalFat: source.totalFat,
+  };
+}
+
+/** How long a «… deleted · Undo» toast stays (Android: `SnackbarDuration.Long`). */
+export const UNDO_TOAST_MS = 10_000;
+
+/** A caught error for a toast: the server's message (already in the app language) or the generic one. */
+export function errorText(error: unknown): string {
+  return error instanceof ApiError ? error.message : t.common.errorGeneric;
 }
 
 function jsonBody(payload: unknown): RequestInit {
@@ -167,6 +200,21 @@ export const api = {
     });
   },
 
+  /**
+   * Undo of [deleteMeal]: the same meal (same id) back, then the day's order
+   * as it was. `orderedIds` is the day's list before the delete.
+   */
+  restoreMeal: async (meal: MealDTO, orderedIds: string[]) => {
+    if (isDemoMode()) return demoApi.restoreMeal(meal, orderedIds);
+    await request<{ meal: MealDTO }>(`/api/meals/${meal.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ logDate: meal.logDate, ...nutritionOf(meal) } satisfies MealPayload),
+    });
+    await request<{ ok: true }>("/api/meals/reorder", { method: "PATCH", body: JSON.stringify({ orderedIds }) });
+    invalidate("meals:");
+    invalidate("stats:");
+  },
+
   reorderMeals: (orderedIds: string[]) => {
     if (isDemoMode()) return demoApi.reorderMeals(orderedIds);
     // No se invalida "meals:" aquí: la página ya escribió el orden optimista
@@ -199,6 +247,16 @@ export const api = {
     });
     invalidate("templates");
     return data.template;
+  },
+
+  /** Undo of [deleteTemplate]: the same template (same id) back. */
+  restoreTemplate: async (template: MealTemplateDTO) => {
+    if (isDemoMode()) return demoApi.restoreTemplate(template);
+    await request<{ template: MealTemplateDTO }>(`/api/templates/${template.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ name: template.name, ...nutritionOf(template) } satisfies TemplatePayload),
+    });
+    invalidate("templates");
   },
 
   deleteTemplate: (id: string) => {
@@ -247,6 +305,20 @@ export const api = {
     invalidate("weights");
     invalidate("stats:");
     return data.weight;
+  },
+
+  /** Undo of [deleteWeight]: the same weigh-in (same id) back. */
+  restoreWeight: async (weight: WeightDTO) => {
+    if (isDemoMode()) return demoApi.restoreWeight(weight);
+    const payload: WeightPayload = {
+      measuredAt: weight.measuredAt,
+      weightKg: weight.weightKg,
+      bodyFatPct: weight.bodyFatPct,
+      note: weight.note,
+    };
+    await request<{ weight: WeightDTO }>(`/api/weights/${weight.id}`, { method: "PUT", body: JSON.stringify(payload) });
+    invalidate("weights");
+    invalidate("stats:");
   },
 
   deleteWeight: (id: string) => {

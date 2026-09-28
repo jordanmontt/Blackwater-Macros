@@ -113,7 +113,7 @@ describe("rutas de plantillas", () => {
       );
       expect(res.status).toBe(400);
       const body = await res.json();
-      expect(["El nombre de la plantilla es obligatorio", "Invalid input: expected string, received undefined"]).toContain(body.error);
+      expect(["template_name_required", "invalid_data"]).toContain(body.code);
     });
   });
 
@@ -182,7 +182,7 @@ describe("rutas de plantillas", () => {
         routeParams("t-otra"),
       );
       expect(res.status).toBe(404);
-      expect(await res.json()).toEqual({ error: "Plantilla no encontrada" });
+      expect(await res.json()).toMatchObject({ code: "template_not_found" });
     });
   });
 

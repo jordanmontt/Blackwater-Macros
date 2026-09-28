@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, ApiError, AUTH_EXPIRED_EVENT } from "@/lib/api";
 import { DEMO_COOKIE_NAME } from "@/lib/demo-store";
 import { jsonResponse } from "../helpers/repos";
+import { applyLanguage, t } from "@/i18n";
 
 /**
  * Requisitos del cliente de API:
@@ -81,6 +82,23 @@ describe("cliente de API", () => {
     expect(sessionStorage.getItem(REDIRECT_KEY)).toBeNull();
   });
 
+  it("el error del servidor se muestra en el idioma de la app, por su código", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonResponse(400, { error: "El peso debe estar entre 20 y 400 kg", code: "weight_out_of_range" })),
+    );
+    applyLanguage("de");
+    try {
+      await expect(api.listMeals("2026-08-23", "2026-08-23")).rejects.toMatchObject({
+        status: 400,
+        code: "weight_out_of_range",
+        message: "Das Gewicht muss zwischen 20 und 400 kg liegen",
+      });
+    } finally {
+      applyLanguage("es");
+    }
+  });
+
   it("un fallo de red se convierte en ApiError(0) sin emitir el evento", async () => {
     const events = captureAuthEvents();
     vi.stubGlobal(
@@ -92,7 +110,8 @@ describe("cliente de API", () => {
 
     await expect(api.listMeals("2026-08-23", "2026-08-23")).rejects.toMatchObject({
       status: 0,
-      message: "Error de red",
+      code: "network",
+      message: t.serverErrors.network,
     });
 
     expect(events).toEqual([]);

@@ -61,6 +61,7 @@ vi.mock("@/lib/api", () => ({
     logout: vi.fn(async () => ({ ok: true as const })),
     importMeals: vi.fn(async () => ({ added: 0, skipped: 0 })),
     importWeights: vi.fn(async () => ({ added: 1, skipped: 1 })),
+    restoreTemplate: vi.fn(async () => undefined),
   } satisfies Pick<
     typeof import("@/lib/api").api,
     | "session"
@@ -73,7 +74,10 @@ vi.mock("@/lib/api", () => ({
     | "logout"
     | "importMeals"
     | "importWeights"
+    | "restoreTemplate"
   >,
+  errorText: (error: unknown) => (error instanceof Error ? error.message : "error"),
+  UNDO_TOAST_MS: 10_000,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -199,19 +203,31 @@ describe("pantalla Ajustes", () => {
     expect(await screen.findByRole("button", { name: t.meal.delete })).toBeInTheDocument();
   });
 
-  it("borra una plantilla y la quita de la lista", async () => {
+  it("borra una plantilla tras confirmarlo y ofrece deshacerlo", async () => {
     const user = userEvent.setup();
     render(<AjustesPage />);
     await user.click(await screen.findByRole("button", { name: new RegExp(`^${t.hoy.templates}`) }));
-    await screen.findByRole("button", { name: t.meal.delete });
+    await user.click(await screen.findByRole("button", { name: t.meal.delete }));
+
+    // Primero se pregunta; nada se borra todavía.
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText(t.ajustes.deleteTemplateTitle)).toBeInTheDocument();
+    expect(vi.mocked(api.deleteTemplate)).not.toHaveBeenCalled();
 
     // Tras borrar, el servidor ya no devuelve la plantilla: la lista se
     // revalida desde la (mockeada) base de datos.
     vi.mocked(api.listTemplates).mockResolvedValue([] as MealTemplateDTO[]);
-
-    await user.click(screen.getByRole("button", { name: t.meal.delete }));
+    await user.click(within(dialog).getByRole("button", { name: t.meal.delete }));
     expect(vi.mocked(api.deleteTemplate)).toHaveBeenCalledWith("t-1");
     expect(await screen.findByText(t.hoy.noTemplates)).toBeInTheDocument();
+
+    // El aviso ofrece «Deshacer», que devuelve la misma plantilla.
+    const [message, options] = toastMock.success.mock.calls.at(-1)!;
+    expect(message).toBe(t.ajustes.templateDeleted);
+    (options as { action: { onClick: () => void } }).action.onClick();
+    await vi.waitFor(() =>
+      expect(vi.mocked(api.restoreTemplate)).toHaveBeenCalledWith(expect.objectContaining({ id: "t-1" })),
+    );
   });
 
   it("abre el formulario de nueva plantilla y al guardar la añade a la lista", async () => {

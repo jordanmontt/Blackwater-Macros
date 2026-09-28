@@ -53,19 +53,19 @@ describe("rutas de autenticación", () => {
       await seedUser(world!, "ana", "pass");
       const res = await postLogin(loginRequest({ username: "ana", password: "incorrecta" }));
       expect(res.status).toBe(401);
-      expect(await res.json()).toEqual({ error: "Usuario o contraseña incorrectos" });
+      expect(await res.json()).toMatchObject({ code: "invalid_credentials" });
     });
 
     it("devuelve 400 si el cuerpo no es JSON válido", async () => {
       const res = await postLogin(loginRequest("no-json"));
       expect(res.status).toBe(400);
-      expect(await res.json()).toEqual({ error: "Cuerpo JSON no válido" });
+      expect(await res.json()).toMatchObject({ code: "invalid_json" });
     });
 
     it("devuelve 400 si faltan campos", async () => {
       const res = await postLogin(loginRequest({ username: "ana" }));
       expect(res.status).toBe(400);
-      expect(await res.json()).toEqual({ error: "Datos no válidos" });
+      expect(await res.json()).toMatchObject({ code: "invalid_data" });
     });
 
     it("devuelve 200 y emite cookie de sesión al autenticarse", async () => {
@@ -102,7 +102,7 @@ describe("rutas de autenticación", () => {
     it("devuelve 401 si no hay cookie de sesión", async () => {
       const res = await getSession(new Request("http://test/api/auth/session"));
       expect(res.status).toBe(401);
-      expect(await res.json()).toEqual({ error: "No autenticado" });
+      expect(await res.json()).toMatchObject({ code: "unauthenticated" });
     });
 
     it("devuelve el usuario con perfil calórico y rol", async () => {

@@ -572,6 +572,17 @@ export function deleteDemoMeal(id: string): boolean {
   return found;
 }
 
+/** Undo of a delete: the same meal (same id) back on its day; the caller restores the order. */
+export function restoreDemoMeal(meal: MealDTO): void {
+  write((store) => {
+    if (store.meals.some((existing) => existing.id === meal.id)) return store;
+    const order = store.meals
+      .filter((existing) => existing.logDate === meal.logDate)
+      .reduce((max, existing) => Math.max(max, existing.order), -1) + 1;
+    return { ...store, meals: [...store.meals, { ...meal, order, createdAt: Date.now() }] };
+  });
+}
+
 export function reorderDemoMeals(orderedIds: string[]): void {
   write((store) => {
     const byId = new Map(store.meals.map((meal) => [meal.id, meal]));
@@ -590,6 +601,15 @@ export function createDemoTemplate(payload: TemplatePayload): MealTemplateDTO {
   const template = buildTemplateDto({ id: newId(), payload });
   write((store) => ({ ...store, templates: [...store.templates, template] }));
   return template;
+}
+
+/** Undo of a delete: the same template (same id) back in the list. */
+export function restoreDemoTemplate(template: MealTemplateDTO): void {
+  write((store) =>
+    store.templates.some((existing) => existing.id === template.id)
+      ? store
+      : { ...store, templates: [...store.templates, template] },
+  );
 }
 
 export function updateDemoTemplate(id: string, payload: TemplatePayload): MealTemplateDTO | null {
@@ -653,6 +673,15 @@ export function updateDemoWeight(id: string, payload: WeightPayload): WeightDTO 
       .sort((a, b) => a.measuredAt.localeCompare(b.measuredAt)),
   }));
   return updated;
+}
+
+/** Undo of a delete: the same weigh-in (same id) back in the log. */
+export function restoreDemoWeight(weight: WeightDTO): void {
+  write((store) =>
+    store.weights.some((existing) => existing.id === weight.id)
+      ? store
+      : { ...store, weights: [...store.weights, weight].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt)) },
+  );
 }
 
 export function deleteDemoWeight(id: string): boolean {

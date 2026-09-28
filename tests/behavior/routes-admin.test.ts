@@ -137,7 +137,7 @@ describe("rutas de administración de usuarios", () => {
         jsonRequest("/api/admin/users", { username: "luis", password: "mi-clave-123" }),
       );
       expect(dup.status).toBe(409);
-      expect(await dup.json()).toEqual({ error: "El usuario ya existe" });
+      expect(await dup.json()).toMatchObject({ code: "username_exists" });
     });
 
     it("rechaza el duplicado aunque cambie las mayúsculas", async () => {
@@ -192,7 +192,7 @@ describe("rutas de administración de usuarios", () => {
         routeParams("u-2"),
       );
       expect(res.status).toBe(409);
-      expect(await res.json()).toEqual({ error: "El usuario ya existe" });
+      expect(await res.json()).toMatchObject({ code: "username_exists" });
     });
 
     it("restablece la contraseña", async () => {
@@ -240,16 +240,14 @@ describe("rutas de administración de usuarios", () => {
         routeParams(admin.id),
       );
       expect(res.status).toBe(400);
-      expect(await res.json()).toEqual({
-        error: "No puedes quitarte el rol de administrador a ti mismo",
-      });
+      expect(await res.json()).toMatchObject({ code: "cannot_demote_self" });
     });
 
     it("exige al menos un cambio (400)", async () => {
       await seedAdmin();
       const res = await patchUser(jsonRequest("/api/admin/users/u-2", {}), routeParams("u-2"));
       expect(res.status).toBe(400);
-      expect(await res.json()).toEqual({ error: "No hay cambios que aplicar" });
+      expect(await res.json()).toMatchObject({ code: "no_changes" });
     });
   });
 
@@ -270,7 +268,7 @@ describe("rutas de administración de usuarios", () => {
       const admin = await seedAdmin();
       const res = await deleteUser(undefined as unknown as Request, routeParams(admin.id));
       expect(res.status).toBe(400);
-      expect(await res.json()).toEqual({ error: "No puedes borrarte a ti mismo" });
+      expect(await res.json()).toMatchObject({ code: "cannot_delete_self" });
     });
 
     it("devuelve 404 si el usuario no existe", async () => {

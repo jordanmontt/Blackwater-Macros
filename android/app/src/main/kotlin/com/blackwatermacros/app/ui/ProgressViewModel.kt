@@ -97,6 +97,10 @@ class ProgressViewModel(
     fun deleteWeight(id: String) {
         viewModelScope.launch { repository.deleteWeight(id) }
     }
+
+    fun restoreWeight(weight: WeightDTO) {
+        viewModelScope.launch { repository.restoreWeight(weight) }
+    }
 }
 
 internal fun buildProgress(

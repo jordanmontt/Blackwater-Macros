@@ -2,6 +2,7 @@ package com.blackwatermacros.app.ui
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,13 +26,21 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AddComment
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,15 +48,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -61,6 +78,9 @@ import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.AiProvider
 import com.blackwatermacros.app.core.AiRole
 import com.blackwatermacros.app.data.ai.AiEngineChoice
+import com.blackwatermacros.app.data.ai.MAX_PHOTOS
+import com.blackwatermacros.app.ui.foods.rememberPhotoPickers
+import kotlinx.coroutines.launch
 
 /** Short provider name for «Gemini · nube». */
 fun AiProvider.shortLabelRes(): Int = when (this) {
@@ -95,16 +115,36 @@ fun CoachScreen(
         if (state.messages.isNotEmpty()) listState.scrollToItem(state.messages.size - 1, Int.MAX_VALUE / 2)
     }
 
+    val photos by viewModel.photos.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var photoMenu by remember { mutableStateOf(false) }
+    val textOnlyMessage = stringResource(R.string.coach_photos_text_only)
+    val photoPrompt = stringResource(R.string.coach_photo_prompt)
+    val pickers = rememberPhotoPickers(
+        onCameraFile = { viewModel.addCameraFile(context, it) },
+        onGallery = { viewModel.addPhotos(context, it) },
+    )
+
     fun send(text: String) {
-        if (text.isBlank() || state.streaming) return
+        if ((text.isBlank() && photos.isEmpty()) || state.streaming) return
         draft = ""
-        viewModel.send(text)
+        viewModel.send(text, photoPrompt)
+    }
+
+    /** Photos need the cloud or a phone model that reads images (Gemma); Qwen reads text only. */
+    fun openPhotoMenu() {
+        scope.launch {
+            if (viewModel.canSendPhotos()) photoMenu = true else snackbarHostState.showSnackbar(textOnlyMessage)
+        }
     }
 
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenteredTopAppBar(
                 title = stringResource(R.string.tab_coach),
@@ -168,7 +208,68 @@ fun CoachScreen(
                     .background(MaterialTheme.colorScheme.background)
                     .padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 8.dp),
             ) {
+                if (photos.isNotEmpty()) {
+                    Row(
+                        Modifier.horizontalScroll(rememberScrollState()).padding(top = 4.dp, bottom = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        photos.forEachIndexed { index, photo ->
+                            Box {
+                                Image(
+                                    photo.preview,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)),
+                                )
+                                IconButton(
+                                    onClick = { viewModel.removePhoto(photo.id) },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .size(22.dp)
+                                        .background(MaterialTheme.colorScheme.surface, CircleShape),
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Close,
+                                        contentDescription = stringResource(R.string.coach_photo_remove, index + 1),
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Text(
+                        if (engine == AiEngineChoice.DEVICE) {
+                            stringResource(R.string.coach_photos_on_device)
+                        } else {
+                            stringResource(R.string.coach_photos_kept, stringResource(settings.provider.shortLabelRes()))
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 6.dp),
+                    )
+                }
                 Row(verticalAlignment = Alignment.Bottom) {
+                    Box {
+                        OutlinedIconButton(
+                            onClick = ::openPhotoMenu,
+                            enabled = !state.streaming && photos.size < MAX_PHOTOS,
+                        ) {
+                            Icon(Icons.Filled.AddPhotoAlternate, contentDescription = stringResource(R.string.coach_add_photo))
+                        }
+                        DropdownMenu(expanded = photoMenu, onDismissRequest = { photoMenu = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.photo_camera)) },
+                                leadingIcon = { Icon(Icons.Filled.PhotoCamera, contentDescription = null) },
+                                onClick = { photoMenu = false; pickers.openCamera() },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.photo_gallery)) },
+                                leadingIcon = { Icon(Icons.Filled.PhotoLibrary, contentDescription = null) },
+                                onClick = { photoMenu = false; pickers.openGallery() },
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(8.dp))
                     Box(Modifier.weight(1f)) {
                         CompactTextArea(
                             draft,
@@ -184,7 +285,7 @@ fun CoachScreen(
                             Icon(Icons.Filled.Stop, contentDescription = stringResource(R.string.coach_stop))
                         }
                     } else {
-                        FilledIconButton(onClick = { send(draft) }, enabled = draft.isNotBlank()) {
+                        FilledIconButton(onClick = { send(draft) }, enabled = draft.isNotBlank() || photos.isNotEmpty()) {
                             Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.coach_send))
                         }
                     }
@@ -206,6 +307,7 @@ fun CoachScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MessageBubble(message: ChatMessage, pending: Boolean) {
     val mine = message.role == AiRole.USER
@@ -245,7 +347,23 @@ private fun MessageBubble(message: ChatMessage, pending: Boolean) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                mine -> Text(message.text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary)
+                mine -> Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (message.previews.isNotEmpty()) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            message.previews.forEachIndexed { index, preview ->
+                                Image(
+                                    preview,
+                                    contentDescription = stringResource(R.string.coach_photo_sent, index + 1),
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(96.dp).clip(RoundedCornerShape(10.dp)),
+                                )
+                            }
+                        }
+                    }
+                    if (message.text.isNotEmpty()) {
+                        Text(message.text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary)
+                    }
+                }
                 else -> Text(simpleMarkdown(message.text), style = MaterialTheme.typography.bodyMedium)
             }
         }
