@@ -641,6 +641,10 @@ rest of the calorie profile.
   of the weights to `cacheDir` (`<model>…xnnpack_cache`, ~65 % of the file, read from disk
   instead of RAM); it is deleted with the model, and stale GPU caches are removed on load.
   The image encoder loads only for a request with photos (also on the CPU).
+  A loaded model holds ~4 GB, so it is **released** 60 s after the last request, at once on
+  «Nueva conversación», and when the app goes to the background (`MainActivity.onStop`,
+  which includes opening the camera): left loaded, Android killed the app in the
+  background to make room for the camera. Reloading takes ~20 s on the CPU.
   Needs Kotlin ≥ 2.4 (the library's metadata).
 - **Memory:** every model can be downloaded; below `recommendedPhoneGb` (E2B 6, E4B 8, Qwen 4
   GB phones) the download shows a warning. A low-memory kill cannot be caught, so

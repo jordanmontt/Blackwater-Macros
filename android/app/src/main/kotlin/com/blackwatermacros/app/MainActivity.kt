@@ -126,6 +126,12 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         if (AppGraph.account.current != null) AppGraph.scheduler.requestSync()
     }
+
+    /** In the background (another app, or the camera for a photo) the phone's model gives its memory back. */
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations) AppGraph.localEngine.releaseWhenIdle()
+    }
 }
 
 private val AllTabRoutes = setOf(

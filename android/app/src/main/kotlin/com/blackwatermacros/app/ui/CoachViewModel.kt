@@ -218,6 +218,8 @@ class CoachViewModel(
     fun reset() {
         job?.cancel()
         job = null
+        // A new conversation starts from scratch: the phone's model gives its memory back.
+        local?.releaseWhenIdle()
         _photos.value = emptyList()
         _state.value = ChatState()
     }

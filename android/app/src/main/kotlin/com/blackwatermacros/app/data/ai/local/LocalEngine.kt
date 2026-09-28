@@ -18,7 +18,12 @@ import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.Message
 import com.google.ai.edge.litertlm.ResponseFormat
 import com.google.ai.edge.litertlm.ThinkingConfig
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -37,6 +42,9 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
     private var engine: Engine? = null
     /** Whether [engine] has the image encoder loaded (only when a request brings photos). */
     private var engineHasVision = false
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    /** Frees the model [IDLE_RELEASE_MS] after the last request (see [releaseWhenIdle]). */
+    private var idleRelease: Job? = null
     private var visionCache: Boolean? = null
 
     /** D6: whether this model file takes images (asked to the model itself, then remembered). */
@@ -105,6 +113,7 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
 
     /** Runs [block] on the loaded engine, marked for [ModelRunGuard] while it works. */
     private suspend fun <T> withEngine(vision: Boolean, block: suspend (Engine) -> T): T {
+        idleRelease?.cancel()
         guard?.started(LocalModels.installed(context)?.name.orEmpty())
         try {
             return block(loaded(vision))
@@ -117,6 +126,10 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
             throw AiException(AiFailure.LOCAL_MODEL, e.message.orEmpty().lineSequence().first().take(200))
         } finally {
             guard?.finished()
+            idleRelease = scope.launch {
+                delay(IDLE_RELEASE_MS)
+                release()
+            }
         }
     }
 
@@ -151,6 +164,17 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
             }
         }
 
+    /**
+     * Frees the model's memory as soon as no request is running (at once when idle):
+     * «Nueva conversación» and the app going to the background (the camera opening,
+     * too) call it. A loaded model holds ~4 GB; left loaded in the background, Android
+     * killed the app to make room for the camera on an 8 GB phone.
+     */
+    fun releaseWhenIdle() {
+        idleRelease?.cancel()
+        idleRelease = scope.launch { release() }
+    }
+
     /** Frees the memory (and lets the model file be deleted). */
     suspend fun release() = mutex.withLock {
         engine?.close()
@@ -164,6 +188,8 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
         /** Prompt + answer: the coach summary is ~1–2k tokens. */
         const val MAX_TOKENS = 4096
         const val MAX_IMAGES = 5
+        /** Long enough for a follow-up question; reloading takes ~20 s on the CPU. */
+        const val IDLE_RELEASE_MS = 60_000L
 
         /** The meal estimate as a JSON schema, for constrained decoding (same fields as `MEAL_ESTIMATE_SHAPE`). */
         const val MEAL_ESTIMATE_SCHEMA = """{"type":"object","properties":{"title":{"type":"string"},"items":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"grams":{"type":"number"},"calories":{"type":"number"},"protein":{"type":"number"},"carbs":{"type":"number"},"fat":{"type":"number"}},"required":["name","grams","calories","protein","carbs","fat"]}},"confidence":{"type":"string","enum":["low","medium","high"]},"notes":{"type":"string"}},"required":["title","items","confidence","notes"]}"""
