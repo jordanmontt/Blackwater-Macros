@@ -46,6 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -165,19 +168,7 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
                     },
                 )
                 Spacer(Modifier.height(12.dp))
-                FieldLabel(stringResource(R.string.ai_model))
-                val defaultModel = DEFAULT_MODELS.getValue(provider)
-                CompactField(
-                    value = settings.models[provider].orEmpty(),
-                    onValueChange = viewModel::setModel,
-                    placeholder = defaultModel,
-                    keyboardType = KeyboardType.Ascii,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                if (defaultModel.isNotEmpty()) {
-                    Spacer(Modifier.height(4.dp))
-                    CardDescription(stringResource(R.string.ai_model_hint, defaultModel))
-                }
+                ModelPicker(viewModel, provider, settings.models[provider].orEmpty(), settings.ready)
                 Spacer(Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedButton(onClick = viewModel::runTest, enabled = test != AiTestState.Testing) {
@@ -276,4 +267,97 @@ internal fun FreeKeyGuide(initiallyOpen: Boolean = false) {
     }
     Spacer(Modifier.height(8.dp))
     CardDescription(stringResource(R.string.ai_free_key_privacy))
+}
+
+/**
+ * «Modelo» (web `ModelPicker`): the models the provider lists for this key,
+ * «Predeterminado» first and «Otro…» to type a name. Without a list (no key
+ * yet, offline, a server that does not list) it is the plain text field.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModelPicker(viewModel: AiSettingsViewModel, provider: AiProvider, saved: String, keyReady: Boolean) {
+    val options by viewModel.modelOptions.collectAsStateWithLifecycle()
+    val status by viewModel.modelListStatus.collectAsStateWithLifecycle()
+    var typing by rememberSaveable(provider) { mutableStateOf(false) }
+    val defaultModel = DEFAULT_MODELS.getValue(provider)
+
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.weight(1f)) { FieldLabel(stringResource(R.string.ai_model)) }
+        if (keyReady) {
+            IconButton(onClick = { viewModel.refreshModels(force = true) }, enabled = status != ModelListStatus.Loading) {
+                if (status == ModelListStatus.Loading) {
+                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = stringResource(R.string.ai_model_refresh),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+    if (options.isNotEmpty() && !typing) {
+        var expanded by rememberSaveable { mutableStateOf(false) }
+        val defaultLabel = stringResource(R.string.ai_model_default, defaultModel.ifEmpty { "—" })
+        val label = when {
+            saved.isEmpty() -> defaultLabel
+            else -> options.firstOrNull { it.id == saved }?.label ?: saved
+        }
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+            CompactField(
+                value = label,
+                onValueChange = {},
+                placeholder = label,
+                readOnly = true,
+                trailingIcon = {
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                },
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                DropdownMenuItem(text = { Text(defaultLabel) }, onClick = { viewModel.setModel(""); expanded = false })
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(option.label)
+                                if (option.label != option.id) {
+                                    Text(option.id, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        },
+                        onClick = { viewModel.setModel(option.id); expanded = false },
+                    )
+                }
+                DropdownMenuItem(text = { Text(stringResource(R.string.ai_model_other)) }, onClick = { typing = true; expanded = false })
+            }
+        }
+    } else {
+        CompactField(
+            value = saved,
+            onValueChange = viewModel::setModel,
+            placeholder = defaultModel,
+            keyboardType = KeyboardType.Ascii,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+    Spacer(Modifier.height(4.dp))
+    val failed = status as? ModelListStatus.Failed
+    CardDescription(
+        when {
+            status == ModelListStatus.Loading -> stringResource(R.string.ai_model_list_loading)
+            failed != null -> stringResource(R.string.ai_model_list_error, stringResource(failed.failure.messageRes()))
+            options.isNotEmpty() ->
+                pluralStringResource(R.plurals.ai_model_list_count, options.size, options.size) + " " + stringResource(R.string.ai_model_limits)
+            !keyReady -> stringResource(R.string.ai_model_list_needs_key)
+            defaultModel.isNotEmpty() -> stringResource(R.string.ai_model_hint, defaultModel)
+            else -> ""
+        },
+    )
 }

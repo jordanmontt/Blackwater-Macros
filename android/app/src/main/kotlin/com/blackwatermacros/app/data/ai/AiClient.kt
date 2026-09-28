@@ -7,7 +7,10 @@ import com.blackwatermacros.app.core.AiMessage
 import com.blackwatermacros.app.core.AiRole
 import com.blackwatermacros.app.core.aiErrorDetail
 import com.blackwatermacros.app.core.aiErrorKind
+import com.blackwatermacros.app.core.AiModelOption
 import com.blackwatermacros.app.core.buildAiRequest
+import com.blackwatermacros.app.core.buildModelListRequest
+import com.blackwatermacros.app.core.parseModelList
 import com.blackwatermacros.app.core.isAiConfigured
 import com.blackwatermacros.app.core.parseAiResponse
 import com.blackwatermacros.app.core.parseAiStreamLine
@@ -118,6 +121,27 @@ class AiClient(
             }
         }
     }.flowOn(Dispatchers.IO)
+
+    /** The models [config]'s key can use, as the provider lists them (`:core` `parseModelList`). */
+    suspend fun listModels(config: AiConfig): List<AiModelOption> = withContext(Dispatchers.IO) {
+        if (!isAiConfigured(config)) throw AiException(AiFailure.NOT_CONFIGURED)
+        val request = buildModelListRequest(config)
+        val built = try {
+            Request.Builder().url(request.url).apply { request.headers.forEach { (name, value) -> header(name, value) } }.get().build()
+        } catch (e: IllegalArgumentException) {
+            throw AiException(AiFailure.OFFLINE, e.message.orEmpty())
+        }
+        val response = try {
+            http.newCall(built).execute()
+        } catch (e: IOException) {
+            throw AiException(AiFailure.OFFLINE, e.message.orEmpty())
+        }
+        response.use {
+            val body = runCatching { it.body?.string() }.getOrNull().orEmpty()
+            if (!it.isSuccessful) throw AiException(aiErrorKind(it.code, body).toFailure(), "${it.code}: ${aiErrorDetail(body)}")
+            parseModelList(config.provider, runCatching { Json.parseToJsonElement(body) }.getOrNull())
+        }
+    }
 
     /** «Probar»: a tiny call; a 2xx answer means key, model and server are right. */
     suspend fun test(config: AiConfig) = withContext(Dispatchers.IO) {

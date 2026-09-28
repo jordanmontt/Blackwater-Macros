@@ -373,7 +373,7 @@
     <string name="ai_coach_sees_data_hint">Ogni domanda invia un riepilogo: profilo, pasti degli ultimi 14 giorni e peso.</string>
     <string name="ai_error_not_configured">Configura l\'IA nelle Impostazioni.</string>
     <string name="ai_error_invalid_key">La chiave non è valida o non ha i permessi.</string>
-    <string name="ai_error_quota">Hai raggiunto il limite del fornitore. Aspetta un po\' o controlla il tuo piano.</string>
+    <string name="ai_error_quota">Hai esaurito il limite di questo modello (token o richieste). Prova un altro modello in Impostazioni → IA o aspetta che si rinnovi.</string>
     <string name="ai_error_not_found">Il fornitore non trova quel modello. Controlla il nome del modello.</string>
     <string name="ai_error_offline">Impossibile connettersi. Controlla la connessione o l\'indirizzo del server.</string>
     <string name="ai_error_empty">L\'IA non ha risposto. Riprova.</string>
@@ -553,4 +553,15 @@
     <string name="error_generic">Qualcosa è andato storto. Riprova.</string>
     <string name="local_model_oom_title">Il telefono ha esaurito la memoria</string>
     <string name="local_model_oom_body">%1$s ha avuto bisogno di più memoria di quella libera sul telefono, quindi Android ha chiuso l\'app. Chiudi altre app e riprova, oppure usa un modello più leggero o il cloud (Impostazioni → IA).</string>
+    <string name="ai_model_default">Predefinito (%1$s)</string>
+    <string name="ai_model_other">Altro (scrivi il nome)…</string>
+    <string name="ai_model_refresh">Aggiorna l\'elenco dei modelli</string>
+    <string name="ai_model_list_loading">Caricamento dei modelli disponibili…</string>
+    <string name="ai_model_limits">Ogni modello ha il suo limite: se ne esaurisci uno, scegline un altro.</string>
+    <string name="ai_model_list_error">Non è stato possibile caricare l\'elenco dei modelli. %1$s</string>
+    <string name="ai_model_list_needs_key">Aggiungi la chiave per scegliere tra i modelli disponibili.</string>
+    <plurals name="ai_model_list_count">
+        <item quantity="one">%d modello disponibile con la tua chiave.</item>
+        <item quantity="other">%d modelli disponibili con la tua chiave.</item>
+    </plurals>
 </resources>

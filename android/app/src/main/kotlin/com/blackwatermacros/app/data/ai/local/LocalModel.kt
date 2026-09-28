@@ -7,16 +7,21 @@ import androidx.annotation.StringRes
 import com.blackwatermacros.app.BuildConfig
 import com.blackwatermacros.app.R
 import java.io.File
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * A model the user can download to run on the phone (D6). All are LiteRT-LM
- * files published by Google's `litert-community` on Hugging Face: open (not
- * gated), Apache-2.0, good in Spanish. Checked against the SHA-256 below.
+ * A model the user can download to run on the phone (D6): a LiteRT-LM file on
+ * Hugging Face, checked against its SHA-256. The built-in ones below are
+ * joined by the catalog on the Blackwater site (`LocalModelCatalog`), so new
+ * models appear without a new version of the app.
  */
 data class LocalModelSpec(
     val id: String,
     val name: String,
-    val repo: String,
+    /** Always on huggingface.co (the catalog refuses anything else). */
+    val url: String,
     val fileName: String,
     val sizeBytes: Long,
     val sha256: String,
@@ -28,9 +33,14 @@ data class LocalModelSpec(
     val recommendedPhoneGb: Int,
     /** Reads photos (else: coach only, photos use the cloud). */
     val vision: Boolean,
-    @StringRes val noteRes: Int,
+    /** The built-in models' note, translated in `strings.xml`… */
+    @StringRes val noteRes: Int? = null,
+    /** …or the catalog's, by language code (`en` is the fallback). */
+    val notes: Map<String, String> = emptyMap(),
+    /** Still recognised when installed, but no longer offered for download. */
+    val hidden: Boolean = false,
 ) {
-    val url: String get() = "https://huggingface.co/litert-community/$repo/resolve/main/$fileName"
+    fun note(language: String): String? = notes[language] ?: notes["en"]
 
     /** A phone sold as «8 GB» reports ~7.5–7.8 GB to apps (the rest is reserved). */
     val recommendedRamBytes: Long get() = recommendedPhoneGb * 880_000_000L
@@ -42,11 +52,13 @@ data class LocalModelSpec(
     val workingCopyBytes: Long get() = (sizeBytes * 0.65).toLong()
 }
 
+private fun huggingFace(repo: String, fileName: String) = "https://huggingface.co/litert-community/$repo/resolve/main/$fileName"
+
 object LocalModels {
     val GEMMA_4_E2B = LocalModelSpec(
         id = "gemma-4-e2b",
         name = "Gemma 4 E2B",
-        repo = "gemma-4-E2B-it-litert-lm",
+        url = huggingFace("gemma-4-E2B-it-litert-lm", "gemma-4-E2B-it.litertlm"),
         fileName = "gemma-4-E2B-it.litertlm",
         sizeBytes = 2_588_147_712L,
         sha256 = "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
@@ -57,7 +69,7 @@ object LocalModels {
     val GEMMA_4_E4B = LocalModelSpec(
         id = "gemma-4-e4b",
         name = "Gemma 4 E4B",
-        repo = "gemma-4-E4B-it-litert-lm",
+        url = huggingFace("gemma-4-E4B-it-litert-lm", "gemma-4-E4B-it.litertlm"),
         fileName = "gemma-4-E4B-it.litertlm",
         sizeBytes = 3_659_530_240L,
         sha256 = "0b2a8980ce155fd97673d8e820b4d29d9c7d99b8fa6806f425d969b145bd52e0",
@@ -68,7 +80,7 @@ object LocalModels {
     val QWEN_3_1_7B = LocalModelSpec(
         id = "qwen3-1.7b",
         name = "Qwen3 1.7B",
-        repo = "Qwen3-1.7B",
+        url = huggingFace("Qwen3-1.7B", "Qwen3-1.7B_dynamic_wi4b32_afp32.litertlm"),
         fileName = "Qwen3-1.7B_dynamic_wi4b32_afp32.litertlm",
         sizeBytes = 977_184_032L,
         sha256 = "2eeffef7b51bc3e1225ea69fe7aa5f417397934b56a5b6c20cc068d6fd2c918b",
@@ -77,8 +89,24 @@ object LocalModels {
         noteRes = R.string.local_model_note_qwen,
     )
 
-    val ALL = listOf(GEMMA_4_E2B, GEMMA_4_E4B, QWEN_3_1_7B)
+    val BUILT_IN = listOf(GEMMA_4_E2B, GEMMA_4_E4B, QWEN_3_1_7B)
     val DEFAULT = GEMMA_4_E2B
+
+    private val _catalog = MutableStateFlow(BUILT_IN)
+
+    /** Built-in models plus the site's catalog (which wins for the same id). */
+    val catalog: StateFlow<List<LocalModelSpec>> = _catalog.asStateFlow()
+
+    /** Every known model, hidden ones included (an installed model must stay recognisable). */
+    val ALL: List<LocalModelSpec> get() = _catalog.value
+
+    /** The ones offered for download. */
+    val choices: List<LocalModelSpec> get() = ALL.filterNot { it.hidden }
+
+    /** The site's catalog, in its order, then the built-in models it does not mention. */
+    fun useCatalog(remote: List<LocalModelSpec>) {
+        _catalog.value = remote + BUILT_IN.filter { builtIn -> remote.none { it.id == builtIn.id } }
+    }
 
     fun byId(id: String?): LocalModelSpec? = ALL.firstOrNull { it.id == id }
 

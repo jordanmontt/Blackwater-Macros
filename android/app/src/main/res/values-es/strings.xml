@@ -373,7 +373,7 @@
     <string name="ai_coach_sees_data_hint">Con cada pregunta se envía un resumen: perfil, comidas de los últimos 14 días y peso.</string>
     <string name="ai_error_not_configured">Configura la IA en Ajustes.</string>
     <string name="ai_error_invalid_key">La clave no es válida o no tiene permiso.</string>
-    <string name="ai_error_quota">Has llegado al límite del proveedor. Espera un poco o revisa tu plan.</string>
+    <string name="ai_error_quota">Has agotado el límite de este modelo (tokens o peticiones). Prueba con otro modelo en Ajustes → IA o espera a que se renueve.</string>
     <string name="ai_error_not_found">El proveedor no encuentra ese modelo. Revisa el nombre del modelo.</string>
     <string name="ai_error_offline">No se pudo conectar. Revisa tu conexión o la dirección del servidor.</string>
     <string name="ai_error_empty">La IA no ha devuelto respuesta. Inténtalo de nuevo.</string>
@@ -553,4 +553,15 @@
     <string name="error_generic">Algo salió mal. Inténtalo de nuevo.</string>
     <string name="local_model_oom_title">El teléfono se quedó sin memoria</string>
     <string name="local_model_oom_body">%1$s necesitó más memoria de la que el teléfono tenía libre, así que Android cerró la app. Cierra otras apps y vuelve a intentarlo, o usa un modelo más ligero o la nube (Ajustes → IA).</string>
+    <string name="ai_model_default">Predeterminado (%1$s)</string>
+    <string name="ai_model_other">Otro (escribir el nombre)…</string>
+    <string name="ai_model_refresh">Actualizar la lista de modelos</string>
+    <string name="ai_model_list_loading">Cargando los modelos disponibles…</string>
+    <string name="ai_model_limits">Cada modelo tiene su propio límite: si agotas uno, elige otro.</string>
+    <string name="ai_model_list_error">No se pudo cargar la lista de modelos. %1$s</string>
+    <string name="ai_model_list_needs_key">Añade la clave para elegir entre los modelos disponibles.</string>
+    <plurals name="ai_model_list_count">
+        <item quantity="one">%d modelo disponible con tu clave.</item>
+        <item quantity="other">%d modelos disponibles con tu clave.</item>
+    </plurals>
 </resources>

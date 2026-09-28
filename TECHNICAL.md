@@ -611,6 +611,17 @@ rest of the calorie profile.
   in the `ai_settings` prefs with the keys AES-GCM-encrypted by an Android Keystore key,
   the file excluded from backups and device transfer (`res/xml/backup_rules.xml`,
   `data_extraction_rules.xml`); screen Ajustes → Inteligencia artificial (`AiSettingsScreen`).
+- **Model dropdown** (Ajustes → IA → Modelo): the list comes from the provider itself
+  (`core/ai-models.ts` = Kotlin `AiModels.kt`, mirrored tests): `buildModelListRequest` (Gemini
+  `GET /v1beta/models`, OpenAI/OpenRouter/compatible `GET …/models`, Anthropic `GET /v1/models`)
+  and `parseModelList` (chat models only — no embeddings, image, speech, live audio or Gemma,
+  which has no system instruction —; «…latest»/«auto» first, then newest by version). Cached
+  per provider with a hash of key + server (never the key): web `lib/ai/model-list.ts` in
+  `localStorage["bw:ai-models"]`, Android `ModelListStore` (prefs `ai_model_lists`). Refreshed
+  when the app opens (at most once a day: web `AiModelRefresh` in the layout, Android
+  `AppGraph.refreshOnOpen`), when the key changes and with «Actualizar». «Predeterminado» and
+  «Otro…» (type a name) stay; without a list it is the old text field. The quota error says to
+  pick another model (each has its own daily limit).
 - Tests never call a real provider: mocked `fetch` (web) / MockWebServer (Android).
 - **Photo logging** («Foto» in «Añadir comida», and «Estimar “…” con IA» from search):
   `buildMealEstimateSystemPrompt` + `buildMealEstimateUserText` (core) → JSON-mode call →
@@ -646,6 +657,15 @@ rest of the calorie profile.
   which includes opening the camera): left loaded, Android killed the app in the
   background to make room for the camera. Reloading takes ~20 s on the CPU.
   Needs Kotlin ≥ 2.4 (the library's metadata).
+- **Catalog of phone models:** `public/models/local-models.json` on the site (the proxy lets
+  `/models/` through without a session). The app reads it each time it opens
+  (`LocalModelCatalog`, at most every 10 min), keeps the last good copy in `filesDir` for offline
+  use and merges it with the built-in `LocalModels.BUILT_IN` (the site wins for the same id).
+  Adding a model = adding an entry and deploying the site: no new app version, as long as the
+  bundled LiteRT-LM runs it (`minAppVersionCode` hides it from older apps). Entries are
+  validated (download only from huggingface.co, SHA-256, size, file name); a wrong one is
+  skipped. `"hidden": true` retires a model without breaking phones that have it.
+  `tests/unit/local-models-catalog.test.ts` and `LocalModelCatalogTest` check the file.
 - **Memory:** every model can be downloaded; below `recommendedPhoneGb` (E2B 6, E4B 8, Qwen 4
   GB phones) the download shows a warning. A low-memory kill cannot be caught, so
   `ModelRunGuard` marks each run; if the next start finds the mark and

@@ -5,7 +5,7 @@ import { AiSettingsCard } from "@/components/settings/ai-settings-card";
 import { AiError, aiComplete, aiStream, RETRY_DELAYS_MS } from "@/lib/ai/client";
 import { getAiSettings } from "@/lib/ai/settings";
 import type { AiConfig, AiInput } from "@/lib/core/ai-providers";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 
 /**
  * Requisitos de Ajustes → IA y del cliente de IA del navegador:
@@ -13,6 +13,8 @@ import { t } from "@/i18n";
  *  - «Probar» llama directamente al proveedor elegido (nunca a nuestro servidor)
  *    y explica los errores (clave no válida, límite, sin conexión),
  *  - la guía de la clave gratis de Google enlaza a AI Studio,
+ *  - el modelo se elige de la lista que da el proveedor para tu clave (guardada en
+ *    este navegador), con «Predeterminado» y «Otro…» para escribir un nombre,
  *  - «El coach puede ver mis datos» se puede desactivar,
  *  - las respuestas en streaming llegan por trozos aunque se corten a mitad de línea.
  * Nunca se llama a un proveedor real: `fetch` está simulado.
@@ -52,6 +54,45 @@ describe("Ajustes → IA", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(String(url)).toMatch(/^https:\/\/generativelanguage\.googleapis\.com\/v1beta\/models\/gemini-flash-latest:/);
     expect((init?.headers as Record<string, string>)["x-goog-api-key"]).toBe("fake-gemini-key");
+  });
+
+  it("con la clave, el modelo se elige de la lista del proveedor; «Otro…» deja escribirlo", async () => {
+    fetchMock.mockImplementation(async (input) =>
+      String(input).includes("/models?")
+        ? new Response(
+            JSON.stringify({
+              models: [
+                { name: "models/gemini-3-flash", displayName: "Gemini 3 Flash", supportedGenerationMethods: ["generateContent"] },
+                { name: "models/gemini-2.5-flash-lite", displayName: "Gemini 2.5 Flash-Lite", supportedGenerationMethods: ["generateContent"] },
+                { name: "models/gemini-2.5-flash-image", displayName: "Nano Banana", supportedGenerationMethods: ["generateContent"] },
+              ],
+            }),
+          )
+        : new Response("{}", { status: 500 }),
+    );
+    const user = userEvent.setup();
+    render(<AiSettingsCard />);
+    // Without a key there is nothing to list: the plain field.
+    expect(screen.getByText(t.ai.modelListNeedsKey)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(t.ai.apiKey), "fake-gemini-key");
+    const select = await screen.findByRole("combobox", { name: t.ai.model }, { timeout: 3000 });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toBe("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000");
+    expect((init?.headers as Record<string, string>)["x-goog-api-key"]).toBe("fake-gemini-key");
+    expect([...(select as HTMLSelectElement).options].map((option) => option.textContent)).toEqual([
+      formatTemplate(t.ai.modelDefault, { model: "gemini-flash-latest" }),
+      "Gemini 3 Flash",
+      "Gemini 2.5 Flash-Lite",
+      t.ai.modelOther,
+    ]);
+
+    await user.selectOptions(select, "gemini-2.5-flash-lite");
+    expect(getAiSettings().models.gemini).toBe("gemini-2.5-flash-lite");
+
+    await user.selectOptions(select, t.ai.modelOther);
+    await user.type(screen.getByRole("textbox", { name: t.ai.model }), "x");
+    expect(getAiSettings().models.gemini).toBe("gemini-2.5-flash-litex");
   });
 
   it("explica una clave no válida", async () => {

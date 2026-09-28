@@ -39,7 +39,9 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
   (Ollama, LM Studio). La clave se queda en tu dispositivo (en Android, cifrada y fuera
   de las copias de seguridad) y va directa al proveedor. También un **modelo local**:
   en Android Gemma 4 E2B/E4B o Qwen3 1.7B (fotos y coach, sin internet); en la web
-  Qwen3 1.7B para el coach en navegadores con WebGPU.
+  Qwen3 1.7B para el coach en navegadores con WebGPU. El modelo en la nube se elige de una
+  lista que da el propio proveedor para tu clave; la lista de modelos locales vive en
+  `public/models/local-models.json` y la app la actualiza sola al abrirse.
 - **Primeros pasos**: al empezar, tus datos (sexo, año, altura, peso, objetivo) y la
   clave de IA opcional; en Android, «Iniciar sesión» es la primera opción y la cuenta es
   opcional. «Ver tutorial» en Ajustes.

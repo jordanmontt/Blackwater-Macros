@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "about": "Models the Android app offers to download and run on the phone (LiteRT-LM). The app reads this file each time it opens and keeps the last good copy. To add a model: append an entry (url on huggingface.co, exact sizeBytes and sha256 of the file, the RAM of the phones it suits, whether it reads photos, a note per language). To retire one, set \"hidden\": true (phones that have it keep it). \"minAppVersionCode\" hides an entry from app versions too old to run it. Check with: npm test (tests/unit/local-models-catalog.test.ts) and the Android LocalModelCatalogTest.",
+  "models": [
+    {
+      "id": "gemma-4-e2b",
+      "name": "Gemma 4 E2B",
+      "url": "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm",
+      "fileName": "gemma-4-E2B-it.litertlm",
+      "sizeBytes": 2588147712,
+      "sha256": "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
+      "recommendedPhoneGb": 6,
+      "vision": true,
+      "notes": {
+        "en": "Recommended. Reads photos. Best with 6 GB of RAM or more.",
+        "es": "Recomendado. Lee fotos. Mejor con 6 GB de RAM o más.",
+        "fr": "Recommandé. Lit les photos. Idéal avec 6 Go de RAM ou plus.",
+        "it": "Consigliato. Legge le foto. Meglio con 6 GB di RAM o più.",
+        "de": "Empfohlen. Liest Fotos. Am besten mit 6 GB RAM oder mehr."
+      }
+    },
+    {
+      "id": "gemma-4-e4b",
+      "name": "Gemma 4 E4B",
+      "url": "https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm/resolve/main/gemma-4-E4B-it.litertlm",
+      "fileName": "gemma-4-E4B-it.litertlm",
+      "sizeBytes": 3659530240,
+      "sha256": "0b2a8980ce155fd97673d8e820b4d29d9c7d99b8fa6806f425d969b145bd52e0",
+      "recommendedPhoneGb": 8,
+      "vision": true,
+      "notes": {
+        "en": "More precise, slower and bigger. Reads photos. Best with 8 GB of RAM or more.",
+        "es": "Más preciso, más lento y más grande. Lee fotos. Mejor con 8 GB de RAM o más.",
+        "fr": "Plus précis, plus lent et plus gros. Lit les photos. Idéal avec 8 Go de RAM ou plus.",
+        "it": "Più preciso, più lento e più grande. Legge le foto. Meglio con 8 GB di RAM o più.",
+        "de": "Genauer, langsamer und größer. Liest Fotos. Am besten mit 8 GB RAM oder mehr."
+      }
+    },
+    {
+      "id": "qwen3-1.7b",
+      "name": "Qwen3 1.7B",
+      "url": "https://huggingface.co/litert-community/Qwen3-1.7B/resolve/main/Qwen3-1.7B_dynamic_wi4b32_afp32.litertlm",
+      "fileName": "Qwen3-1.7B_dynamic_wi4b32_afp32.litertlm",
+      "sizeBytes": 977184032,
+      "sha256": "2eeffef7b51bc3e1225ea69fe7aa5f417397934b56a5b6c20cc068d6fd2c918b",
+      "recommendedPhoneGb": 4,
+      "vision": false,
+      "notes": {
+        "en": "Light. Coach only (does not read photos). 4 GB of RAM is enough.",
+        "es": "Ligero. Solo para el coach (no lee fotos). Basta con 4 GB de RAM.",
+        "fr": "Léger. Coach seulement (ne lit pas les photos). 4 Go de RAM suffisent.",
+        "it": "Leggero. Solo per il coach (non legge le foto). Bastano 4 GB di RAM.",
+        "de": "Leicht. Nur für den Coach (liest keine Fotos). 4 GB RAM reichen."
+      }
+    }
+  ]
+}

@@ -15,7 +15,9 @@ import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.ai.AiClient
 import com.blackwatermacros.app.data.ai.AiSettingsStore
 import com.blackwatermacros.app.data.ai.MealEstimator
+import com.blackwatermacros.app.data.ai.ModelListStore
 import com.blackwatermacros.app.data.ai.local.LocalEngine
+import com.blackwatermacros.app.data.ai.local.LocalModelCatalog
 import com.blackwatermacros.app.data.ai.local.ModelRunGuard
 import com.blackwatermacros.app.data.ai.local.LocalModelManager
 import com.blackwatermacros.app.data.foods.GenericFoodsStore
@@ -54,15 +56,30 @@ object AppGraph {
     lateinit var aiSettings: AiSettingsStore
         private set
     lateinit var ai: AiClient
+    /** The models each cloud key can use, cached for the dropdown in Ajustes → IA. */
+    lateinit var modelLists: ModelListStore
         private set
     lateinit var mealEstimator: MealEstimator
         private set
     lateinit var localModels: LocalModelManager
         private set
+    /** The phone models on offer, from the Blackwater site (cached; see [refreshOnOpen]). */
+    lateinit var localCatalog: LocalModelCatalog
+        private set
+    private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     lateinit var localEngine: LocalEngine
     /** Notices when Android killed the app for memory while the phone's model ran. */
     lateinit var modelRunGuard: ModelRunGuard
         private set
+
+    /**
+     * Each time the app opens: the phone-model catalog and the cloud model list
+     * are refreshed in the background (the cached copies keep working offline).
+     */
+    fun refreshOnOpen() {
+        backgroundScope.launch { localCatalog.refresh() }
+        backgroundScope.launch { runCatching { modelLists.refresh(aiSettings.current.config) } }
+    }
 
     fun init(context: Context) {
         val baseUrl = BuildConfig.API_BASE_URL.let { if (it.endsWith("/")) it else "$it/" }
@@ -78,6 +95,9 @@ object AppGraph {
         recentFoods = RecentFoods(context)
         aiSettings = AiSettingsStore(context)
         ai = AiClient.create()
+        modelLists = ModelListStore(context.getSharedPreferences(ModelListStore.PREFS_NAME, Context.MODE_PRIVATE), fetch = ai::listModels)
+        localCatalog = LocalModelCatalog(context, baseUrl + "models/local-models.json", BuildConfig.VERSION_CODE)
+            .also { it.loadCached() }
         localModels = LocalModelManager(context)
         modelRunGuard = ModelRunGuard(context)
         localEngine = LocalEngine(context, modelRunGuard)

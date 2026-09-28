@@ -65,6 +65,11 @@
       "source": "src/lib/core/ai-providers.ts",
       "ts": "tests/unit/ai-providers.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/AiProvidersTest.kt"
+    },
+    {
+      "source": "src/lib/core/ai-models.ts",
+      "ts": "tests/unit/ai-models.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/AiModelsTest.kt"
     }
   ]
 }

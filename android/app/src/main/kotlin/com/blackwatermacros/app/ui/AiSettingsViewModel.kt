@@ -5,7 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.R
+import com.blackwatermacros.app.core.AiModelOption
 import com.blackwatermacros.app.core.AiProvider
+import com.blackwatermacros.app.data.ai.ModelListStore
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import com.blackwatermacros.app.data.ai.AiClient
 import com.blackwatermacros.app.data.ai.AiException
 import com.blackwatermacros.app.data.ai.AiFailure
@@ -26,6 +30,13 @@ import com.blackwatermacros.app.data.ai.local.LocalEngine
 import com.blackwatermacros.app.data.ai.local.LocalModelManager
 import com.blackwatermacros.app.data.ai.local.LocalModelState
 import com.blackwatermacros.app.data.ai.local.LocalModelSpec
+
+/** Loading the provider's model list for the dropdown. */
+sealed interface ModelListStatus {
+    data object Idle : ModelListStatus
+    data object Loading : ModelListStatus
+    data class Failed(val failure: AiFailure) : ModelListStatus
+}
 
 sealed interface AiTestState {
     data object Idle : AiTestState
@@ -64,9 +75,46 @@ class AiSettingsViewModel(
     private val client: AiClient = AppGraph.ai,
     private val models: LocalModelManager = AppGraph.localModels,
     private val local: LocalEngine = AppGraph.localEngine,
+    private val modelLists: ModelListStore = AppGraph.modelLists,
 ) : ViewModel() {
 
     val settings: StateFlow<AiSettings> = store.settings
+
+    /** The models the provider lists for this key (empty: none yet, so the plain text field). */
+    val modelOptions: StateFlow<List<AiModelOption>> = combine(store.settings, modelLists.lists) { current, _ ->
+        modelLists.cached(current.config)?.options.orEmpty()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, modelLists.cached(store.current.config)?.options.orEmpty())
+
+    private val _modelListStatus = MutableStateFlow<ModelListStatus>(ModelListStatus.Idle)
+    val modelListStatus: StateFlow<ModelListStatus> = _modelListStatus.asStateFlow()
+    private var listJob: Job? = null
+
+    /** A new key (or server) is looked up once the user stops typing; the same one only once a day. */
+    fun refreshModels(force: Boolean = false, afterMs: Long = 0) {
+        listJob?.cancel()
+        listJob = viewModelScope.launch {
+            delay(afterMs)
+            if (!store.current.ready) {
+                _modelListStatus.value = ModelListStatus.Idle
+                return@launch
+            }
+            _modelListStatus.value = ModelListStatus.Loading
+            _modelListStatus.value = try {
+                modelLists.refresh(store.current.config, force)
+                ModelListStatus.Idle
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: AiException) {
+                ModelListStatus.Failed(e.failure)
+            } catch (e: Exception) {
+                ModelListStatus.Failed(AiFailure.PROVIDER)
+            }
+        }
+    }
+
+    init {
+        refreshModels()
+    }
 
     val modelState: StateFlow<LocalModelState> = models.state
     val selectedModel: StateFlow<LocalModelSpec> = models.selected
@@ -107,13 +155,22 @@ class AiSettingsViewModel(
         store.update(transform)
     }
 
-    fun setProvider(provider: AiProvider) = update { it.copy(provider = provider) }
+    fun setProvider(provider: AiProvider) {
+        update { it.copy(provider = provider) }
+        refreshModels()
+    }
 
-    fun setApiKey(value: String) = update { it.copy(apiKeys = it.apiKeys + (it.provider to value.trim())) }
+    fun setApiKey(value: String) {
+        update { it.copy(apiKeys = it.apiKeys + (it.provider to value.trim())) }
+        refreshModels(afterMs = 700)
+    }
 
     fun setModel(value: String) = update { it.copy(models = it.models + (it.provider to value)) }
 
-    fun setBaseUrl(value: String) = update { it.copy(baseUrl = value) }
+    fun setBaseUrl(value: String) {
+        update { it.copy(baseUrl = value) }
+        refreshModels(afterMs = 700)
+    }
 
     fun setCoachSeesData(value: Boolean) = update { it.copy(coachSeesData = value) }
 

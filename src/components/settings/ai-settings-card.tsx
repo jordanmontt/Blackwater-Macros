@@ -7,11 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
-import { DEFAULT_MODELS, type AiProvider } from "@/lib/core/ai-providers";
+import type { AiProvider } from "@/lib/core/ai-providers";
 import { AiError, testAi } from "@/lib/ai/client";
 import { AI_PROVIDERS, aiConfigOf, saveAiSettings, useAiSettings } from "@/lib/ai/settings";
 import { BrowserModelSection } from "@/components/settings/browser-model-section";
-import { formatTemplate, t } from "@/i18n";
+import { ModelPicker } from "@/components/settings/model-picker";
+import { t } from "@/i18n";
 
 type TestState =
   | { status: "idle" }
@@ -147,25 +148,10 @@ export function AiSettingsCard() {
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="ai-model">{t.ai.model}</Label>
-          <Input
-            id="ai-model"
-            autoComplete="off"
-            spellCheck={false}
-            placeholder={DEFAULT_MODELS[provider]}
-            value={settings.models[provider] ?? ""}
-            onChange={(event) => {
-              const value = event.target.value;
-              update((current) => ({ ...current, models: { ...current.models, [provider]: value } }));
-            }}
-          />
-          {DEFAULT_MODELS[provider] ? (
-            <p className="text-xs text-muted-foreground">
-              {formatTemplate(t.ai.modelHint, { model: DEFAULT_MODELS[provider] })}
-            </p>
-          ) : null}
-        </div>
+        <ModelPicker
+          settings={settings}
+          onChange={(model) => update((current) => ({ ...current, models: { ...current.models, [provider]: model } }))}
+        />
 
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="outline" disabled={test.status === "testing"} onClick={() => void runTest()}>

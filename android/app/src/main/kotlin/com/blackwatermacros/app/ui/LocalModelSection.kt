@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.blackwatermacros.app.R
 import com.blackwatermacros.app.data.ai.AiEngineChoice
 import com.blackwatermacros.app.data.ai.local.DeviceSupport
+import com.blackwatermacros.app.data.ai.local.LocalModelSpec
 import com.blackwatermacros.app.data.ai.local.LocalModels
 import com.blackwatermacros.app.data.ai.local.LocalModelState
 import kotlin.math.roundToInt
@@ -57,6 +58,7 @@ internal fun LocalModelSection(viewModel: AiSettingsViewModel) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val vision by viewModel.deviceVision.collectAsStateWithLifecycle()
     val model by viewModel.selectedModel.collectAsStateWithLifecycle()
+    val catalog by LocalModels.catalog.collectAsStateWithLifecycle()
     var confirmDownload by rememberSaveable { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     val notifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -96,13 +98,13 @@ internal fun LocalModelSection(viewModel: AiSettingsViewModel) {
                         onDismissRequest = { menuExpanded = false },
                         containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     ) {
-                        LocalModels.ALL.forEach { option ->
+                        catalog.filterNot { it.hidden }.forEach { option ->
                             DropdownMenuItem(
                                 text = {
                                     Column {
                                         Text("${option.name} · ${gigabytes(option.sizeBytes)} GB")
                                         Text(
-                                            stringResource(option.noteRes),
+                                            option.noteText(),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
@@ -117,7 +119,7 @@ internal fun LocalModelSection(viewModel: AiSettingsViewModel) {
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                CardDescription(stringResource(model.noteRes))
+                CardDescription(model.noteText())
                 Spacer(Modifier.height(12.dp))
                 if (current is LocalModelState.Failed) {
                     Text(
@@ -260,3 +262,7 @@ private fun EngineChoice(
 }
 
 private fun gigabytes(bytes: Long): String = formatNumber(bytes / 1e9, maxDecimals = 1)
+
+/** The built-in models' note from `strings.xml`, or the catalog's in the app language. */
+@Composable
+private fun LocalModelSpec.noteText(): String = noteRes?.let { stringResource(it) } ?: note(appLocale().language).orEmpty()

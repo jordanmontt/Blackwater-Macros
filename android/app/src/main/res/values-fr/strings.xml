@@ -373,7 +373,7 @@
     <string name="ai_coach_sees_data_hint">Chaque question envoie un résumé : profil, repas des 14 derniers jours et poids.</string>
     <string name="ai_error_not_configured">Configurez l\'IA dans Réglages.</string>
     <string name="ai_error_invalid_key">La clé n\'est pas valide ou n\'a pas l\'autorisation.</string>
-    <string name="ai_error_quota">Vous avez atteint la limite du fournisseur. Attendez un peu ou vérifiez votre offre.</string>
+    <string name="ai_error_quota">Vous avez épuisé la limite de ce modèle (jetons ou requêtes). Essayez un autre modèle dans Réglages → IA, ou attendez qu\'elle se renouvelle.</string>
     <string name="ai_error_not_found">Le fournisseur ne trouve pas ce modèle. Vérifiez son nom.</string>
     <string name="ai_error_offline">Connexion impossible. Vérifiez votre connexion ou l\'adresse du serveur.</string>
     <string name="ai_error_empty">L\'IA n\'a pas répondu. Réessayez.</string>
@@ -553,4 +553,15 @@
     <string name="error_generic">Une erreur est survenue. Réessayez.</string>
     <string name="local_model_oom_title">Le téléphone a manqué de mémoire</string>
     <string name="local_model_oom_body">%1$s a eu besoin de plus de mémoire que le téléphone n\'en avait de libre, et Android a donc fermé l\'app. Fermez d\'autres apps et réessayez, ou utilisez un modèle plus léger ou le cloud (Réglages → IA).</string>
+    <string name="ai_model_default">Par défaut (%1$s)</string>
+    <string name="ai_model_other">Autre (saisir le nom)…</string>
+    <string name="ai_model_refresh">Actualiser la liste des modèles</string>
+    <string name="ai_model_list_loading">Chargement des modèles disponibles…</string>
+    <string name="ai_model_limits">Chaque modèle a sa propre limite : si vous en épuisez un, choisissez-en un autre.</string>
+    <string name="ai_model_list_error">La liste des modèles n\'a pas pu être chargée. %1$s</string>
+    <string name="ai_model_list_needs_key">Ajoutez la clé pour choisir parmi les modèles disponibles.</string>
+    <plurals name="ai_model_list_count">
+        <item quantity="one">%d modèle disponible avec votre clé.</item>
+        <item quantity="other">%d modèles disponibles avec votre clé.</item>
+    </plurals>
 </resources>

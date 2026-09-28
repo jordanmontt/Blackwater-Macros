@@ -125,6 +125,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         if (AppGraph.account.current != null) AppGraph.scheduler.requestSync()
+        AppGraph.refreshOnOpen()
     }
 
     /** In the background (another app, or the camera for a photo) the phone's model gives its memory back. */

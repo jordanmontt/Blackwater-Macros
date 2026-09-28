@@ -363,7 +363,7 @@
     <string name="ai_coach_sees_data_hint">Each question sends a summary: profile, meals of the last 14 days and weight.</string>
     <string name="ai_error_not_configured">Set up AI in Settings.</string>
     <string name="ai_error_invalid_key">The key is not valid or has no permission.</string>
-    <string name="ai_error_quota">You reached the provider\'s limit. Wait a bit or check your plan.</string>
+    <string name="ai_error_quota">You have used up this model\'s limit (tokens or requests). Try another model in Settings → AI, or wait until it resets.</string>
     <string name="ai_error_not_found">The provider cannot find that model. Check the model name.</string>
     <string name="ai_error_offline">Could not connect. Check your connection or the server address.</string>
     <string name="ai_error_empty">The AI returned no answer. Try again.</string>
@@ -542,4 +542,15 @@
     <string name="error_generic">Something went wrong. Try again.</string>
     <string name="local_model_oom_title">The phone ran out of memory</string>
     <string name="local_model_oom_body">%1$s needed more memory than the phone had free, so Android closed the app. Close other apps and try again, or use a lighter model or the cloud (Settings → AI).</string>
+    <string name="ai_model_default">Default (%1$s)</string>
+    <string name="ai_model_other">Other (type the name)…</string>
+    <string name="ai_model_refresh">Refresh the model list</string>
+    <string name="ai_model_list_loading">Loading the available models…</string>
+    <string name="ai_model_limits">Each model has its own limit: if you use one up, pick another.</string>
+    <string name="ai_model_list_error">The model list could not be loaded. %1$s</string>
+    <string name="ai_model_list_needs_key">Add the key to choose from the available models.</string>
+    <plurals name="ai_model_list_count">
+        <item quantity="one">%d model available with your key.</item>
+        <item quantity="other">%d models available with your key.</item>
+    </plurals>
 </resources>
