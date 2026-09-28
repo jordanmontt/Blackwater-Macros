@@ -61,7 +61,7 @@ special handling for LiteRT-LM's native libraries. Checked 2026-09-28 in
       `"license"` in `package.json`, a section in the README.
 - [ ] **AGPL «source for network users»** (section 13): once the repository is public, the web
       app must offer its users a link to the source — add «Código fuente» (link to the
-      repository) in Ajustes and on the login page. The Android app can show the same link in
+      public GitHub repository, owner's choice) in Ajustes and on the login page. The Android app can show the same link in
       Ajustes → Metodología (not required, but consistent).
 - [ ] Optional: a short licence header in source files (`SPDX-License-Identifier:
       AGPL-3.0-or-later`); not required when `LICENSE` is at the root.
