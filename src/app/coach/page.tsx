@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { resetCoach, sendCoachMessage, stopCoach, useCoachChat, type ChatMessage } from "@/lib/ai/coach-chat";
 import { isCoachReady, useAiSettings } from "@/lib/ai/settings";
-import { BROWSER_MODEL, checkBrowserModel, useBrowserModel } from "@/lib/ai/browser-model";
+import { checkBrowserModel, useBrowserModel } from "@/lib/ai/browser-model";
 import { cn } from "@/lib/utils";
 import { downscalePhoto, MAX_PHOTOS } from "@/lib/ai/images";
 import type { AiImage } from "@/lib/core/ai-providers";
@@ -81,7 +81,7 @@ export default function CoachPage() {
         <Card>
           <CardContent className="space-y-3 pt-4 text-sm">
             <p>{t.coach.notConfigured}</p>
-            <Button nativeButton={false} render={<Link href="/ajustes" />}>
+            <Button nativeButton={false} render={<Link href="/ajustes/ia" />}>
               <SparklesIcon /> {t.coach.configure}
             </Button>
           </CardContent>
@@ -203,7 +203,7 @@ export default function CoachPage() {
             </div>
             <p className="text-[11px] leading-snug text-muted-foreground">
               {t.coach.disclaimer} {onBrowser
-                ? formatTemplate(t.coach.engineBrowser, { model: BROWSER_MODEL.name })
+                ? formatTemplate(t.coach.engineBrowser, { model: browserModel.status === "ready" ? browserModel.model.name : "" })
                 : formatTemplate(t.coach.engine, { provider: t.ai.providerShort[settings.provider] })}
               {settings.coachSeesData ? "" : ` · ${t.coach.noData}`}
             </p>

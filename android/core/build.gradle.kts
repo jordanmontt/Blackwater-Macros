@@ -2,14 +2,17 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
 }
 
+// Java 17 bytecode, like the app module, built with whatever JDK runs Gradle (21 here):
+// no separate JDK 17 has to be installed.
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 kotlin {
-    jvmToolchain(17)
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 dependencies {

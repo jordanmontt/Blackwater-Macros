@@ -325,6 +325,8 @@ export const t = {
     title: "Inteligencia artificial",
     description:
       "Estima los macros de una foto y responde en el coach. Tu clave se guarda solo en este navegador y va directa al proveedor, nunca a nuestro servidor.",
+    linkSubtitle: "Fotos de comidas y coach: proveedor y clave API",
+    open: "Configurar la IA",
     provider: "Proveedor",
     providers: {
       gemini: "Google Gemini (clave gratis)",
@@ -364,8 +366,14 @@ export const t = {
     browserDescription:
       "El coach funciona sin enviar nada fuera del navegador. Menos preciso que la nube y necesita una tarjeta gráfica con WebGPU.",
     browserChecking: "Comprobando si este navegador puede usarlo…",
-    browserUnsupported:
-      "Este navegador no tiene WebGPU, así que no puede usar un modelo local. Prueba Chrome o Edge en un ordenador.",
+    browserUnsupported: "Este navegador no tiene WebGPU, así que no puede ejecutar un modelo local (pasa en Firefox para Android). Funciona en Chrome y Edge, y en Safari del iPhone con iOS 26.",
+    browserLimited: "Este navegador tiene WebGPU, pero con límites demasiado bajos para estos modelos (pasa en Firefox). Prueba Chrome, Edge o Safari.",
+    browserModel: "Modelo",
+    browserModelNotes: {
+      "qwen3.5-2b": "Recomendado: buen equilibrio entre calidad y tamaño (≈2 GB de memoria).",
+      "qwen3.5-4b": "El más preciso. Para ordenadores (≈4 GB de memoria).",
+      "qwen3-1.7b": "El modelo anterior.",
+    },
     browserDownload: "Descargar {model} (~{size} GB)",
     browserWarning:
       "Se descargan ~{size} GB que se guardan en la caché de este navegador. Usa la tarjeta gráfica y puede ir lento. Solo para el coach; las fotos siguen en la nube.",
@@ -524,6 +532,7 @@ export const t = {
   },
   install: {
     banner: "Instala la app en tu móvil para usarla como una aplicación.",
+    iosSteps: "En Safari, toca Compartir y luego «Añadir a pantalla de inicio».",
     action: "Instalar",
   },
   common: {

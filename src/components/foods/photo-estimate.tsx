@@ -91,7 +91,7 @@ export function PhotoEstimate({
       <div className="space-y-3 rounded-xl border p-4 text-sm">
         <p>{t.photo.notConfigured}</p>
         <div className="flex flex-wrap gap-2">
-          <Button nativeButton={false} render={<Link href="/ajustes" />}>
+          <Button nativeButton={false} render={<Link href="/ajustes/ia" />}>
             <SparklesIcon /> {t.photo.configure}
           </Button>
           {onManual ? (

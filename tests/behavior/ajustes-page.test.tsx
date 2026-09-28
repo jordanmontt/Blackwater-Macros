@@ -155,6 +155,14 @@ describe("pantalla Ajustes", () => {
     expect(screen.queryByText(t.ajustes.goalSection)).not.toBeInTheDocument();
   });
 
+  it("la IA se configura en su propia página, como en Android", async () => {
+    render(<AjustesPage />);
+    const link = (await screen.findByText(t.ai.open)).closest("a");
+    expect(link).toHaveAttribute("href", "/ajustes/ia");
+    expect(screen.getByText(t.ai.linkSubtitle)).toBeInTheDocument();
+    expect(screen.queryByLabelText(t.ai.apiKey)).toBeNull();
+  });
+
   it("los botones de exportación apuntan a la API en CSV", async () => {
     render(<AjustesPage />);
 

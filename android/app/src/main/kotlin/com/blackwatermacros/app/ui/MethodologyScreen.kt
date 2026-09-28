@@ -2,6 +2,21 @@ package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Functions
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,20 +77,23 @@ fun MethodologyScreen(onBack: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            MethodCard(R.string.meth_scale_title, R.string.meth_scale_body)
+            MethodCard(Icons.Filled.MonitorWeight, R.string.meth_scale_title, R.string.meth_scale_body)
             MethodCard(
+                Icons.Filled.Functions,
                 R.string.meth_ma_title,
                 R.string.meth_ma_body,
                 formula = listOf("MA(d) = (w₁ + w₂ + … + wₙ) / n", stringResource(R.string.meth_ma_window)),
             )
             MethodCard(
+                Icons.AutoMirrored.Filled.TrendingUp,
                 R.string.meth_rate_title,
                 R.string.meth_rate_body,
                 formula = listOf("β = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)²", stringResource(R.string.meth_rate_formula)),
             )
-            MethodCard(R.string.meth_daily_title, R.string.meth_daily_body)
-            MethodCard(R.string.meth_protein_title, R.string.meth_protein_body)
+            MethodCard(Icons.Filled.Restaurant, R.string.meth_daily_title, R.string.meth_daily_body)
+            MethodCard(Icons.Filled.FitnessCenter, R.string.meth_protein_title, R.string.meth_protein_body)
             MethodCard(
+                Icons.Filled.LocalFireDepartment,
                 R.string.meth_tdee_title,
                 R.string.meth_tdee_body,
                 formula = listOf(
@@ -88,6 +106,7 @@ fun MethodologyScreen(onBack: () -> Unit) {
                 afterRes = R.string.meth_tdee_after,
             )
             MethodCard(
+                Icons.Filled.MonitorHeart,
                 R.string.meth_measured_title,
                 R.string.meth_measured_body,
                 formula = listOf(
@@ -99,8 +118,8 @@ fun MethodologyScreen(onBack: () -> Unit) {
                 ),
                 afterRes = R.string.meth_measured_after,
             )
-            MethodCard(R.string.meth_ai_title, R.string.meth_ai_body)
-            MethodCard(R.string.meth_sources_title, R.string.meth_sources_body)
+            MethodCard(Icons.Filled.AutoAwesome, R.string.meth_ai_title, R.string.meth_ai_body)
+            MethodCard(Icons.Filled.Storage, R.string.meth_sources_title, R.string.meth_sources_body)
             ReferencesCard()
             Spacer(Modifier.height(24.dp))
             }
@@ -108,9 +127,20 @@ fun MethodologyScreen(onBack: () -> Unit) {
     }
 }
 
+/** The section title with its icon (the same icons as the web page). */
+@Composable
+private fun SectionTitle(icon: ImageVector, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurface)
+        Spacer(Modifier.width(8.dp))
+        Text(text, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+    }
+}
+
 /** Title, [bodyRes] paragraphs, an optional formula block, then optional [afterRes] paragraphs. */
 @Composable
 private fun MethodCard(
+    icon: ImageVector,
     @StringRes titleRes: Int,
     @StringRes bodyRes: Int,
     formula: List<String>? = null,
@@ -120,7 +150,7 @@ private fun MethodCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(stringResource(titleRes), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            SectionTitle(icon, stringResource(titleRes))
             Spacer(Modifier.height(8.dp))
             Paragraphs(stringResource(bodyRes))
             if (formula != null) {
@@ -171,7 +201,7 @@ private fun ReferencesCard() {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.meth_references), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            SectionTitle(Icons.AutoMirrored.Filled.MenuBook, stringResource(R.string.meth_references))
             Spacer(Modifier.height(8.dp))
             // Same list and order as REFERENCES in the web src/app/metodologia/page.tsx.
             val refs = listOf(

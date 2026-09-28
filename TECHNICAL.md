@@ -858,11 +858,12 @@ mirrors the database with the server:
 |---|---|---|
 | Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), meal list, delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
 | Progreso | `app/progreso/page.tsx` | Peso + Estadísticas merged (old URLs redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), link to Perfil, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
+| Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), links to Perfil and to IA, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
+| IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
-| Metodología | `app/metodologia/page.tsx` | Static page: every formula (stats, BMR + factorial PAL, protein, measured expenditure) with the reasoning and Crossref-checked citations. Android: `MethodologyScreen.kt`, same content and reference list |
+| Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, protein, measured expenditure) with the reasoning and Crossref-checked citations. Android: `MethodologyScreen.kt`, same content and reference list |
 
 ### Client data layer (`lib/api.ts`)
 
@@ -1148,7 +1149,7 @@ rest of the calorie profile.
 | D6 | On-device model on Android: LiteRT-LM, downloaded on demand; models without vision are coach-only. |
 | D7 | Only open food databases (Ciqual, Swiss FCDB, Open Food Facts), Spanish names added by the project; BEDCA excluded (no reuse licence); every source credited. |
 | D8 | Progreso averages over logged days only, with «Días registrados: N de M». |
-| D9 | Local AI on the web: one small WebLLM model for the coach, only with WebGPU. |
+| D9 | Local AI on the web: a small WebLLM model (chosen from a short list) for the coach, only with WebGPU. |
 | D10 | Web keys in that browser's `localStorage`; the browser calls the provider directly. |
 | D11 | The coach receives a compact summary of the user's data, toggle «El coach puede ver mis datos» (on by default). |
 | D12 | First steps: on a fresh Android install / first web login with an incomplete profile; «Iniciar sesión» first on Android. |
@@ -1259,12 +1260,23 @@ app language, no medical claims.
   `ModelRunGuard` marks each run; if the next start finds the mark and
   `ApplicationExitInfo` says «low memory», the app shows «El teléfono se quedó sin memoria»
   naming the model.
-- **Local AI on the web** (D9, Coach only): `lib/ai/browser-model.ts` runs Qwen3 1.7B with
-  WebLLM on WebGPU (imported lazily, own chunk). Ajustes → IA → «Modelo en este navegador»
-  checks `navigator.gpu` (a one-line reason when missing), downloads ~1 GB into the
-  browser cache with progress, and «Usar para el coach: Nube / Este navegador»
-  (`AiSettings.coachEngine`). `coach-chat.ts` streams from it instead of the provider;
-  nothing leaves the browser.
+- **Local AI on the web** (D9, Coach only): `lib/ai/browser-model.ts` runs a model from
+  `BROWSER_MODELS` with WebLLM on WebGPU (imported lazily, own chunk) — the GPU is the only fast
+  way a web page can run a model (Android's CPU-only choice does not apply). Offered: **Qwen3.5
+  2B** (1.1 GB, recommended, phones too) and **Qwen3.5 4B** (2.4 GB, computers); the first web
+  model, Qwen3 1.7B, is only recognised in the cache so it can be deleted. Tried on 2026-09-28:
+  Qwen3.5 0.8B wrote wrong numbers and looped, so it is not offered. One model at a time, chosen
+  before download (`AiSettings.browserModel`). Ajustes → IA → «Modelo en este navegador» checks
+  `navigator.gpu` and the adapter's `maxStorageBuffersPerShaderStage` (WebLLM needs ≥ 10;
+  Firefox desktop has 9 and used to fail mid-download) and says why in one line when either is
+  missing (Firefox on Android has no WebGPU; Chrome, Edge and Safari on iOS 26 do). Sampling:
+  temperature 0.3, top_p 0.9, frequency_penalty 0.3 — the defaults made the 2B wander into
+  nonsense and the small ones loop. `withoutThinking()` drops the empty `<think></think>` block
+  Qwen writes even with thinking off. «Usar para el coach: Nube / Este navegador»
+  (`AiSettings.coachEngine`); `coach-chat.ts` streams from it; nothing leaves the browser.
+- **Install banner** (`components/pwa-install.tsx`): Chromium on Android gets «Instalar»
+  (the browser's install prompt); iPhone/iPad have no prompt, so they get the steps (Safari →
+  Compartir → «Añadir a pantalla de inicio»), hidden for good once closed.
 - **First launch** (D12): web `/bienvenida` (your data → optional Google key → done) after a
   login with an incomplete profile, flag `localStorage["bw:onboarding-done"]`; Android route
   `bienvenida` (welcome with «Iniciar sesión» first → data → AI → done) only on a fresh
@@ -1651,8 +1663,10 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
   wrapper, with `distributionSha256Sum` pinned (AGP 9.4 needs Gradle ≥ 9.6). Android Studio is
   not needed: everything builds from the command line.
 - **Local SDK:** `android/local.properties` (`sdk.dir=…`), gitignored.
-- **JDK 21.0.2 on Apple Silicon** has a JIT bug that crashes Gradle during `lint`; use a
-  newer JDK or pass `-Dorg.gradle.jvmargs="-Xmx3g -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=512m"`.
+- **JDK:** any JDK 21 runs the build (Temurin 21 via `brew install --cask temurin@21`); both
+  modules compile to Java 17 bytecode without needing a JDK 17 installed. Avoid **JDK 21.0.2 on
+  Apple Silicon**: a JIT bug crashes Gradle during `lint` (workaround if stuck with it:
+  `-Dorg.gradle.jvmargs="-Xmx3g -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=512m"`).
 
 ### 14.6 Tests
 

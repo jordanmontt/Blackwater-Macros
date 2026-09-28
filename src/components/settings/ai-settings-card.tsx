@@ -23,7 +23,7 @@ type TestState =
 export const AI_STUDIO_URL = "https://aistudio.google.com/api-keys";
 
 /** Ajustes → IA. Everything is saved as you type, in this browser only. */
-export function AiSettingsCard() {
+export function AiSettingsCard({ embedded = false }: { embedded?: boolean }) {
   const settings = useAiSettings();
   const provider = settings.provider;
   const [showKey, setShowKey] = useState(false);
@@ -56,9 +56,11 @@ export function AiSettingsCard() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <SparklesIcon className="size-4" /> {t.ai.title}
-        </CardTitle>
+        {embedded ? null : (
+          <CardTitle className="flex items-center gap-2 text-base">
+            <SparklesIcon className="size-4" /> {t.ai.title}
+          </CardTitle>
+        )}
         <CardDescription>{t.ai.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

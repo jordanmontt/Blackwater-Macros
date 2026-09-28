@@ -26,6 +26,11 @@ export const t: Dictionary = { ...es };
 
 let current: AppLanguage = DEFAULT_LANGUAGE;
 
+/** A language's dictionary without switching the shared `t` (server-side titles). */
+export function dictionaryFor(language: AppLanguage): Dictionary {
+  return DICTIONARIES[language];
+}
+
 export function currentLanguage(): AppLanguage {
   return current;
 }

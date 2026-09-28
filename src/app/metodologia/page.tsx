@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+"use client";
+
 import { ActivityIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, ScaleIcon, SigmaIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import {
   Card,
@@ -8,10 +9,6 @@ import {
 } from "@/components/ui/card";
 import { ClosePageButton } from "@/components/close-page-button";
 import { t } from "@/i18n";
-
-export const metadata: Metadata = {
-  title: `${t.metodologia.title} · ${t.appName}`,
-};
 
 export default function MetodologiaPage() {
   return (

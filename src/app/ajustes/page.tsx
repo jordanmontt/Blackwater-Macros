@@ -5,7 +5,7 @@ import { formatNumber } from "@/i18n/format";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ChevronDownIcon, DownloadIcon, Loader2Icon, UploadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, Trash2Icon, UserIcon } from "lucide-react";
+import { ChevronDownIcon, DownloadIcon, Loader2Icon, UploadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, SparklesIcon, Trash2Icon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { TemplateForm } from "@/components/meals/template-form";
 import { parseBackupCsv } from "@/lib/csv-import";
-import { AiSettingsCard } from "@/components/settings/ai-settings-card";
 import { LanguageCard } from "@/components/settings/language-card";
 import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { exitDemoMode } from "@/lib/demo-store";
@@ -200,7 +199,17 @@ export default function AjustesPage() {
         </CardContent>
       </Card>
 
-      <AiSettingsCard />
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.ai.title}</CardTitle>
+          <CardDescription>{t.ai.linkSubtitle}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" nativeButton={false} render={<Link href="/ajustes/ia" />}>
+            <SparklesIcon /> {t.ai.open}
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="pb-3">

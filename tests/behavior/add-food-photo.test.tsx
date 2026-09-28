@@ -106,7 +106,7 @@ describe("Añadir comida: foto con IA", () => {
     render(<HoyPage />);
     const sheet = await openPhoto(user);
     expect(within(sheet).getByText(t.photo.notConfigured)).toBeInTheDocument();
-    expect(within(sheet).getByText(t.photo.configure).closest("a")).toHaveAttribute("href", "/ajustes");
+    expect(within(sheet).getByText(t.photo.configure).closest("a")).toHaveAttribute("href", "/ajustes/ia");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

@@ -19,6 +19,8 @@ export interface AiSettings {
   coachSeesData: boolean;
   /** The coach runs in the cloud or on the model downloaded into this browser. */
   coachEngine: "cloud" | "browser";
+  /** Which model to download into this browser (`BROWSER_MODELS` id; empty = the default). */
+  browserModel: string;
 }
 
 export const AI_PROVIDERS: AiProvider[] = ["gemini", "openai", "anthropic", "openrouter", "custom"];
@@ -30,6 +32,7 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   baseUrl: "",
   coachSeesData: true,
   coachEngine: "cloud",
+  browserModel: "",
 };
 
 const STORAGE_KEY = "bw:ai";
@@ -56,6 +59,7 @@ function parse(raw: string | null): AiSettings {
       baseUrl: typeof value.baseUrl === "string" ? value.baseUrl : "",
       coachSeesData: value.coachSeesData !== false,
       coachEngine: value.coachEngine === "browser" ? "browser" : "cloud",
+      browserModel: typeof value.browserModel === "string" ? value.browserModel : "",
     };
   } catch {
     return DEFAULT_AI_SETTINGS;

@@ -334,6 +334,8 @@ export const de: Dictionary = {
     title: "Künstliche Intelligenz",
     description:
       "Schätzt die Makros eines Fotos und antwortet im Coach. Dein Schlüssel bleibt nur in diesem Browser und geht direkt an den Anbieter, nie an unseren Server.",
+    linkSubtitle: "Essensfotos und Coach: Anbieter und API-Schlüssel",
+    open: "KI einrichten",
     provider: "Anbieter",
     providers: {
       gemini: "Google Gemini (kostenloser Schlüssel)",
@@ -373,7 +375,14 @@ export const de: Dictionary = {
     browserDescription:
       "Der Coach funktioniert, ohne etwas aus dem Browser zu senden. Ungenauer als die Cloud, und er braucht eine Grafikkarte mit WebGPU.",
     browserChecking: "Es wird geprüft, ob dieser Browser das kann…",
-    browserUnsupported: "Dieser Browser hat kein WebGPU und kann daher kein lokales Modell ausführen. Versuch es mit Chrome oder Edge auf einem Computer.",
+    browserUnsupported: "Dieser Browser hat kein WebGPU und kann daher kein lokales Modell ausführen (so bei Firefox auf Android). Es funktioniert in Chrome und Edge sowie in Safari auf dem iPhone mit iOS 26.",
+    browserLimited: "Dieser Browser hat WebGPU, aber mit zu niedrigen Grenzen für diese Modelle (so bei Firefox). Versuch es mit Chrome, Edge oder Safari.",
+    browserModel: "Modell",
+    browserModelNotes: {
+      "qwen3.5-2b": "Empfohlen: gutes Verhältnis von Qualität und Größe (≈2 GB Speicher).",
+      "qwen3.5-4b": "Das genaueste. Für Computer (≈4 GB Speicher).",
+      "qwen3-1.7b": "Das frühere Modell.",
+    },
     browserDownload: "{model} herunterladen (~{size} GB)",
     browserWarning:
       "Etwa {size} GB werden heruntergeladen und im Cache dieses Browsers gespeichert. Es nutzt die Grafikkarte und kann langsam sein. Nur Coach; Fotos bleiben in der Cloud.",
@@ -531,6 +540,7 @@ export const de: Dictionary = {
   },
   install: {
     banner: "Installiere die App auf deinem Handy, um sie wie eine Anwendung zu nutzen.",
+    iosSteps: "Tippe in Safari auf Teilen und dann auf «Zum Home-Bildschirm».",
     action: "Installieren",
   },
   common: {

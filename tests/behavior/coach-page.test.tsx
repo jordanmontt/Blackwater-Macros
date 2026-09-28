@@ -102,7 +102,7 @@ describe("Coach", () => {
   it("sin IA configurada lleva a Ajustes", () => {
     render(<CoachPage />);
     expect(screen.getByText(t.coach.notConfigured)).toBeInTheDocument();
-    expect(screen.getByText(t.coach.configure).closest("a")).toHaveAttribute("href", "/ajustes");
+    expect(screen.getByText(t.coach.configure).closest("a")).toHaveAttribute("href", "/ajustes/ia");
   });
 
   it("envía una pregunta de ejemplo con tus datos y muestra la respuesta por trozos", async () => {

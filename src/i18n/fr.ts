@@ -334,6 +334,8 @@ export const fr: Dictionary = {
     title: "Intelligence artificielle",
     description:
       "Estime les macros d'une photo et répond dans le coach. Votre clé est gardée uniquement dans ce navigateur et va directement au fournisseur, jamais à notre serveur.",
+    linkSubtitle: "Photos de repas et coach : fournisseur et clé API",
+    open: "Configurer l'IA",
     provider: "Fournisseur",
     providers: {
       gemini: "Google Gemini (clé gratuite)",
@@ -373,7 +375,14 @@ export const fr: Dictionary = {
     browserDescription:
       "Le coach fonctionne sans rien envoyer hors du navigateur. Moins précis que le cloud, et il faut une carte graphique avec WebGPU.",
     browserChecking: "Vérification de la compatibilité de ce navigateur…",
-    browserUnsupported: "Ce navigateur n'a pas WebGPU et ne peut donc pas utiliser de modèle local. Essayez Chrome ou Edge sur un ordinateur.",
+    browserUnsupported: "Ce navigateur n'a pas WebGPU et ne peut donc pas exécuter de modèle local (c'est le cas de Firefox sur Android). Cela fonctionne dans Chrome et Edge, et dans Safari sur iPhone avec iOS 26.",
+    browserLimited: "Ce navigateur a WebGPU, mais avec des limites trop basses pour ces modèles (c'est le cas de Firefox). Essayez Chrome, Edge ou Safari.",
+    browserModel: "Modèle",
+    browserModelNotes: {
+      "qwen3.5-2b": "Recommandé : bon équilibre entre qualité et taille (≈2 Go de mémoire).",
+      "qwen3.5-4b": "Le plus précis. Pour les ordinateurs (≈4 Go de mémoire).",
+      "qwen3-1.7b": "L'ancien modèle.",
+    },
     browserDownload: "Télécharger {model} (~{size} Go)",
     browserWarning:
       "Environ {size} Go sont téléchargés et gardés dans le cache de ce navigateur. Il utilise la carte graphique et peut être lent. Coach seulement ; les photos restent dans le cloud.",
@@ -531,6 +540,7 @@ export const fr: Dictionary = {
   },
   install: {
     banner: "Installez l'app sur votre téléphone pour l'utiliser comme une application.",
+    iosSteps: "Dans Safari, touchez Partager puis «Sur l'écran d'accueil».",
     action: "Installer",
   },
   common: {

@@ -334,6 +334,8 @@ export const it: Dictionary = {
     title: "Intelligenza artificiale",
     description:
       "Stima i macro di una foto e risponde nel coach. La tua chiave resta solo in questo browser e va direttamente al fornitore, mai al nostro server.",
+    linkSubtitle: "Foto dei pasti e coach: fornitore e chiave API",
+    open: "Configura l'IA",
     provider: "Fornitore",
     providers: {
       gemini: "Google Gemini (chiave gratuita)",
@@ -373,7 +375,14 @@ export const it: Dictionary = {
     browserDescription:
       "Il coach funziona senza inviare nulla fuori dal browser. Meno preciso del cloud, e serve una scheda grafica con WebGPU.",
     browserChecking: "Verifica della compatibilità di questo browser…",
-    browserUnsupported: "Questo browser non ha WebGPU, quindi non può usare un modello locale. Prova Chrome o Edge su un computer.",
+    browserUnsupported: "Questo browser non ha WebGPU, quindi non può usare un modello locale (succede con Firefox su Android). Funziona in Chrome ed Edge, e in Safari su iPhone con iOS 26.",
+    browserLimited: "Questo browser ha WebGPU, ma con limiti troppo bassi per questi modelli (succede con Firefox). Prova Chrome, Edge o Safari.",
+    browserModel: "Modello",
+    browserModelNotes: {
+      "qwen3.5-2b": "Consigliato: buon equilibrio tra qualità e dimensioni (≈2 GB di memoria).",
+      "qwen3.5-4b": "Il più preciso. Per i computer (≈4 GB di memoria).",
+      "qwen3-1.7b": "Il modello precedente.",
+    },
     browserDownload: "Scarica {model} (~{size} GB)",
     browserWarning:
       "Si scaricano circa {size} GB, conservati nella cache di questo browser. Usa la scheda grafica e può essere lento. Solo coach; le foto restano nel cloud.",
@@ -531,6 +540,7 @@ export const it: Dictionary = {
   },
   install: {
     banner: "Installa l'app sul telefono per usarla come un'applicazione.",
+    iosSteps: "In Safari, tocca Condividi e poi «Aggiungi alla schermata Home».",
     action: "Installa",
   },
   common: {
