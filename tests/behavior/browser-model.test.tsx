@@ -99,6 +99,8 @@ describe("modelo en el navegador", () => {
   it("sin WebGPU lo dice y no ofrece descargar", async () => {
     render(<AiSettingsCard />);
     expect(await screen.findByText(t.ai.browserUnsupported)).toBeInTheDocument();
+    // Even here it says the cloud answers better.
+    expect(screen.getByText(t.ai.browserCloudBetter)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: new RegExp(BROWSER_MODEL.name) })).toBeNull();
     expect(vi.mocked(webllm.CreateMLCEngine)).not.toHaveBeenCalled();
   });
@@ -168,6 +170,7 @@ describe("modelo en el navegador", () => {
     render(<CoachPage />);
 
     expect(screen.getByText(new RegExp(formatTemplate(t.coach.engineBrowser, { model: BROWSER_MODEL.name })))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(t.coach.browserHint.replace(/[()→]/g, ".")))).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: t.coach.examples[3] }));
     expect(await screen.findByText("Una ensalada con pollo.")).toBeInTheDocument();
 

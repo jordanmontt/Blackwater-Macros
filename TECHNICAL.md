@@ -1272,7 +1272,8 @@ app language, no medical claims.
   missing (Firefox on Android has no WebGPU; Chrome, Edge and Safari on iOS 26 do). Sampling:
   temperature 0.3, top_p 0.9, frequency_penalty 0.3 — the defaults made the 2B wander into
   nonsense and the small ones loop. `withoutThinking()` drops the empty `<think></think>` block
-  Qwen writes even with thinking off. «Usar para el coach: Nube / Este navegador»
+  Qwen writes even with thinking off. The section and the coach's footer (when it runs in the
+  browser) say the cloud answers much better. «Usar para el coach: Nube / Este navegador»
   (`AiSettings.coachEngine`); `coach-chat.ts` streams from it; nothing leaves the browser.
 - **Install banner** (`components/pwa-install.tsx`): Chromium on Android gets «Instalar»
   (the browser's install prompt); iPhone/iPad have no prompt, so they get the steps (Safari →

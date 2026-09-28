@@ -374,6 +374,7 @@ export const en: Dictionary = {
     browserTitle: "Model in this browser",
     browserDescription:
       "The coach works without sending anything outside the browser. Less precise than the cloud, and it needs a graphics card with WebGPU.",
+    browserCloudBetter: "Recommended: use the cloud (Google Gemini has a free key). The browser model is private, but its answers are much worse and it sometimes gets the numbers wrong.",
     browserChecking: "Checking whether this browser can use it…",
     browserUnsupported: "This browser has no WebGPU, so it cannot run a local model (as with Firefox on Android). It works in Chrome and Edge, and in Safari on iPhone with iOS 26.",
     browserLimited: "This browser has WebGPU, but with limits too low for these models (as with Firefox). Try Chrome, Edge or Safari.",
@@ -440,6 +441,7 @@ export const en: Dictionary = {
     disclaimer: "The coach can be wrong. Not medical advice.",
     engine: "{provider} · cloud",
     engineBrowser: "{model} · this browser",
+    browserHint: "Answers are much better in the cloud (Settings → AI).",
     noData: "No access to your data (Settings → AI).",
     notConfigured: "Set up AI to use the coach. A free Google key is enough.",
     configure: "Set up AI",

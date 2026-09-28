@@ -374,6 +374,7 @@ export const it: Dictionary = {
     browserTitle: "Modello in questo browser",
     browserDescription:
       "Il coach funziona senza inviare nulla fuori dal browser. Meno preciso del cloud, e serve una scheda grafica con WebGPU.",
+    browserCloudBetter: "Consigliato: usa il cloud (Google Gemini ha una chiave gratuita). Il modello del browser è privato, ma le sue risposte sono molto peggiori e a volte sbaglia i numeri.",
     browserChecking: "Verifica della compatibilità di questo browser…",
     browserUnsupported: "Questo browser non ha WebGPU, quindi non può usare un modello locale (succede con Firefox su Android). Funziona in Chrome ed Edge, e in Safari su iPhone con iOS 26.",
     browserLimited: "Questo browser ha WebGPU, ma con limiti troppo bassi per questi modelli (succede con Firefox). Prova Chrome, Edge o Safari.",
@@ -440,6 +441,7 @@ export const it: Dictionary = {
     disclaimer: "Il coach può sbagliare. Non è un consiglio medico.",
     engine: "{provider} · cloud",
     engineBrowser: "{model} · questo browser",
+    browserHint: "Le risposte sono molto migliori nel cloud (Impostazioni → IA).",
     noData: "Senza accesso ai tuoi dati (Impostazioni → IA).",
     notConfigured: "Configura l'IA per usare il coach. Basta una chiave Google gratuita.",
     configure: "Configura l'IA",

@@ -41,6 +41,7 @@ export function BrowserModelSection() {
       <div>
         <h3 className="font-medium">{t.ai.browserTitle}</h3>
         <p className="text-xs text-muted-foreground">{t.ai.browserDescription}</p>
+        <p className="mt-1.5 rounded-md bg-primary/5 px-2 py-1.5 text-xs">{t.ai.browserCloudBetter}</p>
       </div>
 
       {model.status === "checking" ? (

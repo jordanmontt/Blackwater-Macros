@@ -203,7 +203,7 @@ export default function CoachPage() {
             </div>
             <p className="text-[11px] leading-snug text-muted-foreground">
               {t.coach.disclaimer} {onBrowser
-                ? formatTemplate(t.coach.engineBrowser, { model: browserModel.status === "ready" ? browserModel.model.name : "" })
+                ? `${formatTemplate(t.coach.engineBrowser, { model: browserModel.status === "ready" ? browserModel.model.name : "" })}. ${t.coach.browserHint}`
                 : formatTemplate(t.coach.engine, { provider: t.ai.providerShort[settings.provider] })}
               {settings.coachSeesData ? "" : ` · ${t.coach.noData}`}
             </p>
