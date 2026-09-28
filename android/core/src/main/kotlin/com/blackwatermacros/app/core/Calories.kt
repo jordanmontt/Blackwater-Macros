@@ -21,7 +21,7 @@ private const val BASELINE_INTENSITY = 1.4
 /** Resistance training including rest between sets (Compendium 2024: 3.5–6 METs). */
 private const val GYM_INTENSITY = 4.0
 
-/** Walking at a moderate pace, ~4–5 km/h (Compendium 2024: 3.5–3.8 METs). */
+/** Walking at an everyday pace, ~4–5 km/h (Compendium 2024: 3.0 at 4 km/h, 3.5 for pleasure, 3.8 at 4.5–5.5 km/h). */
 private const val WALKING_INTENSITY = 3.5
 
 /**

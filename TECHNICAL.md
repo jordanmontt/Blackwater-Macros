@@ -1028,13 +1028,15 @@ All three are pure functions in `lib/core` (ported 1:1 to Kotlin `:core`), compu
 client from the latest weight, the profile and the logged meals. No server-side
 computation. The user-facing explanation, with citations, is the Metodología page
 (`i18n/es.ts` `metodologia.*`; Android `meth_*` strings) — **change it together with the
-math**.
+math**. Why each formula was chosen, its sources, limits and the rejected alternatives are in
+[METHODOLOGY.md](./METHODOLOGY.md); update it in the same change as well.
 
 ### 8.1 Calorie target (`calories.ts`)
 
 - **BMR:** Mifflin-St Jeor (1990).
 - **PAL (activity factor):** factorial method (FAO/WHO/UNU 2004) from the profile, not a
-  self-rated 1–5 scale (self-report overestimates activity, Prince et al. 2008):
+  self-rated 1–5 scale (self-reported activity is usually above accelerometer data, Prince et
+  al. 2008; here the user gives only times and the app fixes the intensities):
   `gym = gymDays × gymMinutes / 7`;
   `PAL = ((1440 − gym − walking) × 1.4 + gym × 4.0 + walking × 3.5) / 1440`.
   1.4 = no-exercise day (low end of FAO's 1.40–1.69 band); 4.0 = resistance training with
@@ -1057,9 +1059,12 @@ math**.
 | Cut, body fat known | 2.3–3.1 | lean mass = weight × (1 − BF%) | Helms et al. 2014 (IJSNEM); Jäger 2017 |
 | Any goal, BMI > 25 (not the lean-mass case) | as above | reference weight = 25 × height² | McClave 2016; checked against Kokura 2024 (>1.3 g/kg actual) |
 
-The reference weight is skipped when a logged body fat is normal (< 25 % men, < 33 %
-women ≈ BMI 25, Gallagher et al. 2000): then the high BMI is muscle. Callers pass the most
-recent non-null `bodyFatPct` from any weigh-in and `{ heightCm, gender }` from the profile.
+The reference weight is skipped when a logged body fat is below the one that goes with BMI 25
+for the sex and age (`normalBodyFatMax`, Gallagher et al. 2000 Table 4: men 20/22/25 %,
+women 33/34/36 % at 20–39/40–59/60+ years; under 20 or no birth year → the 20–39 band): then
+the high BMI is muscle. Callers pass the most recent non-null `bodyFatPct` from any weigh-in
+and `{ heightCm, gender, age }` from the profile (`age = currentYear − birthYear`, as in
+`calories.ts`).
 The result has `basis` (`bodyWeight` | `leanMass` | `referenceWeight`), `basisKg`, `range`
 (g/day), `perKg` and `target` (midpoint).
 

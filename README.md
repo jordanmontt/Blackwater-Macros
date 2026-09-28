@@ -267,11 +267,13 @@ docs/
   FDROID-PLAN.md       Plan pendiente: publicación en F-Droid, cuentas y cifrado de extremo a extremo
 android/               App nativa Android: módulos :core (algoritmos) y :app (UI + datos)
 TECHNICAL.md           La referencia técnica: arquitectura, API, tests, reglas TS ⇄ Kotlin y decisiones
+METHODOLOGY.md         La base científica: cada fórmula, por qué se eligió, sus fuentes y sus límites
 ```
 
 Todo el detalle técnico (flujo de una petición, esquema de base de datos, contrato de la
 API, tests de web y Android, reglas TS ⇄ Kotlin, decisiones de diseño) está en un solo
-documento: [TECHNICAL.md](./TECHNICAL.md).
+documento: [TECHNICAL.md](./TECHNICAL.md). La justificación científica de los cálculos
+(calorías, proteína, gasto medido, proyección) está en [METHODOLOGY.md](./METHODOLOGY.md).
 
 ## Tests
 

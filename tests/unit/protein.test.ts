@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateProteinRecommendation, proteinReferenceWeight } from "../../src/lib/core/protein";
+import { calculateProteinRecommendation, normalBodyFatMax, proteinReferenceWeight } from "../../src/lib/core/protein";
 
 describe("calculateProteinRecommendation", () => {
   const WEIGHT = 80;
@@ -66,7 +66,7 @@ describe("calculateProteinRecommendation", () => {
   });
 
   describe("above BMI 25 the ranges use the weight at BMI 25", () => {
-    const tall = { heightCm: 180, gender: "male" as const };
+    const tall = { heightCm: 180, gender: "male" as const, age: 30 };
 
     it("110 kg at 1.80 m: reference 81 kg for every goal without body fat", () => {
       const maintain = calculateProteinRecommendation(110, "maintain", null, tall);
@@ -85,12 +85,32 @@ describe("calculateProteinRecommendation", () => {
       expect(calculateProteinRecommendation(110, "maintain", 30, tall).basis).toBe("referenceWeight");
     });
 
-    it("women: muscle up to 33 % body fat", () => {
-      const woman = { heightCm: 165, gender: "female" as const };
+    it("women under 40: muscle below 33 % body fat", () => {
+      const woman = { heightCm: 165, gender: "female" as const, age: 30 };
       expect(calculateProteinRecommendation(80, "maintain", 30, woman).basis).toBe("bodyWeight");
       const higher = calculateProteinRecommendation(80, "maintain", 35, woman);
       expect(higher.basis).toBe("referenceWeight");
       expect(higher.basisKg).toBe(68.1);
+    });
+
+    it("the body fat at BMI 25 rises with age (Gallagher et al. 2000)", () => {
+      expect([19, 39, 40, 59, 60, 80, null].map((age) => normalBodyFatMax("male", age))).toEqual([20, 20, 22, 22, 25, 25, 20]);
+      expect([19, 39, 40, 59, 60, 80, null].map((age) => normalBodyFatMax("female", age))).toEqual([33, 33, 34, 34, 36, 36, 33]);
+    });
+
+    it("men: 21 % body fat is fat at 30, muscle from 40", () => {
+      const at = (age: number | null) => calculateProteinRecommendation(90, "maintain", 21, { ...tall, age }).basis;
+      expect(at(30)).toBe("referenceWeight");
+      expect(at(null)).toBe("referenceWeight");
+      expect(at(45)).toBe("bodyWeight");
+      expect(at(65)).toBe("bodyWeight");
+    });
+
+    it("women: 35 % body fat is muscle only from 60", () => {
+      const at = (age: number) =>
+        calculateProteinRecommendation(80, "maintain", 35, { heightCm: 165, gender: "female", age }).basis;
+      expect(at(50)).toBe("referenceWeight");
+      expect(at(65)).toBe("bodyWeight");
     });
 
     it("cutting with body fat keeps the lean-mass rule", () => {
@@ -101,7 +121,7 @@ describe("calculateProteinRecommendation", () => {
 
     it("no change at BMI 25 or below, or without height", () => {
       expect(calculateProteinRecommendation(80, "maintain", null, tall).basis).toBe("bodyWeight");
-      expect(calculateProteinRecommendation(110, "maintain", null, { heightCm: null, gender: "male" }).basis).toBe(
+      expect(calculateProteinRecommendation(110, "maintain", null, { heightCm: null, gender: "male", age: 30 }).basis).toBe(
         "bodyWeight",
       );
       expect(proteinReferenceWeight(81, null, tall)).toBeNull();

@@ -139,6 +139,7 @@ export default function PerfilPage() {
     ? calculateProteinRecommendation(latestWeight, calorieProfile.calorieGoal, bodyFatPct, {
         heightCm: calorieProfile.heightCm,
         gender: calorieProfile.gender,
+        age: calorieProfile.birthYear === null ? null : new Date().getFullYear() - calorieProfile.birthYear,
       })
     : null;
 

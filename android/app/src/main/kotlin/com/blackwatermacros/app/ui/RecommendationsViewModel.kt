@@ -70,7 +70,7 @@ internal fun recommend(
         null
     }
     val protein = profile.calorieGoal?.let {
-        calculateProteinRecommendation(latestWeight.weightKg, it, bodyFatPct, ProteinPerson(profile.heightCm, profile.gender))
+        calculateProteinRecommendation(latestWeight.weightKg, it, bodyFatPct, ProteinPerson(profile.heightCm, profile.gender, profile.birthYear?.let { year - it }))
     }
     if (calorie == null && protein == null) return RecommendationsUiState.NeedsProfile
     val expenditure = estimateExpenditure(

@@ -25,12 +25,14 @@ export async function loadCoachInput(today = todayKey()): Promise<CoachInput> {
 
   const latest = weightDtos.at(-1) ?? null;
   const bodyFatPct = weightDtos.findLast((w) => w.bodyFatPct !== null)?.bodyFatPct ?? null;
-  const calorie = latest ? calculateCalorieRecommendation(profile, latest.weightKg, Number(today.slice(0, 4))) : null;
+  const year = Number(today.slice(0, 4));
+  const calorie = latest ? calculateCalorieRecommendation(profile, latest.weightKg, year) : null;
   const protein =
     latest && profile.calorieGoal
       ? calculateProteinRecommendation(latest.weightKg, profile.calorieGoal, bodyFatPct, {
           heightCm: profile.heightCm,
           gender: profile.gender,
+          age: profile.birthYear === null ? null : year - profile.birthYear,
         })
       : null;
   const expenditure = estimateExpenditure(

@@ -47,9 +47,10 @@ export function useRecommendations(): {
         ? calculateProteinRecommendation(latestWeight.weightKg, profile.calorieGoal, bodyFatPct, {
             heightCm: profile.heightCm,
             gender: profile.gender,
+            age: profile.birthYear === null ? null : new Date().getFullYear() - profile.birthYear,
           })
         : null,
-    [latestWeight, profile.calorieGoal, profile.heightCm, profile.gender, bodyFatPct],
+    [latestWeight, profile.calorieGoal, profile.heightCm, profile.gender, profile.birthYear, bodyFatPct],
   );
 
   return { weights, latestWeight, calorieRec, proteinRec };

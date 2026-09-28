@@ -43,19 +43,30 @@ function perKgRange(min: number, max: number): ProteinRange {
 export const REFERENCE_BMI = 25;
 
 /**
- * Body fat (%) up to which a high BMI is taken to be muscle, not fat: roughly
- * the fat that corresponds to BMI 25 in adults (Gallagher et al. 2000).
+ * Body fat (%) that goes with BMI 25 in adults, by sex and age band (20–39,
+ * 40–59 and 60+ years; Gallagher et al. 2000, Table 4). Below it, a BMI above
+ * 25 is lean mass (muscle), not fat. Under 20, or with no birth year, the
+ * 20–39 band applies.
  */
-export const NORMAL_BODY_FAT_MAX: Record<Gender, number> = { male: 25, female: 33 };
+export const BODY_FAT_AT_REFERENCE_BMI: Record<Gender, readonly [number, number, number]> = {
+  male: [20, 22, 25],
+  female: [33, 34, 36],
+};
+
+export function normalBodyFatMax(gender: Gender, age: number | null): number {
+  const band = age === null || age < 40 ? 0 : age < 60 ? 1 : 2;
+  return BODY_FAT_AT_REFERENCE_BMI[gender][band];
+}
 
 function isUsableBodyFat(bodyFatPct: number | null | undefined): bodyFatPct is number {
   return bodyFatPct != null && bodyFatPct > 0 && bodyFatPct < 100;
 }
 
-/** Height and sex, to tell when a high BMI is likely fat (both optional). */
+/** Height, sex and age (years), to tell when a high BMI is likely fat (all optional). */
 export interface ProteinPerson {
   heightCm: number | null;
   gender: Gender | null;
+  age: number | null;
 }
 
 /**
@@ -73,7 +84,9 @@ export function proteinReferenceWeight(
   const reference = REFERENCE_BMI * heightM * heightM;
   if (weightKg <= reference) return null;
   const muscular =
-    isUsableBodyFat(bodyFatPct) && person.gender !== null && bodyFatPct < NORMAL_BODY_FAT_MAX[person.gender];
+    isUsableBodyFat(bodyFatPct) &&
+    person.gender !== null &&
+    bodyFatPct < normalBodyFatMax(person.gender, person.age);
   return muscular ? null : reference;
 }
 
@@ -81,7 +94,7 @@ export function calculateProteinRecommendation(
   weightKg: number,
   goal: Goal,
   bodyFatPct: number | null = null,
-  person: ProteinPerson = { heightCm: null, gender: null },
+  person: ProteinPerson = { heightCm: null, gender: null, age: null },
 ): ProteinRecommendation {
   const useLeanMass = goal === "cut" && isUsableBodyFat(bodyFatPct);
   const reference = useLeanMass ? null : proteinReferenceWeight(weightKg, bodyFatPct, person);

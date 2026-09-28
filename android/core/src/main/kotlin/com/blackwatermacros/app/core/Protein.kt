@@ -29,14 +29,30 @@ private fun perKgRange(min: Double, max: Double): ProteinRange =
  */
 const val REFERENCE_BMI = 25.0
 
-/** Body fat (%) up to which a high BMI is taken to be muscle (Gallagher et al. 2000). */
-val NORMAL_BODY_FAT_MAX: Map<Gender, Double> = mapOf(Gender.MALE to 25.0, Gender.FEMALE to 33.0)
+/**
+ * Body fat (%) that goes with BMI 25 in adults, by age band 20–39, 40–59 and 60+
+ * (Gallagher et al. 2000, Table 4; web `BODY_FAT_AT_REFERENCE_BMI`). Below it, a BMI
+ * above 25 is lean mass. Under 20, or with no birth year, the 20–39 band applies.
+ */
+val BODY_FAT_AT_REFERENCE_BMI: Map<Gender, List<Double>> = mapOf(
+    Gender.MALE to listOf(20.0, 22.0, 25.0),
+    Gender.FEMALE to listOf(33.0, 34.0, 36.0),
+)
+
+fun normalBodyFatMax(gender: Gender, age: Int?): Double {
+    val band = when {
+        age == null || age < 40 -> 0
+        age < 60 -> 1
+        else -> 2
+    }
+    return BODY_FAT_AT_REFERENCE_BMI.getValue(gender)[band]
+}
 
 private fun isUsableBodyFat(bodyFatPct: Double?): Boolean =
     bodyFatPct != null && bodyFatPct > 0 && bodyFatPct < 100
 
-/** Height and sex, to tell when a high BMI is likely fat (both optional). */
-data class ProteinPerson(val heightCm: Double?, val gender: Gender?)
+/** Height, sex and age (years), to tell when a high BMI is likely fat (all optional). */
+data class ProteinPerson(val heightCm: Double?, val gender: Gender?, val age: Int?)
 
 /**
  * The weight at BMI 25 when the BMI is above it and the extra weight is likely
@@ -49,7 +65,7 @@ fun proteinReferenceWeight(weightKg: Double, bodyFatPct: Double?, person: Protei
     val reference = REFERENCE_BMI * heightM * heightM
     if (weightKg <= reference) return null
     val muscular = isUsableBodyFat(bodyFatPct) && person.gender != null &&
-        bodyFatPct!! < NORMAL_BODY_FAT_MAX.getValue(person.gender)
+        bodyFatPct!! < normalBodyFatMax(person.gender, person.age)
     return if (muscular) null else reference
 }
 
@@ -57,7 +73,7 @@ fun calculateProteinRecommendation(
     weightKg: Double,
     goal: Goal,
     bodyFatPct: Double? = null,
-    person: ProteinPerson = ProteinPerson(null, null),
+    person: ProteinPerson = ProteinPerson(null, null, null),
 ): ProteinRecommendation {
     val useLeanMass = goal == Goal.CUT && isUsableBodyFat(bodyFatPct)
     val reference = if (useLeanMass) null else proteinReferenceWeight(weightKg, bodyFatPct, person)

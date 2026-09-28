@@ -87,7 +87,7 @@ class ProteinTest {
 
     // --- above BMI 25 the ranges use the weight at BMI 25 ---
 
-    private val tall = ProteinPerson(180.0, Gender.MALE)
+    private val tall = ProteinPerson(180.0, Gender.MALE, 30)
 
     @Test
     fun bmiAbove25_referenceWeight81kgForEveryGoalWithoutBodyFat() {
@@ -109,12 +109,35 @@ class ProteinTest {
     }
 
     @Test
-    fun womenMuscleUpTo33PercentBodyFat() {
-        val woman = ProteinPerson(165.0, Gender.FEMALE)
+    fun womenUnder40MuscleBelow33PercentBodyFat() {
+        val woman = ProteinPerson(165.0, Gender.FEMALE, 30)
         assertThat(calculateProteinRecommendation(80.0, Goal.MAINTAIN, 30.0, woman).basis).isEqualTo(ProteinBasis.BODY_WEIGHT)
         val higher = calculateProteinRecommendation(80.0, Goal.MAINTAIN, 35.0, woman)
         assertThat(higher.basis).isEqualTo(ProteinBasis.REFERENCE_WEIGHT)
         assertThat(higher.basisKg).isEqualTo(68.1)
+    }
+
+    @Test
+    fun theBodyFatAtBmi25RisesWithAge() {
+        val ages = listOf(19, 39, 40, 59, 60, 80, null)
+        assertThat(ages.map { normalBodyFatMax(Gender.MALE, it) }).containsExactly(20.0, 20.0, 22.0, 22.0, 25.0, 25.0, 20.0).inOrder()
+        assertThat(ages.map { normalBodyFatMax(Gender.FEMALE, it) }).containsExactly(33.0, 33.0, 34.0, 34.0, 36.0, 36.0, 33.0).inOrder()
+    }
+
+    @Test
+    fun men21PercentBodyFatIsFatAt30MuscleFrom40() {
+        fun at(age: Int?) = calculateProteinRecommendation(90.0, Goal.MAINTAIN, 21.0, tall.copy(age = age)).basis
+        assertThat(at(30)).isEqualTo(ProteinBasis.REFERENCE_WEIGHT)
+        assertThat(at(null)).isEqualTo(ProteinBasis.REFERENCE_WEIGHT)
+        assertThat(at(45)).isEqualTo(ProteinBasis.BODY_WEIGHT)
+        assertThat(at(65)).isEqualTo(ProteinBasis.BODY_WEIGHT)
+    }
+
+    @Test
+    fun women35PercentBodyFatIsMuscleOnlyFrom60() {
+        fun at(age: Int) = calculateProteinRecommendation(80.0, Goal.MAINTAIN, 35.0, ProteinPerson(165.0, Gender.FEMALE, age)).basis
+        assertThat(at(50)).isEqualTo(ProteinBasis.REFERENCE_WEIGHT)
+        assertThat(at(65)).isEqualTo(ProteinBasis.BODY_WEIGHT)
     }
 
     @Test
@@ -127,7 +150,7 @@ class ProteinTest {
     @Test
     fun noChangeAtBmi25OrBelowOrWithoutHeight() {
         assertThat(calculateProteinRecommendation(80.0, Goal.MAINTAIN, null, tall).basis).isEqualTo(ProteinBasis.BODY_WEIGHT)
-        assertThat(calculateProteinRecommendation(110.0, Goal.MAINTAIN, null, ProteinPerson(null, Gender.MALE)).basis)
+        assertThat(calculateProteinRecommendation(110.0, Goal.MAINTAIN, null, ProteinPerson(null, Gender.MALE, 30)).basis)
             .isEqualTo(ProteinBasis.BODY_WEIGHT)
         assertThat(proteinReferenceWeight(81.0, null, tall)).isNull()
         assertThat(proteinReferenceWeight(82.0, null, tall)!!).isWithin(0.001).of(81.0)

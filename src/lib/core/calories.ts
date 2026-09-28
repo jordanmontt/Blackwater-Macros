@@ -27,7 +27,7 @@ const MINUTES_PER_DAY = 1440;
 const BASELINE_INTENSITY = 1.4;
 /** Resistance training including rest between sets (Compendium 2024: 3.5–6 METs). */
 const GYM_INTENSITY = 4.0;
-/** Walking at a moderate pace, ~4–5 km/h (Compendium 2024: 3.5–3.8 METs). */
+/** Walking at an everyday pace, ~4–5 km/h (Compendium 2024: 3.0 at 4 km/h, 3.5 for pleasure, 3.8 at 4.5–5.5 km/h). */
 const WALKING_INTENSITY = 3.5;
 
 /**
@@ -38,9 +38,10 @@ const WALKING_INTENSITY = 3.5;
  *   gym  = gymDays × gymMinutes / 7   (average minutes per day)
  *   PAL  = ((1440 − gym − walking) × 1.4 + gym × 4.0 + walking × 3.5) / 1440
  *
- * Every extra minute of training or walking raises the result, and it is
- * derived from what the user actually does rather than a self-rated
- * category, which people tend to overestimate (Prince et al. 2008).
+ * Every extra minute of training or walking raises the result. The user gives
+ * only times and the intensities are fixed here, instead of a self-rated
+ * category: self-reported activity is usually above what accelerometers
+ * measure, most of all for vigorous activity (Prince et al. 2008).
  */
 export function getActivityMultiplier(
   gymDays: number,
