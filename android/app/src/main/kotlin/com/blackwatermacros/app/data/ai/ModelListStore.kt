@@ -27,10 +27,13 @@ data class ModelList(
     val options: List<AiModelOption> get() = models.map { AiModelOption(it.id, it.label) }
 }
 
+/** Bump when `parseModelList` filters differently: older cached lists are then asked again. */
+private const val LIST_FORMAT = 2
+
 /** FNV-1a of provider, key and server: enough to notice they changed (web `configFingerprint`). */
 fun configFingerprint(config: AiConfig): String {
     var hash = 0x811c9dc5L
-    for (char in "${config.provider.id}|${config.apiKey.trim()}|${config.baseUrl.trim()}") {
+    for (char in "$LIST_FORMAT|${config.provider.id}|${config.apiKey.trim()}|${config.baseUrl.trim()}") {
         hash = hash xor char.code.toLong()
         hash = (hash * 0x01000193L) and 0xffffffffL
     }

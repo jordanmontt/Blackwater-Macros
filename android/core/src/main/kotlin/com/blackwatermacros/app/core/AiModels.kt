@@ -44,10 +44,12 @@ fun buildModelListRequest(config: AiConfig): AiModelListRequest {
 }
 
 /**
- * Gemini also lists models that cannot chat: embeddings, image and speech
- * generation, live audio, agents. Gemma through the API has no system
- * instruction, which the app needs.
+ * Gemini also lists models that cannot chat: embeddings, image, music and
+ * speech generation, live audio, agents (Nano Banana, Lyria, Antigravity…).
+ * Only `gemini-…` ids are chat models, and not all of them. Gemma through the
+ * API has no system instruction, which the app needs.
  */
+private val GEMINI_CHAT = Regex("^gemini-")
 private val GEMINI_EXCLUDED = Regex("(embedding|aqa|imagen|veo|image|tts|live|native-audio|computer-use|robotics|deep-research|gemma|learnlm)")
 private val OPENAI_CHAT = Regex("^(gpt-|o\\d|chatgpt-)")
 private val OPENAI_EXCLUDED = Regex("(audio|realtime|transcribe|tts|image|search|embedding|instruct|moderation|codex|computer-use|dall-e|whisper)")
@@ -93,7 +95,7 @@ fun parseModelList(provider: AiProvider, body: JsonElement?): List<AiModelOption
                 val id = model["name"].text().removePrefix("models/")
                 AiModelOption(id, model["displayName"].text().ifEmpty { id })
             }
-            .filter { it.id.isNotEmpty() && !GEMINI_EXCLUDED.containsMatchIn(it.id) }
+            .filter { GEMINI_CHAT.containsMatchIn(it.id) && !GEMINI_EXCLUDED.containsMatchIn(it.id) }
         AiProvider.ANTHROPIC -> root["data"].records()
             .map { AiModelOption(it["id"].text(), it["display_name"].text().ifEmpty { it["id"].text() }) }
         AiProvider.OPENROUTER -> root["data"].records()

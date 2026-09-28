@@ -26,10 +26,13 @@ const inFlight = new Map<string, Promise<ModelList>>();
 let cachedRaw: string | null | undefined;
 let cachedLists: Partial<Record<AiProvider, ModelList>> = {};
 
+/** Bump when `parseModelList` filters differently: older cached lists are then asked again. */
+const LIST_FORMAT = 2;
+
 /** FNV-1a: enough to notice that the key or server changed, without storing either. */
 export function configFingerprint(config: AiConfig): string {
   let hash = 0x811c9dc5;
-  for (const char of `${config.provider}|${config.apiKey.trim()}|${config.baseUrl.trim()}`) {
+  for (const char of `${LIST_FORMAT}|${config.provider}|${config.apiKey.trim()}|${config.baseUrl.trim()}`) {
     hash ^= char.charCodeAt(0);
     hash = Math.imul(hash, 0x01000193) >>> 0;
   }

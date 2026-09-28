@@ -24,6 +24,9 @@ const GEMINI = {
     { name: "models/gemma-3-27b-it", displayName: "Gemma 3 27B", supportedGenerationMethods: ["generateContent"] },
     { name: "models/gemini-embedding-001", displayName: "Gemini Embedding", supportedGenerationMethods: ["embedContent"] },
     { name: "models/text-embedding-004", displayName: "Text Embedding", supportedGenerationMethods: ["embedContent"] },
+    { name: "models/nano-banana-pro-preview", displayName: "Nano Banana Pro", supportedGenerationMethods: ["generateContent"] },
+    { name: "models/lyria-3.5", displayName: "Lyria 3.5", supportedGenerationMethods: ["generateContent"] },
+    { name: "models/antigravity-preview-latest", displayName: "Antigravity Agent Preview Latest", supportedGenerationMethods: ["generateContent"] },
   ],
 };
 
@@ -54,7 +57,7 @@ describe("buildModelListRequest", () => {
 });
 
 describe("parseModelList", () => {
-  it("Gemini: only chat models, without image, speech, Gemma or embeddings; aliases first, newest first", () => {
+  it("Gemini: only gemini-… chat models (no image, music, speech, agents, Gemma or embeddings); aliases first, newest first", () => {
     expect(parseModelList("gemini", GEMINI)).toEqual([
       { id: "gemini-flash-latest", label: "Gemini Flash Latest" },
       { id: "gemini-3.8-flash", label: "Gemini 3.8 Flash" },

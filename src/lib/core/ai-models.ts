@@ -41,10 +41,12 @@ export function buildModelListRequest(config: AiConfig): AiModelListRequest {
 }
 
 /**
- * Gemini also lists models that cannot chat: embeddings, image and speech
- * generation, live audio, agents. Gemma through the API has no system
- * instruction, which the app needs.
+ * Gemini also lists models that cannot chat: embeddings, image, music and
+ * speech generation, live audio, agents (Nano Banana, Lyria, Antigravity…).
+ * Only `gemini-…` ids are chat models, and not all of them. Gemma through the
+ * API has no system instruction, which the app needs.
  */
+const GEMINI_CHAT = /^gemini-/;
 const GEMINI_EXCLUDED = /(embedding|aqa|imagen|veo|image|tts|live|native-audio|computer-use|robotics|deep-research|gemma|learnlm)/;
 const OPENAI_CHAT = /^(gpt-|o\d|chatgpt-)/;
 const OPENAI_EXCLUDED = /(audio|realtime|transcribe|tts|image|search|embedding|instruct|moderation|codex|computer-use|dall-e|whisper)/;
@@ -96,7 +98,7 @@ export function parseModelList(provider: AiProvider, body: unknown): AiModelOpti
         const id = text(model.name).replace(/^models\//, "");
         return { id, label: text(model.displayName) || id };
       })
-      .filter((model) => model.id !== "" && !GEMINI_EXCLUDED.test(model.id));
+      .filter((model) => GEMINI_CHAT.test(model.id) && !GEMINI_EXCLUDED.test(model.id));
   } else if (provider === "anthropic") {
     options = records(root.data).map((model) => ({ id: text(model.id), label: text(model.display_name) || text(model.id) }));
   } else if (provider === "openrouter") {
