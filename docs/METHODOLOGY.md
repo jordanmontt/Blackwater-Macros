@@ -7,9 +7,9 @@ it comes from and where it stops being reliable.
 - **Code:** `src/lib/core/calories.ts`, `protein.ts`, `expenditure.ts`, `stats.ts`,
   `stats-builder.ts`, `progress.ts`, `coach.ts` (web), mirrored 1:1 in Kotlin
   `android/core` (see [TECHNICAL.md](./TECHNICAL.md) §8 and §11.1).
-- **User-facing text:** the Metodología page (web `metodologia.*` in `src/i18n/*.ts` plus
+- **User-facing text:** the Metodología page (web `metodologia.*` in `src/i18n/*.json` plus
   the formula blocks and references in `src/app/metodologia/page.tsx`; Android `meth_*`
-  strings and `MethodologyScreen.kt`).
+  strings — a few generated from the same JSON — and `MethodologyScreen.kt`).
 - **Rule:** a change to any number here changes the code (both platforms), the tests (both
   platforms), the Metodología texts (5 languages × 2 platforms) and this file, together.
 

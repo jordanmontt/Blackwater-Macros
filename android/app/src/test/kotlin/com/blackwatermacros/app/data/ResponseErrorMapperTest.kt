@@ -8,6 +8,8 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Response
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import java.io.File
 import java.io.IOException
 
@@ -48,13 +50,12 @@ class ResponseErrorMapperTest {
             .isEqualTo(UiText.Res(R.string.server_error_network))
     }
 
-    /** The web's list (`serverErrors` in src/i18n/es.ts) and the app's must be the same codes. */
+    /** The web's list (`serverErrors` in src/i18n/es.json) and the app's must be the same codes. */
     @Test
     fun everyServerCodeHasAnAppString() {
-        val es = File("../../src/i18n/es.ts").readText()
-        val block = es.substringAfter("  serverErrors: {").substringBefore("\n  },")
-        val webCodes = Regex("""^ {4}(\w+):""", RegexOption.MULTILINE).findAll(block).map { it.groupValues[1] }.toSet()
-        assertWithMessage("codes in src/i18n/es.ts").that(webCodes).isNotEmpty()
+        val es = Json.parseToJsonElement(File("../../src/i18n/es.json").readText()).jsonObject
+        val webCodes = es.getValue("serverErrors").jsonObject.keys
+        assertWithMessage("codes in src/i18n/es.json").that(webCodes).isNotEmpty()
         assertThat(ResponseErrorMapper.CODES.keys).containsExactlyElementsIn(webCodes)
     }
 }

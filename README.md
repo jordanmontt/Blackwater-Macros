@@ -247,7 +247,7 @@ src/
   app/                 Páginas (React) y rutas API (App Router)
     api/               Backend serverless: meals, templates, weights, stats, export, import…
   components/          Componentes de UI (shadcn/ui + propios)
-  i18n/               Textos de la interfaz: es.ts (referencia), en, fr, it, de
+  i18n/               Textos de la interfaz (también de Android): es.json (referencia), en, fr, it, de
   lib/                 Lógica del cliente (llamadas API, demo, caché)
     api.ts             Cliente HTTP hacia /api/*
     demo-api.ts, demo-store.ts   Modo demo (sin servidor, sessionStorage)

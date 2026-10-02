@@ -75,10 +75,12 @@ special handling for LiteRT-LM's native libraries. Checked 2026-09-28 in
       licence**). Chompass ships a Swiss index and is on F-Droid, so it is probably accepted, but
       state it in the merge request. Open Food Facts is only queried online (ODbL). ❓ confirm
       nothing else is bundled (`android/app/src/main/assets`, `public/foods`).
-- [ ] Decide whether the web (`src/`, Next.js) stays in the same repository. F-Droid only needs
-      `android/`; like Chompass, the recipe can `scandelete` the web folders so the scanner does
-      not trip on `node_modules`-style content. Keeping one repository is simpler (shared
-      `src/lib/core` ⇄ `android/core` parity). ✅ suggested: one repository.
+- [ ] Decide whether the web (`src/`, Next.js) stays in the same repository. F-Droid needs
+      `android/` **and `src/i18n/*.json`** (the Android build generates its shared texts from
+      them, TECHNICAL.md §6 «i18n»); like Chompass, the recipe can `scandelete` the other web
+      folders so the scanner does not trip on `node_modules`-style content — never `src/i18n`.
+      Keeping one repository is simpler (shared `src/lib/core` ⇄ `android/core` parity and
+      texts). ✅ suggested: one repository.
 
 ### A2. Phone-model catalog from the repository (F1)
 
@@ -157,7 +159,8 @@ No public sign-up should appear to work before paid accounts exist.
         back-and-forth with reviewers. Suggested: declare it.
 - [ ] Merge request to `fdroiddata` with `metadata/com.blackwatermacros.app.yml`
       (Categories: Sports & Health; License; SourceCode; IssueTracker; Builds with
-      `subdir: android/app`, `gradle: yes`, the ABI property, `scandelete` for the web folders).
+      `subdir: android/app`, `gradle: yes`, the ABI property, `scandelete` for the web folders
+      except `src/i18n`).
 - [ ] After merge: the first build takes days; fix scanner complaints if any.
 
 ---

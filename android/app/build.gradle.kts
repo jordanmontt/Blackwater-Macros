@@ -1,3 +1,4 @@
+import groovy.json.JsonSlurper
 import java.util.Properties
 
 plugins {
@@ -152,5 +153,84 @@ dependencies {
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
+/**
+ * The texts the app shares with the web come from the web's dictionaries
+ * (`src/i18n/<lang>.json`), so they are written once per language.
+ * `strings-from-web.json` names, for each Android string, its path in those
+ * dictionaries and, for texts with «{name}» markers, the order and type of the
+ * format arguments («n:d» → `%1$d`). Android-only texts stay in `strings.xml`.
+ * See docs/TECHNICAL.md «i18n».
+ */
+abstract class GenerateWebStrings : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val mapFile: RegularFileProperty
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val dictionaries: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        @Suppress("UNCHECKED_CAST")
+        val entries = JsonSlurper().parse(mapFile.get().asFile) as Map<String, Any>
+        val out = outputDirectory.get().asFile.apply { deleteRecursively() }
+        // English is Android's default language (`values`), Spanish the web's reference.
+        for ((lang, dir) in listOf("en" to "values", "es" to "values-es", "fr" to "values-fr", "it" to "values-it", "de" to "values-de")) {
+            val dictionary = JsonSlurper().parse(dictionaries.files.single { it.name == "$lang.json" })
+            val xml = StringBuilder()
+            xml.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
+            xml.append("<!-- Generated from src/i18n/$lang.json (see android/app/strings-from-web.json). Do not edit. -->\n")
+            xml.append("<resources>\n")
+            for ((name, spec) in entries) {
+                val path = if (spec is List<*>) spec.first() as String else spec as String
+                val args = if (spec is List<*>) spec.drop(1).map { it as String } else emptyList()
+                val found = path.split('.').fold<String, Any?>(dictionary) { node, key -> (node as? Map<*, *>)?.get(key) }
+                var text = escapeAndroidString(
+                    found as? String ?: throw GradleException("strings-from-web.json: «$name» → «$path» is not a text in $lang.json"),
+                    hasArgs = args.isNotEmpty(),
+                )
+                args.forEachIndexed { index, arg ->
+                    val (argName, type) = arg.split(':')
+                    val marker = "{$argName}"
+                    if (marker !in text) throw GradleException("strings-from-web.json: «$name» in $lang.json has no $marker")
+                    text = text.replace(marker, "%${index + 1}$$type")
+                }
+                Regex("""\{\w+\}""").find(text)?.let {
+                    throw GradleException("strings-from-web.json: «$name» in $lang.json has ${it.value} but no argument for it")
+                }
+                xml.append("    <string name=\"$name\">$text</string>\n")
+            }
+            xml.append("</resources>\n")
+            File(out, "$dir/strings_web.xml").apply { parentFile.mkdirs() }.writeText(xml.toString())
+        }
+    }
+
+    /** What aapt needs escaped in a string resource; `%` only matters when the text takes arguments. */
+    private fun escapeAndroidString(text: String, hasArgs: Boolean): String {
+        val escaped = text
+            .replace("\\", "\\\\")
+            .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            .replace("'", "\\'").replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .let { if (hasArgs) it.replace("%", "%%") else it }
+        return if (escaped.startsWith("@") || escaped.startsWith("?")) "\\$escaped" else escaped
+    }
+}
+
+val generateWebStrings = tasks.register<GenerateWebStrings>("generateWebStrings") {
+    mapFile.set(layout.projectDirectory.file("strings-from-web.json"))
+    dictionaries.from(fileTree(rootDir.resolve("../src/i18n")) { include("*.json") })
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources.res?.addGeneratedSourceDirectory(generateWebStrings, GenerateWebStrings::outputDirectory)
     }
 }

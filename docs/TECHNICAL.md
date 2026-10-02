@@ -18,12 +18,12 @@ For general usage and setup, read [README.md](../README.md) first.
 | Layer | Technology | Notes |
 |---|---|---|
 | Framework | Next.js **16** (App Router, Turbopack) | Route handlers for the API; static pages |
-| UI | React 19 · Tailwind CSS v4 · shadcn/ui v4 | shadcn components are built on **Base UI** (`@base-ui/react`), *not* Radix — see §8 |
+| UI | React 19 · Tailwind CSS v4 · shadcn/ui v4 | shadcn components are built on **Base UI** (`@base-ui/react`), *not* Radix — see §9 |
 | Charts | recharts 3 | All inside client components |
 | DB | PostgreSQL (Neon) + **Drizzle ORM** | `postgres.js` driver; schema pushed with drizzle-kit |
 | Auth | Custom: scrypt hashes + opaque DB sessions | No external auth service, no public registration |
 | Validation | zod v4 | Single source of truth for request payloads |
-| Tests | Vitest 4 (+ Testing Library, happy-dom) | Three-project setup, see §10 |
+| Tests | Vitest 4 (+ Testing Library, happy-dom) | Three-project setup, see §11 |
 
 ---
 
@@ -61,11 +61,11 @@ src/
     app-nav.tsx theme-provider.tsx
   lib/                      # Shared pure logic + types (importable from both sides)
     core/                   # PURE algorithms, zero deps — single source of truth, ported to Kotlin
-      types.ts dates.ts nutrition.ts stats.ts stats-builder.ts protein.ts calories.ts expenditure.ts csv.ts
+      one file per domain (nutrition, stats, calories, ai-providers…) — list in §11.1
     api.ts demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
     csv-import.ts           # Reads the export's CSV (and Android's) back: parse, validate, import keys
-  i18n/es.ts                # ALL user-facing copy as a typed dictionary (Spanish = the reference)
-  i18n/en.ts fr.ts it.ts de.ts  # Same keys, same {placeholders} (tests/unit/i18n.test.ts)
+  i18n/<lang>.json          # ALL user-facing copy, es (the reference) en fr it de; Android reads them too (§6 i18n)
+  i18n/<lang>.ts            # Typed wrappers: every language has the shape of es (tests/unit/i18n.test.ts)
   i18n/languages.ts format.ts   # Language list + cookie/Accept-Language choice; locale-aware dates, the one number format
 scripts/
   lib/env.ts                # .env/.env.local loader for scripts outside Next runtime
@@ -320,12 +320,8 @@ Each repository also has `upsert(userId, id, data)`: UPDATE scoped by user, else
 overwrite.
 
 The wire contract below is authoritative for both clients (web and Android), derived from
-the zod schemas in `src/server/validation.ts` and the DTOs in `src/lib/core/types.ts`.
-
-### 5.1 Base URL
-
-- **Production:** the deployed Next.js origin (e.g. `https://blackwater-macros.example`)
-- All endpoints are relative to this origin, prefixed with `/api`.
+the zod schemas in `src/server/validation.ts` and the DTOs in `src/lib/core/types.ts`. All
+paths are relative to the deployed origin.
 
 ### 5.2 Authentication
 
@@ -399,7 +395,8 @@ Success `200`:
   (`src/lib/server-errors.ts`), Android `server_error_<code>` strings
   (`ResponseErrorMapper.CODES`). The Spanish `error` is the fallback for a code a client does
   not know yet, and what the examples in this document show. The codes are the keys of
-  `serverErrors` in `src/i18n/es.ts`; a test on each side fails if the lists differ.
+  `serverErrors` in `src/i18n/es.json` (Android's `server_error_*` texts are generated from
+  them); a test on each side fails if the lists differ.
 - Validation errors carry the code of the first problem (`title_required`,
   `weight_out_of_range`, `username_too_short`…), or `invalid_data`.
 
@@ -531,64 +528,9 @@ At least one id required. Reorders meals within a single day (drag-and-drop). Su
 
 ### 5.6 Meal templates
 
-Same shape as meals, plus a `name` and no `logDate`/`sortOrder`.
-
-#### List templates
-
-`GET /api/templates` — auth required.
-
-Success `200`:
-```json
-{ "templates": [ MealTemplateDTO ] }
-```
-
-`MealTemplateDTO` extends `MealDTO` with `name` instead of `logDate`:
-```json
-{
-  "id": "uuid",
-  "name": "Desayuno base",
-  "title": "Desayuno",
-  "notes": null,
-  "entryMode": "per_ingredient",
-  "ingredients": [],
-  "totalCalories": null,
-  "totalProtein": null,
-  "totalCarbs": null,
-  "totalFat": null,
-  "resolvedCalories": 0,
-  "resolvedProtein": 0,
-  "resolvedCarbs": 0,
-  "resolvedFat": 0,
-  "updatedAt": "2026-06-15T08:00:00.000Z"
-}
-```
-
-#### Create template
-
-`POST /api/templates` — auth required.
-
-Body is like `MealInput` plus required `name` (max 120). Success `201`:
-```json
-{ "template": MealTemplateDTO }
-```
-
-#### Update template
-
-`PATCH /api/templates/:id` — auth required. Success `200`:
-```json
-{ "template": MealTemplateDTO }
-```
-`404` if not owned: `{ "error": "Plantilla no encontrada" }`.
-
-#### Create or replace template (offline sync)
-
-`PUT /api/templates/:id` — auth required. Same semantics as `PUT /api/meals/:id`
-(UUID id, idempotent create-or-replace, `404` if owned by another user). Body
-is `TemplateInput`. Success `200`: `{ "template": MealTemplateDTO }`.
-
-#### Delete template
-
-`DELETE /api/templates/:id` — auth required. Success `200`: `{ "ok": true }`.
+Same endpoints and rules as meals (§5.5) under `/api/templates`, wrapped as `{ "templates": […] }`
+/ `{ "template": … }`, without reorder. `MealTemplateDTO` / `TemplateInput` = the meal ones with
+a required `name` (max 120) instead of `logDate`. `404`: `{ "error": "Plantilla no encontrada" }`.
 
 ---
 
@@ -638,23 +580,8 @@ Success `201`:
 { "weight": WeightDTO }
 ```
 
-#### Update weight
-
-`PATCH /api/weights/:id` — auth required. Body is `WeightInput`. Success `200`:
-```json
-{ "weight": WeightDTO }
-```
-`404` if not owned: `{ "error": "Registro no encontrado" }`.
-
-#### Create or replace weight (offline sync)
-
-`PUT /api/weights/:id` — auth required. Same semantics as `PUT /api/meals/:id`
-(UUID id, idempotent create-or-replace, `404` if owned by another user). Body
-is `WeightInput`. Success `200`: `{ "weight": WeightDTO }`.
-
-#### Delete weight
-
-`DELETE /api/weights/:id` — auth required. Success `200`: `{ "ok": true }`.
+`PATCH` / `PUT` (offline upsert, as for meals) / `DELETE` `/api/weights/:id` work as for
+meals: `{ "weight": WeightDTO }` or `{ "ok": true }`; `404`: `{ "error": "Registro no encontrado" }`.
 
 ---
 
@@ -797,56 +724,20 @@ kilos), so importing a file twice changes nothing. Success `200`:
 
 ### 5.12 Admin (admins only)
 
-All admin endpoints require the caller to have `isAdmin = true`; otherwise `403`.
-
-#### List users
-
-`GET /api/admin/users` — success `200`:
-```json
-{ "users": [ { "id": "uuid", "username": "ana", "isAdmin": false, "createdAt": "ISO" } ] }
-```
-
-#### Create user
-
-`POST /api/admin/users` — body `{ "username": "...", "password": "..." }`
-(username min 3, password min 8). Success `201`: `{ "ok": true }`. `409` if username exists.
-
-#### Update user
-
-`PATCH /api/admin/users/:id` — body with optional `username`, `password`, `isAdmin`.
-At least one must be present. Success `200`: `{ "user": AdminUserDTO }`.
-
-#### Delete user
-
-`DELETE /api/admin/users/:id` — success `200`: `{ "ok": true }`.
+Endpoints in the table above; non-admins get `403`. `GET` → `{ "users": [ { "id", "username",
+"isAdmin", "createdAt" } ] }`. Create: username min 3, password min 8, `201 { "ok": true }`,
+`409` if the username exists. `PATCH` takes any of `username`, `password`, `isAdmin` (at least
+one) → `{ "user": AdminUserDTO }`.
 
 ---
 
 ### 5.13 Android integration notes
 
-The Android app is **local-first**: every screen reads and writes an on-device
-Room database; the network is never in the UI path. Without an account the app
-is fully usable and never calls the API. With an account, a background sync
-mirrors the database with the server:
-
-1. **Auth token:** obtained via `login`, stored in the app's private
-   SharedPreferences, sent as `Authorization: Bearer <token>`.
-2. **401 handling:** the account is marked *session expired*; local data and
-   pending changes are kept and sync pauses until the user logs in again.
-3. **Push:** every locally changed record is sent with `PUT /api/<kind>/:id`
-   (phone-generated UUID, idempotent — safe to retry after a dropped
-   connection) or `DELETE` (a `404` counts as done). The calorie profile goes
-   through `PUT /api/settings` with **every key present** (unset = `null`).
-4. **Pull:** full lists (`GET /api/meals`, `/api/templates`, `/api/weights`,
-   `/api/auth/session`) replace every local row that has no pending change;
-   rows missing on the server are removed (so deletions on the web propagate).
-5. **Conflicts:** last to sync wins, per record. `updatedAt` is stored but not
-   compared.
-6. **Numbers:** always `.` in JSON; the UI formats them in the app language.
-7. **Timezones:** `logDate` days are the user's local calendar day; statistics
-   are computed on the phone with the `:core` port of the stats builder, so
-   `/api/stats` is not used by Android.
-
+Android is local-first and syncs in the background (§14.1): Bearer token from `login`;
+`PUT /api/<kind>/:id` with phone-made UUIDs (idempotent, safe to retry) and `DELETE` (a `404`
+counts as done); full-list pulls of meals, templates, weights and the session; the profile via
+`PUT /api/settings` with **every key present** (unset = `null`). A `401` marks the session
+expired and keeps local data. Statistics are computed on the phone, so `/api/stats` is unused.
 
 ---
 
@@ -857,7 +748,7 @@ mirrors the database with the server:
 | Page | File | Highlights |
 |---|---|---|
 | Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), meal list, delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
-| Progreso | `app/progreso/page.tsx` | Peso + Estadísticas merged (old URLs redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
+| Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), links to Perfil and to IA, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
 | IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
@@ -922,12 +813,11 @@ card (and therefore the `/admin` page) is unreachable in demo mode.
   pickers (`<select>` via `components/ui/native-select.tsx`, a native checkbox with
   `role="switch"` in Admin — Safari 17.4+ draws it as an iOS switch — and
   `datetime-local`), native scrollbars, and `accent-color` so they are tinted with the
-  app green. Custom Base UI Select/Switch were removed for this reason.
+  app green (no custom Base UI Select/Switch).
 
 ### Numbers on screen and in inputs (web and Android, every language)
 
-One format everywhere, chosen on 2026-10-02 so web and phone show the same characters in
-every language: **`,` as decimal separator and a narrow no-break space (U+202F) between
+One format everywhere, so web and phone show the same characters in every language: **`,` as decimal separator and a narrow no-break space (U+202F) between
 thousands from five digits up** — «1,6 g», «2000 kcal», «12 345 kcal».
 
 - **Why the comma:** four of the five app languages (es, fr, it, de) write it, the project
@@ -958,17 +848,26 @@ thousands from five digits up** — «1,6 g», «2000 kcal», «12 345 kcal».
   (`todayKey()`). For stats, the client sends its `today` so the server anchors
   ranges correctly for each user.
 - Weights are **exact instants** (`TIMESTAMPTZ` ISO strings); the Progreso page groups
-  them by local day via string slice and renders with the active language's formatters
-  (`i18n/format.ts`: `formatDateKeyLong`, `formatTimestamp`, `formatNumber`…; parsing stays in
-  `lib/core/dates.ts`: `nowDateTimeLocalValue`, `parseLocalDateTime`).
+  them by local day and shows them with `i18n/format.ts` (dates in the active language);
+  `datetime-local` values are parsed by `lib/core/dates.ts` (`parseLocalDateTime`).
 
 ### i18n
 
-Five languages, as on Android: Spanish (`es.ts`, the reference, `as const`), English,
-French («vous»), Italian and German. Every visible string lives in them, including long
-prose (methodology page). Interpolation via `formatTemplate(t.key, { n })`. The other
-dictionaries are typed `Dictionary` (the shape of `es.ts`), so a missing key fails the
-build; `tests/unit/i18n.test.ts` also checks list lengths and `{placeholders}`.
+Five languages, on the web and on Android: Spanish (the reference), English, French
+(«vous»), Italian and German. **Every text is written once per language** in
+`src/i18n/<lang>.json`, long prose (Metodología) included; interpolation via
+`formatTemplate(t.key, { n })`. `i18n/<lang>.ts` wrap them: the other languages are typed
+`Dictionary` (the shape of `es`), so a missing key fails the build, and
+`tests/unit/i18n.test.ts` checks list lengths and `{placeholders}`.
+
+**Android reads the same files.** `android/app/strings-from-web.json` names, for each
+Android string shared with the web, its path in the dictionaries and its format arguments in
+order (`["progreso.loggedDays", "n:d", "m:d"]` → `Días registrados: %1$d de %2$d`). At build
+time `:app:generateWebStrings` (`app/build.gradle.kts`, no Node needed) writes them as
+`values*/strings_web.xml` into a generated resource folder; it fails the build if a path or a
+`{marker}` is missing. Android-only texts (plurals, screens the web doesn't have, texts worded
+for a phone) stay in `res/values*/strings.xml`. A text that should read the same on both:
+put it in the JSON and add one map line; never copy it into `strings.xml`.
 
 **Choosing the language.** Ajustes → Idioma writes the `bw-lang` cookie (`es|en|fr|it|de`
 or `system`) and reloads. The root layout reads it (else Accept-Language, else Spanish;
@@ -979,28 +878,21 @@ keep importing `t` as before.
 
 **Rendering.** The server always renders Spanish. For another language `LanguageGate`
 renders nothing on the server and the app after mount, so there is no hydration mismatch
-(a blank frame on first paint, then the page in the right language). Reading cookies
-makes the layout dynamic, which it already was in practice (session checks).
+(a blank frame on first paint, then the page in the right language).
 
-**Server errors:** the API sends a code with each error and `lib/api.ts` shows `t.serverErrors[code]` (see §5.3), so validation and admin messages follow the language too.
-
-**Also per language:** dates (`i18n/format.ts`, `LOCALE_TAGS`; numbers are the same in every
-language, see «Numbers on screen and in inputs» above), food search
-and barcode names (`currentLanguage()` → Open Food Facts `lc`), and the language the AI
-answers in (`aiLanguage()`). Stays Spanish on purpose: CSV column names (a file format).
-
-Adding UI text = add the key to `es.ts` and the four others, then use it.
+**Also per language:** server errors (`t.serverErrors[code]`, §5.3), dates
+(`i18n/format.ts`, `LOCALE_TAGS`; numbers are the same in every language, see above), food
+search and barcode names (`currentLanguage()` → Open Food Facts `lc`), and the language the
+AI answers in (`aiLanguage()`). Stays Spanish on purpose: CSV column names (a file format).
 
 ---
 
 ## 7. Stats pipeline (`lib/core/stats-builder.ts` + `lib/core/stats.ts`)
 
 The core computation lives in **`lib/core/stats-builder.ts`** as the pure, client-safe
-`buildStatsFromData(meals, weights, range, today)` — **shared by both the server
-and demo mode** so their numbers never drift. `server/services/stats-service.ts`
-is now a thin adapter: it fetches rows through injected repos (preserving
-testability), maps them to `StatsMeal`/`StatsWeight`, and calls the shared
-builder. `lib/demo-api.ts` calls the same builder on the local demo store.
+`buildStatsFromData(meals, weights, range, today)` — **shared by the server, demo mode
+and Android** (Kotlin port) so their numbers never drift. `server/services/stats-service.ts`
+fetches rows through injected repos and calls it; `lib/demo-api.ts` calls it on the demo store.
 
 Inputs: user's meals in range, all user weights, requested range, client `today`.
 Zero-fill: `buildDailyNutritionSeries()` inserts `{calories:0, protein:0}` for
@@ -1041,7 +933,7 @@ happens only in components via `formatNumber(value, maxDecimals)` from `i18n/for
 All three are pure functions in `lib/core` (ported 1:1 to Kotlin `:core`), computed on the
 client from the latest weight, the profile and the logged meals. No server-side
 computation. The user-facing explanation, with citations, is the Metodología page
-(`i18n/es.ts` `metodologia.*`; Android `meth_*` strings) — **change it together with the
+(`i18n/<lang>.json` `metodologia.*`; Android `meth_*` strings) — **change it together with the
 math**. Why each formula was chosen, its sources, limits and the rejected alternatives are in
 [METHODOLOGY.md](./METHODOLOGY.md); update it in the same change as well.
 
@@ -1156,7 +1048,7 @@ rest of the calorie profile.
 6. **F-Droid clean:** only free-software dependencies (no Google Play Services, ML Kit, Firebase).
 7. **Web ⇄ Android parity:** pure logic in `src/lib/core` + Kotlin `:core` with mirrored tests (§11.1).
 
-**Decisions** (referred to as D1–D12 in older commits):
+**Decisions:**
 
 | # | Decision |
 |---|---|
@@ -1180,7 +1072,6 @@ TDEE, measured expenditure ± margin; today's meals and what is left to the targ
 the model to use instead of inventing numbers. The prompt asks for short, practical answers in the
 app language, no medical claims.
 
-
 - **Pure part** (`core/ai-providers.ts` = Kotlin `AiProviders.kt`, byte-identical request
   bodies, mirrored tests): `buildAiRequest` for Gemini (`x-goog-api-key`, JSON mode, SSE
   streaming), OpenAI-compatible chat completions (OpenAI, OpenRouter, any `…/v1` server
@@ -1189,18 +1080,16 @@ app language, no medical claims.
   `parseAiResponse`, `parseAiStreamLine`, `parseAiStreamEnd` (how a stream ended: done,
   token limit, or an error the provider sent inside the stream — Anthropic `type: "error"`,
   `{"error": …}` from Gemini/OpenAI/OpenRouter, a finish reason such as `SAFETY`),
-  `aiErrorKind` (Gemini answers a wrong key with 400 + `API_KEY_INVALID`). Default models (editable): `gemini-flash-latest`,
-  `gpt-5-mini`, `claude-haiku-4-5`, `openrouter/auto`.
+  `aiErrorKind` (Gemini answers a wrong key with 400 + `API_KEY_INVALID`). Default models
+  (editable): `gemini-flash-latest`, `gpt-5-mini`, `claude-haiku-4-5`, `openrouter/auto`.
 - **Transport**: web `lib/ai/client.ts` (`fetch`, streams read line by line), Android
   `data/ai/AiClient.kt` (OkHttp). Both call the provider **directly**: the Blackwater
   server never sees keys, photos or questions. Errors become `AiFailure` kinds with a
   user message (`t.ai.errors`, `ai_error_*`). A stream must say it is done (`[DONE]`, a
   finish reason, `message_stop`); one that stops early fails *after* the text that arrived:
   `truncated` at the token limit, the provider's own error kind, or `interrupted` when it
-  just ends (connection cut). Before this, all three looked like a finished answer that
-  stopped mid-sentence. Android streams run on the IO dispatcher through `flowOnKeepingItems`
-  (`AiClient.kt`): with plain `flowOn` the failure cancelled the screen's collector before it
-  read the pieces still buffered, so a slow screen could lose the end of an answer, or all of it.
+  just ends (connection cut). Android streams use `flowOnKeepingItems` (`AiClient.kt`), not
+  plain `flowOn`: a failure there cancels the collector before it reads the buffered pieces.
 - **Settings** (one key + model per provider, base URL, «El coach puede ver mis datos»):
   web `lib/ai/settings.ts` in `localStorage["bw:ai"]` (per browser), card
   `components/settings/ai-settings-card.tsx` in Ajustes; Android `data/ai/AiSettingsStore.kt`
@@ -1216,7 +1105,7 @@ app language, no medical claims.
   `localStorage["bw:ai-models"]`, Android `ModelListStore` (prefs `ai_model_lists`). Refreshed
   when the app opens (at most once a day: web `AiModelRefresh` in the layout, Android
   `AppGraph.refreshOnOpen`), when the key changes and with «Actualizar». «Predeterminado» and
-  «Otro…» (type a name) stay; without a list it is the old text field. The quota error says to
+  «Otro…» (type a name) stay; without a list it is a text field. The quota error says to
   pick another model (each has its own daily limit).
 - Tests never call a real provider: mocked `fetch` (web) / MockWebServer (Android).
 - **Photo or text logging** («Foto o texto» in «Añadir comida» — photos, text alone such as a
@@ -1233,10 +1122,9 @@ app language, no medical claims.
   same data as the Comidas card (profile, targets, measured expenditure, 4 weeks of meals,
   60 days of weigh-ins); with «El coach puede ver mis datos» off the data is neither read
   nor sent. The last 20 good turns go along as history. Cloud answers get
-  `COACH_MAX_TOKENS` = 8192 output tokens: the default models (Gemini Flash, GPT-5 mini)
-  reason first and that hidden thinking counts against the budget, so 4096 cut long answers
-  mid-sentence. An answer that stops early keeps its text in the bubble with the reason
-  under it, and is not resent as history. The phone's model reads prompt, history and answer
+  `COACH_MAX_TOKENS` = 8192 output tokens (the default models reason first, and that hidden
+  thinking counts against the budget). An answer that stops early keeps its text in the
+  bubble with the reason under it, and is not resent as history. The phone's model reads prompt, history and answer
   in one 4096-token window (`LocalEngine.MAX_TOKENS`): `fitHistoryToBudget` drops the oldest
   turns so 1536 tokens stay free for the answer. The web's browser model answers in at most
   1024 tokens and says so (`truncated`) when it reaches the limit. **Photos** (up to 5 per question,
@@ -1250,17 +1138,13 @@ app language, no medical claims.
   on request by a WorkManager foreground job (Wi-Fi by default, resumable, checksum) into
   `noBackupFilesDir/models`. `AiSettings.photoEngine` / `coachEngine` choose cloud or phone;
   `usableEngine` decides readiness. `LocalEngine` loads once and serves one request at a
-  time, **on the CPU only**: on a Pixel 10a («8 GB», Mali GPU, which keeps a second copy of
-  the weights) Gemma 4 E4B on the GPU reached ~5.3 GB and Android's low-memory killer closed
-  the app; on the CPU it peaked at ~4.2 GB and answered. The CPU engine writes a working copy
-  of the weights to `cacheDir` (`<model>…xnnpack_cache`, ~65 % of the file, read from disk
-  instead of RAM); it is deleted with the model, and stale GPU caches are removed on load.
-  The image encoder loads only for a request with photos (also on the CPU).
-  A loaded model holds ~4 GB, so it is **released** 60 s after the last request, at once on
-  «Nueva conversación», and when the app goes to the background (`MainActivity.onStop`,
-  which includes opening the camera): left loaded, Android killed the app in the
-  background to make room for the camera. Reloading takes ~20 s on the CPU.
-  Needs Kotlin ≥ 2.4 (the library's metadata).
+  time, **on the CPU only** (a Mali GPU keeps a second copy of the weights: Gemma 4 E4B was
+  killed for memory on an 8 GB phone). The CPU engine keeps a working copy of the weights in
+  `cacheDir` (`<model>…xnnpack_cache`, deleted with the model); the image encoder loads only
+  for a request with photos. A loaded model holds ~4 GB, so it is **released** 60 s after
+  the last request, on «Nueva conversación» and when the app goes to the background
+  (`MainActivity.onStop`, also when the camera opens); reloading takes ~20 s. Needs
+  Kotlin ≥ 2.4 (the library's metadata).
 - **Catalog of phone models:** `public/models/local-models.json` on the site (the proxy lets
   `/models/` through without a session). The app asks for it only when Ajustes → IA is opened
   (`LocalModelCatalog.refresh`, at most every 10 min) — never just because the app opened, so
@@ -1296,16 +1180,13 @@ app language, no medical claims.
   naming the model.
 - **Local AI on the web** (D9, Coach only): `lib/ai/browser-model.ts` runs a model from
   `BROWSER_MODELS` with WebLLM on WebGPU (imported lazily, own chunk) — the GPU is the only fast
-  way a web page can run a model (Android's CPU-only choice does not apply). Offered: **Qwen3.5
-  2B** (1.1 GB, recommended, phones too) and **Qwen3.5 4B** (2.4 GB, computers); the first web
-  model, Qwen3 1.7B, is only recognised in the cache so it can be deleted. Tried on 2026-09-28:
-  Qwen3.5 0.8B wrote wrong numbers and looped, so it is not offered. One model at a time, chosen
-  before download (`AiSettings.browserModel`). Ajustes → IA → «Modelo en este navegador» checks
-  `navigator.gpu` and the adapter's `maxStorageBuffersPerShaderStage` (WebLLM needs ≥ 10;
-  Firefox desktop has 9 and used to fail mid-download) and says why in one line when either is
-  missing (Firefox on Android has no WebGPU; Chrome, Edge and Safari on iOS 26 do). Sampling:
-  temperature 0.3, top_p 0.9, frequency_penalty 0.3 — the defaults made the 2B wander into
-  nonsense and the small ones loop. `withoutThinking()` drops the empty `<think></think>` block
+  way a web page can run a model. Offered: **Qwen3.5 2B** (1.1 GB, recommended, phones too)
+  and **Qwen3.5 4B** (2.4 GB, computers); Qwen3 1.7B (the first one) is only recognised in the
+  cache so it can be deleted, and 0.8B is not offered (wrong numbers, loops). One model at a
+  time, chosen before download (`AiSettings.browserModel`). Ajustes → IA checks `navigator.gpu`
+  and `maxStorageBuffersPerShaderStage` (WebLLM needs ≥ 10; Firefox desktop has 9) and says
+  why in one line when either is missing. Sampling: temperature 0.3, top_p 0.9,
+  frequency_penalty 0.3 (with the defaults small models wander and loop). `withoutThinking()` drops the empty `<think></think>` block
   Qwen writes even with thinking off. The section and the coach's footer (when it runs in the
   browser) say the cloud answers much better. «Usar para el coach: Nube / Este navegador»
   (`AiSettings.coachEngine`); `coach-chat.ts` streams from it; nothing leaves the browser.
@@ -1369,9 +1250,6 @@ These scripts are the **bootstrap/emergency** path: the first admin account must
 exist before the `/admin` UI is reachable, and a lost password can be reset
 without logging in. Day-to-day account management happens in the `/admin` UI.
 
-Demo data for testers is now provided entirely by the browser-local demo mode
-(see §6.1), so the old `seed`/`delete-user` scripts were removed.
-
 `drizzle.config.ts` duplicates the env-file loader because drizzle-kit does not
 read `.env.local` on its own.
 
@@ -1388,8 +1266,9 @@ Three projects, one run (`npm test`):
 | `behavior-ui` | happy-dom | Renders actual pages and components (`today-page`, `progreso-page`, `ajustes-page`, `perfil-page`, `recommendations-card`, `day-navigator`, …) with mocked `@/lib/api` |
 
 Notes:
-- **happy-dom, not jsdom**: Node ≥20.19 supports `require(esm)` but the pinned
-  local Node (20.18) does not; happy-dom avoids that chain entirely.
+- **happy-dom, not jsdom** (avoids jsdom's `require(esm)` chain). CI runs Node 22. On Node
+  ≥ 25 run the tests with `NODE_OPTIONS=--no-experimental-webstorage`: Node's own
+  `localStorage` global otherwise shadows happy-dom's and the AI/coach tests fail.
 - Demo-mode store tests live in `tests/behavior/demo-mode.test.tsx` (happy-dom,
   because `sessionStorage` + `document.cookie` are needed). The shared stats
   builder is a pure, node-safe unit test in `tests/unit/stats-builder.test.ts`.
@@ -1406,6 +1285,8 @@ npx tsc --noEmit && npm run lint && npm test && npm run build
 npm run core:sync-check
 (cd android && ./gradlew :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug)
 ```
+
+The Android tests need a JDK 17–23 (CI: 17): Robolectric 4.14 cannot read newer class files.
 
 ### 11.1 The TS ⇄ Kotlin core contract (pure math implemented twice)
 
@@ -1461,7 +1342,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | ---- | -------------- |
 | `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data |
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and error envelopes |
-| `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.ts`) |
+| `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.json`) |
 | `data/CsvBackupTest.kt` | CSV round trip; reads a web export; skips rows the server would reject; unknown files |
 | `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, 404, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
 | `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; a stream cut by the token limit, by an error inside the stream or by the connection fails after the text that arrived, even when the screen reads slowly; keys encrypted per provider; AI prefs excluded from backups |
@@ -1473,7 +1354,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; ranges; «Tus datos» saves profile + weight |
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period |
 | `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, measured expenditure, sync indicator states, numbers edited with a decimal comma, when «Añadir comida» asks before closing |
-| `ui/TranslationsTest.kt` | Every language has every string and plural with the same placeholders |
+| `ui/TranslationsTest.kt` | Every language has every Android-only string and plural with the same placeholders (shared texts: `i18n.test.ts` + the build) |
 | `data/NiceTicksTest.kt` | Chart axis ticks |
 
 The server side of sync is covered by `tests/behavior/routes-sync-upsert.test.ts`.
@@ -1502,11 +1383,13 @@ Web behavior tests describe user requirements; when one exists on both platforms
       `ApiContractTest`/`FakeServer`, and the Android validation (`FormFields.kt`,
       `WeightFormDialog.kt`, `ProfileViewModel.kt`) together. A value the phone accepts but the
       server rejects stays pending forever.
-- [ ] New server error → a code in `serverErrors` of the five `src/i18n/*.ts` and a
-      `server_error_*` string in the five Android `strings.xml` (both tests fail otherwise).
+- [ ] New server error → a code in `serverErrors` of the five `src/i18n/*.json`, a map line
+      `server_error_<code>` in `android/app/strings-from-web.json` and the code in
+      `ResponseErrorMapper.CODES` (tests on both sides fail otherwise).
 - [ ] DB schema changed → `db:push`, `tests/helpers/repos.ts`, the Android wire models, Room
       entities **with a Room migration** (users without an account have no other copy).
-- [ ] New UI text → the five web dictionaries and the five Android `strings.xml`.
+- [ ] New UI text → the five `src/i18n/*.json`; on Android, one line in `strings-from-web.json`
+      (or, for an Android-only text, the five `strings.xml`). See §6 «i18n».
 - [ ] Phone-model catalog edited → `npm test` (and `LocalModelCatalogTest`) before pushing.
 
 ---
@@ -1527,7 +1410,7 @@ effect immediately on the live site. To split environments later: create a secon
 Neon project, point Vercel's `DATABASE_URL` at it, run `db:push` + `create-user`
 (and `set-admin` for the first admin) against that URL locally.
 
-Gotchas learned the hard way:
+Gotchas:
 - Vercel injects env vars only at deploy time → adding/changing `DATABASE_URL`
   requires a **redeploy**.
 - Missing `DATABASE_URL` still builds fine (lazy client) — symptom is runtime 500s
@@ -1539,12 +1422,11 @@ Gotchas learned the hard way:
 
 | Want to… | Touch |
 |---|---|
-| New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → **port to Kotlin `:core` with its mirror test** → card/chart in Progreso on web and Android → explain in `/metodologia` + `i18n/es.ts` + Android `meth_*` strings |
+| New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → **port to Kotlin `:core` with its mirror test** → card/chart in Progreso on web and Android → explain in `/metodologia` (texts in `i18n/<lang>.json`, shared with Android through `strings-from-web.json`) |
 | Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → Perfil/Ajustes page → read via session endpoint. Android: `ProfileEntity` + migration, `WireCalorieProfile`, `profileBody` (explicit nulls) and the Perfil screen |
 | New field on meals/templates/weights (synced) | DB column + zod schema + DTO (web); Android: wire DTO, Room entity **+ `Migration`** (bump `LocalDatabase` version; never destructive: local-only users have no other copy), mappers, `FakeServer`; add a round-trip case to `OfflineSyncTest` |
-| New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in the five `i18n/*.ts`; proxy already protects it. Android: screen + route in `MainActivity`, strings in the 5 `strings.xml` |
-| New Android text | add the key to `res/values/strings.xml` (English) and `values-es/fr/it/de`; use `stringResource` / `pluralStringResource`. `TranslationsTest` checks keys and placeholders |
-| New web text | add the key to `i18n/es.ts` **and** `en/fr/it/de.ts` (the build fails otherwise); `tests/unit/i18n.test.ts` checks placeholders |
+| New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in the five `i18n/*.json`; proxy already protects it. Android: screen + route in `MainActivity`, texts as in «New UI text» |
+| New UI text | add it to the five `src/i18n/*.json` (a missing key fails the build; `i18n.test.ts` checks `{placeholders}`). Android: map it in `android/app/strings-from-web.json` (`"key": "path"`, or `["path", "n:d"]` with arguments) and use `stringResource`; Android-only texts and plurals go in the five `res/values*/strings.xml` (`TranslationsTest`) |
 | Change the logo | edit `scripts/logo/render.html`, run `scripts/logo/render-icons.sh` (writes every Android and web icon) |
 | Release the Android app | see §14.7 (signing + F-Droid metadata are not set up yet) |
 | Real migrations | switch from `db:push` to `db:generate` + `db:migrate` (both scripted already) once schema changes risk data loss |
@@ -1601,7 +1483,7 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
 - **Server errors** are shown in the app language: `ResponseErrorMapper` turns the
   envelope's `code` into a `server_error_*` string (`UiText`), see §5.3.
 - **Statistics** are computed on the phone with `:core` `buildStatsFromData` (same
-  numbers as `/api/stats`, which Android no longer calls).
+  numbers as `/api/stats`, which Android does not call).
 - **Validation** uses the server's limits (weight 20–400 kg, fat 3–60 %, profile
   ranges) so a record saved offline is never rejected at sync time.
 
@@ -1635,7 +1517,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     AddFoodSheet.kt                         # «Añadir comida»: search, barcode, manual, copy, templates
     foods/AddFoodViewModel.kt, FoodViews.kt # search (generic + Open Food Facts), portion, CameraX + zxing-cpp scanner
     MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue, toCopyRequest) +
-                                            #   validation; swipe-to-close asks before discarding edits
+                                            #   validation, in a GuardedBottomSheet (asks before losing edits)
     NutritionRecommendationsCard.kt, RecommendationsViewModel.kt  # calorie/protein card + intake bars
     ProgressScreen/ViewModel, WeightFormDialog  # Progreso: local stats + weigh-ins (validation = server limits)
     chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a target band)
@@ -1649,16 +1531,14 @@ app/src/main/kotlin/com/blackwatermacros/app/
 
 ### 14.3 Languages
 
-All UI text lives in `res/values*/strings.xml`: English (default, also the fallback for
-any other phone language), Spanish, French, Italian and German — edit these XML files
-directly. The app follows the phone language; it can also be changed in Ajustes →
-Idioma (`setAppLanguage` in `ui/Format.kt`, AndroidX AppCompat per-app locales: the
-system per-app setting on Android 13+, stored by AppCompat's
-`AppLocalesMetadataHolderService` before) or in Android 13+ system settings
-(`generateLocaleConfig`). Dates are formatted with `ui/Format.kt` in the app language;
-numbers use the one format of every language (§6). `TranslationsTest` fails if a
-language misses a key or a placeholder. CSV column names stay Spanish on purpose
-(they are the web's file format). The app label is «Blackwater Macros».
+English (default, also the fallback for any other phone language), Spanish, French, Italian
+and German. Texts shared with the web are generated from `src/i18n/<lang>.json` at build time
+(`strings_web.xml`, see §6 «i18n»); Android-only texts live in `res/values*/strings.xml`. The
+app follows the phone language; Ajustes → Idioma changes it (`setAppLanguage` in
+`ui/Format.kt`, AppCompat per-app locales; Android 13+ also in system settings via
+`generateLocaleConfig`). Dates are formatted in the app language, numbers in the one format of
+every language (§6). CSV column names stay Spanish (the web's file format). The app label is
+«Blackwater Macros».
 
 ### 14.4 Look & feel (kept in sync with the web)
 
@@ -1679,10 +1559,8 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
   description or photos, a search, a typed barcode, ticked meals to copy, a chosen
   portion — the sheet's gestures are off, so scrolling a long form only scrolls it, and
   tapping outside, Back, Cancel or a swipe on the handle all ask «¿Descartar los cambios?».
-  The earlier form vetoed the swipe with `confirmValueChange` instead: the sheet still
-  followed the content's scroll, was vetoed every frame and sprang back while the finger
-  kept pulling, which made a long AI-estimated form jump up and down (foundation deprecates
-  that veto for this reason).
+  Don't veto the swipe with `confirmValueChange` instead (deprecated): the sheet keeps
+  following the content's scroll and jumps up and down on long forms.
 - **Charts:** hand-drawn Compose Canvas; all text sizes in sp (`AxisTextSize`,
   `TooltipTextSize`) so they follow the phone's font size.
 - **Intake bars** (Comidas): outlined track = what is left, solid fill = eaten (ember past
@@ -1714,16 +1592,15 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
   wrapper, with `distributionSha256Sum` pinned (AGP 9.4 needs Gradle ≥ 9.6). Android Studio is
   not needed: everything builds from the command line.
 - **Local SDK:** `android/local.properties` (`sdk.dir=…`), gitignored.
-- **JDK:** any JDK 21 runs the build (Temurin 21 via `brew install --cask temurin@21`); both
-  modules compile to Java 17 bytecode without needing a JDK 17 installed. Avoid **JDK 21.0.2 on
+- **JDK:** 17–23 (21 recommended: `brew install openjdk@21`); both modules compile to Java 17
+  bytecode. Newer JDKs build, but Robolectric tests fail on them. Avoid **JDK 21.0.2 on
   Apple Silicon**: a JIT bug crashes Gradle during `lint` (workaround if stuck with it:
   `-Dorg.gradle.jvmargs="-Xmx3g -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=512m"`).
 
 ### 14.6 Tests
 
-`./gradlew :core:test :app:testDebugUnitTest` — JVM only, Room via Robolectric. What each
-test covers, the TS ⇄ Kotlin core contract and the maintenance checklist: §11.1–11.4. Compose
-UI tests don't exist yet; screens are verified manually on a device.
+`./gradlew :core:test :app:testDebugUnitTest` (JVM, Room via Robolectric); what each test
+covers: §11.1–11.4. No Compose UI tests yet: screens are checked on a device.
 
 ### 14.7 Not done yet (candidates for a next version)
 
@@ -1743,11 +1620,10 @@ UI tests don't exist yet; screens are verified manually on a device.
 - **Lint warnings left on purpose** (`:app:lintDebug` passes): `IconDuplicates` (the launcher
   icon is the same drawing at every density), `Typos` (false positives: «weigh-in in», German
   «seit dem», «sie sie»), `PluralsCandidate` (the counts are always several: «up to 5 photos»).
-- **Target Android 17 (API 37)** since 2026-09-28, checked against Google's list of changes for
-  apps targeting 17 (only the local-network rule mattered, see below) and on a Pixel 10a. Old
-  phones are unaffected: `minSdk` 24 decides who can install. Raise the target again for each new Android, after reading
-  its «behavior changes: apps targeting…» page.
-- **«Otro servidor» on Android is https only (a choice, 2026-09-28):** Android blocks plain
+- **Target Android 17 (API 37)**: only the local-network rule mattered (see below); `minSdk` 24
+  decides who can install. Raise the target for each new Android after reading its «behavior
+  changes: apps targeting…» page.
+- **«Otro servidor» on Android is https only (a choice):** Android blocks plain
   `http://`, and from Android 17 reaching the home network also needs a runtime permission, so
   a computer at home with an `http://192.168…` address is not reachable from the phone (the
   texts say so). On the web, `http://localhost` (Ollama on the same computer) works; other
@@ -1768,8 +1644,8 @@ UI tests don't exist yet; screens are verified manually on a device.
      it the connection fails like being offline.
   3. *Texts:* restore the example `http://192.168.1.10:11434/v1` in `ai_base_url_hint`, the
      placeholder in `AiSettingsScreen.kt`, the provider label «(Ollama, LM Studio…)» and
-     `ai_local_hint` («Un modelo en tu propio ordenador es privado…»), in the five
-     `strings.xml`; check `TranslationsTest`.
+     `ai_local_hint` («Un modelo en tu propio ordenador es privado…») in the five
+     `strings.xml`.
   4. *Test* on a phone with Android 17 against a real Ollama on the same Wi-Fi, and on an older
      phone (the permission does not exist there). The web needs nothing new: a page served over
      https cannot call `http://` machines other than `localhost` (browser rule).
