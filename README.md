@@ -3,7 +3,7 @@
 </p>
 
 <p align="center"><b>A simple, private calorie and macro tracker for Android, with targets based on science.</b><br>
-No account. No ads. No tracking. Free software.</p>
+Private. No tracking. No ads. Free software.</p>
 
 <p align="center"><i>Coming soon to F-Droid.</i></p>
 
@@ -72,10 +72,10 @@ app (Settings → Methodology) and in [docs/METHODOLOGY.md](docs/METHODOLOGY.md)
 
 ## Private by design
 
-- **No account needed.** The app opens straight on your meals and stores everything on your
-  phone.
-- **Without an account, the app never contacts our server.** The code refuses any request to
-  it before it leaves the phone. The app only goes online when you ask for something, and only
+- **Your data stays on your phone.** The app opens straight on your meals, no sign-up, and
+  stores everything on the device.
+- **Without logging in, your data never leaves the device.** The app never contacts our
+  server: the code refuses any request to it before it leaves the phone. The app only goes online when you ask for something, and only
   to:
 
   | When | Where |
@@ -87,8 +87,8 @@ app (Settings → Methodology) and in [docs/METHODOLOGY.md](docs/METHODOLOGY.md)
 
   A test (`NetworkHostsTest`) fails if the code ever learns another address.
 - **No ads, no analytics, no trackers, no Google services.**
-- **Accounts** are optional and, for now, by invitation: they sync your data between your
-  devices.
+- **Optional sync.** With an account, your data is also kept in the cloud and synced between
+  your devices. For now, accounts are by invitation only.
 
 ## Permissions
 

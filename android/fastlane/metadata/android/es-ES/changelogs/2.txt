@@ -2,4 +2,4 @@ Primera versión en F-Droid.
 • Registra comidas buscando, con código de barras, a mano, o desde una foto o descripción con IA (opcional, tu propia clave o un modelo en tu teléfono).
 • Objetivos de calorías y proteína basados en la ciencia, y tu gasto medido.
 • Tendencia de peso, gráficas de progreso y un coach que conoce tus datos.
-• Sin cuenta: tus datos se quedan en tu teléfono.
+• Privada: tus datos se quedan en tu teléfono. Sin rastreo ni anuncios.

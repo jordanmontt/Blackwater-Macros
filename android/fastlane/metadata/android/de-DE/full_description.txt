@@ -1,4 +1,4 @@
-<p>Blackwater Macros macht genau eine Sache, und die richtig: Die App erfasst, was du isst (Kalorien, Eiweiß, Kohlenhydrate und Fett), und dein Gewicht, und sagt dir, wie viel du essen solltest, um dein Ziel zu erreichen. Keine Streaks, kein Social Feed, keine Werbung, kein Konto nötig.</p>
+<p>Blackwater Macros macht genau eine Sache, und die richtig: Die App erfasst, was du isst (Kalorien, Eiweiß, Kohlenhydrate und Fett), und dein Gewicht, und sagt dir, wie viel du essen solltest, um dein Ziel zu erreichen. Keine Streaks, kein Social Feed, keine Werbung, kein Tracking.</p>
 
 <p><b>Eine Mahlzeit in Sekunden erfassen</b></p>
 <ul>
@@ -30,8 +30,8 @@
 
 <p><b>Privat von Grund auf</b></p>
 <ul>
-<li>Kein Konto nötig: Alles wird auf deinem Telefon gespeichert.</li>
-<li>Ohne Konto kontaktiert die App nie unseren Server. Sie geht nur online, wenn du es willst: Lebensmittelsuche und Barcodes (Open Food Facts), der gewählte KI-Anbieter und die Liste oder der Download von KI-Modellen fürs Telefon (GitHub, Hugging Face).</li>
+<li>Deine Daten bleiben auf deinem Telefon. Ohne Anmeldung verlassen sie nie das Gerät: Die App kontaktiert nie unseren Server. Sie geht nur online, wenn du es willst: Lebensmittelsuche und Barcodes (Open Food Facts), der gewählte KI-Anbieter (nur was du ihm schickst) und die Liste oder der Download von KI-Modellen fürs Telefon (GitHub, Hugging Face).</li>
+<li>Optionale Synchronisierung: Mit einem Konto werden deine Daten auch in der Cloud gespeichert und zwischen deinen Geräten synchronisiert. Konten gibt es vorerst nur auf Einladung.</li>
 <li>Keine Werbung, keine Analyse, keine Tracker. Freie Software (AGPL-3.0).</li>
 <li>Exportiere und importiere deine Daten jederzeit als CSV.</li>
 </ul>

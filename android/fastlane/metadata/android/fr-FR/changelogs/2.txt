@@ -2,4 +2,4 @@ Première version sur F-Droid.
 • Enregistrez vos repas par recherche, code-barres, à la main, ou depuis une photo ou une description avec l'IA (facultatif, votre propre clé ou un modèle sur votre téléphone).
 • Objectifs de calories et de protéines fondés sur la science, et votre dépense mesurée.
 • Tendance du poids, graphiques de progrès et un coach qui connaît vos données.
-• Pas de compte : vos données restent sur votre téléphone.
+• Privée : vos données restent sur votre téléphone. Ni pistage, ni publicité.

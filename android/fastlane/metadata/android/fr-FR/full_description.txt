@@ -1,4 +1,4 @@
-<p>Blackwater Macros fait une seule chose, et la fait bien : il enregistre ce que vous mangez (calories, protéines, glucides et lipides) et votre poids, et vous dit combien manger pour atteindre votre objectif. Pas de séries, pas de réseau social, pas de publicité, pas de compte nécessaire.</p>
+<p>Blackwater Macros fait une seule chose, et la fait bien : il enregistre ce que vous mangez (calories, protéines, glucides et lipides) et votre poids, et vous dit combien manger pour atteindre votre objectif. Pas de séries, pas de réseau social, pas de publicité, pas de pistage.</p>
 
 <p><b>Enregistrez un repas en quelques secondes</b></p>
 <ul>
@@ -30,8 +30,8 @@
 
 <p><b>Privé par conception</b></p>
 <ul>
-<li>Pas de compte nécessaire : tout est enregistré sur votre téléphone.</li>
-<li>Sans compte, l’app ne contacte jamais notre serveur. Elle ne se connecte que quand vous le demandez : recherche d’aliments et codes-barres (Open Food Facts), le fournisseur d’IA choisi, et la liste ou le téléchargement des modèles d’IA pour le téléphone (GitHub, Hugging Face).</li>
+<li>Vos données restent sur votre téléphone. Sans connexion à un compte, elles ne quittent jamais l’appareil : l’app ne contacte jamais notre serveur. Elle ne se connecte que quand vous le demandez : recherche d’aliments et codes-barres (Open Food Facts), le fournisseur d’IA choisi (seulement ce que vous lui envoyez), et la liste ou le téléchargement des modèles d’IA pour le téléphone (GitHub, Hugging Face).</li>
+<li>Synchronisation facultative : avec un compte, vos données sont aussi gardées dans le cloud et synchronisées entre vos appareils. Pour l’instant, les comptes sont uniquement sur invitation.</li>
 <li>Pas de publicité, pas d’analytique, pas de traqueurs. Logiciel libre (AGPL-3.0).</li>
 <li>Exportez et importez vos données en CSV à tout moment.</li>
 </ul>
