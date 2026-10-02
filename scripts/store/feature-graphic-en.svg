@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="500" viewBox="0 0 1024 500">
+  <!-- F-Droid feature graphic (en). Render: see docs/RELEASING.md «Store images». -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a5a43"/>
+      <stop offset="1" stop-color="#1f3326"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="500" fill="url(#bg)"/>
+  <circle cx="230" cy="250" r="190" fill="#f8f6ef" opacity="0.08"/>
+  <image xlink:href="../../public/logo.png" x="70" y="90" width="320" height="320"/>
+  <text x="430" y="215" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#ffffff">Blackwater Macros</text>
+  <text x="432" y="268" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="25" fill="#ffdcc2">Simple, private calorie and macro tracker</text>
+  <rect x="432" y="306" width="64" height="5" rx="2.5" fill="#b2561f"/>
+  <text x="432" y="354" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" fill="#e4e6da">No account · No ads · Free software</text>
+</svg>

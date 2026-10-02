@@ -67,7 +67,7 @@ object AppGraph {
         private set
     lateinit var localModels: LocalModelManager
         private set
-    /** The phone models on offer, from the Blackwater site (cached; refreshed in Ajustes → IA). */
+    /** The phone models on offer, from the public repository (cached; refreshed in Ajustes → IA). */
     lateinit var localCatalog: LocalModelCatalog
         private set
     private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -79,8 +79,8 @@ object AppGraph {
     /**
      * Each time the app opens, the cloud model list is refreshed in the background (at
      * most once a day, only with a key: it goes to the provider the user chose). The
-     * phone-model catalog is not: our server is asked only when the user opens
-     * Ajustes → IA, so just opening the app contacts no Blackwater server without an account.
+     * phone-model catalog is not: it is read from the public repository only when the user
+     * opens Ajustes → IA. Without an account the app never contacts the Blackwater server.
      */
     fun refreshOnOpen() {
         backgroundScope.launch { runCatching { modelLists.refresh(aiSettings.current.config) } }
@@ -101,7 +101,7 @@ object AppGraph {
         aiSettings = AiSettingsStore(context)
         ai = AiClient.create()
         modelLists = ModelListStore(context.getSharedPreferences(ModelListStore.PREFS_NAME, Context.MODE_PRIVATE), fetch = ai::listModels)
-        localCatalog = LocalModelCatalog(context, baseUrl + "models/local-models.json", BuildConfig.VERSION_CODE)
+        localCatalog = LocalModelCatalog(context, BuildConfig.MODEL_CATALOG_URL, BuildConfig.VERSION_CODE)
             .also { it.loadCached() }
         localModels = LocalModelManager(context)
         modelRunGuard = ModelRunGuard(context)

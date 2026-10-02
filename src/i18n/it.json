@@ -569,5 +569,9 @@
     "gym_days_out_of_range": "I giorni di palestra devono essere tra 0 e 7",
     "gym_minutes_out_of_range": "La durata deve essere tra 0 e 300 minuti",
     "walking_out_of_range": "Il tempo di camminata deve essere tra 0 e 480 minuti"
+  },
+  "about": {
+    "sourceCode": "Codice sorgente",
+    "sourceCodeHint": "Blackwater Macros è software libero (AGPL-3.0). Il codice è su GitHub."
   }
 }

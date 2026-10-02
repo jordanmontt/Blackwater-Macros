@@ -1,5 +1,9 @@
 package com.blackwatermacros.app.ui
 
+import com.blackwatermacros.app.BuildConfig
+import androidx.core.net.toUri
+import androidx.compose.material.icons.filled.Code
+import android.content.Intent
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -90,6 +94,10 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
+
+/** The public repository (AGPL: the source of what runs, one tap away). */
+const val SOURCE_CODE_URL = "https://github.com/jordanmontt/Blackwater-Macros"
+
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
@@ -167,6 +175,13 @@ fun SettingsScreen(
                 title = stringResource(R.string.methodology),
                 subtitle = stringResource(R.string.methodology_subtitle),
                 onClick = onOpenMetodologia,
+            )
+            val context = LocalContext.current
+            LinkCard(
+                icon = Icons.Filled.Code,
+                title = stringResource(R.string.source_code),
+                subtitle = stringResource(R.string.source_code_hint) + " · v" + BuildConfig.VERSION_NAME,
+                onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, SOURCE_CODE_URL.toUri())) } },
             )
             LinkCard(
                 icon = Icons.Filled.PlayCircle,

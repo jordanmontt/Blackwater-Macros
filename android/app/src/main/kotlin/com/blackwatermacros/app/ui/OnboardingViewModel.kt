@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Instant
 
 enum class OnboardingStep { WELCOME, DATA, AI, DONE }
@@ -27,6 +28,9 @@ enum class OnboardingStep { WELCOME, DATA, AI, DONE }
  */
 fun shouldShowOnboarding(done: Boolean, loggedIn: Boolean, hasLocalData: Boolean): Boolean =
     !done && !loggedIn && !hasLocalData
+
+/** How long the first steps wait for the account's data after logging in. */
+const val FIRST_SYNC_TIMEOUT_MS = 15_000L
 
 /** Web `DEFAULT_ACTIVITY`: used when the user does not open «Actividad». */
 val DEFAULT_ACTIVITY = Triple(0, 60, 30)
@@ -64,6 +68,8 @@ class OnboardingViewModel(
     private val repository: AppRepository = AppGraph.repository,
     private val preferences: AppPreferences = AppGraph.preferences,
     private val account: AccountStore = AppGraph.account,
+    /** Downloads the account's data (the sync engine's mutex keeps it from running twice). */
+    private val firstSync: suspend () -> Unit = { AppGraph.sync.sync() },
 ) : ViewModel() {
 
     // «Ver tutorial» while logged in: nothing to log in to, start at «Tus datos».
@@ -75,6 +81,10 @@ class OnboardingViewModel(
 
     private val _saving = MutableStateFlow(false)
     val saving: StateFlow<Boolean> = _saving.asStateFlow()
+
+    /** After logging in, while the account's data comes down. */
+    private val _syncing = MutableStateFlow(false)
+    val syncing: StateFlow<Boolean> = _syncing.asStateFlow()
 
     private var latestWeightKg: Double? = null
 
@@ -107,10 +117,21 @@ class OnboardingViewModel(
         _step.value = step
     }
 
-    /** Back from the login screen: with a complete synced profile, «Tus datos» is skipped. */
+    /**
+     * Back from the login screen: with a complete profile on the account, «Tus datos» is
+     * skipped. Logging in only schedules the sync, so the data is downloaded here first
+     * (briefly: offline, the form shows what arrived). The AI step always follows, since
+     * the key lives on each phone.
+     */
     fun afterLogin() {
         if (account.current == null || _step.value != OnboardingStep.WELCOME) return
         viewModelScope.launch {
+            _syncing.value = true
+            try {
+                withTimeoutOrNull(FIRST_SYNC_TIMEOUT_MS) { firstSync() }
+            } finally {
+                _syncing.value = false
+            }
             prefill()
             val complete = isCalorieProfileComplete(repository.profile().first()) && latestWeightKg != null
             _step.value = if (complete) OnboardingStep.AI else OnboardingStep.DATA

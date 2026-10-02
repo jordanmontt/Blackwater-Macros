@@ -1,0 +1,5 @@
+First release on F-Droid.
+• Log meals by search, barcode, by hand, or from a photo or description with AI (optional, your own key or a model on your phone).
+• Science-based calorie and protein targets, and your measured expenditure.
+• Weight trend, progress charts and a coach that knows your data.
+• No account needed: your data stays on your phone.

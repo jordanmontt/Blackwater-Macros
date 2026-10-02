@@ -20,11 +20,11 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * The phone models on offer, as the Blackwater site lists them
- * (`public/models/local-models.json`): edit that file and every phone sees the
- * new models the next time Ajustes → IA is opened, without a new version of
- * the app. Asked only there (not when the app opens), so the app does not
- * contact our server just by being opened. The last good copy is kept on the
+ * The phone models on offer, as the public repository lists them
+ * (`android/catalog/local-models.json` on the released branch, see
+ * `BuildConfig.MODEL_CATALOG_URL`): edit that file and every phone sees the new
+ * models the next time Ajustes → IA is opened, without a new version of the app.
+ * Asked only there (not when the app opens). The last good copy is kept on the
  * phone, so it works offline; with no copy yet, the built-in models are used.
  * Only the file is fetched: nothing about the user is sent.
  */

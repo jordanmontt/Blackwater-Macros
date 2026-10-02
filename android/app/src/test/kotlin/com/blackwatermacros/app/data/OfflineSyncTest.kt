@@ -88,6 +88,20 @@ class OfflineSyncTest {
     }
 
     @Test
+    fun `without an account no request reaches the server except the login itself`() = runBlocking<Unit> {
+        val noAccount = ApiClient.create(baseUrl = server.url("/").toString(), tokenProvider = { null })
+
+        for (call in listOf<suspend () -> Unit>({ noAccount.listMeals() }, { noAccount.listWeights() }, { noAccount.session() }, { noAccount.deleteMeal("x") })) {
+            assertThat(runCatching { call() }.exceptionOrNull()).isInstanceOf(NoAccountException::class.java)
+        }
+        assertThat(backend.requestCount).isEqualTo(0)
+
+        // Logging in is the one request a user without an account can make.
+        runCatching { noAccount.login(LoginRequest("ana", "wrong")) }
+        assertThat(backend.requestCount).isEqualTo(1)
+    }
+
+    @Test
     fun `saving a new meal returns its id so copies can be undone`() = runBlocking<Unit> {
         val id = repository.saveMeal(null, breakfast())
 

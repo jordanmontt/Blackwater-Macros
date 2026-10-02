@@ -214,5 +214,7 @@
   "ai_model_list_loading": "ai.modelListLoading",
   "ai_model_limits": "ai.modelLimits",
   "ai_model_list_error": ["ai.modelListError", "message:s"],
-  "ai_model_list_needs_key": "ai.modelListNeedsKey"
+  "ai_model_list_needs_key": "ai.modelListNeedsKey",
+  "source_code": "about.sourceCode",
+  "source_code_hint": "about.sourceCodeHint"
 }

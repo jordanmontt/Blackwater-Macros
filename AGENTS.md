@@ -10,4 +10,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Project rules
 
+Work on the `dev` branch; `main` only receives releases ([docs/RELEASING.md](./docs/RELEASING.md)).
+
 Read [docs/TECHNICAL.md](./docs/TECHNICAL.md) before making changes — it is the single source of truth for the architecture, conventions, and verification steps of this project.

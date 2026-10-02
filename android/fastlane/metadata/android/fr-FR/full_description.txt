@@ -1,0 +1,41 @@
+<p>Blackwater Macros fait une seule chose, et la fait bien : il enregistre ce que vous mangez (calories, protéines, glucides et lipides) et votre poids, et vous dit combien manger pour atteindre votre objectif. Pas de séries, pas de réseau social, pas de publicité, pas de compte nécessaire.</p>
+
+<p><b>Enregistrez un repas en quelques secondes</b></p>
+<ul>
+<li>Cherchez dans une base d’aliments courants intégrée à l’app, ou parmi des millions de produits d’Open Food Facts.</li>
+<li>Scannez un code-barres.</li>
+<li>Saisissez-le à la main, ingrédient par ingrédient ou seulement le total.</li>
+<li>Prenez une photo ou décrivez le repas et laissez l’IA estimer les macros (facultatif, voir plus bas).</li>
+<li>Copiez des repas d’un autre jour ou enregistrez vos repas habituels comme modèles.</li>
+</ul>
+
+<p><b>Des objectifs fondés sur la science, pas sur des suppositions</b></p>
+<ul>
+<li>Votre métabolisme de base avec l’équation de Mifflin-St Jeor.</li>
+<li>Votre niveau d’activité calculé à partir de ce que vous faites vraiment (jours de salle, durée des séances, marche quotidienne) avec la méthode factorielle de la FAO/OMS, au lieu d’un vague « peu actif / très actif ».</li>
+<li>Une plage de calories pour votre objectif (perdre du gras, maintenir, prendre du muscle) qui ne descend jamais sous vos besoins de base.</li>
+<li>Des plages de protéines issues de la recherche en nutrition sportive, calculées sur votre masse maigre si vous enregistrez votre masse grasse.</li>
+<li>Votre dépense mesurée : après quelques semaines, l’app compare ce que vous avez mangé à l’évolution de votre poids et montre ce que vous dépensez réellement, avec sa marge d’erreur.</li>
+</ul>
+<p>Chaque formule et ses sources sont expliquées dans l’app (Méthodologie).</p>
+
+<p><b>Suivez vos progrès</b></p>
+<ul>
+<li>Tendance du poids qui lisse les variations quotidiennes, rythme hebdomadaire et masse grasse.</li>
+<li>Calories quotidiennes face à votre objectif, et moyennes des macros sur les jours enregistrés.</li>
+</ul>
+
+<p><b>L’IA, seulement si vous le voulez</b></p>
+<p>Estimez un repas à partir de photos ou d’une description, et posez vos questions au coach sur votre alimentation (« que manger ce soir ? », « combien pèserai-je dans 30 jours ? »). Utilisez votre propre clé Google Gemini (gratuite), OpenAI, Anthropic, OpenRouter ou d’un serveur compatible, ou téléchargez un modèle qui fonctionne entièrement sur votre téléphone. Votre clé reste sur votre téléphone et va directement au fournisseur.</p>
+
+<p><b>Privé par conception</b></p>
+<ul>
+<li>Pas de compte nécessaire : tout est enregistré sur votre téléphone.</li>
+<li>Sans compte, l’app ne contacte jamais notre serveur. Elle ne se connecte que quand vous le demandez : recherche d’aliments et codes-barres (Open Food Facts), le fournisseur d’IA choisi, et la liste ou le téléchargement des modèles d’IA pour le téléphone (GitHub, Hugging Face).</li>
+<li>Pas de publicité, pas d’analytique, pas de traqueurs. Logiciel libre (AGPL-3.0).</li>
+<li>Exportez et importez vos données en CSV à tout moment.</li>
+</ul>
+
+<p>Disponible en français, anglais, espagnol, italien et allemand.</p>
+
+<p><b>Autorisations :</b> internet (recherche d’aliments, IA, téléchargement de modèles), appareil photo (codes-barres et photos de repas, seulement quand vous les utilisez), notifications et service au premier plan (progression du téléchargement d’un modèle).</p>

@@ -569,5 +569,9 @@
     "gym_days_out_of_range": "Die Trainingstage müssen zwischen 0 und 7 liegen",
     "gym_minutes_out_of_range": "Die Dauer muss zwischen 0 und 300 Minuten liegen",
     "walking_out_of_range": "Die Gehzeit muss zwischen 0 und 480 Minuten liegen"
+  },
+  "about": {
+    "sourceCode": "Quellcode",
+    "sourceCodeHint": "Blackwater Macros ist freie Software (AGPL-3.0). Der Code liegt auf GitHub."
   }
 }

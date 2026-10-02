@@ -66,7 +66,7 @@
     <string name="error_weight_range">Enter a weight between 20 and 400 kg.</string>
     <string name="error_body_fat_range">Body fat must be between 3 and 60 %.</string>
     <string name="account_title">Account</string>
-    <string name="account_local_description">Your data is stored only on this phone. If you have an account, log in to sync it with the web version.</string>
+    <string name="account_local_description">Your data is stored only on this phone and is never sent to any server. If you have an account (by invitation), log in to sync it between your devices.</string>
     <string name="account_connected_as">Connected as %1$s</string>
     <string name="sync_session_expired">Your session has expired. Log in again to keep syncing.</string>
     <string name="sync_in_progress">Syncing…</string>
@@ -117,7 +117,7 @@
     <string name="admin_subtitle">Manage the app\'s users.</string>
     <string name="templates_empty">You don\'t have any saved templates yet.</string>
     <string name="template_delete_body">This template will be deleted.</string>
-    <string name="data_description">Export or import your meals and weight as CSV (same format as the web version). Useful as a backup or to move to another phone.</string>
+    <string name="data_description">Export or import your meals and weight as CSV. Useful as a backup or to move to another phone.</string>
     <string name="data_export_meals">Export meals</string>
     <string name="data_export_weights">Export weight</string>
     <string name="data_meals_file_name">blackwater-meals-%1$s.csv</string>
@@ -125,7 +125,7 @@
     <string name="data_exported">File saved.</string>
     <string name="data_unknown_file">This isn\'t a Blackwater meals or weight CSV.</string>
     <string name="data_failed">The file couldn\'t be read or written.</string>
-    <string name="login_description">Sync your meals and weight with the web version. Accounts are invite-only.</string>
+    <string name="login_description">Sync your meals and weight between your devices. Accounts are by invitation for now.</string>
     <string name="login_username">Username</string>
     <string name="login_submit">Log in</string>
     <string name="login_local_data_title">This phone already has data</string>
@@ -278,13 +278,13 @@
 
     <!-- Onboarding (phase 8) -->
     <string name="onboarding_welcome_body">Log your meals and your weight. Your data stays on your phone.</string>
-    <string name="onboarding_login">I have an account — Log in</string>
-    <string name="onboarding_no_account">Start without an account</string>
-    <string name="onboarding_no_account_hint">You can connect an account later in Settings to sync with the web.</string>
+    <string name="onboarding_login">I have an account</string>
+    <string name="onboarding_no_account">Get started</string>
     <string name="onboarding_data_intro">With this we work out your calories and protein. You can change it in Settings → Profile.</string>
     <string name="onboarding_invalid">Check the data: year between 1920 and 2010, height between 100 and 250 cm, weight between 20 and 400 kg.</string>
     <string name="onboarding_ai_title">Artificial intelligence (optional)</string>
-    <string name="onboarding_ai_intro">AI estimates the macros of a photo of your meal and answers your questions in the coach. Google gives a free key.</string>
+    <string name="onboarding_ai_intro">AI estimates the macros of a photo of your meal and answers your questions in the coach. Google gives a free key. Your key is stored only on this phone and goes straight to the provider, never to our server.</string>
+    <string name="onboarding_syncing">Downloading your data…</string>
     <string name="onboarding_not_now">Not now</string>
     <string name="onboarding_done_title">All set!</string>
     <string name="onboarding_done_body">Add your first meal with the + button. Log your weight every few days to see your progress.</string>

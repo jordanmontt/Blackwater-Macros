@@ -65,7 +65,7 @@
     <string name="error_weight_range">Saisissez un poids entre 20 et 400 kg.</string>
     <string name="error_body_fat_range">La masse grasse doit être comprise entre 3 et 60 %.</string>
     <string name="account_title">Compte</string>
-    <string name="account_local_description">Vos données sont enregistrées uniquement sur ce téléphone. Si vous avez un compte, connectez-vous pour les synchroniser avec la version web.</string>
+    <string name="account_local_description">Vos données sont enregistrées uniquement sur ce téléphone et ne sont envoyées à aucun serveur. Si vous avez un compte (sur invitation), connectez-vous pour les synchroniser entre vos appareils.</string>
     <string name="account_connected_as">Connecté en tant que %1$s</string>
     <string name="sync_session_expired">Votre session a expiré. Reconnectez-vous pour continuer la synchronisation.</string>
     <string name="sync_in_progress">Synchronisation…</string>
@@ -116,7 +116,7 @@
     <string name="admin_subtitle">Gérer les utilisateurs de l\'application.</string>
     <string name="templates_empty">Vous n\'avez encore aucun modèle enregistré.</string>
     <string name="template_delete_body">Ce modèle sera supprimé.</string>
-    <string name="data_description">Exportez ou importez vos repas et votre poids en CSV (même format que la version web). Pratique comme sauvegarde ou pour changer de téléphone.</string>
+    <string name="data_description">Exportez ou importez vos repas et votre poids en CSV. Pratique comme sauvegarde ou pour changer de téléphone.</string>
     <string name="data_export_meals">Exporter les repas</string>
     <string name="data_export_weights">Exporter le poids</string>
     <string name="data_meals_file_name">blackwater-repas-%1$s.csv</string>
@@ -124,7 +124,7 @@
     <string name="data_exported">Fichier enregistré.</string>
     <string name="data_unknown_file">Ce fichier n\'est pas un CSV de repas ou de poids Blackwater.</string>
     <string name="data_failed">Impossible de lire ou d\'écrire le fichier.</string>
-    <string name="login_description">Synchronisez vos repas et votre poids avec la version web. Les comptes sont sur invitation.</string>
+    <string name="login_description">Synchronisez vos repas et votre poids entre vos appareils. Pour l\'instant, les comptes sont sur invitation.</string>
     <string name="login_username">Nom d\'utilisateur</string>
     <string name="login_submit">Se connecter</string>
     <string name="login_local_data_title">Ce téléphone contient déjà des données</string>
@@ -288,13 +288,13 @@
 
     <!-- Onboarding (phase 8) -->
     <string name="onboarding_welcome_body">Enregistrez vos repas et votre poids. Vos données restent sur votre téléphone.</string>
-    <string name="onboarding_login">J\'ai un compte — Se connecter</string>
-    <string name="onboarding_no_account">Commencer sans compte</string>
-    <string name="onboarding_no_account_hint">Vous pourrez connecter un compte plus tard dans Réglages pour synchroniser avec le web.</string>
+    <string name="onboarding_login">J\'ai un compte</string>
+    <string name="onboarding_no_account">Commencer</string>
     <string name="onboarding_data_intro">Cela sert à calculer vos calories et vos protéines. Modifiable dans Réglages → Profil.</string>
     <string name="onboarding_invalid">Vérifiez les données : année entre 1920 et 2010, taille entre 100 et 250 cm, poids entre 20 et 400 kg.</string>
     <string name="onboarding_ai_title">Intelligence artificielle (facultatif)</string>
-    <string name="onboarding_ai_intro">L\'IA estime les macros d\'une photo de votre repas et répond à vos questions dans le coach. Google offre une clé gratuite.</string>
+    <string name="onboarding_ai_intro">L\'IA estime les macros d\'une photo de votre repas et répond à vos questions dans le coach. Google offre une clé gratuite. Votre clé est enregistrée uniquement sur ce téléphone et va directement au fournisseur, jamais à notre serveur.</string>
+    <string name="onboarding_syncing">Téléchargement de vos données…</string>
     <string name="onboarding_not_now">Plus tard</string>
     <string name="onboarding_done_title">C\'est prêt !</string>
     <string name="onboarding_done_body">Ajoutez votre premier repas avec le bouton +. Notez votre poids tous les quelques jours pour voir vos progrès.</string>

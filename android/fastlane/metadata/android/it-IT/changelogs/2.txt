@@ -1,0 +1,5 @@
+Prima versione su F-Droid.
+• Registra i pasti cercandoli, con il codice a barre, a mano, o da una foto o descrizione con l'IA (facoltativa, con la tua chiave o un modello sul telefono).
+• Obiettivi di calorie e proteine basati sulla scienza, e il tuo dispendio misurato.
+• Tendenza del peso, grafici dei progressi e un coach che conosce i tuoi dati.
+• Nessun account: i tuoi dati restano sul telefono.

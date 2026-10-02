@@ -65,7 +65,7 @@
     <string name="error_weight_range">Introduce un peso entre 20 y 400 kg.</string>
     <string name="error_body_fat_range">La grasa corporal debe estar entre 3 y 60 %.</string>
     <string name="account_title">Cuenta</string>
-    <string name="account_local_description">Tus datos se guardan solo en este teléfono. Si tienes una cuenta, inicia sesión para sincronizarlos con la versión web.</string>
+    <string name="account_local_description">Tus datos se guardan solo en este teléfono y no se envían a ningún servidor. Si tienes una cuenta (por invitación), inicia sesión para sincronizarlos entre tus dispositivos.</string>
     <string name="account_connected_as">Conectado como %1$s</string>
     <string name="sync_session_expired">La sesión ha caducado. Vuelve a iniciar sesión para seguir sincronizando.</string>
     <string name="sync_in_progress">Sincronizando…</string>
@@ -116,7 +116,7 @@
     <string name="admin_subtitle">Gestiona los usuarios de la aplicación.</string>
     <string name="templates_empty">Aún no tienes plantillas guardadas.</string>
     <string name="template_delete_body">Se borrará esta plantilla.</string>
-    <string name="data_description">Exporta o importa tus comidas y tu peso en CSV (el mismo formato que la versión web). Útil como copia de seguridad o para cambiar de teléfono.</string>
+    <string name="data_description">Exporta o importa tus comidas y tu peso en CSV. Útil como copia de seguridad o para cambiar de teléfono.</string>
     <string name="data_export_meals">Exportar comidas</string>
     <string name="data_export_weights">Exportar peso</string>
     <string name="data_meals_file_name">blackwater-comidas-%1$s.csv</string>
@@ -124,7 +124,7 @@
     <string name="data_exported">Archivo guardado.</string>
     <string name="data_unknown_file">Este archivo no es un CSV de comidas o de peso de Blackwater.</string>
     <string name="data_failed">No se pudo leer o escribir el archivo.</string>
-    <string name="login_description">Sincroniza tus comidas y tu peso con la versión web. Las cuentas son por invitación.</string>
+    <string name="login_description">Sincroniza tus comidas y tu peso entre tus dispositivos. Por ahora las cuentas son por invitación.</string>
     <string name="login_username">Usuario</string>
     <string name="login_submit">Entrar</string>
     <string name="login_local_data_title">Ya tienes datos en este teléfono</string>
@@ -288,13 +288,13 @@
 
     <!-- Onboarding (phase 8) -->
     <string name="onboarding_welcome_body">Registra tus comidas y tu peso. Tus datos se quedan en tu teléfono.</string>
-    <string name="onboarding_login">Ya tengo cuenta — Iniciar sesión</string>
-    <string name="onboarding_no_account">Empezar sin cuenta</string>
-    <string name="onboarding_no_account_hint">Puedes conectar una cuenta más tarde en Ajustes para sincronizar con la web.</string>
+    <string name="onboarding_login">Tengo una cuenta</string>
+    <string name="onboarding_no_account">Empezar</string>
     <string name="onboarding_data_intro">Con esto calculamos tus calorías y tu proteína. Puedes cambiarlo en Ajustes → Perfil.</string>
     <string name="onboarding_invalid">Revisa los datos: año entre 1920 y 2010, altura entre 100 y 250 cm, peso entre 20 y 400 kg.</string>
     <string name="onboarding_ai_title">Inteligencia artificial (opcional)</string>
-    <string name="onboarding_ai_intro">La IA estima los macros de una foto de tu comida y responde tus preguntas en el coach. Google da una clave gratis.</string>
+    <string name="onboarding_ai_intro">La IA estima los macros de una foto de tu comida y responde tus preguntas en el coach. Google da una clave gratis. Tu clave se guarda solo en este teléfono y va directa al proveedor, nunca a nuestro servidor.</string>
+    <string name="onboarding_syncing">Descargando tus datos…</string>
     <string name="onboarding_not_now">Ahora no</string>
     <string name="onboarding_done_title">¡Listo!</string>
     <string name="onboarding_done_body">Añade tu primera comida con el botón +. Registra tu peso cada pocos días para ver tu progreso.</string>

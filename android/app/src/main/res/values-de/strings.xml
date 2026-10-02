@@ -65,7 +65,7 @@
     <string name="error_weight_range">Gib ein Gewicht zwischen 20 und 400 kg ein.</string>
     <string name="error_body_fat_range">Der Körperfettanteil muss zwischen 3 und 60 % liegen.</string>
     <string name="account_title">Konto</string>
-    <string name="account_local_description">Deine Daten werden nur auf diesem Telefon gespeichert. Wenn du ein Konto hast, melde dich an, um sie mit der Web-Version zu synchronisieren.</string>
+    <string name="account_local_description">Deine Daten werden nur auf diesem Telefon gespeichert und an keinen Server gesendet. Wenn du ein Konto hast (auf Einladung), melde dich an, um sie zwischen deinen Geräten zu synchronisieren.</string>
     <string name="account_connected_as">Angemeldet als %1$s</string>
     <string name="sync_session_expired">Deine Sitzung ist abgelaufen. Melde dich erneut an, um weiter zu synchronisieren.</string>
     <string name="sync_in_progress">Synchronisiere…</string>
@@ -116,7 +116,7 @@
     <string name="admin_subtitle">Benutzer der App verwalten.</string>
     <string name="templates_empty">Du hast noch keine gespeicherten Vorlagen.</string>
     <string name="template_delete_body">Diese Vorlage wird gelöscht.</string>
-    <string name="data_description">Exportiere oder importiere Mahlzeiten und Gewicht als CSV (gleiches Format wie die Web-Version). Praktisch als Sicherung oder für ein neues Telefon.</string>
+    <string name="data_description">Exportiere oder importiere Mahlzeiten und Gewicht als CSV. Praktisch als Sicherung oder für ein neues Telefon.</string>
     <string name="data_export_meals">Mahlzeiten exportieren</string>
     <string name="data_export_weights">Gewicht exportieren</string>
     <string name="data_meals_file_name">blackwater-mahlzeiten-%1$s.csv</string>
@@ -124,7 +124,7 @@
     <string name="data_exported">Datei gespeichert.</string>
     <string name="data_unknown_file">Diese Datei ist keine Blackwater-CSV mit Mahlzeiten oder Gewicht.</string>
     <string name="data_failed">Die Datei konnte nicht gelesen oder geschrieben werden.</string>
-    <string name="login_description">Synchronisiere Mahlzeiten und Gewicht mit der Web-Version. Konten gibt es nur auf Einladung.</string>
+    <string name="login_description">Synchronisiere Mahlzeiten und Gewicht zwischen deinen Geräten. Konten gibt es vorerst nur auf Einladung.</string>
     <string name="login_username">Benutzername</string>
     <string name="login_submit">Anmelden</string>
     <string name="login_local_data_title">Auf diesem Telefon sind bereits Daten</string>
@@ -277,13 +277,13 @@
 
     <!-- Onboarding (phase 8) -->
     <string name="onboarding_welcome_body">Erfasse deine Mahlzeiten und dein Gewicht. Deine Daten bleiben auf deinem Telefon.</string>
-    <string name="onboarding_login">Ich habe ein Konto — Anmelden</string>
-    <string name="onboarding_no_account">Ohne Konto starten</string>
-    <string name="onboarding_no_account_hint">Du kannst später in den Einstellungen ein Konto verbinden, um mit dem Web zu synchronisieren.</string>
+    <string name="onboarding_login">Ich habe ein Konto</string>
+    <string name="onboarding_no_account">Los geht\'s</string>
     <string name="onboarding_data_intro">Damit berechnen wir deine Kalorien und dein Eiweiß. Änderbar unter Einstellungen → Profil.</string>
     <string name="onboarding_invalid">Prüfe die Daten: Jahr zwischen 1920 und 2010, Größe zwischen 100 und 250 cm, Gewicht zwischen 20 und 400 kg.</string>
     <string name="onboarding_ai_title">Künstliche Intelligenz (optional)</string>
-    <string name="onboarding_ai_intro">Die KI schätzt die Makros eines Fotos deiner Mahlzeit und beantwortet deine Fragen im Coach. Google gibt einen kostenlosen Schlüssel.</string>
+    <string name="onboarding_ai_intro">Die KI schätzt die Makros eines Fotos deiner Mahlzeit und beantwortet deine Fragen im Coach. Google gibt einen kostenlosen Schlüssel. Dein Schlüssel wird nur auf diesem Telefon gespeichert und geht direkt an den Anbieter, nie an unseren Server.</string>
+    <string name="onboarding_syncing">Deine Daten werden geladen…</string>
     <string name="onboarding_not_now">Jetzt nicht</string>
     <string name="onboarding_done_title">Fertig!</string>
     <string name="onboarding_done_body">Füge deine erste Mahlzeit mit der +-Taste hinzu. Erfasse dein Gewicht alle paar Tage, um deinen Fortschritt zu sehen.</string>

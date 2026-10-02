@@ -7,9 +7,10 @@ For general usage and setup, read [README.md](../README.md) first.
 > and the design decisions all live here; code comments do not point to other documents.
 > Keep it updated in the same change as the code.
 >
-> **Plan in progress:** F-Droid release, accounts and end-to-end encryption —
-> [FDROID-PLAN.md](./FDROID-PLAN.md). Check its Status table before starting that
-> work, and keep it updated.
+> **Branches:** work on `dev` (every push deploys the web); `main` holds released code only
+> (F-Droid builds its `vX.Y.Z` tags) — [RELEASING.md](./RELEASING.md). Setup and commands:
+> [DEVELOPMENT.md](./DEVELOPMENT.md). Plan for accounts and end-to-end encryption:
+> [FDROID-PLAN.md](./FDROID-PLAN.md).
 
 ---
 
@@ -1145,11 +1146,11 @@ app language, no medical claims.
   the last request, on «Nueva conversación» and when the app goes to the background
   (`MainActivity.onStop`, also when the camera opens); reloading takes ~20 s. Needs
   Kotlin ≥ 2.4 (the library's metadata).
-- **Catalog of phone models:** `public/models/local-models.json` on the site (the proxy lets
-  `/models/` through without a session). The app asks for it only when Ajustes → IA is opened
-  (`LocalModelCatalog.refresh`, at most every 10 min) — never just because the app opened, so
-  a user without an account contacts no Blackwater server —, keeps the last good copy in
-  `filesDir` for offline use and merges it with the built-in `LocalModels.BUILT_IN` (the site
+- **Catalog of phone models:** `android/catalog/local-models.json`, read from the **`main`**
+  branch on GitHub (`BuildConfig.MODEL_CATALOG_URL`, raw.githubusercontent.com), never from
+  the Blackwater server. The app asks for it only when Ajustes → IA is opened
+  (`LocalModelCatalog.refresh`, at most every 10 min), keeps the last good copy in
+  `filesDir` for offline use and merges it with the built-in `LocalModels.BUILT_IN` (the file
   wins for the same id). Entries are validated (download only from huggingface.co, SHA-256,
   size, file name); a wrong one is skipped. `tests/unit/local-models-catalog.test.ts` and
   `LocalModelCatalogTest` check the file.
@@ -1167,12 +1168,13 @@ app language, no medical claims.
      *resolve* URL (`https://huggingface.co/<org>/<repo>/resolve/main/<file>.litertlm`).
   2. Take its exact size and SHA-256 from the file page on Hugging Face (the LFS details) or
      with `curl -L -o model.litertlm <url> && stat -f%z model.litertlm && shasum -a 256 model.litertlm`.
-  3. Add an entry to `public/models/local-models.json`: `id` (new, lowercase), `name`, `url`,
+  3. Add an entry to `android/catalog/local-models.json`: `id` (new, lowercase), `name`, `url`,
      `fileName`, `sizeBytes`, `sha256`, `recommendedPhoneGb` (measure on a phone: the app
      peaks at roughly 1.2× the file size on the CPU), `vision`, `notes` in es/en/fr/it/de,
      and `minAppVersionCode` if needed.
-  4. `npm test`, commit and push: the site redeploys and phones see it the next time Ajustes
-     → IA is opened. To retire a model, set `"hidden": true` (phones that have it keep it).
+  4. `npm test`, commit on `dev` and bring the commit to `main` (RELEASING.md «Publishing a
+     phone AI model»): phones see it the next time Ajustes → IA is opened. To retire a model,
+     set `"hidden": true` (phones that have it keep it).
 - **Memory:** every model can be downloaded; below `recommendedPhoneGb` (E2B 6, E4B 8, Qwen 4
   GB phones) the download shows a warning. A low-memory kill cannot be caught, so
   `ModelRunGuard` marks each run; if the next start finds the mark and
@@ -1195,8 +1197,11 @@ app language, no medical claims.
   Compartir → «Añadir a pantalla de inicio»), hidden for good once closed.
 - **First launch** (D12): web `/bienvenida` (your data → optional Google key → done) after a
   login with an incomplete profile, flag `localStorage["bw:onboarding-done"]`; Android route
-  `bienvenida` (welcome with «Iniciar sesión» first → data → AI → done) only on a fresh
-  install (no account, nothing logged), flag `AppPreferences.onboardingDone`. «Ver
+  `bienvenida` (welcome: «Empezar», and a quieter «Tengo una cuenta» → login → data → AI →
+  done) only on a fresh install (no account, nothing logged), flag
+  `AppPreferences.onboardingDone`. After logging in, `afterLogin()` runs the first sync itself
+  («Descargando tus datos…», up to 15 s): an account with a complete profile and a weigh-in
+  skips «Tus datos»; the AI step always shows (the key is per phone). «Ver
   tutorial» in Ajustes on both.
 
 ---
@@ -1340,7 +1345,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 
 | Test | What it proves |
 | ---- | -------------- |
-| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data |
+| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data |
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and error envelopes |
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.json`) |
 | `data/CsvBackupTest.kt` | CSV round trip; reads a web export; skips rows the server would reject; unknown files |
@@ -1351,7 +1356,8 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ai/local/LocalModelTest.kt` | On-device model: resumable download, SHA-256 check, device support and the low-RAM warning, engine routing, model outside backups, what counts as an out-of-memory kill |
 | `data/ai/local/LocalModelCatalogTest.kt` | The site's model catalog: valid entries become models, wrong ones are skipped (non-Hugging Face URL, bad checksum, path tricks, newer app), merge with the built-in list, `hidden`; the committed file matches the built-in models |
 | `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
-| `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; ranges; «Tus datos» saves profile + weight |
+| `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
+| `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period |
 | `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, measured expenditure, sync indicator states, numbers edited with a decimal comma, when «Añadir comida» asks before closing |
 | `ui/TranslationsTest.kt` | Every language has every Android-only string and plural with the same placeholders (shared texts: `i18n.test.ts` + the build) |
@@ -1404,8 +1410,8 @@ Browser ── HTTPS ── Vercel (Hobby)
                                                     Neon Postgres (single project)
 ```
 
-Current setup intentionally shares **one Neon database between local dev and
-production** — simplest mental model, and `create-user` run locally takes
+Vercel deploys the **`dev`** branch (Project → Settings → Git → Production Branch). Current
+setup intentionally shares **one Neon database between local dev and production** — simplest mental model, and `create-user` run locally takes
 effect immediately on the live site. To split environments later: create a second
 Neon project, point Vercel's `DATABASE_URL` at it, run `db:push` + `create-user`
 (and `set-admin` for the first admin) against that URL locally.
@@ -1457,6 +1463,10 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
 
 - **No login gate.** The app opens on Comidas. Ajustes → «Cuenta» offers «Iniciar
   sesión» (invite-only accounts) and shows sync status afterwards.
+- **Without an account nothing reaches our server.** `AccountInterceptor` (on every
+  `ApiService` call) refuses any request but `POST /api/auth/login` while there is no token
+  (`NoAccountException`, before the network; `OfflineSyncTest`). `NetworkHostsTest` lists
+  every host the app's code knows; the README's privacy table mirrors it.
 - **Offline.** A save is on disk before the UI returns; with an account the row is
   flagged `pending` and uploaded by the next sync (app start/resume, 2 s after any
   edit, when the network comes back, or «Sincronizar»).
@@ -1510,7 +1520,8 @@ app/src/main/kotlin/com/blackwatermacros/app/
     sync/SyncEngine.kt       # push + pull, typed SyncOutcome/SyncProblem, never throws
     sync/SyncScheduler.kt    # SyncScheduler interface + WorkManager implementation + SyncWorker
     ApiService.kt, ApiClient.kt, WireModels.kt, JsonConfig.kt (profileBody: explicit nulls),
-    BearerAuthInterceptor.kt, ResponseErrorMapper.kt (admin error messages)
+    AccountInterceptor.kt (Bearer token; nothing but login without an account),
+    ResponseErrorMapper.kt (admin error messages)
   ui/
     HoyScreen/ViewModel, MealCard           # Comidas: day navigator, totals, recommendations,
                                             #   reorderable meals, undo delete/add

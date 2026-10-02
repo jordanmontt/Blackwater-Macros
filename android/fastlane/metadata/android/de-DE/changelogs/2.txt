@@ -1,0 +1,5 @@
+Erste Version auf F-Droid.
+• Mahlzeiten per Suche, Barcode, von Hand oder per KI aus einem Foto oder einer Beschreibung erfassen (optional, mit eigenem Schlüssel oder einem Modell auf dem Telefon).
+• Wissenschaftlich fundierte Kalorien- und Eiweißziele und dein gemessener Verbrauch.
+• Gewichtstrend, Fortschrittsdiagramme und ein Coach, der deine Daten kennt.
+• Kein Konto nötig: Deine Daten bleiben auf deinem Telefon.
