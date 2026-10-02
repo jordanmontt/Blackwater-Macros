@@ -76,16 +76,13 @@ special handling for LiteRT-LM's native libraries. Checked 2026-09-28 in
 - [x] Store listing: `android/fastlane/metadata/android/` in 5 languages (descriptions,
       changelog 2, screenshots en/es, feature graphic, icon).
 - [x] Anti-feature `NonFreeNet` and the recipe draft: `docs/fdroid/com.blackwatermacros.app.yml`.
-- [x] Process: [RELEASING.md](./RELEASING.md) (every release, catalog, screenshots, first
-      submission, moving the current phones).
+- [x] Process: [RELEASING.md](./RELEASING.md) (what's left, every release, occasional tasks).
+- [x] Release `v1.0.0` tagged; the recipe passes `fdroid lint`, the scanner and `fdroid build`.
 
 ### Left (owner)
 
-- [ ] Vercel → Settings → Git → Production Branch = `dev`.
-- [ ] Merge `dev` into `main`, tag `v1.0.0`, push (RELEASING.md «Every release»).
-- [ ] Merge request to fdroiddata (RELEASING.md «First submission»).
-- [ ] Optional: Codeberg mirror (F3); a real release key for APKs shared outside F-Droid.
-- [ ] After F-Droid publishes: move the three phones (RELEASING.md, last section).
+See [RELEASING.md «Still to do»](./RELEASING.md#still-to-do-once). Optional: a Codeberg mirror
+(F3); a real release key for APKs shared outside F-Droid.
 
 ---
 
