@@ -104,6 +104,12 @@ exercise and widgets. Blackwater Macros is the simpler take: meals, macros and w
 targets you can trust and see explained. Thanks to Chompass for showing how good a free,
 private AI calorie tracker on F-Droid can be; it inspired our photo logging and coach.
 
+## Buy me a yogurt
+
+Blackwater Macros is free, with no ads, and made in my spare time. If it helps you, you can
+[buy me a yogurt on Ko-fi](https://ko-fi.com/jordanmontt) (also in the app: Settings → Buy me a
+yogurt). Thank you!
+
 ## Free software
 
 Blackwater Macros is free software under the **GNU Affero General Public License v3.0 or

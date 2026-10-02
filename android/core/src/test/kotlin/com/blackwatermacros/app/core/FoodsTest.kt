@@ -86,6 +86,29 @@ class FoodsTest {
     }
 
     @Test
+    fun recognisesShopLabelsByTheirGs1Prefix() {
+        assertThat(isStoreBarcode("2098053024201")).isTrue() // EAN-13, 20–29
+        assertThat(isStoreBarcode("0212345678905")).isTrue() // UPC-A 2… as EAN-13
+        assertThat(isStoreBarcode("0412345678908")).isTrue()
+        assertThat(isStoreBarcode("212345678906")).isTrue() // UPC-A
+        assertThat(isStoreBarcode("21234567")).isTrue() // EAN-8
+        assertThat(isStoreBarcode("3033490004743")).isFalse() // a Danone yogurt
+        assertThat(isStoreBarcode("8480000592170")).isFalse()
+        assertThat(isStoreBarcode("01234565")).isFalse() // UPC-E, a normal product
+        assertThat(isStoreBarcode("12345")).isFalse()
+    }
+
+    @Test
+    fun saysWhyABarcodeGaveNothingUsable() {
+        assertThat(barcodeMiss("2098053024201", null)).isEqualTo(BarcodeMiss.STORE_LABEL)
+        assertThat(barcodeMiss("3033490004743", null)).isEqualTo(BarcodeMiss.UNKNOWN)
+        assertThat(barcodeMiss("3033490004743", json("""{"status":0,"status_verbose":"product not found"}""")))
+            .isEqualTo(BarcodeMiss.UNKNOWN)
+        assertThat(barcodeMiss("3033490004743", json("""{"status":1,"product":{"product_name":"X","nutriments":{}}}""")))
+            .isEqualTo(BarcodeMiss.NO_NUTRITION)
+    }
+
+    @Test
     fun prefersTheProductNameInTheAppLanguage() {
         val product = json("""{"status":1,"product":{"product_name":"Greek yogurt","product_name_es":"Yogur griego","nutriments":{"energy-kcal_100g":97}}}""")
         assertThat(parseOffProduct(product, FoodLang.ES)!!.name).isEqualTo("Yogur griego")

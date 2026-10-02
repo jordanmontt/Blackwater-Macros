@@ -42,7 +42,6 @@
     <string name="food_credits">Données : Swiss Food Composition Database (OSAV), Ciqual (Anses) et Open Food Facts (ODbL).</string>
     <string name="food_manual_code">Ou saisissez le code</string>
     <string name="food_look_up">Chercher</string>
-    <string name="food_not_found">Ce produit n\'est pas dans Open Food Facts. Cherchez-le par son nom ou saisissez-le.</string>
     <string name="food_camera_error">La caméra n\'est pas disponible. Saisissez le code de l\'emballage.</string>
     <string name="meal_reorder">Réorganiser le repas</string>
     <string name="meal_manual_total">Total manuel</string>
@@ -299,6 +298,8 @@
     <string name="onboarding_done_title">C\'est prêt !</string>
     <string name="onboarding_done_body">Ajoutez votre premier repas avec le bouton +. Notez votre poids tous les quelques jours pour voir vos progrès.</string>
     <string name="onboarding_done_ai">L\'IA est prête : essayez «Photo ou texte» en ajoutant un repas, et le coach.</string>
+    <string name="donate">Offrez-moi un yaourt</string>
+    <string name="donate_hint">L\'application est gratuite et sans publicité. Si elle vous aide, vous pouvez la soutenir sur Ko-fi.</string>
     <string name="onboarding_replay">Voir le tutoriel</string>
 
     <!-- On-device AI (phase 9) -->

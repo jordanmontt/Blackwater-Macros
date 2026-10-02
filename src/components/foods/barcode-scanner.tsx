@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { FoodProduct } from "@/lib/core/foods";
+import type { BarcodeMiss, FoodProduct } from "@/lib/core/foods";
 import { lookupBarcode } from "@/lib/foods/foods-client";
 import { currentLanguage, t } from "@/i18n";
 
-type Status = "starting" | "scanning" | "cameraError" | "lookingUp" | "notFound" | "offline";
+type Status = "starting" | "scanning" | "cameraError" | "lookingUp" | BarcodeMiss | "offline";
 
 interface Detector {
   detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]>;
@@ -35,18 +35,29 @@ async function createDetector(): Promise<Detector> {
 /**
  * Scans a barcode with the camera (or takes it typed) and looks the product
  * up in Open Food Facts. The video is only shown on screen: nothing is saved.
+ * The camera stops at the first code; when it gives nothing usable, says why
+ * and offers the other ways (search by name, photo) or another scan.
  */
-export function BarcodeScanner({ onFound }: { onFound: (product: FoodProduct) => void }) {
+export function BarcodeScanner({
+  onFound,
+  onSearchByName,
+  onPhoto,
+}: {
+  onFound: (product: FoodProduct) => void;
+  onSearchByName: () => void;
+  onPhoto: () => void;
+}) {
   const video = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState<Status>("starting");
   const [code, setCode] = useState("");
+  const [attempt, setAttempt] = useState(0);
 
   async function lookUp(value: string) {
     setStatus("lookingUp");
     try {
-      const product = await lookupBarcode(value, currentLanguage());
-      if (product) onFound(product);
-      else setStatus("notFound");
+      const result = await lookupBarcode(value, currentLanguage());
+      if ("product" in result) onFound(result.product);
+      else setStatus(result.miss);
     } catch {
       setStatus("offline");
     }
@@ -94,32 +105,63 @@ export function BarcodeScanner({ onFound }: { onFound: (product: FoodProduct) =>
       if (timer) clearInterval(timer);
       stream?.getTracks().forEach((track) => track.stop());
     };
-    // Runs once: the camera starts when the scanner opens and stops when it closes.
+    // The camera starts when the scanner opens (or «Scan another») and stops at a code or on close.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [attempt]);
 
-  const message =
-    status === "cameraError"
-      ? t.addFood.cameraError
-      : status === "lookingUp"
-        ? t.addFood.lookingUp
-        : status === "notFound"
-          ? t.addFood.notFound
-          : status === "offline"
-            ? t.addFood.needsInternet
-            : t.addFood.scanHint;
+  const missed = status === "storeLabel" || status === "noNutrition" || status === "unknown" || status === "offline";
+  const message = {
+    starting: t.addFood.scanHint,
+    scanning: t.addFood.scanHint,
+    cameraError: t.addFood.cameraError,
+    lookingUp: t.addFood.lookingUp,
+    storeLabel: t.addFood.notFoundStore,
+    noNutrition: t.addFood.notFoundNoNutrition,
+    unknown: t.addFood.notFound,
+    offline: t.addFood.needsInternet,
+  }[status];
 
   return (
     <div className="space-y-3">
-      {status !== "cameraError" ? (
+      {status !== "cameraError" && !missed ? (
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-black">
           <video ref={video} className="size-full object-cover" muted playsInline />
           <div className="pointer-events-none absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 bg-tertiary/80" />
         </div>
       ) : null}
-      <p className="text-sm text-muted-foreground" role="status">
-        {message}
-      </p>
+      {missed ? (
+        <div className="space-y-3 rounded-xl border p-4" role="status">
+          <p className="text-sm">
+            <span className="font-medium">{code}</span>
+            <br />
+            {message}
+          </p>
+          {status !== "offline" ? <p className="text-sm text-muted-foreground">{t.addFood.notFoundNext}</p> : null}
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={onSearchByName}>
+              {t.addFood.searchByName}
+            </Button>
+            <Button variant="outline" size="sm" onClick={onPhoto}>
+              {t.addFood.takePhoto}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setCode("");
+                setStatus("starting");
+                setAttempt((n) => n + 1);
+              }}
+            >
+              {t.addFood.scanAgain}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground" role="status">
+          {message}
+        </p>
+      )}
       <form
         className="flex gap-2"
         onSubmit={(event) => {

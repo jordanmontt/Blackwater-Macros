@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  barcodeMiss,
   parseGenericIndex,
   parseOffProduct,
+  type BarcodeMiss,
   type FoodLang,
   type FoodProduct,
   type GenericFood,
@@ -42,16 +44,21 @@ export function loadGenericFoods(): Promise<GenericFood[]> {
   return genericFoods;
 }
 
+/** A barcode lookup: the product, or why there is none. */
+export type BarcodeResult = { product: FoodProduct } | { miss: BarcodeMiss };
+
 /**
  * Looks a barcode up in Open Food Facts (browser request; the product API
- * allows it). Null when the product is unknown; throws when offline.
+ * allows it). Throws when offline.
  */
-export async function lookupBarcode(code: string, lang: FoodLang = "es"): Promise<FoodProduct | null> {
+export async function lookupBarcode(code: string, lang: FoodLang = "es"): Promise<BarcodeResult> {
   const url = `${OFF_PRODUCT_URL}${encodeURIComponent(code)}.json?fields=${OFF_FIELDS}`;
   const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (response.status === 404) return null;
+  if (response.status === 404) return { miss: barcodeMiss(code, null) };
   if (!response.ok) throw new Error(`Open Food Facts ${response.status}`);
-  return parseOffProduct(await response.json(), lang);
+  const json: unknown = await response.json();
+  const product = parseOffProduct(json, lang);
+  return product ? { product } : { miss: barcodeMiss(code, json) };
 }
 
 export function genericChoice(food: GenericFood, name: string): FoodChoice {

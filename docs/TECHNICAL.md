@@ -1029,6 +1029,16 @@ rest of the calorie profile.
   before dev/build — never loaded from a CDN). Android: CameraX + zxing-cpp
   (`CAMERA` permission asked on first use; typing the code always works). Frames are
   analysed in memory and never stored.
+- **A code with no usable product** (`core/foods.ts` `barcodeMiss`): the camera stops at the
+  first code and stays off (on Android it used to restart and read the same label in a
+  loop). The scanner says why: a **shop label** (`isStoreBarcode`: GS1 restricted
+  circulation, EAN-13 starting with 2/02/04, UPC-A 2/4, EAN-8 2 — deli, butcher, bakery,
+  often with the price or weight inside; no database can have them), a product Open Food
+  Facts knows **without nutrition facts**, or an **unknown** code. Then it offers «Buscar
+  por nombre», «Hacer una foto» (AI estimate) and «Escanear otro». Open Food Facts is the
+  only barcode source: the largest open database (strongest in France and Europe), free
+  to reuse (ODbL). The alternatives either have no nutrition (UPCitemdb), cover only the
+  US (USDA Branded Foods) or forbid reuse (commercial APIs).
 - A picked food + grams becomes one ingredient row (`foodToIngredient`) in the review
   form; inside the form «Buscar alimento» appends more. Recent picks: `localStorage`
   (web) / SharedPreferences (Android), 20 max.
@@ -1311,7 +1321,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `protein.test.ts` | `calculateProteinRecommendation`, reference weight at BMI 25 | `ProteinTest.kt` |
 | `calories.test.ts` | `calculateBMR`, activity (PAL), `calculateCalorieRecommendation` (BMR floor) | `CaloriesTest.kt` |
 | `expenditure.test.ts` | `estimateExpenditure`, `fitWeightTrend`, `dailyMeans` | `ExpenditureTest.kt` |
-| `foods.test.ts` | portions, Open Food Facts parsing, `searchGenericFoods` | `FoodsTest.kt` |
+| `foods.test.ts` | portions, Open Food Facts parsing, shop labels and why a barcode missed, `searchGenericFoods` | `FoodsTest.kt` |
 | `ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), answer and stream parsing, how a stream ended (`parseAiStreamEnd`), `aiErrorKind` | `AiProvidersTest.kt` |
 | `ai-models.test.ts` | `buildModelListRequest`, `parseModelList`, `naturalCompare` | `AiModelsTest.kt` |
 | `ai-schema.test.ts` | `parseMealEstimate`, prompts, `estimateToIngredients` | `AiSchemaTest.kt` |
@@ -1349,7 +1359,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and error envelopes |
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.json`) |
 | `data/CsvBackupTest.kt` | CSV round trip; reads a web export; skips rows the server would reject; unknown files |
-| `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, 404, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
+| `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, why a code missed, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
 | `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; a stream cut by the token limit, by an error inside the stream or by the connection fails after the text that arrived, even when the screen reads slowly; keys encrypted per provider; AI prefs excluded from backups |
 | `data/ai/ModelListStoreTest.kt` | The model dropdown's list: reused for a day, asked again when old, forced or for another key; survives a restart; never stores the key |
 | `data/ai/MealEstimatorTest.kt` | «Foto o texto»: photos + description → one JSON request (mirrors `add-food-photo.test.tsx`); unreadable answers; the language told to the model; photo downscale; the camera FileProvider only reaches the temporary folder |

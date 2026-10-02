@@ -162,6 +162,39 @@ fun parseOffProduct(json: JsonElement, lang: FoodLang? = null): FoodProduct? {
     return parseOffProductFields(response["product"], lang)
 }
 
+/** Why a barcode gave no usable product, so the app can say what to do instead. */
+enum class BarcodeMiss { STORE_LABEL, NO_NUTRITION, UNKNOWN }
+
+/**
+ * GS1 restricted-circulation numbers: shops print them on what they weigh or
+ * pack themselves (deli, butcher, bakery), often with the price or weight
+ * inside the code, so no product database can know them. EAN-13 starting with
+ * 2, or with 02/04 (a UPC-A in-store code written as EAN-13); UPC-A starting
+ * with 2 or 4; EAN-8 starting with 2.
+ */
+fun isStoreBarcode(code: String): Boolean {
+    val digits = code.filter { it.isDigit() }
+    return when (digits.length) {
+        13 -> digits.startsWith("2") || digits.startsWith("02") || digits.startsWith("04")
+        12 -> digits.startsWith("2") || digits.startsWith("4")
+        8 -> digits.startsWith("2")
+        else -> false
+    }
+}
+
+/**
+ * Why `/api/v2/product/<code>.json` gave nothing usable. [response]: its JSON,
+ * or null when it answered 404. A store label wins; then a product Open Food
+ * Facts knows but without energy; otherwise it is unknown.
+ */
+fun barcodeMiss(code: String, response: JsonElement?): BarcodeMiss {
+    if (isStoreBarcode(code)) return BarcodeMiss.STORE_LABEL
+    val json = response as? JsonObject ?: return BarcodeMiss.UNKNOWN
+    val status = json["status"] as? JsonPrimitive
+    val unknown = status != null && !status.isString && status.content.toDoubleOrNull() == 0.0
+    return if (!unknown && json["product"] is JsonObject) BarcodeMiss.NO_NUTRITION else BarcodeMiss.UNKNOWN
+}
+
 /** Search-a-licious (`hits`) or legacy search (`products`) response. */
 fun parseOffSearch(json: JsonElement, lang: FoodLang? = null): List<FoodProduct> {
     val response = json as? JsonObject ?: return emptyList()

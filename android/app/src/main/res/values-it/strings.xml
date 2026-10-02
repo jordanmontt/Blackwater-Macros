@@ -42,7 +42,6 @@
     <string name="food_credits">Dati: Swiss Food Composition Database (USAV), Ciqual (Anses) e Open Food Facts (ODbL).</string>
     <string name="food_manual_code">Oppure scrivi il codice</string>
     <string name="food_look_up">Cerca</string>
-    <string name="food_not_found">Questo prodotto non è in Open Food Facts. Cercalo per nome o scrivilo a mano.</string>
     <string name="food_camera_error">La fotocamera non è disponibile. Scrivi il codice della confezione.</string>
     <string name="meal_reorder">Riordina pasto</string>
     <string name="meal_manual_total">Totale manuale</string>
@@ -299,6 +298,8 @@
     <string name="onboarding_done_title">Fatto!</string>
     <string name="onboarding_done_body">Aggiungi il tuo primo pasto con il pulsante +. Registra il peso ogni pochi giorni per vedere i progressi.</string>
     <string name="onboarding_done_ai">L\'IA è pronta: prova «Foto o testo» quando aggiungi un pasto, e il coach.</string>
+    <string name="donate">Offrimi uno yogurt</string>
+    <string name="donate_hint">L\'app è gratuita e senza pubblicità. Se ti è utile, puoi sostenerla su Ko-fi.</string>
     <string name="onboarding_replay">Rivedi il tutorial</string>
 
     <!-- On-device AI (phase 9) -->

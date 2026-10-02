@@ -25,6 +25,7 @@ class NetworkHostsTest {
         // Not contacted by the app:
         "aistudio.google.com" to "link opened in the browser to get a free Gemini key",
         "github.com" to "source link and the Open Food Facts User-Agent text",
+        "ko-fi.com" to "donation link opened in the browser (Settings)",
         "example.com" to "placeholder text in a field",
     )
 

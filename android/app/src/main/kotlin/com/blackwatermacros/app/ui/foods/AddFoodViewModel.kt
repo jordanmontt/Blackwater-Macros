@@ -3,11 +3,13 @@ package com.blackwatermacros.app.ui.foods
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blackwatermacros.app.AppGraph
+import com.blackwatermacros.app.core.BarcodeMiss
 import com.blackwatermacros.app.core.FoodLang
 import com.blackwatermacros.app.core.FoodProduct
 import com.blackwatermacros.app.core.GenericFood
 import com.blackwatermacros.app.core.GenericFoodMatch
 import com.blackwatermacros.app.core.searchGenericFoods
+import com.blackwatermacros.app.data.foods.BarcodeResult
 import com.blackwatermacros.app.data.foods.FoodChoice
 import com.blackwatermacros.app.data.foods.GenericFoodsStore
 import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
@@ -51,7 +53,7 @@ sealed interface BarcodeLookup {
     data object Idle : BarcodeLookup
     data object Loading : BarcodeLookup
     data class Found(val choice: FoodChoice) : BarcodeLookup
-    data object NotFound : BarcodeLookup
+    data class NotFound(val reason: BarcodeMiss) : BarcodeLookup
     data object Offline : BarcodeLookup
 }
 
@@ -157,7 +159,10 @@ class AddFoodViewModel(
         _barcode.value = BarcodeLookup.Loading
         viewModelScope.launch {
             _barcode.value = try {
-                openFoodFacts.product(digits, lang())?.let { BarcodeLookup.Found(it.toChoice()) } ?: BarcodeLookup.NotFound
+                when (val result = openFoodFacts.product(digits, lang())) {
+                    is BarcodeResult.Found -> BarcodeLookup.Found(result.product.toChoice())
+                    is BarcodeResult.Missing -> BarcodeLookup.NotFound(result.reason)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

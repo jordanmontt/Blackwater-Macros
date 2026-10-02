@@ -218,7 +218,14 @@ export function AddFoodSheet({
           }
         />
       ) : view === "barcode" ? (
-        <BarcodeScanner onFound={(product) => pick(productChoice(product), "barcode")} />
+        <BarcodeScanner
+          onFound={(product) => pick(productChoice(product), "barcode")}
+          onSearchByName={() => setView("search")}
+          onPhoto={() => {
+            setEstimateQuery(null);
+            setView("photo");
+          }}
+        />
       ) : view === "portion" && choice ? (
         <PortionPicker
           choice={choice}

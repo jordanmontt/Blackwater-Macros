@@ -42,7 +42,6 @@
     <string name="food_credits">Datos: Swiss Food Composition Database (FSVO), Ciqual (Anses) y Open Food Facts (ODbL).</string>
     <string name="food_manual_code">O escribe el código</string>
     <string name="food_look_up">Buscar</string>
-    <string name="food_not_found">Este producto no está en Open Food Facts. Búscalo por nombre o escríbelo a mano.</string>
     <string name="food_camera_error">No se puede usar la cámara. Escribe el código del envase.</string>
     <string name="meal_reorder">Reordenar comida</string>
     <string name="meal_manual_total">Total manual</string>
@@ -299,6 +298,8 @@
     <string name="onboarding_done_title">¡Listo!</string>
     <string name="onboarding_done_body">Añade tu primera comida con el botón +. Registra tu peso cada pocos días para ver tu progreso.</string>
     <string name="onboarding_done_ai">La IA está lista: prueba «Foto o texto» al añadir comida y el coach.</string>
+    <string name="donate">Invítame a un yogur</string>
+    <string name="donate_hint">La app es gratis y sin anuncios. Si te sirve, puedes apoyarla en Ko-fi.</string>
     <string name="onboarding_replay">Ver tutorial</string>
 
     <!-- On-device AI (phase 9) -->

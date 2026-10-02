@@ -42,7 +42,6 @@
     <string name="food_credits">Daten: Schweizer Nährwertdatenbank (BLV), Ciqual (Anses) und Open Food Facts (ODbL).</string>
     <string name="food_manual_code">Oder Code eingeben</string>
     <string name="food_look_up">Suchen</string>
-    <string name="food_not_found">Dieses Produkt ist nicht in Open Food Facts. Suche es nach Namen oder gib es selbst ein.</string>
     <string name="food_camera_error">Die Kamera ist nicht verfügbar. Gib den Code der Verpackung ein.</string>
     <string name="meal_reorder">Mahlzeit verschieben</string>
     <string name="meal_manual_total">Manuelle Summe</string>
@@ -288,6 +287,8 @@
     <string name="onboarding_done_title">Fertig!</string>
     <string name="onboarding_done_body">Füge deine erste Mahlzeit mit der +-Taste hinzu. Erfasse dein Gewicht alle paar Tage, um deinen Fortschritt zu sehen.</string>
     <string name="onboarding_done_ai">Die KI ist bereit: probiere «Foto oder Text» beim Hinzufügen und den Coach.</string>
+    <string name="donate">Spendier mir einen Joghurt</string>
+    <string name="donate_hint">Die App ist kostenlos und werbefrei. Wenn sie dir hilft, kannst du sie auf Ko-fi unterstützen.</string>
     <string name="onboarding_replay">Tutorial ansehen</string>
 
     <!-- On-device AI (phase 9) -->
