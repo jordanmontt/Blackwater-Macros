@@ -8,14 +8,14 @@ import kotlin.math.pow
 
 /**
  * Mirrors `src/lib/core/numbers.ts`: how every number is written on screen and
- * in inputs, the same in every language and on web and Android (TECHNICAL.md
+ * in inputs, the same in every language and on web and Android (docs/TECHNICAL.md
  * «Numbers on screen and in inputs»): `,` for decimals, a narrow no-break space
  * between thousands from five digits up («1,6», «2000», «12 345»). The wire
  * format, CSV and AI prompts keep `.`.
  */
 
 /** Narrow no-break space (SI / ISO 80000 thousands separator). */
-const val THOUSANDS_SEPARATOR = " "
+const val THOUSANDS_SEPARATOR = "\u202F"
 
 /** «1,6» / «12 345,5»: at most [maxDecimals] decimals, trailing zeros dropped. */
 fun formatDecimal(value: Double, maxDecimals: Int = 0, grouping: Boolean = true): String {

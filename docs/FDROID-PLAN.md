@@ -1,7 +1,7 @@
 # Plan: F-Droid release, accounts and end-to-end encryption
 
 Living plan for what comes after the AI work. **Any session (human or agent) can pick it up
-from here.** Read [`TECHNICAL.md`](../TECHNICAL.md) first (architecture, conventions,
+from here.** Read [`TECHNICAL.md`](./TECHNICAL.md) first (architecture, conventions,
 verification), then the **Status** table, then the part you are on. Update this file with the
 work: tick the boxes, add a line to the **Log**, record every decision in **Decisions**.
 

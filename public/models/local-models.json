@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "about": "Phone models the Android app offers (LiteRT-LM). The app reads this file when Ajustes → IA is opened and keeps the last good copy offline. How to add one, and the engine limit (a new model family may need a new app version; use \"minAppVersionCode\" for those): TECHNICAL.md, «Adding a phone model». \"hidden\": true retires a model without breaking phones that have it. Checked by npm test (tests/unit/local-models-catalog.test.ts).",
+  "about": "Phone models the Android app offers (LiteRT-LM). The app reads this file when Ajustes → IA is opened and keeps the last good copy offline. How to add one, and the engine limit (a new model family may need a new app version; use \"minAppVersionCode\" for those): docs/TECHNICAL.md, «Adding a phone model». \"hidden\": true retires a model without breaking phones that have it. Checked by npm test (tests/unit/local-models-catalog.test.ts).",
   "models": [
     {
       "id": "gemma-4-e2b",

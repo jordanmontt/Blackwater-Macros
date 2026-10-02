@@ -1,13 +1,13 @@
 /**
  * How every number is written on screen and in inputs, the same in every
- * language and on web and Android (TECHNICAL.md «Numbers on screen and in
+ * language and on web and Android (docs/TECHNICAL.md «Numbers on screen and in
  * inputs»): `,` for decimals, a narrow no-break space between thousands from
  * five digits up («1,6», «2000», «12 345»). The wire format, CSV and AI prompts
  * keep `.`.
  */
 
 /** Narrow no-break space (SI / ISO 80000 thousands separator). */
-export const THOUSANDS_SEPARATOR = " ";
+export const THOUSANDS_SEPARATOR = "\u202F";
 
 /** «1,6» / «12 345,5»: at most [maxDecimals] decimals, trailing zeros dropped. */
 export function formatDecimal(value: number, maxDecimals = 0, grouping = true): string {

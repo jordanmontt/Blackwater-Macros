@@ -26,7 +26,7 @@ android {
     }
 
     signingConfigs {
-        // A real key, if configured (keystore.properties, never committed); see TECHNICAL.md §14.
+        // A real key, if configured (keystore.properties, never committed); see docs/TECHNICAL.md §14.
         val keystoreFile = rootProject.file("keystore.properties")
         if (keystoreFile.exists()) {
             val props = Properties().apply { keystoreFile.inputStream().use { load(it) } }

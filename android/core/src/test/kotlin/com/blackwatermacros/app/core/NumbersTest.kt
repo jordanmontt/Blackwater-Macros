@@ -6,7 +6,7 @@ import org.junit.Test
 /** Kotlin JUnit mirror of `tests/unit/numbers.test.ts`. */
 class NumbersTest {
 
-    private val nnbsp = " "
+    private val nnbsp = "\u202F"
 
     @Test
     fun writesDecimalsWithACommaAndDropsTrailingZeros() {

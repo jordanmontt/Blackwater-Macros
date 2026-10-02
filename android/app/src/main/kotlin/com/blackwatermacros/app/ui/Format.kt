@@ -56,7 +56,7 @@ fun formatTime(iso: String): String = pattern("jm").format(Instant.parse(iso).at
 
 /**
  * The app's single number format, the same in every language and on the web
- * (core `formatDecimal`): «1,6», «2000», «12 345». See TECHNICAL.md «Numbers on
+ * (core `formatDecimal`): «1,6», «2000», «12 345». See docs/TECHNICAL.md «Numbers on
  * screen and in inputs».
  */
 fun formatNumber(value: Double, maxDecimals: Int = 0): String = formatDecimal(value, maxDecimals)

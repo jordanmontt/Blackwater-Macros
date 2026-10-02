@@ -10,4 +10,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Project rules
 
-Read [TECHNICAL.md](./TECHNICAL.md) before making changes — it is the single source of truth for the architecture, conventions, and verification steps of this project.
+Read [docs/TECHNICAL.md](./docs/TECHNICAL.md) before making changes — it is the single source of truth for the architecture, conventions, and verification steps of this project.

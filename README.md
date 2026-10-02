@@ -7,7 +7,7 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
 - **Android** (Kotlin/Compose, software libre pensado para F-Droid): funciona completa
   **sin cuenta y sin conexión**; la cuenta es opcional y sincroniza con la web.
 
-> ¿Vas a modificar el código? Lee [TECHNICAL.md](./TECHNICAL.md): arquitectura,
+> ¿Vas a modificar el código? Lee [docs/TECHNICAL.md](./docs/TECHNICAL.md): arquitectura,
 > modelo de datos, flujo de autenticación, API, tests y convenciones.
 
 ## Funcionalidades
@@ -42,7 +42,7 @@ Aplicación personal de seguimiento de **calorías, macros y peso**. Dos cliente
   Qwen3 1.7B para el coach en navegadores con WebGPU. El modelo en la nube se elige de una
   lista que da el propio proveedor para tu clave; la lista de modelos locales vive en
   `public/models/local-models.json` y la app la lee al abrir Ajustes → IA (añadir un modelo no
-  exige una versión nueva de la app, salvo que el motor incluido no lo sepa ejecutar; ver TECHNICAL.md).
+  exige una versión nueva de la app, salvo que el motor incluido no lo sepa ejecutar; ver docs/TECHNICAL.md).
 - **Primeros pasos**: al empezar, tus datos (sexo, año, altura, peso, objetivo) y la
   clave de IA opcional; en Android, «Iniciar sesión» es la primera opción y la cuenta es
   opcional. «Ver tutorial» en Ajustes.
@@ -150,7 +150,7 @@ instante y se sube solo cuando vuelve la red, aunque cierres la app.
 - Al iniciar sesión con datos locales se pregunta si subirlos o descartarlos; al cerrar
   sesión se borran del teléfono (avisando si hay cambios sin sincronizar).
 
-Detalles en `TECHNICAL.md` §14.
+Detalles en `docs/TECHNICAL.md` §14.
 
 ### Compilar
 
@@ -238,7 +238,7 @@ navegador ni del servidor** — para poder reimplementarse 1:1 en Android/Kotlin
 - **La web tiene una carpeta `core`** (`src/lib/core/`) con toda la lógica
   importante, reimplementada 1:1 en Kotlin.
 
-El detalle de cada capa está en [TECHNICAL.md](./TECHNICAL.md).
+El detalle de cada capa está en [docs/TECHNICAL.md](./docs/TECHNICAL.md).
 
 ## Estructura
 
@@ -264,16 +264,16 @@ tests/
 scripts/
   logo/                Fuente vectorial del logo y script que genera todos los iconos
 docs/
+  TECHNICAL.md         La referencia técnica: arquitectura, API, tests, reglas TS ⇄ Kotlin y decisiones
+  METHODOLOGY.md       La base científica: cada fórmula, por qué se eligió, sus fuentes y sus límites
   FDROID-PLAN.md       Plan pendiente: publicación en F-Droid, cuentas y cifrado de extremo a extremo
 android/               App nativa Android: módulos :core (algoritmos) y :app (UI + datos)
-TECHNICAL.md           La referencia técnica: arquitectura, API, tests, reglas TS ⇄ Kotlin y decisiones
-METHODOLOGY.md         La base científica: cada fórmula, por qué se eligió, sus fuentes y sus límites
 ```
 
 Todo el detalle técnico (flujo de una petición, esquema de base de datos, contrato de la
 API, tests de web y Android, reglas TS ⇄ Kotlin, decisiones de diseño) está en un solo
-documento: [TECHNICAL.md](./TECHNICAL.md). La justificación científica de los cálculos
-(calorías, proteína, gasto medido, proyección) está en [METHODOLOGY.md](./METHODOLOGY.md).
+documento: [docs/TECHNICAL.md](./docs/TECHNICAL.md). La justificación científica de los cálculos
+(calorías, proteína, gasto medido, proyección) está en [docs/METHODOLOGY.md](./docs/METHODOLOGY.md).
 
 ## Tests
 
@@ -287,7 +287,7 @@ documento: [TECHNICAL.md](./TECHNICAL.md). La justificación científica de los 
 > TypeScript (web) y Kotlin (Android). Si tocas un test de `tests/unit/`, **tienes
 > que tocar también su espejo Kotlin** (y viceversa). `npm run core:sync-check`
 > avisa si olvidas uno de los dos lados y **bloquea el merge en CI**. Las reglas
-> completas y los tests de Android están en [TECHNICAL.md](./TECHNICAL.md) §11.
+> completas y los tests de Android están en [docs/TECHNICAL.md](./docs/TECHNICAL.md) §11.
 
 ## Despliegue (gratis)
 

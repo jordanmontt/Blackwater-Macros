@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatDecimal, normalizeDecimal } from "../../src/lib/core/numbers";
 
-const NNBSP = " ";
+const NNBSP = "\u202F";
 
 describe("formatDecimal", () => {
   it("writes decimals with a comma and drops trailing zeros", () => {

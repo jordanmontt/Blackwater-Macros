@@ -1,14 +1,14 @@
 # Blackwater Macros — Technical Guide
 
 Everything a developer needs to modify this codebase with confidence.
-For general usage and setup, read [README.md](./README.md) first.
+For general usage and setup, read [README.md](../README.md) first.
 
 > **This file is the reference.** Architecture, the API contract, tests, the TS ⇄ Kotlin rules
 > and the design decisions all live here; code comments do not point to other documents.
 > Keep it updated in the same change as the code.
 >
 > **Plan in progress:** F-Droid release, accounts and end-to-end encryption —
-> [docs/FDROID-PLAN.md](./docs/FDROID-PLAN.md). Check its Status table before starting that
+> [FDROID-PLAN.md](./FDROID-PLAN.md). Check its Status table before starting that
 > work, and keep it updated.
 
 ---
@@ -1343,7 +1343,7 @@ Base UI gotchas (differs from Radix-era shadcn docs):
 
 Next.js 16 specifics honored throughout: `params` in route handlers is a Promise
 (`await context.params`), `cookies()` is async, middleware lives in `src/proxy.ts`.
-Per AGENTS.md, consult bundled docs at `node_modules/next/dist/docs/` before
+Per the root AGENTS.md, consult bundled docs at `node_modules/next/dist/docs/` before
 assuming an API shape.
 
 ---
@@ -1726,7 +1726,7 @@ UI tests don't exist yet; screens are verified manually on a device.
   `app/build/outputs/apk/release/` (arm64 ~15 MB), R8-shrunk. Signed with `keystore.properties`
   (storeFile, storePassword, keyAlias, keyPassword; never committed) when present, else with the
   debug key (fine for sharing test builds, not for a store).
-- **Release & F-Droid:** planned step by step in [docs/FDROID-PLAN.md](./docs/FDROID-PLAN.md)
+- **Release & F-Droid:** planned step by step in [FDROID-PLAN.md](./FDROID-PLAN.md)
   (repository, licence, catalog from the repository, metadata, signing). Builds shared so far
   are signed with the debug key. Bump `versionCode`/`versionName` for every release.
 - **Room migrations:** the local database is at version 1 with `exportSchema = false`.

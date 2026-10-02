@@ -56,7 +56,7 @@ scripts/foods/.cache/
 __pycache__/
 public/wasm/
 
-# Release signing (never commit): see TECHNICAL.md, Android release
+# Release signing (never commit): see docs/TECHNICAL.md, Android release
 /android/keystore.properties
 *.jks
 *.keystore

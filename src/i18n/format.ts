@@ -22,7 +22,7 @@ function formatter<T extends Intl.DateTimeFormat>(key: string, create: (locale: 
 
 /**
  * The same in every language (core `formatDecimal`): «1,6», «2000», «12 345».
- * See TECHNICAL.md «Numbers on screen and in inputs».
+ * See docs/TECHNICAL.md «Numbers on screen and in inputs».
  */
 export function formatNumber(value: number, maxDecimals = 0): string {
   return formatDecimal(value, maxDecimals);
