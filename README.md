@@ -38,7 +38,7 @@ recipe library.
 
 ## How the numbers are calculated
 
-The app shows its work. Every formula, its sources and its limits are explained inside the
+Every formula, its sources and its limits are explained inside the
 app (Settings → Methodology) and in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
 - **Basal metabolic rate** with the Mifflin-St Jeor equation, the most accurate of the common
