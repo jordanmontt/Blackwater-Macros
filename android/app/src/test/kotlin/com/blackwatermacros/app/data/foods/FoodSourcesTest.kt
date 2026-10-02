@@ -1,6 +1,7 @@
 package com.blackwatermacros.app.data.foods
 
 import androidx.test.core.app.ApplicationProvider
+import com.blackwatermacros.app.core.BarcodeMiss
 import com.blackwatermacros.app.core.FoodLang
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
@@ -45,7 +46,7 @@ class FoodSourcesTest {
     fun `a barcode finds the product with its Spanish name and identifies the app`() = runBlocking {
         server.enqueue(MockResponse().setBody(product))
 
-        val found = client.product("8480000592170", FoodLang.ES)!!
+        val found = (client.product("8480000592170", FoodLang.ES) as BarcodeResult.Found).product
         assertThat(found.name).isEqualTo("Yogur griego natural")
         assertThat(found.brand).isEqualTo("Hacendado")
         assertThat(found.servingGrams).isEqualTo(125.0)
@@ -56,11 +57,15 @@ class FoodSourcesTest {
     }
 
     @Test
-    fun `an unknown barcode is null, a server error is an error`() = runBlocking {
+    fun `a missing barcode says why, a server error is an error`() = runBlocking {
         server.enqueue(MockResponse().setResponseCode(404))
-        assertThat(client.product("1", FoodLang.ES)).isNull()
+        assertThat(client.product("3033490004743", FoodLang.ES)).isEqualTo(BarcodeResult.Missing(BarcodeMiss.UNKNOWN))
+        server.enqueue(MockResponse().setResponseCode(404))
+        assertThat(client.product("2098053024201", FoodLang.ES)).isEqualTo(BarcodeResult.Missing(BarcodeMiss.STORE_LABEL))
         server.enqueue(MockResponse().setBody("""{"status":0}"""))
-        assertThat(client.product("2", FoodLang.ES)).isNull()
+        assertThat(client.product("3033490004743", FoodLang.ES)).isEqualTo(BarcodeResult.Missing(BarcodeMiss.UNKNOWN))
+        server.enqueue(MockResponse().setBody("""{"status":1,"product":{"product_name":"X","nutriments":{}}}"""))
+        assertThat(client.product("3033490004743", FoodLang.ES)).isEqualTo(BarcodeResult.Missing(BarcodeMiss.NO_NUTRITION))
         server.enqueue(MockResponse().setResponseCode(503))
         val failure = runCatching { client.product("3", FoodLang.ES) }.exceptionOrNull()
         assertThat(failure).isInstanceOf(IOException::class.java)

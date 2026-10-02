@@ -152,6 +152,41 @@ export function parseOffProduct(json: unknown, lang: FoodLang | null = null): Fo
   return parseOffProductFields(response.product, lang);
 }
 
+/** Why a barcode gave no usable product, so the app can say what to do instead. */
+export type BarcodeMiss = "storeLabel" | "noNutrition" | "unknown";
+
+/**
+ * GS1 restricted-circulation numbers: shops print them on what they weigh or
+ * pack themselves (deli, butcher, bakery), often with the price or weight
+ * inside the code, so no product database can know them. EAN-13 starting with
+ * 2, or with 02/04 (a UPC-A in-store code written as EAN-13); UPC-A starting
+ * with 2 or 4; EAN-8 starting with 2.
+ */
+export function isStoreBarcode(code: string): boolean {
+  const digits = code.replace(/\D/g, "");
+  switch (digits.length) {
+    case 13:
+      return digits.startsWith("2") || digits.startsWith("02") || digits.startsWith("04");
+    case 12:
+      return digits.startsWith("2") || digits.startsWith("4");
+    case 8:
+      return digits.startsWith("2");
+    default:
+      return false;
+  }
+}
+
+/**
+ * Why `/api/v2/product/<code>.json` gave nothing usable. `response`: its JSON,
+ * or null when it answered 404. A store label wins; then a product Open Food
+ * Facts knows but without energy; otherwise it is unknown.
+ */
+export function barcodeMiss(code: string, response: unknown): BarcodeMiss {
+  if (isStoreBarcode(code)) return "storeLabel";
+  const json = asRecord(response);
+  return json && json.status !== 0 && asRecord(json.product) ? "noNutrition" : "unknown";
+}
+
 /** Search-a-licious (`hits`) or legacy search (`products`) response. */
 export function parseOffSearch(json: unknown, lang: FoodLang | null = null): FoodProduct[] {
   const response = asRecord(json);

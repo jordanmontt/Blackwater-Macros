@@ -119,6 +119,8 @@ fun WeightFatChart(
 
     Column(modifier) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
+        // Plot edges from the last draw (they follow the font size), for mapping taps.
+        val plotEdges = remember { FloatArray(2) }
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
@@ -127,9 +129,7 @@ fun WeightFatChart(
                     detectTapGestures { offset ->
                         val n = data.size
                         if (n > 0) {
-                            val plotLeftPx = 44.dp.toPx()
-                            val rightPx = if (pctRows.isNotEmpty()) 40.dp.toPx() else 6.dp.toPx()
-                            val plotRightPx = size.width - rightPx
+                            val (plotLeftPx, plotRightPx) = plotEdges
                             val plotWidthPx = plotRightPx - plotLeftPx
                             val frac = ((offset.x - plotLeftPx) / plotWidthPx).coerceIn(0f, 1f)
                             val idx = (frac * (n - 1)).roundToInt()
@@ -141,12 +141,6 @@ fun WeightFatChart(
             val chartWidth = size.width
             val plotHeight = size.height
             val plotTop = 48.dp.toPx()
-            val leftAxisWidth = 44.dp.toPx()
-            val rightAxisWidth = if (pctRows.isNotEmpty()) 40.dp.toPx() else 6.dp.toPx()
-            val plotLeft = leftAxisWidth
-            val plotRight = chartWidth - rightAxisWidth
-            val plotWidth = plotRight - plotLeft
-            val plotBottom = plotHeight - 24.dp.toPx()
 
             val fillArgb = labelColor.toArgb()
             val axisPaint = android.graphics.Paint().apply {
@@ -157,8 +151,21 @@ fun WeightFatChart(
             val axisTitlePaint = android.graphics.Paint().apply {
                 color = fillArgb
                 textSize = AxisTextSize.toPx()
-                textAlign = android.graphics.Paint.Align.RIGHT
+                textAlign = android.graphics.Paint.Align.LEFT
             }
+            val weightStep = niceTickStep(weightMin, weightMax, 4)
+            val weightTicks = niceTicks(weightMin, weightMax, weightStep)
+            val pctStep = niceTickStep(pctMin, pctMax, 4)
+            val pctTicks = niceTicks(pctMin, pctMax, pctStep)
+            val leftAxisWidth = axisRoom(axisPaint, weightTicks.map(::axisLabel), 44.dp.toPx(), 8.dp.toPx())
+            val rightAxisWidth =
+                if (pctRows.isNotEmpty()) axisRoom(axisPaint, pctTicks.map(::axisLabel), 40.dp.toPx(), 8.dp.toPx()) else 6.dp.toPx()
+            val plotLeft = leftAxisWidth
+            val plotRight = chartWidth - rightAxisWidth
+            val plotWidth = plotRight - plotLeft
+            val plotBottom = plotHeight - 24.dp.toPx()
+            plotEdges[0] = plotLeft
+            plotEdges[1] = plotRight
 
             fun yWeight(v: Double): Float {
                 val t = if (weightMax > weightMin) (v - weightMin) / (weightMax - weightMin) else 0.5
@@ -196,10 +203,6 @@ fun WeightFatChart(
                 }
             }
 
-            val weightStep = niceTickStep(weightMin, weightMax, 4)
-            val weightTicks = niceTicks(weightMin, weightMax, weightStep)
-            val pctStep = niceTickStep(pctMin, pctMax, 4)
-            val pctTicks = niceTicks(pctMin, pctMax, pctStep)
             val rightTickPaint = android.graphics.Paint().apply {
                 color = fillArgb
                 textSize = AxisTextSize.toPx()
@@ -231,12 +234,8 @@ fun WeightFatChart(
                     )
                 }
             }
-            drawContext.canvas.nativeCanvas.drawText(
-                weightAxis,
-                leftAxisWidth - 4.dp.toPx(),
-                24.dp.toPx(),
-                axisTitlePaint,
-            )
+            // From the left edge, so a long title or a large font never runs off the card.
+            drawContext.canvas.nativeCanvas.drawText(weightAxis, 0f, 24.dp.toPx(), axisTitlePaint)
             if (pctRows.isNotEmpty()) {
                 // Right-aligned to the edge so the title never runs off the card.
                 drawContext.canvas.nativeCanvas.drawText(
@@ -267,12 +266,14 @@ fun WeightFatChart(
             }
             if (data.isNotEmpty()) {
                 val labels = listOf(0, data.size / 2, data.size - 1).distinct().filter { it in data.indices }
+                axisPaint.textAlign = android.graphics.Paint.Align.CENTER
                 labels.forEach { i ->
+                    val text = formatDateShort(data[i].date)
                     drawContext.canvas.nativeCanvas.drawText(
-                        formatDateShort(data[i].date),
-                        xIndex(i),
+                        text,
+                        centredInside(axisPaint, text, xIndex(i), chartWidth),
                         plotHeight - 2.dp.toPx(),
-                        axisPaint.apply { textAlign = android.graphics.Paint.Align.CENTER },
+                        axisPaint,
                     )
                 }
             }

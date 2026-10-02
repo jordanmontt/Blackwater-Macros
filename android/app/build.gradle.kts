@@ -16,14 +16,22 @@ android {
         applicationId = "com.blackwatermacros.app"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "0.1.0"
+        // One step per release; the git tag is v<versionName> (docs/RELEASING.md).
+        versionCode = 2
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Base URL for the deployed backend (override via -Papp.baseUrl=…). Defaults to production.
         val baseUrl = (project.findProperty("app.baseUrl") as String?) ?: "https://blackwater-macros.jordanmontt.fr/"
         buildConfigField("String", "API_BASE_URL", "\"$baseUrl\"")
+        // The phone-model catalog, read from the released branch of the public repository
+        // (docs/RELEASING.md «Publishing a phone model»), never from the Blackwater server.
+        buildConfigField(
+            "String",
+            "MODEL_CATALOG_URL",
+            "\"https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/android/catalog/local-models.json\"",
+        )
     }
 
     signingConfigs {
@@ -55,13 +63,22 @@ android {
 
     // Release: one APK per CPU type, so a phone downloads only its own native code
     // (the on-device AI engine alone is ~22 MB per type). Debug stays a single APK.
+    // F-Droid builds only `-PreleaseAbi=arm64-v8a` (the phones the on-device AI runs on).
     splits {
         abi {
             isEnable = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
             reset()
-            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            val only = project.findProperty("releaseAbi") as String?
+            if (only != null) include(only) else include("arm64-v8a", "armeabi-v7a", "x86_64")
             isUniversalApk = false
         }
+    }
+
+    // No dependency list encrypted with Google's key inside the APK: F-Droid's scanner rejects
+    // it, and it only serves the Play Store.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     packaging {

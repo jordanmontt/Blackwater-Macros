@@ -1,5 +1,9 @@
 package com.blackwatermacros.app.ui
 
+import com.blackwatermacros.app.BuildConfig
+import androidx.core.net.toUri
+import androidx.compose.material.icons.filled.Code
+import android.content.Intent
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -36,6 +40,7 @@ import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
@@ -90,6 +95,13 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
+
+/** The public repository (AGPL: the source of what runs, one tap away). */
+const val SOURCE_CODE_URL = "https://github.com/jordanmontt/Blackwater-Macros"
+
+/** Donations (Android only: the app people install; F-Droid lists it too). */
+const val DONATE_URL = "https://ko-fi.com/jordanmontt"
+
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
@@ -167,6 +179,19 @@ fun SettingsScreen(
                 title = stringResource(R.string.methodology),
                 subtitle = stringResource(R.string.methodology_subtitle),
                 onClick = onOpenMetodologia,
+            )
+            val context = LocalContext.current
+            LinkCard(
+                icon = Icons.Filled.Code,
+                title = stringResource(R.string.source_code),
+                subtitle = stringResource(R.string.source_code_hint) + " · v" + BuildConfig.VERSION_NAME,
+                onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, SOURCE_CODE_URL.toUri())) } },
+            )
+            LinkCard(
+                icon = Icons.Filled.Favorite,
+                title = stringResource(R.string.donate),
+                subtitle = stringResource(R.string.donate_hint),
+                onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, DONATE_URL.toUri())) } },
             )
             LinkCard(
                 icon = Icons.Filled.PlayCircle,

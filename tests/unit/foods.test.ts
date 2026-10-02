@@ -3,6 +3,8 @@ import {
   foodToIngredient,
   normalizeText,
   parseOffProduct,
+  barcodeMiss,
+  isStoreBarcode,
   parseGenericIndex,
   parseOffSearch,
   parseServingGrams,
@@ -93,6 +95,27 @@ describe("Open Food Facts parsing", () => {
     expect(parseOffProduct(JSON.parse(`{"status":0,"status_verbose":"product not found"}`))).toBeNull();
     expect(parseOffProduct(JSON.parse(`{"status":1,"product":{"product_name":"X","nutriments":{}}}`))).toBeNull();
     expect(parseOffProduct(JSON.parse(`"nonsense"`))).toBeNull();
+  });
+
+  it("recognises shop labels (weighed or packed in store) by their GS1 prefix", () => {
+    expect(isStoreBarcode("2098053024201")).toBe(true); // EAN-13, 20–29
+    expect(isStoreBarcode("0212345678905")).toBe(true); // UPC-A 2… as EAN-13
+    expect(isStoreBarcode("0412345678908")).toBe(true);
+    expect(isStoreBarcode("212345678906")).toBe(true); // UPC-A
+    expect(isStoreBarcode("21234567")).toBe(true); // EAN-8
+    expect(isStoreBarcode("3033490004743")).toBe(false); // a Danone yogurt
+    expect(isStoreBarcode("8480000592170")).toBe(false);
+    expect(isStoreBarcode("01234565")).toBe(false); // UPC-E, a normal product
+    expect(isStoreBarcode("12345")).toBe(false);
+  });
+
+  it("says why a barcode gave nothing usable", () => {
+    expect(barcodeMiss("2098053024201", null)).toBe("storeLabel");
+    expect(barcodeMiss("3033490004743", null)).toBe("unknown");
+    expect(barcodeMiss("3033490004743", JSON.parse(`{"status":0,"status_verbose":"product not found"}`))).toBe("unknown");
+    expect(barcodeMiss("3033490004743", JSON.parse(`{"status":1,"product":{"product_name":"X","nutriments":{}}}`))).toBe(
+      "noNutrition",
+    );
   });
 
   it("prefers the product name in the app language", () => {

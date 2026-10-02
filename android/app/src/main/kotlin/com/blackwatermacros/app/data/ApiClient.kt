@@ -22,7 +22,7 @@ object ApiClient {
         httpClient: OkHttpClient? = null,
     ): ApiService {
         val client = httpClient ?: OkHttpClient.Builder()
-            .addInterceptor(BearerAuthInterceptor(tokenProvider))
+            .addInterceptor(AccountInterceptor(tokenProvider))
             .apply {
                 // Log full request/response bodies in debug builds to aid testing.
                 if (BuildConfig.DEBUG) {

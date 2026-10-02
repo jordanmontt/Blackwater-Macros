@@ -184,6 +184,24 @@ describe("Añadir comida: buscar y código de barras", () => {
     await user.click(screen.getByRole("button", { name: t.addFood.lookUp }));
 
     expect(await screen.findByText(t.addFood.notFound)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.addFood.searchByName }));
+    expect(await screen.findByRole("searchbox", { name: t.addFood.search })).toBeInTheDocument();
+  });
+
+  it("una etiqueta de la tienda (producto pesado allí) se explica, y se puede escanear otro", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    const sheet = await openSheet(user);
+
+    await user.click(within(sheet).getByRole("button", { name: new RegExp(`^${t.addFood.barcode}`) }));
+    await user.type(await screen.findByLabelText(t.addFood.manualCode), "2098053024201");
+    await user.click(screen.getByRole("button", { name: t.addFood.lookUp }));
+
+    expect(await screen.findByText(t.addFood.notFoundStore)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t.addFood.takePhoto })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.addFood.scanAgain }));
+    expect(screen.queryByText(t.addFood.notFoundStore)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(t.addFood.manualCode)).toHaveValue("");
   });
 
   it("desde el formulario, «Buscar alimento» añade otro alimento a la misma comida", async () => {

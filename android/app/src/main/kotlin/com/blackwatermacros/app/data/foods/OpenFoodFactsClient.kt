@@ -1,8 +1,10 @@
 package com.blackwatermacros.app.data.foods
 
 import com.blackwatermacros.app.BuildConfig
+import com.blackwatermacros.app.core.BarcodeMiss
 import com.blackwatermacros.app.core.FoodLang
 import com.blackwatermacros.app.core.FoodProduct
+import com.blackwatermacros.app.core.barcodeMiss
 import com.blackwatermacros.app.core.parseOffProduct
 import com.blackwatermacros.app.core.parseOffSearch
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +16,12 @@ import okhttp3.Request
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+/** A barcode lookup: the product, or why there is none. */
+sealed interface BarcodeResult {
+    data class Found(val product: FoodProduct) : BarcodeResult
+    data class Missing(val reason: BarcodeMiss) : BarcodeResult
+}
+
 /**
  * Open Food Facts (ODbL): product by barcode and text search (Search-a-licious).
  * The phone calls it directly — no CORS here, unlike the web — identifying
@@ -24,13 +32,14 @@ class OpenFoodFactsClient(
     private val productBaseUrl: String = "https://world.openfoodfacts.org/api/v2/product/",
     private val searchUrl: String = "https://search.openfoodfacts.org/search",
 ) {
-    /** Null when the product is unknown; throws [IOException] when offline or on errors. */
-    suspend fun product(code: String, lang: FoodLang): FoodProduct? = withContext(Dispatchers.IO) {
+    /** The product, or why there is none; throws [IOException] when offline or on errors. */
+    suspend fun product(code: String, lang: FoodLang): BarcodeResult = withContext(Dispatchers.IO) {
         val url = "$productBaseUrl$code.json".toHttpUrl().newBuilder().addQueryParameter("fields", FIELDS).build()
         http.newCall(Request.Builder().url(url).build()).execute().use { response ->
-            if (response.code == 404) return@withContext null
+            if (response.code == 404) return@withContext BarcodeResult.Missing(barcodeMiss(code, null))
             if (!response.isSuccessful) throw IOException("Open Food Facts ${response.code}")
-            parseOffProduct(Json.parseToJsonElement(response.body!!.string()), lang)
+            val json = Json.parseToJsonElement(response.body!!.string())
+            parseOffProduct(json, lang)?.let { BarcodeResult.Found(it) } ?: BarcodeResult.Missing(barcodeMiss(code, json))
         }
     }
 

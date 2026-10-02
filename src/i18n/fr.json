@@ -101,7 +101,13 @@
     "manualCode": "Ou saisissez le code",
     "lookUp": "Rechercher",
     "lookingUp": "Recherche du produit…",
-    "notFound": "Ce produit n'est pas dans Open Food Facts. Recherchez-le par son nom ou saisissez-le à la main.",
+    "notFound": "Ce produit n'est pas dans Open Food Facts.",
+    "notFoundStore": "C'est une étiquette du magasin (un produit pesé ou emballé sur place) : aucune base de produits ne la connaît.",
+    "notFoundNoNutrition": "Open Food Facts connaît ce produit, mais pas ses valeurs nutritionnelles.",
+    "notFoundNext": "Recherchez-le par son nom ou prenez une photo (du plat ou du tableau nutritionnel).",
+    "searchByName": "Chercher par nom",
+    "takePhoto": "Prendre une photo",
+    "scanAgain": "Scanner un autre",
     "cameraError": "La caméra ne peut pas être utilisée ici. Saisissez le code de l'emballage.",
     "needsInternet": "Une connexion internet est nécessaire.",
     "manual": "Saisir à la main",
@@ -569,5 +575,9 @@
     "gym_days_out_of_range": "Les jours de salle doivent être compris entre 0 et 7",
     "gym_minutes_out_of_range": "La durée doit être comprise entre 0 et 300 minutes",
     "walking_out_of_range": "Le temps de marche doit être compris entre 0 et 480 minutes"
+  },
+  "about": {
+    "sourceCode": "Code source",
+    "sourceCodeHint": "Blackwater Macros est un logiciel libre (AGPL-3.0). Son code est sur GitHub."
   }
 }

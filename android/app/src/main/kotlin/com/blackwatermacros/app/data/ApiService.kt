@@ -17,7 +17,7 @@ import retrofit2.http.Query
  * pushed later by `SyncEngine`. All paths are **absolute from the
  * origin root** and include the `/api` prefix, so the base URL is simply the
  * deployment origin (e.g. `https://blackwater-macros.jordanmontt.fr/`). Auth is a
- * Bearer token attached by the `BearerAuthInterceptor`.
+ * Bearer token attached by the `AccountInterceptor` (which refuses every request but the login without an account).
  */
 interface ApiService {
 

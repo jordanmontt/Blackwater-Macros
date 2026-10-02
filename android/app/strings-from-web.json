@@ -52,6 +52,13 @@
   "food_scan_hint": "addFood.scanHint",
   "food_looking_up": "addFood.lookingUp",
   "food_needs_internet": "addFood.needsInternet",
+  "food_not_found": "addFood.notFound",
+  "food_not_found_store": "addFood.notFoundStore",
+  "food_not_found_no_nutrition": "addFood.notFoundNoNutrition",
+  "food_not_found_next": "addFood.notFoundNext",
+  "food_search_by_name": "addFood.searchByName",
+  "food_take_photo": "addFood.takePhoto",
+  "food_scan_again": "addFood.scanAgain",
   "meal_deleted": "meal.deleted",
   "today": "common.today",
   "day_previous": "common.previousDay",
@@ -214,5 +221,7 @@
   "ai_model_list_loading": "ai.modelListLoading",
   "ai_model_limits": "ai.modelLimits",
   "ai_model_list_error": ["ai.modelListError", "message:s"],
-  "ai_model_list_needs_key": "ai.modelListNeedsKey"
+  "ai_model_list_needs_key": "ai.modelListNeedsKey",
+  "source_code": "about.sourceCode",
+  "source_code_hint": "about.sourceCodeHint"
 }

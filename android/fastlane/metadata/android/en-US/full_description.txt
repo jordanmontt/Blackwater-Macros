@@ -1,0 +1,41 @@
+<p>Blackwater Macros does one thing and does it well: it tracks what you eat (calories, protein, carbs and fat) and your weight, and tells you how much you should eat to reach your goal. No streaks, no social feed, no ads, no tracking.</p>
+
+<p><b>Log a meal in seconds</b></p>
+<ul>
+<li>Search a built-in database of everyday foods, or millions of products on Open Food Facts.</li>
+<li>Scan a barcode.</li>
+<li>Type it by hand, ingredient by ingredient or just the total.</li>
+<li>Take a photo or describe the meal and let AI estimate the macros (optional, see below).</li>
+<li>Copy meals from another day or save your usual ones as templates.</li>
+</ul>
+
+<p><b>Targets based on science, not guesswork</b></p>
+<ul>
+<li>Your basal metabolic rate with the Mifflin-St Jeor equation.</li>
+<li>Your activity level calculated from what you actually do (gym days, session length, daily walking) with the factorial method of the FAO/WHO, instead of a vague “lightly active / very active” guess.</li>
+<li>A calorie range for your goal (lose fat, maintain, build muscle) that never goes below your basal needs.</li>
+<li>Protein ranges from sports-nutrition research, on your lean mass when you log your body fat.</li>
+<li>Your measured expenditure: after a few weeks, the app compares what you ate with how your weight moved and shows what you really burn, with its margin of error.</li>
+</ul>
+<p>Every formula and its sources are explained inside the app (Methodology).</p>
+
+<p><b>See your progress</b></p>
+<ul>
+<li>Weight trend that smooths out daily ups and downs, weekly rate and body fat.</li>
+<li>Daily calories against your target, and macro averages over the days you logged.</li>
+</ul>
+
+<p><b>AI, only if you want it</b></p>
+<p>Estimate a meal from photos or a description, and ask the coach questions about your diet (“what should I have for dinner?”, “what will I weigh in 30 days?”). Use your own key from Google Gemini (free), OpenAI, Anthropic, OpenRouter or a compatible server, or download a model that runs entirely on your phone. Your key stays on your phone and goes straight to the provider.</p>
+
+<p><b>Private by design</b></p>
+<ul>
+<li>Your data stays on your phone. Without logging in, it never leaves the device: the app never contacts our server. It only goes online when you ask: food search and barcodes (Open Food Facts), the AI provider you chose (only what you send it), and the list or download of phone AI models (GitHub, Hugging Face).</li>
+<li>Optional sync: with an account, your data is also kept in the cloud and synced between your devices. For now, accounts are by invitation only.</li>
+<li>No ads, no analytics, no trackers. Free software (AGPL-3.0).</li>
+<li>Export and import your data as CSV at any time.</li>
+</ul>
+
+<p>Available in English, Spanish, French, Italian and German.</p>
+
+<p><b>Permissions:</b> internet (food search, AI, model download), camera (barcodes and meal photos, only when you use them), notifications and foreground service (progress of a model download).</p>

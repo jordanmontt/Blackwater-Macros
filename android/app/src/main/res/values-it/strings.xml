@@ -42,7 +42,6 @@
     <string name="food_credits">Dati: Swiss Food Composition Database (USAV), Ciqual (Anses) e Open Food Facts (ODbL).</string>
     <string name="food_manual_code">Oppure scrivi il codice</string>
     <string name="food_look_up">Cerca</string>
-    <string name="food_not_found">Questo prodotto non è in Open Food Facts. Cercalo per nome o scrivilo a mano.</string>
     <string name="food_camera_error">La fotocamera non è disponibile. Scrivi il codice della confezione.</string>
     <string name="meal_reorder">Riordina pasto</string>
     <string name="meal_manual_total">Totale manuale</string>
@@ -65,7 +64,7 @@
     <string name="error_weight_range">Inserisci un peso tra 20 e 400 kg.</string>
     <string name="error_body_fat_range">Il grasso corporeo deve essere tra 3 e 60 %.</string>
     <string name="account_title">Account</string>
-    <string name="account_local_description">I tuoi dati sono salvati solo su questo telefono. Se hai un account, accedi per sincronizzarli con la versione web.</string>
+    <string name="account_local_description">I tuoi dati sono salvati solo su questo telefono e non vengono inviati a nessun server. Se hai un account (su invito), accedi per sincronizzarli tra i tuoi dispositivi.</string>
     <string name="account_connected_as">Connesso come %1$s</string>
     <string name="sync_session_expired">La sessione è scaduta. Accedi di nuovo per continuare a sincronizzare.</string>
     <string name="sync_in_progress">Sincronizzazione…</string>
@@ -116,7 +115,7 @@
     <string name="admin_subtitle">Gestisci gli utenti dell\'app.</string>
     <string name="templates_empty">Non hai ancora modelli salvati.</string>
     <string name="template_delete_body">Questo modello verrà eliminato.</string>
-    <string name="data_description">Esporta o importa pasti e peso in CSV (stesso formato della versione web). Utile come backup o per cambiare telefono.</string>
+    <string name="data_description">Esporta o importa pasti e peso in CSV. Utile come backup o per cambiare telefono.</string>
     <string name="data_export_meals">Esporta pasti</string>
     <string name="data_export_weights">Esporta peso</string>
     <string name="data_meals_file_name">blackwater-pasti-%1$s.csv</string>
@@ -124,7 +123,7 @@
     <string name="data_exported">File salvato.</string>
     <string name="data_unknown_file">Questo file non è un CSV di pasti o peso di Blackwater.</string>
     <string name="data_failed">Impossibile leggere o scrivere il file.</string>
-    <string name="login_description">Sincronizza pasti e peso con la versione web. Gli account sono solo su invito.</string>
+    <string name="login_description">Sincronizza pasti e peso tra i tuoi dispositivi. Per ora gli account sono solo su invito.</string>
     <string name="login_username">Nome utente</string>
     <string name="login_submit">Accedi</string>
     <string name="login_local_data_title">Questo telefono contiene già dei dati</string>
@@ -288,17 +287,19 @@
 
     <!-- Onboarding (phase 8) -->
     <string name="onboarding_welcome_body">Registra i tuoi pasti e il tuo peso. I tuoi dati restano sul telefono.</string>
-    <string name="onboarding_login">Ho un account — Accedi</string>
-    <string name="onboarding_no_account">Inizia senza account</string>
-    <string name="onboarding_no_account_hint">Potrai collegare un account più tardi nelle Impostazioni per sincronizzare con il web.</string>
+    <string name="onboarding_login">Ho un account</string>
+    <string name="onboarding_no_account">Inizia</string>
     <string name="onboarding_data_intro">Servono per calcolare calorie e proteine. Puoi cambiarli in Impostazioni → Profilo.</string>
     <string name="onboarding_invalid">Controlla i dati: anno tra 1920 e 2010, altezza tra 100 e 250 cm, peso tra 20 e 400 kg.</string>
     <string name="onboarding_ai_title">Intelligenza artificiale (facoltativa)</string>
-    <string name="onboarding_ai_intro">L\'IA stima i macro da una foto del tuo pasto e risponde alle tue domande nel coach. Google dà una chiave gratuita.</string>
+    <string name="onboarding_ai_intro">L\'IA stima i macro da una foto del tuo pasto e risponde alle tue domande nel coach. Google dà una chiave gratuita. La tua chiave è salvata solo su questo telefono e va direttamente al fornitore, mai al nostro server.</string>
+    <string name="onboarding_syncing">Download dei tuoi dati…</string>
     <string name="onboarding_not_now">Non ora</string>
     <string name="onboarding_done_title">Fatto!</string>
     <string name="onboarding_done_body">Aggiungi il tuo primo pasto con il pulsante +. Registra il peso ogni pochi giorni per vedere i progressi.</string>
     <string name="onboarding_done_ai">L\'IA è pronta: prova «Foto o testo» quando aggiungi un pasto, e il coach.</string>
+    <string name="donate">Offrimi uno yogurt</string>
+    <string name="donate_hint">L\'app è gratuita e senza pubblicità. Se ti è utile, puoi sostenerla su Ko-fi.</string>
     <string name="onboarding_replay">Rivedi il tutorial</string>
 
     <!-- On-device AI (phase 9) -->

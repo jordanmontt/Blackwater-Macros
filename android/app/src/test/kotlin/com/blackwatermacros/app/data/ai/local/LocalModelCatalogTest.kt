@@ -7,7 +7,7 @@ import java.io.File
 
 /**
  * The phone models on offer come from the Blackwater site
- * (`public/models/local-models.json`): new models without a new app version,
+ * (`android/catalog/local-models.json`): new models without a new app version,
  * wrong entries skipped, downloads only from huggingface.co.
  */
 class LocalModelCatalogTest {
@@ -59,7 +59,7 @@ class LocalModelCatalogTest {
 
     @Test
     fun `the file on the site is valid and matches the built-in models`() {
-        val models = parseLocalModelCatalog(File("../../public/models/local-models.json").readText(), appVersionCode = 1)
+        val models = parseLocalModelCatalog(File("../catalog/local-models.json").readText(), appVersionCode = 1)
         assertThat(models).isNotEmpty()
         LocalModels.BUILT_IN.forEach { builtIn ->
             val listed = models.firstOrNull { it.id == builtIn.id } ?: return@forEach

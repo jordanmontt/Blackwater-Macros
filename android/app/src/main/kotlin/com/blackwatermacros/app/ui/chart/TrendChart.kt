@@ -75,6 +75,8 @@ fun TrendChart(
     val vMax = (allValues + trendVals + listOfNotNull(band?.second)).maxOrNull()?.let { it * 1.15 } ?: 1.0
 
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
+    // Plot edges from the last draw (they follow the font size), for mapping taps.
+    val plotEdges = remember { FloatArray(2) }
 
     Column {
         Box(modifier, contentAlignment = androidx.compose.ui.Alignment.TopEnd) {
@@ -86,8 +88,8 @@ fun TrendChart(
                     detectTapGestures { offset ->
                         val n = points.size
                         if (n > 0) {
-                            val left = 44.dp.toPx()
-                            val plotWidth = size.width - 6.dp.toPx() - left
+                            val (left, right) = plotEdges
+                            val plotWidth = right - left
                             val frac = ((offset.x - left) / plotWidth).coerceIn(0f, 1f)
                             val idx = (frac * (n - 1)).roundToInt()
                             selectedIndex = if (selectedIndex == idx) null else idx
@@ -97,13 +99,6 @@ fun TrendChart(
         ) {
             val chartWidth = size.width
             val plotHeight = size.height
-            val leftAxisWidth = 44.dp.toPx()
-            val plotTop = 44.dp.toPx()
-            val plotLeft = leftAxisWidth
-            val plotRight = chartWidth - 6.dp.toPx()
-            val plotWidth = plotRight - plotLeft
-            val plotBottom = plotHeight - 24.dp.toPx()
-
             val fillArgb = labelColor.toArgb()
             val axisPaint = android.graphics.Paint().apply {
                 setColor(fillArgb)
@@ -113,8 +108,18 @@ fun TrendChart(
             val axisTitlePaint = android.graphics.Paint().apply {
                 setColor(fillArgb)
                 textSize = AxisTextSize.toPx()
-                textAlign = android.graphics.Paint.Align.RIGHT
+                textAlign = android.graphics.Paint.Align.LEFT
             }
+            val gridRows = 4
+            val tickLabels = (0..gridRows).map { r -> formatNumber(vMin + (vMax - vMin) * r / gridRows, 0) }
+            val leftAxisWidth = axisRoom(axisPaint, tickLabels, 44.dp.toPx(), 8.dp.toPx())
+            val plotTop = 44.dp.toPx()
+            val plotLeft = leftAxisWidth
+            val plotRight = chartWidth - 6.dp.toPx()
+            val plotWidth = plotRight - plotLeft
+            val plotBottom = plotHeight - 24.dp.toPx()
+            plotEdges[0] = plotLeft
+            plotEdges[1] = plotRight
 
             fun y(v: Double): Float {
                 val t = if (vMax > vMin) (v - vMin) / (vMax - vMin) else 0.5
@@ -127,7 +132,6 @@ fun TrendChart(
                 else plotLeft + (plotWidth * i / (n - 1)).toFloat()
             }
 
-            val gridRows = 4
             for (r in 0..gridRows) {
                 val t = r.toDouble() / gridRows
                 val yy = plotBottom - (t * (plotBottom - plotTop)).toFloat()
@@ -138,18 +142,14 @@ fun TrendChart(
                     strokeWidth = 1.dp.toPx(),
                 )
                 drawContext.canvas.nativeCanvas.drawText(
-                    formatNumber(vMin + (vMax - vMin) * t, 0),
+                    tickLabels[r],
                     leftAxisWidth - 4.dp.toPx(),
                     yy + 5.dp.toPx(),
                     axisPaint,
                 )
             }
-            drawContext.canvas.nativeCanvas.drawText(
-                unit.ifBlank { "" },
-                leftAxisWidth - 4.dp.toPx(),
-                24.dp.toPx(),
-                axisTitlePaint,
-            )
+            // From the left edge, so a large font never runs off the card.
+            drawContext.canvas.nativeCanvas.drawText(unit, 0f, 24.dp.toPx(), axisTitlePaint)
 
             fun drawPath(rows: List<Pair<Int, Double>>, strokeColor: Color, dash: FloatArray?, width: Float) {
                 if (rows.isEmpty()) return
@@ -201,12 +201,14 @@ fun TrendChart(
 
             if (points.isNotEmpty()) {
                 val labels = listOf(0, points.size / 2, points.size - 1).distinct().filter { it in points.indices }
+                axisPaint.textAlign = android.graphics.Paint.Align.CENTER
                 labels.forEach { i ->
+                    val text = formatDateShort(points[i].date)
                     drawContext.canvas.nativeCanvas.drawText(
-                        formatDateShort(points[i].date),
-                        x(i),
+                        text,
+                        centredInside(axisPaint, text, x(i), chartWidth),
                         plotHeight - 2.dp.toPx(),
-                        axisPaint.apply { textAlign = android.graphics.Paint.Align.CENTER },
+                        axisPaint,
                     )
                 }
             }
@@ -281,6 +283,16 @@ private fun LegendDot(color: Color, label: String) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+/** Room beside the plot for tick labels: at least [min], wider when a large font needs it. */
+internal fun axisRoom(paint: android.graphics.Paint, labels: List<String>, min: Float, gap: Float): Float =
+    maxOf(min, (labels.maxOfOrNull { paint.measureText(it) } ?: 0f) + gap)
+
+/** X for a centred label at [x] that stays inside a chart [width] wide (first and last dates). */
+internal fun centredInside(paint: android.graphics.Paint, text: String, x: Float, width: Float): Float {
+    val half = paint.measureText(text) / 2
+    return if (width > 2 * half) x.coerceIn(half, width - half) else width / 2
+}
+
 /** Chart text sizes in sp, so labels follow the phone's font size (they were raw pixels, tiny on dense screens). */
 internal val AxisTextSize = 12.sp
 internal val TooltipTextSize = 13.sp

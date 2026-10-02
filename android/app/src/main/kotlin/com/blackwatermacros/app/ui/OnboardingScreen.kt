@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -93,7 +92,11 @@ fun OnboardingScreen(
                 Spacer(Modifier.height(8.dp))
             }
             when (step) {
-                OnboardingStep.WELCOME -> WelcomeStep(onLogin = onLogin, onStart = { viewModel.goTo(OnboardingStep.DATA) })
+                OnboardingStep.WELCOME -> WelcomeStep(
+                    syncing = viewModel.syncing.collectAsStateWithLifecycle().value,
+                    onLogin = onLogin,
+                    onStart = { viewModel.goTo(OnboardingStep.DATA) },
+                )
                 OnboardingStep.DATA -> DataStep(viewModel)
                 OnboardingStep.AI -> AiStep(ai, onBack = { viewModel.goTo(OnboardingStep.DATA) }, onNext = { viewModel.goTo(OnboardingStep.DONE) })
                 OnboardingStep.DONE -> DoneStep(aiReady = ai.settings.collectAsStateWithLifecycle().value.ready, onStart = ::finish)
@@ -111,7 +114,7 @@ private fun StepTitle(title: String, body: String) {
 }
 
 @Composable
-private fun WelcomeStep(onLogin: () -> Unit, onStart: () -> Unit) {
+private fun WelcomeStep(syncing: Boolean, onLogin: () -> Unit, onStart: () -> Unit) {
     Column(
         Modifier.fillMaxWidth().padding(top = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -127,17 +130,20 @@ private fun WelcomeStep(onLogin: () -> Unit, onStart: () -> Unit) {
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(32.dp))
-        Button(onClick = onLogin, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.AutoMirrored.Filled.Login, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.onboarding_login))
+        if (syncing) {
+            CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp)
+            Spacer(Modifier.height(12.dp))
+            CardDescription(stringResource(R.string.onboarding_syncing))
+            return@Column
         }
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
+        // Most people start right away; account holders (by invitation) have the quieter way in.
+        Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.onboarding_no_account))
         }
-        Spacer(Modifier.height(12.dp))
-        CardDescription(stringResource(R.string.onboarding_no_account_hint))
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onLogin) {
+            Text(stringResource(R.string.onboarding_login))
+        }
     }
 }
 

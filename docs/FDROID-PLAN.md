@@ -12,7 +12,7 @@ is risky · ✅ = decided.
 
 | # | Part | State |
 |---|------|-------|
-| A | F-Droid release (repo public, catalog from the repo, «Crear cuenta · Próximamente», metadata, merge request) | ☐ |
+| A | F-Droid release (repo public, catalog from the repo, metadata, merge request) | ◐ ready; the owner tags v1.0.0 and opens the merge request |
 | B | Premium accounts (paid sign-up on the web) | ☐ later |
 | C | End-to-end encryption for accounts ⚠️ | ☐ later, before B goes live |
 
@@ -20,6 +20,16 @@ Legend: ☐ todo · ◐ in progress · ☑ done.
 
 ## Log
 
+- 2026-10-02 — F-Droid release prepared (Part A): `dev` branch for work (CI + web deploy),
+  `main` for releases; catalog moved to `android/catalog/` and read from GitHub;
+  `AccountInterceptor` (nothing but the login reaches our server without an account) and
+  `NetworkHostsTest`; welcome «Empezar» / «Tengo una cuenta», texts without «versión web»;
+  after login the first sync runs before deciding on «Tus datos»; version 1.0.0 (code 2),
+  `releaseAbi`, `dependenciesInfo` off; fastlane listing in 5 languages with screenshots and
+  feature graphic; recipe draft `docs/fdroid/`; `docs/RELEASING.md`, `docs/DEVELOPMENT.md`;
+  user-facing README in English; «Código fuente» link (AGPL) on Android and the web; history
+  checked for secrets (clean). Left to the owner: Vercel production branch → `dev`, tag
+  `v1.0.0`, the merge request to fdroiddata.
 - 2026-09-28 — Release cleanup: unused files and code removed (Next.js starter SVGs, logo
   drafts, three unused UI components, dead helpers), Android lint down to deliberate warnings
   (TECHNICAL.md §14.7), `androidx.exifinterface` for photo rotation, signing files ignored.
@@ -31,8 +41,8 @@ Legend: ☐ todo · ◐ in progress · ☑ done.
 
 | # | Decision | State |
 |---|----------|-------|
-| F1 | The phone-model catalog is read from the **public repository**, not from the Blackwater server. | ✅ owner |
-| F2 | «Crear cuenta» shows **«Próximamente»** until paid accounts exist; later it opens a web page to sign up and pay. | ✅ owner |
+| F1 | The phone-model catalog is read from the **public repository** (`main` on GitHub), not from the Blackwater server. | ✅ done 2026-10-02 |
+| F2 | No «Crear cuenta» for now: the welcome says «Empezar» / «Tengo una cuenta» and the login says accounts are by invitation. Later (Part B) a sign-up page on the web. | ✅ owner, changed 2026-10-02 |
 | F3 | Public repository on **GitHub**, with a **Codeberg mirror** added when it goes public. | ✅ owner |
 | F4 | Licence: **AGPL-3.0-or-later** for everything (`LICENSE`, `package.json`, README). | ✅ owner, added 2026-09-28 |
 | F5 | End-to-end encryption and password recovery (see Part C: a truly end-to-end design cannot let the operator restore data alone). | ❓ |
@@ -51,117 +61,31 @@ recipe in `fdroiddata` is a plain Gradle build (`subdir: android/app`, `gradle: 
 special handling for LiteRT-LM's native libraries. Checked 2026-09-28 in
 `gitlab.com/fdroid/fdroiddata/-/raw/master/metadata/app.chompass.yml`.
 
-### A1. Make the repository public ❓ F3, F4
+### Done (2026-10-02)
 
-- [x] **Host (F3):** GitHub; when public, add a Codeberg mirror (Codeberg → «New migration» →
-      mirror of the GitHub repository, synced automatically). The F-Droid recipe and the
-      catalog URL (A2) point at GitHub; the mirror is a backup and a non-GitHub way to read
-      the code.
-- [x] **Licence (F4):** AGPL-3.0-or-later, `LICENSE` at the root (canonical text),
-      `"license"` in `package.json`, a section in the README.
-- [ ] **AGPL «source for network users»** (section 13): once the repository is public, the web
-      app must offer its users a link to the source — add «Código fuente» (link to the
-      public GitHub repository, owner's choice) in Ajustes and on the login page. The Android app can show the same link in
-      Ajustes → Metodología (not required, but consistent).
-- [ ] Optional: a short licence header in source files (`SPDX-License-Identifier:
-      AGPL-3.0-or-later`); not required when `LICENSE` is at the root.
-- [ ] **Secrets check before publishing**: run `gitleaks detect` (or `trufflehog`) over the
-      whole history. A quick check found no `.env`, keystore or credential file ever committed;
-      `.env*` is ignored and `android/keystore.properties` was added to `.gitignore` on
-      2026-09-28. Also check `scripts/` and test fixtures for real usernames/passwords.
-- [ ] **Data licences of bundled assets.** F-Droid wants assets under free terms too. The
-      generic-food index bundles Ciqual (Licence Ouverte/Etalab 2.0 — free) and the Swiss Food
-      Composition Database (free use incl. diary apps with attribution — **not a classic free
-      licence**). Chompass ships a Swiss index and is on F-Droid, so it is probably accepted, but
-      state it in the merge request. Open Food Facts is only queried online (ODbL). ❓ confirm
-      nothing else is bundled (`android/app/src/main/assets`, `public/foods`).
-- [ ] Decide whether the web (`src/`, Next.js) stays in the same repository. F-Droid needs
-      `android/` **and `src/i18n/*.json`** (the Android build generates its shared texts from
-      them, TECHNICAL.md §6 «i18n»); like Chompass, the recipe can `scandelete` the other web
-      folders so the scanner does not trip on `node_modules`-style content — never `src/i18n`.
-      Keeping one repository is simpler (shared `src/lib/core` ⇄ `android/core` parity and
-      texts). ✅ suggested: one repository.
+- [x] Repository public on GitHub, AGPL-3.0-or-later (`LICENSE`, `package.json`, README); history
+      checked for secrets (no keys, passwords or keystores in any commit).
+- [x] AGPL «source for network users»: «Código fuente» link in Ajustes (web and Android) and on
+      the web login page.
+- [x] Catalog from the repository (F1): `android/catalog/local-models.json`, read from `main`.
+- [x] Privacy enforced: `AccountInterceptor`, `NetworkHostsTest`, README «Private by design».
+- [x] Build: version 1.0.0 / code 2, `-PreleaseAbi=arm64-v8a`, no `dependenciesInfo` block,
+      no non-free classes in the APK (checked the dex and the signing block). Only binary in the
+      repo: the Gradle wrapper, so the recipe needs no `scandelete`. Android needs
+      `src/i18n/*.json` (shared texts), so the web stays in the same repository.
+- [x] Store listing: `android/fastlane/metadata/android/` in 5 languages (descriptions,
+      changelog 2, screenshots en/es, feature graphic, icon).
+- [x] Anti-feature `NonFreeNet` and the recipe draft: `docs/fdroid/com.blackwatermacros.app.yml`.
+- [x] Process: [RELEASING.md](./RELEASING.md) (every release, catalog, screenshots, first
+      submission, moving the current phones).
 
-### A2. Phone-model catalog from the repository (F1)
+### Left (owner)
 
-Today: `public/models/local-models.json` is served by the Blackwater site and read by
-`LocalModelCatalog` from `BuildConfig.API_BASE_URL + "models/local-models.json"` when
-Ajustes → IA is opened.
-
-- [ ] Move the file to a path that is not part of the web app, e.g.
-      `android/catalog/local-models.json` (or keep it; only the URL matters).
-- [ ] Add `buildConfigField("String", "MODEL_CATALOG_URL", …)` in `app/build.gradle.kts`,
-      pointing at the raw file on the default branch:
-      - GitHub: `https://raw.githubusercontent.com/<owner>/<repo>/main/<path>`
-      - Codeberg: `https://codeberg.org/<owner>/<repo>/raw/branch/main/<path>`
-      and use it in `AppGraph` instead of the API base URL.
-- [ ] Remove the `/models/` exemption from `src/proxy.ts` if the file leaves `public/`; update
-      `tests/unit/local-models-catalog.test.ts` (path), `LocalModelCatalogTest` (path),
-      `TECHNICAL.md` («Catalog of phone models», «Adding a phone model») and `README.md`.
-- [ ] Keep the rules: fetched only when Ajustes → IA opens, last good copy kept offline,
-      entries validated (huggingface.co only, SHA-256), `minAppVersionCode`, `hidden`.
-- Note: publishing a catalog change = merging to the default branch (no deploy needed).
-  Anyone reading the repo sees the same list the phones get. The download host (GitHub or
-  Codeberg) sees the phone's IP when Ajustes → IA is opened, nothing else.
-
-### A3. «Crear cuenta · Próximamente» (F2)
-
-Accounts are invite-only today (Ajustes → Cuenta → Iniciar sesión; the web requires login).
-No public sign-up should appear to work before paid accounts exist.
-
-- [ ] **Android**: in the account card and in the first-launch welcome, next to «Iniciar
-      sesión», add «Crear cuenta» that opens a small dialog: «Las cuentas con sincronización
-      llegarán pronto. La app funciona completa sin cuenta.» Remove wording that says
-      «solo por invitación» if it confuses. Strings in the 5 languages.
-- [ ] **Web**: on `/login`, a line «¿No tienes cuenta? Próximamente» (no link yet). The demo
-      entry stays.
-- [ ] Later (Part B): the same button opens `https://<site>/cuenta/nueva` in the browser.
-      Payments happen only on the web (no in-app payments, nothing from Google Play).
-- ❓ Existing invited accounts (owner, testers) keep working as they are? Suggested: yes.
-
-### A4. Android build for F-Droid
-
-- [ ] **Versioning**: `versionCode = 1`, `versionName = "0.1.0"` today. Pick a scheme (e.g.
-      `versionCode` +1 per release) and tag releases `v0.1.0`, so the recipe can use
-      `UpdateCheckMode: Tags ^v[0-9.]+$` and `AutoUpdateMode: Version` like Chompass.
-- [ ] **ABI**: LiteRT-LM needs arm64. Add a Gradle property (like Chompass' `releaseAbi`) so
-      F-Droid builds only `arm64-v8a`; keep the current splits for local builds.
-- [ ] **Signing** ⚠️: F-Droid signs with its own key. Anyone who installed an APK built here
-      (signed with the debug key today) **cannot update to the F-Droid build**: Android refuses a
-      different signature, and uninstalling deletes the phone's data. Before switching, testers
-      must export CSV (Ajustes → Tus datos) or use an account. Optional later: reproducible
-      builds + `AllowedAPKSigningKeys`, so F-Droid ships APKs signed with the owner's key and
-      both channels update each other (more work: byte-identical builds). ❓
-- [ ] Create a real release key (`keystore.properties`, never committed) for builds shared
-      outside F-Droid.
-- [ ] Build check: a clean clone builds with `./gradlew :app:assembleRelease` without network
-      access other than Maven repositories (Google, Maven Central), without Node, and without
-      files outside the repository. `API_BASE_URL` defaults to production (fine).
-- [ ] Dependencies are all free software (checked 2026-09-28): AndroidX/Compose, Room,
-      WorkManager, Retrofit/OkHttp, kotlinx.serialization, CameraX, zxing-cpp, LiteRT-LM
-      (Apache-2.0, prebuilt native code from Google's Maven — accepted for Chompass). No Google
-      Play Services, ML Kit, Firebase or trackers. Re-check with the F-Droid scanner
-      (`fdroid scanner`) and Exodus before submitting.
-- [ ] Permissions to explain in the description: `INTERNET`, `CAMERA` (photos, barcode),
-      `POST_NOTIFICATIONS` + `FOREGROUND_SERVICE(_DATA_SYNC)` (model download progress).
-
-### A5. Store listing and anti-features
-
-- [ ] Fastlane metadata in the repo: `android/fastlane/metadata/android/<locale>/`
-      (`es-ES`, `en-US`, `fr-FR`, `it-IT`, `de-DE`): `title.txt`, `short_description.txt`
-      (≤ 80 chars), `full_description.txt`, `changelogs/<versionCode>.txt`,
-      `images/icon.png`, `images/featureGraphic.png`, `images/phoneScreenshots/*.png`.
-- [ ] **Anti-features** ❓: F-Droid may tag
-      - `NonFreeNet` — the app can use non-free network services: cloud AI (Google, OpenAI,
-        Anthropic, OpenRouter, all optional, user's own key), model downloads from Hugging Face.
-        The sync server is free software in the same repo (self-hostable), so it does not
-        count. Chompass has no anti-feature, but declaring `NonFreeNet` honestly avoids a
-        back-and-forth with reviewers. Suggested: declare it.
-- [ ] Merge request to `fdroiddata` with `metadata/com.blackwatermacros.app.yml`
-      (Categories: Sports & Health; License; SourceCode; IssueTracker; Builds with
-      `subdir: android/app`, `gradle: yes`, the ABI property, `scandelete` for the web folders
-      except `src/i18n`).
-- [ ] After merge: the first build takes days; fix scanner complaints if any.
+- [ ] Vercel → Settings → Git → Production Branch = `dev`.
+- [ ] Merge `dev` into `main`, tag `v1.0.0`, push (RELEASING.md «Every release»).
+- [ ] Merge request to fdroiddata (RELEASING.md «First submission»).
+- [ ] Optional: Codeberg mirror (F3); a real release key for APKs shared outside F-Droid.
+- [ ] After F-Droid publishes: move the three phones (RELEASING.md, last section).
 
 ---
 

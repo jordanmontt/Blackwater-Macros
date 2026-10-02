@@ -285,7 +285,31 @@ fun AddFoodSheet(
                     onManual()
                 }),
             )
-            AddFoodView.BARCODE -> BarcodeView(barcode, barcodeCode, { barcodeCode = it }, foods::lookUpBarcode)
+            AddFoodView.BARCODE -> BarcodeView(
+                lookup = barcode,
+                code = barcodeCode,
+                onCodeChange = {
+                    // Editing the code after a miss starts over.
+                    if (barcode !is BarcodeLookup.Loading) foods.clearBarcode()
+                    barcodeCode = it
+                },
+                onCode = foods::lookUpBarcode,
+                onScanAgain = {
+                    barcodeCode = ""
+                    foods.clearBarcode()
+                },
+                onSearchByName = {
+                    barcodeCode = ""
+                    foods.clearBarcode()
+                    view = AddFoodView.SEARCH
+                },
+                onPhoto = {
+                    barcodeCode = ""
+                    foods.clearBarcode()
+                    fromSearch = false
+                    view = AddFoodView.PHOTO
+                },
+            )
             AddFoodView.PORTION -> choice?.let { picked ->
                 PortionView(picked) { grams ->
                     foods.remember(picked)

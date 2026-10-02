@@ -1,5 +1,6 @@
 "use client";
 
+import { SOURCE_CODE_URL } from "@/lib/links";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/logo";
@@ -138,6 +139,12 @@ export default function LoginPage() {
             </Button>
           </CardContent>
         </Card>
+        <p className="text-center text-xs text-muted-foreground">
+          <a href={SOURCE_CODE_URL} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+            {t.about.sourceCode}
+          </a>{" "}
+          · AGPL-3.0
+        </p>
       </div>
     </main>
   );

@@ -16,6 +16,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.TextButton
+import com.blackwatermacros.app.core.BarcodeMiss
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -232,9 +238,21 @@ private fun TotalCell(label: String, value: String) {
  * Barcode: camera preview with zxing-cpp (asks for the camera the first
  * time), or the code typed by hand ([code], kept by the sheet so it knows there
  * is something to lose). Frames are analysed in memory and dropped: nothing is saved.
+ * The camera only runs while waiting for a code: once a code gave nothing usable
+ * it stays off (it would read the same label again and again), says why, and
+ * offers the other ways in ([onSearchByName], [onPhoto]) or another scan.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun BarcodeView(lookup: BarcodeLookup, code: String, onCodeChange: (String) -> Unit, onCode: (String) -> Unit) {
+fun BarcodeView(
+    lookup: BarcodeLookup,
+    code: String,
+    onCodeChange: (String) -> Unit,
+    onCode: (String) -> Unit,
+    onScanAgain: () -> Unit,
+    onSearchByName: () -> Unit,
+    onPhoto: () -> Unit,
+) {
     val context = LocalContext.current
     var granted by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
@@ -247,26 +265,79 @@ fun BarcodeView(lookup: BarcodeLookup, code: String, onCodeChange: (String) -> U
     LaunchedEffect(Unit) {
         if (!granted && !asked) launcher.launch(Manifest.permission.CAMERA)
     }
+    val missed = lookup is BarcodeLookup.NotFound || lookup is BarcodeLookup.Offline
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (granted && lookup !is BarcodeLookup.Loading) {
+        if (granted && lookup is BarcodeLookup.Idle) {
             CameraScanner(onCode = {
                 onCodeChange(it)
                 onCode(it)
             })
         }
-        val message = when {
-            lookup is BarcodeLookup.Loading -> stringResource(R.string.food_looking_up)
-            lookup is BarcodeLookup.NotFound -> stringResource(R.string.food_not_found)
-            lookup is BarcodeLookup.Offline -> stringResource(R.string.food_needs_internet)
-            !granted -> stringResource(R.string.food_camera_error)
-            else -> stringResource(R.string.food_scan_hint)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (lookup is BarcodeLookup.Loading) {
-                CircularProgressIndicator(Modifier.height(16.dp).width(16.dp), strokeWidth = 2.dp)
-                Spacer(Modifier.width(8.dp))
+        if (missed) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(code, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(
+                        when ((lookup as? BarcodeLookup.NotFound)?.reason) {
+                            BarcodeMiss.STORE_LABEL -> R.string.food_not_found_store
+                            BarcodeMiss.NO_NUTRITION -> R.string.food_not_found_no_nutrition
+                            BarcodeMiss.UNKNOWN -> R.string.food_not_found
+                            null -> R.string.food_needs_internet
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (lookup is BarcodeLookup.NotFound) {
+                    Text(
+                        stringResource(R.string.food_not_found_next),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onSearchByName) {
+                        Icon(Icons.Filled.Search, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.food_search_by_name))
+                    }
+                    OutlinedButton(onClick = onPhoto) {
+                        Icon(Icons.Filled.PhotoCamera, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.food_take_photo))
+                    }
+                    if (granted) {
+                        TextButton(onClick = onScanAgain) {
+                            Icon(Icons.Filled.QrCodeScanner, contentDescription = null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.food_scan_again))
+                        }
+                    }
+                }
             }
-            Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (lookup is BarcodeLookup.Loading) {
+                    CircularProgressIndicator(Modifier.height(16.dp).width(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(8.dp))
+                }
+                Text(
+                    stringResource(
+                        when {
+                            lookup is BarcodeLookup.Loading -> R.string.food_looking_up
+                            !granted -> R.string.food_camera_error
+                            else -> R.string.food_scan_hint
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             CompactField(

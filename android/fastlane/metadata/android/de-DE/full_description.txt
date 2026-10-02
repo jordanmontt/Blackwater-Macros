@@ -1,0 +1,41 @@
+<p>Blackwater Macros macht genau eine Sache, und die richtig: Die App erfasst, was du isst (Kalorien, Eiweiß, Kohlenhydrate und Fett), und dein Gewicht, und sagt dir, wie viel du essen solltest, um dein Ziel zu erreichen. Keine Streaks, kein Social Feed, keine Werbung, kein Tracking.</p>
+
+<p><b>Eine Mahlzeit in Sekunden erfassen</b></p>
+<ul>
+<li>Suche in einer eingebauten Datenbank alltäglicher Lebensmittel oder unter Millionen Produkten von Open Food Facts.</li>
+<li>Scanne einen Barcode.</li>
+<li>Gib sie von Hand ein, Zutat für Zutat oder nur die Summe.</li>
+<li>Mach ein Foto oder beschreibe die Mahlzeit und lass die KI die Makros schätzen (optional, siehe unten).</li>
+<li>Kopiere Mahlzeiten von einem anderen Tag oder speichere deine üblichen als Vorlagen.</li>
+</ul>
+
+<p><b>Ziele auf wissenschaftlicher Grundlage statt Schätzungen</b></p>
+<ul>
+<li>Dein Grundumsatz mit der Mifflin-St-Jeor-Gleichung.</li>
+<li>Dein Aktivitätsniveau berechnet aus dem, was du wirklich tust (Trainingstage, Trainingsdauer, tägliches Gehen), mit der faktoriellen Methode der FAO/WHO statt eines vagen „wenig aktiv / sehr aktiv“.</li>
+<li>Ein Kalorienbereich für dein Ziel (Fett verlieren, halten, Muskeln aufbauen), der nie unter deinen Grundbedarf fällt.</li>
+<li>Eiweißbereiche aus der Sporternährungsforschung, bezogen auf deine fettfreie Masse, wenn du deinen Körperfettanteil erfasst.</li>
+<li>Dein gemessener Verbrauch: Nach einigen Wochen vergleicht die App, was du gegessen hast, mit dem Verlauf deines Gewichts und zeigt, was du wirklich verbrauchst, mit seiner Fehlerspanne.</li>
+</ul>
+<p>Jede Formel und ihre Quellen werden in der App erklärt (Methodik).</p>
+
+<p><b>Deinen Fortschritt sehen</b></p>
+<ul>
+<li>Gewichtstrend, der tägliche Schwankungen glättet, wöchentliche Rate und Körperfett.</li>
+<li>Tägliche Kalorien im Vergleich zu deinem Ziel und Makro-Durchschnitte über die erfassten Tage.</li>
+</ul>
+
+<p><b>KI, nur wenn du willst</b></p>
+<p>Schätze eine Mahlzeit anhand von Fotos oder einer Beschreibung und stelle dem Coach Fragen zu deiner Ernährung („Was esse ich heute Abend?“, „Wie viel wiege ich in 30 Tagen?“). Nutze deinen eigenen Schlüssel von Google Gemini (kostenlos), OpenAI, Anthropic, OpenRouter oder einem kompatiblen Server, oder lade ein Modell herunter, das komplett auf deinem Telefon läuft. Dein Schlüssel bleibt auf deinem Telefon und geht direkt an den Anbieter.</p>
+
+<p><b>Privat von Grund auf</b></p>
+<ul>
+<li>Deine Daten bleiben auf deinem Telefon. Ohne Anmeldung verlassen sie nie das Gerät: Die App kontaktiert nie unseren Server. Sie geht nur online, wenn du es willst: Lebensmittelsuche und Barcodes (Open Food Facts), der gewählte KI-Anbieter (nur was du ihm schickst) und die Liste oder der Download von KI-Modellen fürs Telefon (GitHub, Hugging Face).</li>
+<li>Optionale Synchronisierung: Mit einem Konto werden deine Daten auch in der Cloud gespeichert und zwischen deinen Geräten synchronisiert. Konten gibt es vorerst nur auf Einladung.</li>
+<li>Keine Werbung, keine Analyse, keine Tracker. Freie Software (AGPL-3.0).</li>
+<li>Exportiere und importiere deine Daten jederzeit als CSV.</li>
+</ul>
+
+<p>Verfügbar auf Deutsch, Englisch, Spanisch, Französisch und Italienisch.</p>
+
+<p><b>Berechtigungen:</b> Internet (Lebensmittelsuche, KI, Modell-Download), Kamera (Barcodes und Fotos von Mahlzeiten, nur wenn du sie nutzt), Benachrichtigungen und Vordergrunddienst (Fortschritt eines Modell-Downloads).</p>

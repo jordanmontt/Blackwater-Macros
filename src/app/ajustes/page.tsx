@@ -1,5 +1,6 @@
 "use client";
 
+import { SOURCE_CODE_URL } from "@/lib/links";
 import { useRef, useState } from "react";
 import { formatNumber } from "@/i18n/format";
 import Link from "next/link";
@@ -361,6 +362,18 @@ export default function AjustesPage() {
             render={<Link href="/metodologia" />}
           >
             <InfoIcon /> {t.metodologia.title}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.about.sourceCode}</CardTitle>
+          <CardDescription>{t.about.sourceCodeHint}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" nativeButton={false} render={<a href={SOURCE_CODE_URL} target="_blank" rel="noreferrer" />}>
+            {t.about.sourceCode}
           </Button>
         </CardContent>
       </Card>

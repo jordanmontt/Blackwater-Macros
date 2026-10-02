@@ -12,6 +12,7 @@ import com.blackwatermacros.app.data.AccountStore
 import com.blackwatermacros.app.data.AppPreferences
 import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.MealRequest
+import com.blackwatermacros.app.data.WeightRequest
 import com.blackwatermacros.app.data.WireEntryMode
 import com.blackwatermacros.app.data.local.LocalDatabase
 import com.google.common.truth.Truth.assertThat
@@ -116,5 +117,31 @@ class OnboardingTest {
 
         viewModel.finish()
         assertThat(preferences.onboardingDone).isTrue()
+    }
+
+    @Test
+    fun `after logging in, an account that has the data skips «Tus datos»`() = runBlocking {
+        val profile = CalorieProfile(Gender.FEMALE, 1992, 165.0, 2, 45, 40, Goal.CUT)
+        // The first sync brings the account's profile and weigh-ins down (here: straight into the database).
+        val viewModel = OnboardingViewModel(repository, preferences, account, firstSync = {
+            repository.saveProfile(profile)
+            repository.saveWeight(null, WeightRequest("2026-06-15T08:00:00.000Z", 62.0))
+        })
+        account.save(Account("ana", "token", isAdmin = false))
+        viewModel.afterLogin()
+
+        withTimeout(5_000) { viewModel.step.first { it != OnboardingStep.WELCOME } }
+        assertThat(viewModel.step.value).isEqualTo(OnboardingStep.AI)
+        assertThat(viewModel.syncing.value).isFalse()
+    }
+
+    @Test
+    fun `after logging in, an account without the data asks for it`() = runBlocking {
+        val viewModel = OnboardingViewModel(repository, preferences, account, firstSync = {})
+        account.save(Account("ana", "token", isAdmin = false))
+        viewModel.afterLogin()
+
+        withTimeout(5_000) { viewModel.step.first { it != OnboardingStep.WELCOME } }
+        assertThat(viewModel.step.value).isEqualTo(OnboardingStep.DATA)
     }
 }

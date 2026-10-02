@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { LANGUAGES } from "@/i18n/languages";
 
 /**
- * `public/models/local-models.json` is the list of phone models the Android
+ * `android/catalog/local-models.json` is the list of phone models the Android
  * app offers (it reads it each time it opens). Editing it changes every phone,
  * so this checks each entry the way the app will (`parseLocalModelCatalog`):
  * a wrong entry would be silently skipped there.
@@ -23,7 +23,7 @@ interface Entry {
   minAppVersionCode?: number;
 }
 
-const catalog = JSON.parse(readFileSync("public/models/local-models.json", "utf8")) as { models: Entry[] };
+const catalog = JSON.parse(readFileSync("android/catalog/local-models.json", "utf8")) as { models: Entry[] };
 
 describe("catálogo de modelos del teléfono", () => {
   it("cada modelo pasa las comprobaciones de la app", () => {
