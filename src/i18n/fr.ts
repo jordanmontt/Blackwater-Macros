@@ -405,6 +405,8 @@ export const fr: Dictionary = {
       empty: "L'IA n'a pas répondu. Réessayez.",
       provider: "Le fournisseur a renvoyé une erreur. Réessayez.",
       unavailable: "Le service d'IA est saturé ou indisponible pour le moment. Réessayez dans un instant.",
+      truncated: "La réponse a été coupée : elle a atteint la limite de longueur. Demandez-lui de continuer ou de répondre plus brièvement.",
+      interrupted: "La connexion a été coupée avant la fin de la réponse. Réessayez.",
       unreadable: "L'IA n'a pas renvoyé d'estimation valide. Réessayez ou saisissez-la à la main.",
     },
     providerShort: {

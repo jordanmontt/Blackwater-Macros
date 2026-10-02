@@ -32,6 +32,13 @@ export interface ChatState {
 export const COACH_HISTORY_MESSAGES = 20;
 
 /**
+ * Output budget of a coach answer. Reasoning models (the default Gemini Flash and
+ * GPT-5 mini) spend hidden thinking tokens from it: at 4096 long answers were cut
+ * mid-sentence. Every current default model accepts 8192.
+ */
+export const COACH_MAX_TOKENS = 8192;
+
+/**
  * The Coach conversation: module memory only. It survives switching tabs
  * and is gone when the page is reloaded or closed; nothing is stored anywhere.
  */
@@ -112,7 +119,7 @@ export async function sendCoachMessage(text: string, images: AiImage[] = []): Pr
     const stream =
       settings.coachEngine === "browser"
         ? browserChatStream(system, messages, signal)
-        : aiStream(aiConfigOf(settings), { system, messages, json: false, stream: true, maxTokens: 4096 }, signal);
+        : aiStream(aiConfigOf(settings), { system, messages, json: false, stream: true, maxTokens: COACH_MAX_TOKENS }, signal);
     for await (const piece of stream) {
       if (signal.aborted) break;
       patchLast((message) => ({ ...message, text: message.text + piece }));

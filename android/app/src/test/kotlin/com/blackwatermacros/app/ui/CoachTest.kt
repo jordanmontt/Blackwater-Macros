@@ -110,8 +110,12 @@ class CoachTest {
         main.close()
     }
 
-    private fun stream(vararg pieces: String) = MockResponse().setBody(
-        pieces.joinToString("") { """data: {"candidates":[{"content":{"parts":[{"text":${JsonPrimitive(it)}}]}}]}""" + "\n\n" },
+    /** Gemini's stream: the last chunk carries the finish reason (null: the connection was cut). */
+    private fun stream(vararg pieces: String, finishReason: String? = "STOP") = MockResponse().setBody(
+        pieces.mapIndexed { index, piece ->
+            val finish = if (index == pieces.lastIndex && finishReason != null) ""","finishReason":"$finishReason"""" else ""
+            """data: {"candidates":[{"content":{"parts":[{"text":${JsonPrimitive(piece)}}]}$finish}]}""" + "\n\n"
+        }.joinToString(""),
     )
 
     private fun sendAndWait(text: String): ChatState = runBlocking {
@@ -153,6 +157,43 @@ class CoachTest {
 
         viewModel.reset()
         assertThat(viewModel.state.value).isEqualTo(ChatState())
+    }
+
+    @Test
+    fun `an answer cut off midway keeps its text with the reason and is not resent`() {
+        server.enqueue(stream("Lunes: avena.", " Martes: arr", finishReason = "MAX_TOKENS"))
+        server.enqueue(stream("Lunes: avena.", finishReason = null))
+        server.enqueue(stream("Vale."))
+
+        val cut = sendAndWait("Un plan de 7 días").messages.last()
+        assertThat(cut.text).isEqualTo("Lunes: avena. Martes: arr")
+        assertThat(cut.error).isEqualTo(AiFailure.TRUNCATED)
+        assertThat(body()["generationConfig"]!!.jsonObject["maxOutputTokens"].toString()).isEqualTo("$COACH_MAX_TOKENS")
+
+        val dropped = sendAndWait("Sigue").messages.last()
+        assertThat(dropped.text).isEqualTo("Lunes: avena.")
+        assertThat(dropped.error).isEqualTo(AiFailure.INTERRUPTED)
+        body()
+
+        sendAndWait("Otra vez")
+        assertThat(body()["contents"]!!.jsonArray).hasSize(1)
+    }
+
+    @Test
+    fun `the phone model gets the newest turns that leave room for the answer`() {
+        val turn = "x".repeat(300) // ~100 tokens
+        val history = listOf(
+            AiMessage(AiRole.USER, turn),
+            AiMessage(AiRole.ASSISTANT, turn),
+            AiMessage(AiRole.USER, turn),
+            AiMessage(AiRole.ASSISTANT, turn),
+        )
+        assertThat(fitHistoryToBudget(history, fixedTokens = 100, budgetTokens = 1_000)).isEqualTo(history)
+        // Room for two turns: the oldest pair goes.
+        assertThat(fitHistoryToBudget(history, fixedTokens = 100, budgetTokens = 300)).isEqualTo(history.takeLast(2))
+        // Room for one turn: an answer alone is dropped too, so the history starts with the user.
+        assertThat(fitHistoryToBudget(history, fixedTokens = 100, budgetTokens = 200)).isEmpty()
+        assertThat(fitHistoryToBudget(history, fixedTokens = 5_000, budgetTokens = 2_560)).isEmpty()
     }
 
     @Test

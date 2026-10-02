@@ -3,7 +3,7 @@ package com.blackwatermacros.app.ui.chart
 import com.blackwatermacros.app.R
 import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.ui.formatDateShort
-import com.blackwatermacros.app.ui.formatNumberGrouped
+import com.blackwatermacros.app.ui.formatNumber
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -138,7 +138,7 @@ fun TrendChart(
                     strokeWidth = 1.dp.toPx(),
                 )
                 drawContext.canvas.nativeCanvas.drawText(
-                    formatNumberGrouped(vMin + (vMax - vMin) * t, 0),
+                    formatNumber(vMin + (vMax - vMin) * t, 0),
                     leftAxisWidth - 4.dp.toPx(),
                     yy + 5.dp.toPx(),
                     axisPaint,
@@ -222,8 +222,8 @@ fun TrendChart(
                 val row = points[si]
                 val lines = buildList {
                     add(formatDateShort(row.date))
-                    add("$valueLabel: ${formatNumberGrouped(row.value, 1)} $unit")
-                    trendRows.getOrNull(si)?.let { add("$averageLabel: ${formatNumberGrouped(it.second, 1)} $unit") }
+                    add("$valueLabel: ${formatNumber(row.value, 1)} $unit")
+                    trendRows.getOrNull(si)?.let { add("$averageLabel: ${formatNumber(it.second, 1)} $unit") }
                 }
                 val tooltipPaint = android.graphics.Paint().apply {
                     setColor(fillArgb)

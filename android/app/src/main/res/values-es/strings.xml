@@ -68,6 +68,7 @@
     <string name="add_food_copied">Copiadas al %1$s</string>
     <string name="discard_title">¿Descartar los cambios?</string>
     <string name="discard_body">Lo que has escrito en esta comida se perderá.</string>
+    <string name="discard_add_body">Lo que has escrito (descripción, fotos, búsqueda…) se perderá.</string>
     <string name="keep_editing">Seguir editando</string>
     <string name="discard">Descartar</string>
     <string name="food_search">Buscar</string>
@@ -500,6 +501,8 @@
     <string name="meth_sources_body">Alimentos genéricos (sin conexión): Swiss Food Composition Database de la Oficina Federal de Seguridad Alimentaria y Veterinaria de Suiza (FSVO) y tabla Ciqual 2020 de Anses (Francia, Licence Ouverte / Etalab 2.0). Los nombres en español los añade este proyecto.\n\nProductos y códigos de barras: Open Food Facts, base de datos abierta bajo la Open Database License (ODbL). Los datos de cada producto los aportan sus colaboradores y pueden contener errores. Los valores son por 100 g del alimento tal como lo describe la fuente.</string>
     <string name="ai_error_unavailable">El servicio de IA está saturado o caído en este momento. Inténtalo en un rato.</string>
     <string name="ai_error_local">El modelo del teléfono no pudo responder. Inténtalo de nuevo o usa la nube en Ajustes → IA.</string>
+    <string name="ai_error_truncated">La respuesta se cortó: llegó al límite de longitud. Pídele que continúe o que responda más corto.</string>
+    <string name="ai_error_interrupted">La conexión se cortó antes de terminar la respuesta. Inténtalo de nuevo.</string>
 
     <!-- Server errors by code (src/lib/server-errors.ts; texts shared with src/i18n/*.ts) -->
     <string name="server_error_network">Sin conexión. Inténtalo de nuevo.</string>

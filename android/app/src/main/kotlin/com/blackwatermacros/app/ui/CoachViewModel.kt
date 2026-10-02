@@ -69,6 +69,34 @@ data class ChatState(val messages: List<ChatMessage> = emptyList(), val streamin
 const val COACH_HISTORY_MESSAGES = 20
 
 /**
+ * Output budget of a cloud coach answer (web `COACH_MAX_TOKENS`). Reasoning models
+ * (the default Gemini Flash and GPT-5 mini) spend hidden thinking tokens from it:
+ * at 4096 long answers were cut mid-sentence. Every current default model accepts 8192.
+ */
+const val COACH_MAX_TOKENS = 8192
+
+/** Room kept for the answer inside the phone model's [LocalEngine.MAX_TOKENS] window. */
+const val LOCAL_ANSWER_TOKENS = 1536
+
+/** Rough token count for budgeting (about 3 characters per token). */
+internal fun approxTokens(text: String): Int = text.length / 3
+
+/**
+ * The phone's model reads prompt, history and answer in one window: the oldest
+ * turns are dropped until [fixedTokens] (system prompt + question) plus the history
+ * fit in [budgetTokens], and the history still starts with the user. The phone's
+ * model reads earlier turns as text only, so only their words count.
+ */
+fun fitHistoryToBudget(history: List<AiMessage>, fixedTokens: Int, budgetTokens: Int): List<AiMessage> {
+    val kept = history.toMutableList()
+    var total = fixedTokens + kept.sumOf { approxTokens(it.text) }
+    while (kept.isNotEmpty() && (total > budgetTokens || kept.first().role != AiRole.USER)) {
+        total -= approxTokens(kept.removeAt(0).text)
+    }
+    return kept
+}
+
+/**
  * The earlier turns the model sees (web `historyForModel`): failed or empty
  * answers and their questions are left out; it always starts with the user.
  * Photos travel again with their question, but only the newest [MAX_PHOTOS]
@@ -186,12 +214,18 @@ class CoachViewModel(
                 val current = settings.current
                 val context = if (current.coachSeesData) buildCoachContext(loadCoachInput()) else null
                 val system = buildCoachSystemPrompt(language(), context)
-                val messages = history + AiMessage(AiRole.USER, asked.modelText, asked.images)
+                val question = AiMessage(AiRole.USER, asked.modelText, asked.images)
                 val answer = if (current.coachEngine == AiEngineChoice.DEVICE && local != null) {
                     if (asked.images.isNotEmpty() && !local.supportsImages()) throw AiException(AiFailure.NO_VISION)
-                    local.stream(system, messages)
+                    // A photo costs ~260 tokens for Gemma's image encoder.
+                    val fixed = approxTokens(system) + approxTokens(question.text) + question.images.size * 260
+                    val fitted = fitHistoryToBudget(history, fixed, LocalEngine.MAX_TOKENS - LOCAL_ANSWER_TOKENS)
+                    local.stream(system, fitted + question)
                 } else {
-                    client.stream(current.config, AiInput(system, messages, json = false, stream = true, maxTokens = 4096))
+                    client.stream(
+                        current.config,
+                        AiInput(system, history + question, json = false, stream = true, maxTokens = COACH_MAX_TOKENS),
+                    )
                 }
                 answer.collect { piece -> patchLast { it.copy(text = it.text + piece) } }
                 if (_state.value.messages.lastOrNull()?.text.isNullOrBlank()) patchLast { it.copy(error = AiFailure.EMPTY) }

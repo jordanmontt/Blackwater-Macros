@@ -239,3 +239,82 @@ export function aiErrorDetail(body: string): string {
   const text = typeof message === "string" ? message : body;
   return text.replace(/\s+/g, " ").trim().slice(0, 200);
 }
+
+/**
+ * How a streamed answer ended: `done` (the model finished), `length` (it hit
+ * the token limit, mid-sentence) or `error` (the provider reported a failure
+ * inside the stream). A stream that ends without any of these was cut off.
+ */
+export type AiStreamEnd =
+  | { kind: "done" }
+  | { kind: "length" }
+  | { kind: "error"; errorKind: AiErrorKind; detail: string };
+
+const ANTHROPIC_ERROR_KINDS: Record<string, AiErrorKind> = {
+  overloaded_error: "unavailable",
+  api_error: "unavailable",
+  rate_limit_error: "quota",
+  authentication_error: "invalid_key",
+  permission_error: "invalid_key",
+  not_found_error: "not_found",
+};
+
+function streamError(errorKind: AiErrorKind, detail: string): AiStreamEnd {
+  return { kind: "error", errorKind, detail: detail.replace(/\s+/g, " ").trim().slice(0, 200) };
+}
+
+/**
+ * Whether a server-sent-events line ends the streamed answer, and how; null
+ * when it does not (text, pings, other events). Read after [parseAiStreamLine]:
+ * Gemini's last chunk carries text and its finish reason together.
+ */
+export function parseAiStreamEnd(provider: AiProvider, line: string): AiStreamEnd | null {
+  if (!line.startsWith("data:")) return null;
+  const data = line.slice(5).trim();
+  if (data === "") return null;
+  if (data === "[DONE]") return { kind: "done" };
+  let json: Record<string, unknown> | null;
+  try {
+    json = asRecord(JSON.parse(data));
+  } catch {
+    return null;
+  }
+  if (!json) return null;
+
+  if (provider === "anthropic") {
+    if (json.type === "message_stop") return { kind: "done" };
+    if (json.type === "error") {
+      const error = asRecord(json.error);
+      const type = typeof error?.type === "string" ? error.type : "";
+      return streamError(ANTHROPIC_ERROR_KINDS[type] ?? "provider", aiErrorDetail(data));
+    }
+    const stop = json.type === "message_delta" ? asRecord(json.delta)?.stop_reason : null;
+    if (stop === "max_tokens") return { kind: "length" };
+    if (stop === "refusal") return streamError("provider", "stop_reason: refusal");
+    return null;
+  }
+
+  // Gemini, OpenAI and OpenRouter put a failure in the stream as {"error": {"code": …, "message": …}}.
+  if (json.error !== undefined && json.error !== null) {
+    const code = asRecord(json.error)?.code;
+    return streamError(typeof code === "number" ? aiErrorKind(code, data) : "provider", aiErrorDetail(data));
+  }
+
+  if (provider === "gemini") {
+    const blocked = asRecord(json.promptFeedback)?.blockReason;
+    if (typeof blocked === "string") return streamError("provider", `blockReason: ${blocked}`);
+    const candidates = json.candidates;
+    const reason = Array.isArray(candidates) ? asRecord(candidates[0])?.finishReason : null;
+    if (typeof reason !== "string" || reason === "") return null;
+    if (reason === "STOP") return { kind: "done" };
+    if (reason === "MAX_TOKENS") return { kind: "length" };
+    return streamError("provider", `finishReason: ${reason}`);
+  }
+
+  const choices = json.choices;
+  const reason = Array.isArray(choices) ? asRecord(choices[0])?.finish_reason : null;
+  if (typeof reason !== "string" || reason === "") return null;
+  if (reason === "length") return { kind: "length" };
+  if (reason === "content_filter" || reason === "error") return streamError("provider", `finish_reason: ${reason}`);
+  return { kind: "done" };
+}

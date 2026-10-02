@@ -3,7 +3,7 @@ package com.blackwatermacros.app.ui
 import android.text.format.DateFormat
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
-import java.text.NumberFormat
+import com.blackwatermacros.app.core.formatDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -11,8 +11,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * Display formatting in the app's language. `:core` keeps its es-ES formatters
- * (they mirror the web); the Android UI uses these instead.
+ * Display formatting: dates in the app's language, numbers in the app's single
+ * format. `:core` keeps its es-ES formatters for the AI prompts (they mirror the web).
  */
 
 private val SupportedLanguages = setOf("en", "es", "fr", "it", "de")
@@ -54,16 +54,12 @@ fun formatDateShort(key: String): String = pattern("dMMM").format(LocalDate.pars
 /** Local wall-clock time of an ISO instant in the language's usual hour cycle: "14:05" / "2:05 PM". */
 fun formatTime(iso: String): String = pattern("jm").format(Instant.parse(iso).atZone(ZoneId.systemDefault()))
 
-/** Localized decimals, no thousands separator: "1234,5" / "1234.5". */
-fun formatNumber(value: Double, maxDecimals: Int = 0): String =
-    NumberFormat.getNumberInstance(appLocale()).apply {
-        maximumFractionDigits = maxDecimals
-        isGroupingUsed = false
-    }.format(value)
-
-/** Localized with thousands separator: "2.000" / "2,000". */
-fun formatNumberGrouped(value: Double, maxDecimals: Int = 0): String =
-    NumberFormat.getNumberInstance(appLocale()).apply { maximumFractionDigits = maxDecimals }.format(value)
+/**
+ * The app's single number format, the same in every language and on the web
+ * (core `formatDecimal`): «1,6», «2000», «12 345». See TECHNICAL.md «Numbers on
+ * screen and in inputs».
+ */
+fun formatNumber(value: Double, maxDecimals: Int = 0): String = formatDecimal(value, maxDecimals)
 
 /** Parses what the user typed, accepting both `,` and `.` as decimal separator. */
 fun parseDecimal(text: String): Double? = text.trim().replace(',', '.').toDoubleOrNull()

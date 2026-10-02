@@ -13,6 +13,8 @@ import com.blackwatermacros.app.core.buildModelListRequest
 import com.blackwatermacros.app.core.parseModelList
 import com.blackwatermacros.app.core.isAiConfigured
 import com.blackwatermacros.app.core.parseAiResponse
+import com.blackwatermacros.app.core.AiStreamEnd
+import com.blackwatermacros.app.core.parseAiStreamEnd
 import com.blackwatermacros.app.core.parseAiStreamLine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -38,6 +40,10 @@ enum class AiFailure {
     UNAVAILABLE,
     /** The model on this phone failed. */
     LOCAL_MODEL,
+    /** The answer reached the token limit and stopped mid-sentence. */
+    TRUNCATED,
+    /** The stream ended before the provider said the answer was done (connection cut). */
+    INTERRUPTED,
 }
 
 /** [detail]: the provider's own words (or the engine's), shown small under the message. */
@@ -107,18 +113,31 @@ class AiClient(
         text
     }
 
-    /** The answer piece by piece as it is written (Coach). Cancelling the collector closes the call. */
+    /**
+     * The answer piece by piece as it is written (Coach). Cancelling the collector closes the call.
+     * An answer that stops early fails after the text that did arrive: [AiFailure.TRUNCATED] at the
+     * token limit, the provider's error when it reports one, [AiFailure.INTERRUPTED] when the
+     * stream just ends without saying the answer is done.
+     */
     fun stream(config: AiConfig, input: AiInput): Flow<String> = flow {
         send(config, input.copy(stream = true)).use { response ->
             val source = response.body!!.source()
+            var finished = false
             try {
                 while (true) {
                     val line = source.readUtf8Line() ?: break
                     parseAiStreamLine(config.provider, line)?.let { emit(it) }
+                    when (val end = parseAiStreamEnd(config.provider, line)) {
+                        AiStreamEnd.Done -> finished = true
+                        AiStreamEnd.Length -> throw AiException(AiFailure.TRUNCATED)
+                        is AiStreamEnd.Error -> throw AiException(end.errorKind.toFailure(), end.detail)
+                        null -> Unit
+                    }
                 }
             } catch (e: IOException) {
                 throw AiException(AiFailure.OFFLINE, e.message.orEmpty())
             }
+            if (!finished) throw AiException(AiFailure.INTERRUPTED)
         }
     }.flowOn(Dispatchers.IO)
 

@@ -6,6 +6,7 @@ import {
   DEFAULT_MODELS,
   isAiConfigured,
   parseAiResponse,
+  parseAiStreamEnd,
   parseAiStreamLine,
   type AiConfig,
   type AiInput,
@@ -142,6 +143,86 @@ describe("parseAiStreamLine", () => {
     expect(parseAiStreamLine("anthropic", 'data: {"type":"ping"}')).toBeNull();
     expect(parseAiStreamLine("openrouter", ": OPENROUTER PROCESSING")).toBeNull();
     expect(parseAiStreamLine("gemini", "data: {not json")).toBeNull();
+  });
+});
+
+describe("parseAiStreamEnd", () => {
+  it("knows when the answer finished", () => {
+    expect(parseAiStreamEnd("openai", "data: [DONE]")).toEqual({ kind: "done" });
+    expect(parseAiStreamEnd("openrouter", 'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}')).toEqual({ kind: "done" });
+    expect(parseAiStreamEnd("anthropic", 'data: {"type":"message_stop"}')).toEqual({ kind: "done" });
+    expect(
+      parseAiStreamEnd("gemini", 'data: {"candidates":[{"content":{"parts":[{"text":"."}]},"finishReason":"STOP"}]}'),
+    ).toEqual({ kind: "done" });
+  });
+
+  it("knows when the answer hit the token limit", () => {
+    expect(parseAiStreamEnd("openai", 'data: {"choices":[{"delta":{},"finish_reason":"length"}]}')).toEqual({ kind: "length" });
+    expect(
+      parseAiStreamEnd("anthropic", 'data: {"type":"message_delta","delta":{"stop_reason":"max_tokens"},"usage":{"output_tokens":8192}}'),
+    ).toEqual({ kind: "length" });
+    expect(
+      parseAiStreamEnd("gemini", 'data: {"candidates":[{"content":{"parts":[{"text":"y lu"}]},"finishReason":"MAX_TOKENS"}]}'),
+    ).toEqual({ kind: "length" });
+  });
+
+  it("reads failures reported inside the stream", () => {
+    expect(parseAiStreamEnd("anthropic", 'data: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}')).toEqual({
+      kind: "error",
+      errorKind: "unavailable",
+      detail: "Overloaded",
+    });
+    expect(parseAiStreamEnd("anthropic", 'data: {"type":"error","error":{"type":"rate_limit_error","message":"Slow down"}}')).toEqual({
+      kind: "error",
+      errorKind: "quota",
+      detail: "Slow down",
+    });
+    expect(parseAiStreamEnd("openrouter", 'data: {"error":{"code":502,"message":"Provider disconnected"}}')).toEqual({
+      kind: "error",
+      errorKind: "unavailable",
+      detail: "Provider disconnected",
+    });
+    expect(parseAiStreamEnd("gemini", 'data: {"error":{"code":503,"message":"The model is overloaded.","status":"UNAVAILABLE"}}')).toEqual({
+      kind: "error",
+      errorKind: "unavailable",
+      detail: "The model is overloaded.",
+    });
+    expect(parseAiStreamEnd("openai", 'data: {"error":{"message":"Server error","type":"server_error","code":null}}')).toEqual({
+      kind: "error",
+      errorKind: "provider",
+      detail: "Server error",
+    });
+    expect(parseAiStreamEnd("gemini", 'data: {"candidates":[{"finishReason":"SAFETY"}]}')).toEqual({
+      kind: "error",
+      errorKind: "provider",
+      detail: "finishReason: SAFETY",
+    });
+    expect(parseAiStreamEnd("gemini", 'data: {"promptFeedback":{"blockReason":"OTHER"}}')).toEqual({
+      kind: "error",
+      errorKind: "provider",
+      detail: "blockReason: OTHER",
+    });
+    expect(parseAiStreamEnd("openrouter", 'data: {"choices":[{"delta":{},"finish_reason":"error"}]}')).toEqual({
+      kind: "error",
+      errorKind: "provider",
+      detail: "finish_reason: error",
+    });
+    expect(parseAiStreamEnd("anthropic", 'data: {"type":"message_delta","delta":{"stop_reason":"refusal"}}')).toEqual({
+      kind: "error",
+      errorKind: "provider",
+      detail: "stop_reason: refusal",
+    });
+  });
+
+  it("ignores lines that do not end the answer", () => {
+    expect(parseAiStreamEnd("gemini", 'data: {"candidates":[{"content":{"parts":[{"text":"Ho"}]}}]}')).toBeNull();
+    expect(parseAiStreamEnd("custom", 'data: {"choices":[{"delta":{"content":"la"},"finish_reason":null}]}')).toBeNull();
+    expect(parseAiStreamEnd("anthropic", 'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"!"}}')).toBeNull();
+    expect(parseAiStreamEnd("anthropic", 'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"}}')).toBeNull();
+    expect(parseAiStreamEnd("anthropic", "event: error")).toBeNull();
+    expect(parseAiStreamEnd("openrouter", ": OPENROUTER PROCESSING")).toBeNull();
+    expect(parseAiStreamEnd("gemini", "data: {not json")).toBeNull();
+    expect(parseAiStreamEnd("openai", "")).toBeNull();
   });
 });
 

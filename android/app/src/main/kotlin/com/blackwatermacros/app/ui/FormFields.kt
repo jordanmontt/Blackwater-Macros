@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blackwatermacros.app.R
+import com.blackwatermacros.app.core.formatDecimal
+import com.blackwatermacros.app.core.normalizeDecimal
 import com.blackwatermacros.app.data.WireEntryMode
 import com.blackwatermacros.app.data.WireIngredient
 
@@ -154,7 +156,8 @@ fun CompactField(
     var focused by remember { mutableStateOf(false) }
     BasicTextField(
         value = value,
-        onValueChange = onValueChange,
+        // Number fields write the decimal comma even when the keyboard only offers «.».
+        onValueChange = { text -> onValueChange(if (decimal) normalizeDecimal(text) else text) },
         enabled = enabled,
         readOnly = readOnly,
         singleLine = true,
@@ -247,8 +250,8 @@ private fun Modifier.fieldBackground(enabled: Boolean, focused: Boolean = false)
 
 // --- Parsing & validation (web `nutrition-fields.tsx` semantics) ---
 
-/** A stored number shown for editing, in the app language: `8,5` / `8.5`. */
-internal fun toDecimalInput(value: Double): String = formatNumber(value, maxDecimals = 6)
+/** A stored number shown for editing: `8,5` (decimal comma, never grouped, so it parses back). */
+internal fun toDecimalInput(value: Double): String = formatDecimal(value, maxDecimals = 6, grouping = false)
 
 internal sealed interface FormResult {
     data class Valid(val value: MealFormValue) : FormResult

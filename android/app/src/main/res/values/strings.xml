@@ -69,6 +69,7 @@
     <string name="add_food_copied">Copied to %1$s</string>
     <string name="discard_title">Discard changes?</string>
     <string name="discard_body">What you typed in this meal will be lost.</string>
+    <string name="discard_add_body">What you entered (description, photos, search…) will be lost.</string>
     <string name="keep_editing">Keep editing</string>
     <string name="discard">Discard</string>
     <string name="food_search">Search</string>
@@ -489,6 +490,8 @@
     <string name="meth_sources_body">Generic foods (offline): Swiss Food Composition Database of the Swiss Federal Food Safety and Veterinary Office (FSVO) and the Ciqual 2020 table by Anses (France, Licence Ouverte / Etalab 2.0). Spanish names are added by this project.\n\nProducts and barcodes: Open Food Facts, an open database under the Open Database License (ODbL). Each product\'s data comes from its contributors and may contain errors. Values are per 100 g of the food as described by the source.</string>
     <string name="ai_error_unavailable">The AI service is overloaded or down right now. Try again in a moment.</string>
     <string name="ai_error_local">The model on this phone could not answer. Try again, or use the cloud in Settings → AI.</string>
+    <string name="ai_error_truncated">The answer was cut off: it reached the length limit. Ask it to continue, or for a shorter answer.</string>
+    <string name="ai_error_interrupted">The connection dropped before the answer was finished. Try again.</string>
 
     <!-- Server errors by code (src/lib/server-errors.ts; texts shared with src/i18n/*.ts) -->
     <string name="server_error_network">No connection. Try again.</string>

@@ -54,7 +54,7 @@ export function WeightFatChart({ data }: { data: WeightFatRow[] }) {
           tickLine={false}
           axisLine={false}
           width={44}
-          tickFormatter={(value: number) => String(Math.round(value * 10) / 10)}
+          tickFormatter={(value: number) => formatNumber(value, 1)}
         />
         <YAxis
           yAxisId="pct"
@@ -64,7 +64,7 @@ export function WeightFatChart({ data }: { data: WeightFatRow[] }) {
           tickLine={false}
           axisLine={false}
           width={40}
-          tickFormatter={(value: number) => `${String(Math.round(value * 10) / 10)}%`}
+          tickFormatter={(value: number) => `${formatNumber(value, 1)}%`}
         />
         <Tooltip
           contentStyle={TOOLTIP_STYLE}

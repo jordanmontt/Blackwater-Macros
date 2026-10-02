@@ -68,6 +68,7 @@
     <string name="add_food_copied">Copiati al %1$s</string>
     <string name="discard_title">Scartare le modifiche?</string>
     <string name="discard_body">Ciò che hai scritto in questo pasto andrà perso.</string>
+    <string name="discard_add_body">Ciò che hai inserito (descrizione, foto, ricerca…) andrà perso.</string>
     <string name="keep_editing">Continua a modificare</string>
     <string name="discard">Scarta</string>
     <string name="food_search">Cerca</string>
@@ -500,6 +501,8 @@
     <string name="meth_sources_body">Alimenti generici (offline): Swiss Food Composition Database dell\'Ufficio federale della sicurezza alimentare e di veterinaria (USAV, Svizzera) e tabella Ciqual 2020 di Anses (Francia, Licence Ouverte / Etalab 2.0). I nomi in spagnolo sono aggiunti da questo progetto.\n\nProdotti e codici a barre: Open Food Facts, banca dati aperta sotto la Open Database License (ODbL). I dati di ogni prodotto provengono dai suoi collaboratori e possono contenere errori. I valori sono per 100 g dell\'alimento come descritto dalla fonte.</string>
     <string name="ai_error_unavailable">Il servizio di IA è sovraccarico o non disponibile al momento. Riprova tra poco.</string>
     <string name="ai_error_local">Il modello del telefono non ha potuto rispondere. Riprova o usa il cloud in Impostazioni → IA.</string>
+    <string name="ai_error_truncated">La risposta si è interrotta: ha raggiunto il limite di lunghezza. Chiedile di continuare o di rispondere in modo più breve.</string>
+    <string name="ai_error_interrupted">La connessione si è interrotta prima della fine della risposta. Riprova.</string>
 
     <!-- Server errors by code (src/lib/server-errors.ts; texts shared with src/i18n/*.ts) -->
     <string name="server_error_network">Nessuna connessione. Riprova.</string>

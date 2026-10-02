@@ -3,12 +3,14 @@ package com.blackwatermacros.app.core
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
@@ -262,4 +264,81 @@ fun aiErrorDetail(body: String): String {
     val error = json?.get("error")
     val message = error.str() ?: error.obj()?.get("message").str() ?: json?.get("message").str()
     return (message ?: body).replace(SPACES, " ").trim().take(200)
+}
+
+/**
+ * How a streamed answer ended: [Done] (the model finished), [Length] (it hit
+ * the token limit, mid-sentence) or [Error] (the provider reported a failure
+ * inside the stream). A stream that ends without any of these was cut off.
+ */
+sealed interface AiStreamEnd {
+    data object Done : AiStreamEnd
+    data object Length : AiStreamEnd
+    data class Error(val errorKind: AiErrorKind, val detail: String) : AiStreamEnd
+}
+
+private val ANTHROPIC_ERROR_KINDS = mapOf(
+    "overloaded_error" to AiErrorKind.UNAVAILABLE,
+    "api_error" to AiErrorKind.UNAVAILABLE,
+    "rate_limit_error" to AiErrorKind.QUOTA,
+    "authentication_error" to AiErrorKind.INVALID_KEY,
+    "permission_error" to AiErrorKind.INVALID_KEY,
+    "not_found_error" to AiErrorKind.NOT_FOUND,
+)
+
+private fun streamError(errorKind: AiErrorKind, detail: String) =
+    AiStreamEnd.Error(errorKind, detail.replace(SPACES, " ").trim().take(200))
+
+/**
+ * Whether a server-sent-events line ends the streamed answer, and how; null
+ * when it does not (text, pings, other events). Read after [parseAiStreamLine]:
+ * Gemini's last chunk carries text and its finish reason together.
+ */
+fun parseAiStreamEnd(provider: AiProvider, line: String): AiStreamEnd? {
+    if (!line.startsWith("data:")) return null
+    val data = line.substring(5).trim()
+    if (data.isEmpty()) return null
+    if (data == "[DONE]") return AiStreamEnd.Done
+    val json = runCatching { Json.parseToJsonElement(data) }.getOrNull().obj() ?: return null
+
+    if (provider == AiProvider.ANTHROPIC) {
+        val type = json["type"].str()
+        if (type == "message_stop") return AiStreamEnd.Done
+        if (type == "error") {
+            val errorType = json["error"].obj()?.get("type").str().orEmpty()
+            return streamError(ANTHROPIC_ERROR_KINDS[errorType] ?: AiErrorKind.PROVIDER, aiErrorDetail(data))
+        }
+        val stop = if (type == "message_delta") json["delta"].obj()?.get("stop_reason").str() else null
+        return when (stop) {
+            "max_tokens" -> AiStreamEnd.Length
+            "refusal" -> streamError(AiErrorKind.PROVIDER, "stop_reason: refusal")
+            else -> null
+        }
+    }
+
+    // Gemini, OpenAI and OpenRouter put a failure in the stream as {"error": {"code": …, "message": …}}.
+    val error = json["error"]
+    if (error != null && error !is JsonNull) {
+        val code = (error.obj()?.get("code") as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull
+        return streamError(if (code != null) aiErrorKind(code, data) else AiErrorKind.PROVIDER, aiErrorDetail(data))
+    }
+
+    if (provider == AiProvider.GEMINI) {
+        json["promptFeedback"].obj()?.get("blockReason").str()?.let { return streamError(AiErrorKind.PROVIDER, "blockReason: $it") }
+        val reason = json["candidates"].arr()?.firstOrNull().obj()?.get("finishReason").str()
+        return when {
+            reason.isNullOrEmpty() -> null
+            reason == "STOP" -> AiStreamEnd.Done
+            reason == "MAX_TOKENS" -> AiStreamEnd.Length
+            else -> streamError(AiErrorKind.PROVIDER, "finishReason: $reason")
+        }
+    }
+
+    val reason = json["choices"].arr()?.firstOrNull().obj()?.get("finish_reason").str()
+    return when {
+        reason.isNullOrEmpty() -> null
+        reason == "length" -> AiStreamEnd.Length
+        reason == "content_filter" || reason == "error" -> streamError(AiErrorKind.PROVIDER, "finish_reason: $reason")
+        else -> AiStreamEnd.Done
+    }
 }

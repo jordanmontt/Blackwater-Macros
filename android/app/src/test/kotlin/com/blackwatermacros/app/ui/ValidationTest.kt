@@ -71,6 +71,43 @@ class ValidationTest {
     }
 
     @Test
+    fun `adding food asks before closing only when something would be lost`() {
+        fun unsaved(
+            view: AddFoodView,
+            photoText: String = "",
+            photoCount: Int = 0,
+            estimating: Boolean = false,
+            query: String = "",
+            barcodeCode: String = "",
+            copySelected: Int = 0,
+        ) = addFoodHasUnsavedInput(view, photoText, photoCount, estimating, query, barcodeCode, copySelected)
+
+        assertThat(AddFoodView.entries.map { unsaved(it) })
+            .containsExactly(false, false, false, false, true, false).inOrder() // only a chosen portion
+        // The AI description and photos count everywhere: they survive the sheet's Back arrow.
+        assertThat(unsaved(AddFoodView.PHOTO, photoText = "Arroz con pollo, un plato grande")).isTrue()
+        assertThat(unsaved(AddFoodView.MENU, photoText = "Arroz con pollo")).isTrue()
+        assertThat(unsaved(AddFoodView.PHOTO, photoText = "   ")).isFalse()
+        assertThat(unsaved(AddFoodView.PHOTO, photoCount = 1)).isTrue()
+        assertThat(unsaved(AddFoodView.PHOTO, estimating = true)).isTrue()
+        // The rest only on their own view.
+        assertThat(unsaved(AddFoodView.SEARCH, query = "plátano")).isTrue()
+        assertThat(unsaved(AddFoodView.MENU, query = "plátano")).isFalse()
+        assertThat(unsaved(AddFoodView.BARCODE, barcodeCode = "8410")).isTrue()
+        assertThat(unsaved(AddFoodView.COPY, copySelected = 2)).isTrue()
+        assertThat(unsaved(AddFoodView.COPY)).isFalse()
+    }
+
+    @Test
+    fun `numbers are edited with a decimal comma and parse back`() {
+        assertThat(toDecimalInput(8.5)).isEqualTo("8,5")
+        assertThat(toDecimalInput(12345.5)).isEqualTo("12345,5")
+        assertThat(toDecimalInput(2.0)).isEqualTo("2")
+        assertThat(parseDecimal(toDecimalInput(1.6))).isEqualTo(1.6)
+        assertThat(formatNumber(1.6, 1)).isEqualTo("1,6")
+    }
+
+    @Test
     fun `an out-of-range profile is not saved`() {
         val ok = CalorieProfile(Gender.MALE, 1990, 178.0, 3, 60, 30, Goal.CUT)
         assertThat(isValidProfile(ok)).isTrue()

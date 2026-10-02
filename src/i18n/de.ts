@@ -405,6 +405,8 @@ export const de: Dictionary = {
       empty: "Die KI hat nicht geantwortet. Versuch es noch einmal.",
       provider: "Der Anbieter hat einen Fehler gemeldet. Versuch es noch einmal.",
       unavailable: "Der KI-Dienst ist gerade überlastet oder nicht erreichbar. Versuch es gleich noch einmal.",
+      truncated: "Die Antwort wurde abgeschnitten: Sie hat die Längenbegrenzung erreicht. Bitte sie, weiterzuschreiben oder kürzer zu antworten.",
+      interrupted: "Die Verbindung wurde unterbrochen, bevor die Antwort fertig war. Versuch es erneut.",
       unreadable: "Die KI hat keine gültige Schätzung geliefert. Versuch es noch einmal oder gib sie von Hand ein.",
     },
     providerShort: {

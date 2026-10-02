@@ -313,7 +313,7 @@ function CaloriesSection({ summary, calorieRec }: { summary: StatsSummary; calor
               tickLine={false}
               axisLine={false}
             />
-            <YAxis domain={[0, "auto"]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} />
+            <YAxis domain={[0, "auto"]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={(value: number) => formatNumber(value)} />
             {calorieRec ? (
               <ReferenceArea
                 y1={calorieRec.targetMin}

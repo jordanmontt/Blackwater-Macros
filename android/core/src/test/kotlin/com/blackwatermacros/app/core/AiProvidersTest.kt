@@ -130,6 +130,63 @@ class AiProvidersTest {
     }
 
     @Test
+    fun streamEndKnowsWhenTheAnswerFinished() {
+        assertThat(parseAiStreamEnd(AiProvider.OPENAI, "data: [DONE]")).isEqualTo(AiStreamEnd.Done)
+        assertThat(parseAiStreamEnd(AiProvider.OPENROUTER, """data: {"choices":[{"delta":{},"finish_reason":"stop"}]}""")).isEqualTo(AiStreamEnd.Done)
+        assertThat(parseAiStreamEnd(AiProvider.ANTHROPIC, """data: {"type":"message_stop"}""")).isEqualTo(AiStreamEnd.Done)
+        assertThat(
+            parseAiStreamEnd(AiProvider.GEMINI, """data: {"candidates":[{"content":{"parts":[{"text":"."}]},"finishReason":"STOP"}]}"""),
+        ).isEqualTo(AiStreamEnd.Done)
+    }
+
+    @Test
+    fun streamEndKnowsWhenTheAnswerHitTheTokenLimit() {
+        assertThat(parseAiStreamEnd(AiProvider.OPENAI, """data: {"choices":[{"delta":{},"finish_reason":"length"}]}""")).isEqualTo(AiStreamEnd.Length)
+        assertThat(
+            parseAiStreamEnd(AiProvider.ANTHROPIC, """data: {"type":"message_delta","delta":{"stop_reason":"max_tokens"},"usage":{"output_tokens":8192}}"""),
+        ).isEqualTo(AiStreamEnd.Length)
+        assertThat(
+            parseAiStreamEnd(AiProvider.GEMINI, """data: {"candidates":[{"content":{"parts":[{"text":"y lu"}]},"finishReason":"MAX_TOKENS"}]}"""),
+        ).isEqualTo(AiStreamEnd.Length)
+    }
+
+    @Test
+    fun streamEndReadsFailuresReportedInsideTheStream() {
+        assertThat(parseAiStreamEnd(AiProvider.ANTHROPIC, """data: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}"""))
+            .isEqualTo(AiStreamEnd.Error(AiErrorKind.UNAVAILABLE, "Overloaded"))
+        assertThat(parseAiStreamEnd(AiProvider.ANTHROPIC, """data: {"type":"error","error":{"type":"rate_limit_error","message":"Slow down"}}"""))
+            .isEqualTo(AiStreamEnd.Error(AiErrorKind.QUOTA, "Slow down"))
+        assertThat(parseAiStreamEnd(AiProvider.OPENROUTER, """data: {"error":{"code":502,"message":"Provider disconnected"}}"""))
+            .isEqualTo(AiStreamEnd.Error(AiErrorKind.UNAVAILABLE, "Provider disconnected"))
+        assertThat(parseAiStreamEnd(AiProvider.GEMINI, """data: {"error":{"code":503,"message":"The model is overloaded.","status":"UNAVAILABLE"}}"""))
+            .isEqualTo(AiStreamEnd.Error(AiErrorKind.UNAVAILABLE, "The model is overloaded."))
+        assertThat(parseAiStreamEnd(AiProvider.OPENAI, """data: {"error":{"message":"Server error","type":"server_error","code":null}}"""))
+            .isEqualTo(AiStreamEnd.Error(AiErrorKind.PROVIDER, "Server error"))
+        assertThat(parseAiStreamEnd(AiProvider.GEMINI, """data: {"candidates":[{"finishReason":"SAFETY"}]}"""))
+            .isEqualTo(AiStreamEnd.Error(AiErrorKind.PROVIDER, "finishReason: SAFETY"))
+        assertThat(parseAiStreamEnd(AiProvider.GEMINI, """data: {"promptFeedback":{"blockReason":"OTHER"}}"""))
+            .isEqualTo(AiStreamEnd.Error(AiErrorKind.PROVIDER, "blockReason: OTHER"))
+        assertThat(parseAiStreamEnd(AiProvider.OPENROUTER, """data: {"choices":[{"delta":{},"finish_reason":"error"}]}"""))
+            .isEqualTo(AiStreamEnd.Error(AiErrorKind.PROVIDER, "finish_reason: error"))
+        assertThat(parseAiStreamEnd(AiProvider.ANTHROPIC, """data: {"type":"message_delta","delta":{"stop_reason":"refusal"}}"""))
+            .isEqualTo(AiStreamEnd.Error(AiErrorKind.PROVIDER, "stop_reason: refusal"))
+    }
+
+    @Test
+    fun streamEndIgnoresLinesThatDoNotEndTheAnswer() {
+        assertThat(parseAiStreamEnd(AiProvider.GEMINI, """data: {"candidates":[{"content":{"parts":[{"text":"Ho"}]}}]}""")).isNull()
+        assertThat(parseAiStreamEnd(AiProvider.CUSTOM, """data: {"choices":[{"delta":{"content":"la"},"finish_reason":null}]}""")).isNull()
+        assertThat(
+            parseAiStreamEnd(AiProvider.ANTHROPIC, """data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"!"}}"""),
+        ).isNull()
+        assertThat(parseAiStreamEnd(AiProvider.ANTHROPIC, """data: {"type":"message_delta","delta":{"stop_reason":"end_turn"}}""")).isNull()
+        assertThat(parseAiStreamEnd(AiProvider.ANTHROPIC, "event: error")).isNull()
+        assertThat(parseAiStreamEnd(AiProvider.OPENROUTER, ": OPENROUTER PROCESSING")).isNull()
+        assertThat(parseAiStreamEnd(AiProvider.GEMINI, "data: {not json")).isNull()
+        assertThat(parseAiStreamEnd(AiProvider.OPENAI, "")).isNull()
+    }
+
+    @Test
     fun needsAKeyOrAServerAndModelForCustomServers() {
         assertThat(isAiConfigured(config(AiProvider.GEMINI, apiKey = ""))).isFalse()
         assertThat(isAiConfigured(config(AiProvider.GEMINI))).isTrue()

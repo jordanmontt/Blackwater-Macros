@@ -227,6 +227,11 @@ function MessageBubble({ message, pending }: { message: ChatMessage; pending: bo
       >
         {message.error ? (
           <>
+            {message.text.trim() !== "" ? (
+              <div className="mb-1.5">
+                <SimpleMarkdown text={message.text} />
+              </div>
+            ) : null}
             <p className="text-destructive">{t.ai.errors[message.error]}</p>
             {message.errorDetail ? <p className="mt-0.5 text-xs text-muted-foreground">{message.errorDetail}</p> : null}
           </>

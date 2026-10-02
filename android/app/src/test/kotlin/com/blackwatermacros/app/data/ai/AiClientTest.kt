@@ -135,6 +135,51 @@ class AiClientTest {
         assertThat(server.takeRequest().body.readUtf8()).contains("\"stream\":true")
     }
 
+    /** Collects a stream: the pieces that arrived and the failure it ended with, if any. */
+    private fun collect(config: AiConfig, body: String): Pair<List<String>, AiException?> = runBlocking {
+        server.enqueue(MockResponse().setHeader("Content-Type", "text/event-stream").setBody(body))
+        val pieces = mutableListOf<String>()
+        val error = try {
+            client.stream(config, input).collect { pieces += it }
+            null
+        } catch (e: AiException) {
+            e
+        }
+        pieces to error
+    }
+
+    @Test
+    fun `an answer that stops before it is done fails after the text that arrived`() {
+        // Token limit (reasoning models spend part of it thinking).
+        val (cut, cutError) = collect(
+            openai,
+            "data: {\"choices\":[{\"delta\":{\"content\":\"Lunes\"}}]}\n\n" +
+                "data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"length\"}]}\n\n",
+        )
+        assertThat(cut).containsExactly("Lunes")
+        assertThat(cutError?.failure).isEqualTo(AiFailure.TRUNCATED)
+
+        // The connection ends without [DONE] or a finish reason.
+        val (dropped, droppedError) = collect(openai, "data: {\"choices\":[{\"delta\":{\"content\":\"Lunes\"}}]}\n\n")
+        assertThat(dropped).containsExactly("Lunes")
+        assertThat(droppedError?.failure).isEqualTo(AiFailure.INTERRUPTED)
+
+        // The provider reports a failure inside the stream (Anthropic, overloaded).
+        val (failed, failedError) = collect(
+            AiConfig(AiProvider.ANTHROPIC, "k", ""),
+            "event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"Lunes\"}}\n\n" +
+                "event: error\ndata: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"}}\n\n",
+        )
+        assertThat(failed).containsExactly("Lunes")
+        assertThat(failedError?.failure).isEqualTo(AiFailure.UNAVAILABLE)
+        assertThat(failedError?.detail).isEqualTo("Overloaded")
+
+        // Gemini's last chunk: text and finish reason together.
+        val (done, doneError) = collect(gemini, "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"Fin.\"}]},\"finishReason\":\"STOP\"}]}\n\n")
+        assertThat(done).containsExactly("Fin.")
+        assertThat(doneError).isNull()
+    }
+
     @Test
     fun `keys are stored encrypted, one per provider, and survive a restart`() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()

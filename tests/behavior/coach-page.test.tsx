@@ -62,16 +62,17 @@ import { api } from "@/lib/api";
 
 const fetchMock = vi.fn<typeof fetch>();
 
-function sse(pieces: string[]): Response {
+/** Gemini's stream: the last chunk carries the finish reason (none: the connection was cut). */
+function sse(pieces: string[], finishReason: string | null = "STOP"): Response {
   const encoder = new TextEncoder();
   return new Response(
     new ReadableStream({
       start(controller) {
-        for (const piece of pieces) {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text: piece }] } }] })}\n\n`),
-          );
-        }
+        pieces.forEach((piece, index) => {
+          const last = index === pieces.length - 1 && finishReason !== null;
+          const candidate = { content: { parts: [{ text: piece }] }, ...(last ? { finishReason } : {}) };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ candidates: [candidate] })}\n\n`));
+        });
         controller.close();
       },
     }),
@@ -194,6 +195,28 @@ describe("Coach", () => {
     await user.type(screen.getByRole("textbox", { name: t.coach.placeholder }), "Otra vez{Enter}");
     await screen.findByText("Vale.");
     await waitFor(() => expect(requestBody(1).contents).toEqual([{ role: "user", parts: [{ text: "Otra vez" }] }]));
+  });
+
+  it("una respuesta cortada a medias se queda en pantalla con el aviso y no se reenvía", async () => {
+    configure();
+    fetchMock
+      .mockResolvedValueOnce(sse(["Lunes: avena.", " Martes: arr"], "MAX_TOKENS"))
+      .mockResolvedValueOnce(sse(["Lunes: avena."], null))
+      .mockResolvedValueOnce(sse(["Vale."]));
+    const user = userEvent.setup();
+    render(<CoachPage />);
+
+    await user.click(screen.getByRole("button", { name: t.coach.examples[2] }));
+    expect(await screen.findByText(t.ai.errors.truncated)).toBeInTheDocument();
+    expect(screen.getByText("Lunes: avena. Martes: arr")).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox", { name: t.coach.placeholder }), "Sigue{Enter}");
+    expect(await screen.findByText(t.ai.errors.interrupted)).toBeInTheDocument();
+    expect(screen.getByText("Lunes: avena.")).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox", { name: t.coach.placeholder }), "Otra vez{Enter}");
+    await screen.findByText("Vale.");
+    expect(requestBody(2).contents).toEqual([{ role: "user", parts: [{ text: "Otra vez" }] }]);
   });
 });
 

@@ -396,6 +396,8 @@ export const t = {
       empty: "La IA no ha devuelto respuesta. Inténtalo de nuevo.",
       provider: "El proveedor devolvió un error. Inténtalo de nuevo.",
       unavailable: "El servicio de IA está saturado o caído en este momento. Inténtalo en un rato.",
+      truncated: "La respuesta se cortó: llegó al límite de longitud. Pídele que continúe o que responda más corto.",
+      interrupted: "La conexión se cortó antes de terminar la respuesta. Inténtalo de nuevo.",
       unreadable: "La IA no devolvió una estimación válida. Inténtalo de nuevo o escríbelo a mano.",
     },
     providerShort: {

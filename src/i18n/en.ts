@@ -405,6 +405,8 @@ export const en: Dictionary = {
       empty: "The AI returned no answer. Try again.",
       provider: "The provider returned an error. Try again.",
       unavailable: "The AI service is overloaded or down right now. Try again in a moment.",
+      truncated: "The answer was cut off: it reached the length limit. Ask it to continue, or for a shorter answer.",
+      interrupted: "The connection dropped before the answer was finished. Try again.",
       unreadable: "The AI did not return a valid estimate. Try again or write it by hand.",
     },
     providerShort: {

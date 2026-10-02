@@ -230,11 +230,11 @@ private fun TotalCell(label: String, value: String) {
 
 /**
  * Barcode: camera preview with zxing-cpp (asks for the camera the first
- * time), or the code typed by hand. Frames are analysed in memory and dropped:
- * nothing is saved.
+ * time), or the code typed by hand ([code], kept by the sheet so it knows there
+ * is something to lose). Frames are analysed in memory and dropped: nothing is saved.
  */
 @Composable
-fun BarcodeView(lookup: BarcodeLookup, onCode: (String) -> Unit) {
+fun BarcodeView(lookup: BarcodeLookup, code: String, onCodeChange: (String) -> Unit, onCode: (String) -> Unit) {
     val context = LocalContext.current
     var granted by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
@@ -247,12 +247,10 @@ fun BarcodeView(lookup: BarcodeLookup, onCode: (String) -> Unit) {
     LaunchedEffect(Unit) {
         if (!granted && !asked) launcher.launch(Manifest.permission.CAMERA)
     }
-    var code by rememberSaveable { mutableStateOf("") }
-
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (granted && lookup !is BarcodeLookup.Loading) {
             CameraScanner(onCode = {
-                code = it
+                onCodeChange(it)
                 onCode(it)
             })
         }
@@ -273,7 +271,7 @@ fun BarcodeView(lookup: BarcodeLookup, onCode: (String) -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             CompactField(
                 value = code,
-                onValueChange = { code = it.filter(Char::isDigit) },
+                onValueChange = { onCodeChange(it.filter(Char::isDigit)) },
                 placeholder = stringResource(R.string.food_manual_code),
                 enabled = lookup !is BarcodeLookup.Loading,
                 keyboardType = KeyboardType.Number,

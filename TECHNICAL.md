@@ -66,7 +66,7 @@ src/
     csv-import.ts           # Reads the export's CSV (and Android's) back: parse, validate, import keys
   i18n/es.ts                # ALL user-facing copy as a typed dictionary (Spanish = the reference)
   i18n/en.ts fr.ts it.ts de.ts  # Same keys, same {placeholders} (tests/unit/i18n.test.ts)
-  i18n/languages.ts format.ts   # Language list + cookie/Accept-Language choice; locale-aware dates/numbers
+  i18n/languages.ts format.ts   # Language list + cookie/Accept-Language choice; locale-aware dates, the one number format
 scripts/
   lib/env.ts                # .env/.env.local loader for scripts outside Next runtime
   create-user.ts             # Ops script (tsx): create / reset password
@@ -924,20 +924,33 @@ card (and therefore the `/admin` page) is unreachable in demo mode.
   `datetime-local`), native scrollbars, and `accent-color` so they are tinted with the
   app green. Custom Base UI Select/Switch were removed for this reason.
 
-### Numeric input convention
+### Numbers on screen and in inputs (web and Android, every language)
 
-Every numeric input uses **`,` as decimal separator** (Spanish convention).
-`lib/utils.ts` provides the two helpers:
+One format everywhere, chosen on 2026-10-02 so web and phone show the same characters in
+every language: **`,` as decimal separator and a narrow no-break space (U+202F) between
+thousands from five digits up** — «1,6 g», «2000 kcal», «12 345 kcal».
 
-- `normalizeDecimal(value)` — converts typed `.` to `,` on every keystroke;
-  wired into `onChange` of all numeric fields (MealForm kcal/protein, meal
-  totals, peso weight).
-- `toDecimalInput(number)` — formats a stored number with `,` when a form is
-  hydrated for editing.
-
-Parsing accepts either separator: forms call `.replace(",", ".")` before
-`Number()` (`parseNumber` in MealForm, inline in the peso handler). The
-free-text quantity field is exempt — it holds strings like "30-40 g".
+- **Why the comma:** four of the five app languages (es, fr, it, de) write it, the project
+  is Spanish-first and the inputs already used it. **Why the narrow space for thousands:**
+  it is the SI / ISO 80000 convention and cannot be misread in any language (an English
+  reader takes «2.000» for two, a German reader takes «2,000» for two). Four-digit numbers
+  are not grouped, as in Spanish.
+- **One function, in the core contract:** `formatDecimal(value, maxDecimals, grouping)`
+  in `lib/core/numbers.ts` = Kotlin `Numbers.kt` (mirrored tests, §11.1): rounds like JS
+  `Math.round`, drops trailing zeros, never prints «-0». Web `formatNumber`
+  (`src/i18n/format.ts`) and Android `formatNumber` (`ui/Format.kt`) call it; dates stay
+  in the app language.
+- **Inputs:** `normalizeDecimal` (core) turns a typed `.` into `,` on every keystroke —
+  web `onChange` of the numeric fields (meal macros and totals, weight, body fat, portion
+  grams); Android `CompactField(decimal = true)`, which every number field uses (also for
+  keyboards that only offer `.`). `toDecimalInput` hydrates a form with
+  `formatDecimal(value, 6, grouping = false)` («8,5», never grouped, so it parses back).
+  Parsing accepts either separator (`.replace(",", ".")` on the web, `parseDecimal` on
+  Android).
+- **Not affected:** the JSON wire format and CSV (`.`, IEEE 754), the text sent to AI
+  models (`plainNumber`, `formatNumberEs` — an exact-text contract), and the free-text
+  quantity field, which holds strings like «30-40 g». The web profile's height/age fields
+  are native `type="number"` inputs (whole numbers in practice).
 
 ### Timezone strategy
 
@@ -971,7 +984,8 @@ makes the layout dynamic, which it already was in practice (session checks).
 
 **Server errors:** the API sends a code with each error and `lib/api.ts` shows `t.serverErrors[code]` (see §5.3), so validation and admin messages follow the language too.
 
-**Also per language:** dates and numbers (`i18n/format.ts`, `LOCALE_TAGS`), food search
+**Also per language:** dates (`i18n/format.ts`, `LOCALE_TAGS`; numbers are the same in every
+language, see «Numbers on screen and in inputs» above), food search
 and barcode names (`currentLanguage()` → Open Food Facts `lc`), and the language the AI
 answers in (`aiLanguage()`). Stays Spanish on purpose: CSV column names (a file format).
 
@@ -1018,7 +1032,7 @@ The service returns one `StatsSummary` DTO (`lib/core/types.ts`): dense calorie/
 series, weight/body fat series with pre-rounded trends, summary cards
 (avg/max/current/change/rate/min/max) and weekly averages. Display formatting
 happens only in components via `formatNumber(value, maxDecimals)` from `i18n/format.ts`
-(the app language; see i18n in §6).
+(one format in every language; see «Numbers on screen and in inputs» in §6).
 
 ---
 
@@ -1172,13 +1186,19 @@ app language, no medical claims.
   streaming), OpenAI-compatible chat completions (OpenAI, OpenRouter, any `…/v1` server
   such as Ollama/LM Studio; OpenAI gets `max_completion_tokens`, the rest `max_tokens`) and
   Anthropic (`anthropic-dangerous-direct-browser-access` so the browser can call it);
-  `parseAiResponse`, `parseAiStreamLine`, `aiErrorKind` (Gemini answers a wrong key with
-  400 + `API_KEY_INVALID`). Default models (editable): `gemini-flash-latest`,
+  `parseAiResponse`, `parseAiStreamLine`, `parseAiStreamEnd` (how a stream ended: done,
+  token limit, or an error the provider sent inside the stream — Anthropic `type: "error"`,
+  `{"error": …}` from Gemini/OpenAI/OpenRouter, a finish reason such as `SAFETY`),
+  `aiErrorKind` (Gemini answers a wrong key with 400 + `API_KEY_INVALID`). Default models (editable): `gemini-flash-latest`,
   `gpt-5-mini`, `claude-haiku-4-5`, `openrouter/auto`.
 - **Transport**: web `lib/ai/client.ts` (`fetch`, streams read line by line), Android
   `data/ai/AiClient.kt` (OkHttp). Both call the provider **directly**: the Blackwater
   server never sees keys, photos or questions. Errors become `AiFailure` kinds with a
-  user message (`t.ai.errors`, `ai_error_*`).
+  user message (`t.ai.errors`, `ai_error_*`). A stream must say it is done (`[DONE]`, a
+  finish reason, `message_stop`); one that stops early fails *after* the text that arrived:
+  `truncated` at the token limit, the provider's own error kind, or `interrupted` when it
+  just ends (connection cut). Before this, all three looked like a finished answer that
+  stopped mid-sentence.
 - **Settings** (one key + model per provider, base URL, «El coach puede ver mis datos»):
   web `lib/ai/settings.ts` in `localStorage["bw:ai"]` (per browser), card
   `components/settings/ai-settings-card.tsx` in Ajustes; Android `data/ai/AiSettingsStore.kt`
@@ -1210,7 +1230,14 @@ app language, no medical claims.
   `buildCoachSystemPrompt(language, buildCoachContext(input))`, the input read fresh from the
   same data as the Comidas card (profile, targets, measured expenditure, 4 weeks of meals,
   60 days of weigh-ins); with «El coach puede ver mis datos» off the data is neither read
-  nor sent. The last 20 good turns go along as history. **Photos** (up to 5 per question,
+  nor sent. The last 20 good turns go along as history. Cloud answers get
+  `COACH_MAX_TOKENS` = 8192 output tokens: the default models (Gemini Flash, GPT-5 mini)
+  reason first and that hidden thinking counts against the budget, so 4096 cut long answers
+  mid-sentence. An answer that stops early keeps its text in the bubble with the reason
+  under it, and is not resent as history. The phone's model reads prompt, history and answer
+  in one 4096-token window (`LocalEngine.MAX_TOKENS`): `fitHistoryToBudget` drops the oldest
+  turns so 1536 tokens stay free for the answer. The web's browser model answers in at most
+  1024 tokens and says so (`truncated`) when it reaches the limit. **Photos** (up to 5 per question,
   camera or gallery, same downscaling as «Foto o texto», memory only): sent with the question and
   again with the history, newest 5 in total; a photo without words asks
   `coach.photoPrompt`. Cloud providers and Android models that read images (Gemma); the
@@ -1397,10 +1424,11 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `calories.test.ts` | `calculateBMR`, activity (PAL), `calculateCalorieRecommendation` (BMR floor) | `CaloriesTest.kt` |
 | `expenditure.test.ts` | `estimateExpenditure`, `fitWeightTrend`, `dailyMeans` | `ExpenditureTest.kt` |
 | `foods.test.ts` | portions, Open Food Facts parsing, `searchGenericFoods` | `FoodsTest.kt` |
-| `ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), answer and stream parsing, `aiErrorKind` | `AiProvidersTest.kt` |
+| `ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), answer and stream parsing, how a stream ended (`parseAiStreamEnd`), `aiErrorKind` | `AiProvidersTest.kt` |
 | `ai-models.test.ts` | `buildModelListRequest`, `parseModelList`, `naturalCompare` | `AiModelsTest.kt` |
 | `ai-schema.test.ts` | `parseMealEstimate`, prompts, `estimateToIngredients` | `AiSchemaTest.kt` |
 | `progress.test.ts` | `macroAverages` | `ProgressTest.kt` |
+| `numbers.test.ts` | `formatDecimal`, `normalizeDecimal` (the one number format, §6) | `NumbersTest.kt` |
 | `coach.test.ts` (+ `coach.fixture.ts`) | `weightProjection`, `buildCoachContext` (exact text), `buildCoachSystemPrompt` | `CoachTest.kt` |
 | `dates.test.ts` | date keys, `parseLocalDateTime`, es-ES formatters | `DatesTest.kt` |
 | `stats.test.ts` | moving average, weekly rate, series | `StatsTest.kt` |
@@ -1433,15 +1461,15 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.ts`) |
 | `data/CsvBackupTest.kt` | CSV round trip; reads a web export; skips rows the server would reject; unknown files |
 | `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, 404, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
-| `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; keys encrypted per provider; AI prefs excluded from backups |
+| `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; a stream cut by the token limit, by an error inside the stream or by the connection fails after the text that arrived; keys encrypted per provider; AI prefs excluded from backups |
 | `data/ai/ModelListStoreTest.kt` | The model dropdown's list: reused for a day, asked again when old, forced or for another key; survives a restart; never stores the key |
 | `data/ai/MealEstimatorTest.kt` | «Foto o texto»: photos + description → one JSON request (mirrors `add-food-photo.test.tsx`); unreadable answers; the language told to the model; photo downscale; the camera FileProvider only reaches the temporary folder |
 | `data/ai/local/LocalModelTest.kt` | On-device model: resumable download, SHA-256 check, device support and the low-RAM warning, engine routing, model outside backups, what counts as an out-of-memory kill |
 | `data/ai/local/LocalModelCatalogTest.kt` | The site's model catalog: valid entries become models, wrong ones are skipped (non-Hugging Face URL, bad checksum, path tricks, newer app), merge with the built-in list, `hidden`; the committed file matches the built-in models |
-| `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», failures not resent, no data without permission, photos (alone with the default question, and in the history), Markdown |
+| `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; ranges; «Tus datos» saves profile + weight |
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period |
-| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, measured expenditure, sync indicator states |
+| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, measured expenditure, sync indicator states, numbers edited with a decimal comma, when «Añadir comida» asks before closing |
 | `ui/TranslationsTest.kt` | Every language has every string and plural with the same placeholders |
 | `data/NiceTicksTest.kt` | Chart axis ticks |
 
@@ -1612,7 +1640,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
     LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen
     SyncIndicator.kt                        # cloud in the Comidas header (logged in only)
-    Format.kt                               # dates/numbers + app language (appLocale, setAppLanguage)
+    Format.kt                               # dates (app language) + the one number format + app language (appLocale, setAppLanguage)
     Theme.kt, CenteredTopAppBar.kt, BottomNavBar.kt  # tokens, AppCard, header, bottom bar, AppLogo
 ```
 
@@ -1638,6 +1666,18 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
 - **Text fields:** `CompactField` / `CompactTextArea` — 40 dp high, caret in the primary
   color (the default black caret is invisible in dark mode), fainter placeholders, a
   2 dp primary border on the focused field.
+- **Numbers:** one format in every language, the same as the web: «1,6 g», «12 345 kcal»
+  (§6 «Numbers on screen and in inputs»). Number fields turn a typed `.` into `,`.
+- **Sheets that hold input** (`GuardedBottomSheet`: the meal/template form and «Añadir
+  comida»): with nothing typed they close like any sheet (swipe down, tap outside, Back).
+  Once something would be lost — form edits or a pre-filled meal; in «Añadir comida» an AI
+  description or photos, a search, a typed barcode, ticked meals to copy, a chosen
+  portion — the sheet's gestures are off, so scrolling a long form only scrolls it, and
+  tapping outside, Back, Cancel or a swipe on the handle all ask «¿Descartar los cambios?».
+  The earlier form vetoed the swipe with `confirmValueChange` instead: the sheet still
+  followed the content's scroll, was vetoed every frame and sprang back while the finger
+  kept pulling, which made a long AI-estimated form jump up and down (foundation deprecates
+  that veto for this reason).
 - **Charts:** hand-drawn Compose Canvas; all text sizes in sp (`AxisTextSize`,
   `TooltipTextSize`) so they follow the phone's font size.
 - **Intake bars** (Comidas): outlined track = what is left, solid fill = eaten (ember past

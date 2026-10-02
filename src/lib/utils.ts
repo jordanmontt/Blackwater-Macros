@@ -1,16 +1,15 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { formatDecimal } from "./core/numbers"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 /** Normalizes a numeric string so it always uses `,` as decimal separator. */
-export function normalizeDecimal(value: string): string {
-  return value.replace(/\./g, ",")
-}
+export { normalizeDecimal } from "./core/numbers"
 
-/** Formats a number for editing in a text input, using `,` as decimal separator. */
+/** Formats a number for editing in a text input: `,` as decimal separator, no grouping. */
 export function toDecimalInput(value: number): string {
-  return String(value).replace(".", ",")
+  return formatDecimal(value, 6, false)
 }

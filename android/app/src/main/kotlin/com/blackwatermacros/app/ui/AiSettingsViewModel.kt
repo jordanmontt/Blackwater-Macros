@@ -58,6 +58,8 @@ fun AiFailure.messageRes(): Int = when (this) {
     AiFailure.NO_VISION -> R.string.local_model_no_vision
     AiFailure.UNAVAILABLE -> R.string.ai_error_unavailable
     AiFailure.LOCAL_MODEL -> R.string.ai_error_local
+    AiFailure.TRUNCATED -> R.string.ai_error_truncated
+    AiFailure.INTERRUPTED -> R.string.ai_error_interrupted
 }
 
 @StringRes

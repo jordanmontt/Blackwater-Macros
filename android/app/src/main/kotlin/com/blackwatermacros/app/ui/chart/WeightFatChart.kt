@@ -3,7 +3,7 @@ package com.blackwatermacros.app.ui.chart
 import com.blackwatermacros.app.R
 import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.ui.formatDateShort
-import com.blackwatermacros.app.ui.formatNumberGrouped
+import com.blackwatermacros.app.ui.formatNumber
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -77,15 +77,8 @@ internal fun niceTicks(min: Double, max: Double, step: Double): List<Double> {
     return result
 }
 
-/** Whole-number-ish label: trims a trailing ".0" (and ".5" stays as 0.5). */
-private fun axisLabel(v: Double): String {
-    val rounded = (v * 10).roundToInt() / 10.0
-    return if (rounded == Math.floor(rounded) && !rounded.isInfinite() && !rounded.isNaN()) {
-        rounded.toLong().toString()
-    } else {
-        rounded.toString()
-    }
-}
+/** Whole-number-ish label in the app's number format: «72», «72,5». */
+private fun axisLabel(v: Double): String = formatNumber(v, 1)
 
 /**
  * Dual-Y line chart matching the web `WeightFatChart`:
@@ -296,9 +289,9 @@ fun WeightFatChart(
                 val row = data[si]
                 val lines = buildList {
                     add(formatDateShort(row.date))
-                    row.weight?.let { add("$weightLabel: ${formatNumberGrouped(it, 1)} kg") }
-                    row.weightTrend?.let { add("$trendLabel: ${formatNumberGrouped(it, 1)} kg") }
-                    row.bodyFatPct?.let { add("$fatLabel: ${formatNumberGrouped(it, 1)}%") }
+                    row.weight?.let { add("$weightLabel: ${formatNumber(it, 1)} kg") }
+                    row.weightTrend?.let { add("$trendLabel: ${formatNumber(it, 1)} kg") }
+                    row.bodyFatPct?.let { add("$fatLabel: ${formatNumber(it, 1)}%") }
                 }
                 val tooltipPaint = android.graphics.Paint().apply {
                     color = labelColor.toArgb()

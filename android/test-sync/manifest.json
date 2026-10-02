@@ -52,6 +52,11 @@
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/AiSchemaTest.kt"
     },
     {
+      "source": "src/lib/core/numbers.ts",
+      "ts": "tests/unit/numbers.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/NumbersTest.kt"
+    },
+    {
       "source": "src/lib/core/progress.ts",
       "ts": "tests/unit/progress.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/ProgressTest.kt"

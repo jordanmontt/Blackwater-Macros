@@ -405,6 +405,8 @@ export const it: Dictionary = {
       empty: "L'IA non ha risposto. Riprova.",
       provider: "Il fornitore ha restituito un errore. Riprova.",
       unavailable: "Il servizio di IA è sovraccarico o non disponibile al momento. Riprova tra poco.",
+      truncated: "La risposta si è interrotta: ha raggiunto il limite di lunghezza. Chiedile di continuare o di rispondere in modo più breve.",
+      interrupted: "La connessione si è interrotta prima della fine della risposta. Riprova.",
       unreadable: "L'IA non ha restituito una stima valida. Riprova o inseriscila a mano.",
     },
     providerShort: {

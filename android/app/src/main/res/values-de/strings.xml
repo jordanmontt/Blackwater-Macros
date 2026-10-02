@@ -68,6 +68,7 @@
     <string name="add_food_copied">Kopiert auf %1$s</string>
     <string name="discard_title">Änderungen verwerfen?</string>
     <string name="discard_body">Was du bei dieser Mahlzeit eingegeben hast, geht verloren.</string>
+    <string name="discard_add_body">Was du eingegeben hast (Beschreibung, Fotos, Suche…), geht verloren.</string>
     <string name="keep_editing">Weiter bearbeiten</string>
     <string name="discard">Verwerfen</string>
     <string name="food_search">Suchen</string>
@@ -488,6 +489,8 @@
     <string name="meth_sources_body">Allgemeine Lebensmittel (offline): Swiss Food Composition Database des Bundesamts für Lebensmittelsicherheit und Veterinärwesen (BLV, Schweiz) und die Tabelle Ciqual 2020 der Anses (Frankreich, Licence Ouverte / Etalab 2.0). Die spanischen Namen ergänzt dieses Projekt.\n\nProdukte und Barcodes: Open Food Facts, eine offene Datenbank unter der Open Database License (ODbL). Die Daten jedes Produkts stammen von den Mitwirkenden und können Fehler enthalten. Die Werte gelten pro 100 g des Lebensmittels, wie die Quelle es beschreibt.</string>
     <string name="ai_error_unavailable">Der KI-Dienst ist gerade überlastet oder nicht erreichbar. Versuche es gleich noch einmal.</string>
     <string name="ai_error_local">Das Modell auf dem Telefon konnte nicht antworten. Versuche es erneut oder nutze die Cloud unter Einstellungen → KI.</string>
+    <string name="ai_error_truncated">Die Antwort wurde abgeschnitten: Sie hat die Längenbegrenzung erreicht. Bitte sie, weiterzuschreiben oder kürzer zu antworten.</string>
+    <string name="ai_error_interrupted">Die Verbindung wurde unterbrochen, bevor die Antwort fertig war. Versuch es erneut.</string>
 
     <!-- Server errors by code (src/lib/server-errors.ts; texts shared with src/i18n/*.ts) -->
     <string name="server_error_network">Keine Verbindung. Versuch es noch einmal.</string>

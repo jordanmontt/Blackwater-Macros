@@ -4,6 +4,7 @@ import {
   buildAiRequest,
   isAiConfigured,
   parseAiResponse,
+  parseAiStreamEnd,
   parseAiStreamLine,
   type AiConfig,
   type AiErrorKind,
@@ -15,7 +16,7 @@ import {
  * the key and the photos only travel to the provider the user chose.
  */
 
-export type AiFailure = AiErrorKind | "not_configured" | "offline" | "empty" | "unreadable";
+export type AiFailure = AiErrorKind | "not_configured" | "offline" | "empty" | "unreadable" | "truncated" | "interrupted";
 
 export class AiError extends Error {
   readonly kind: AiFailure;
@@ -78,36 +79,53 @@ export async function aiComplete(config: AiConfig, input: AiInput, signal?: Abor
   return text;
 }
 
-/** The answer piece by piece as it is written (Coach). */
-export async function* aiStream(config: AiConfig, input: AiInput, signal?: AbortSignal): AsyncGenerator<string> {
-  const response = await send(config, { ...input, stream: true }, signal);
+/** The lines of a streamed response as they arrive (a line split across chunks is joined). */
+async function* streamLines(response: Response, signal?: AbortSignal): AsyncGenerator<string> {
   if (!response.body) {
-    const text = await response.text();
-    for (const line of text.split(/\r?\n/)) {
-      const delta = parseAiStreamLine(config.provider, line);
-      if (delta) yield delta;
-    }
+    yield* (await response.text()).split(/\r?\n/);
     return;
   }
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
   try {
     while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += value;
+      let chunk: ReadableStreamReadResult<string>;
+      try {
+        chunk = await reader.read();
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        throw new AiError("offline", error instanceof Error ? error.message : "");
+      }
+      if (chunk.done) break;
+      buffer += chunk.value;
       const lines = buffer.split(/\r?\n/);
       buffer = lines.pop() ?? "";
-      for (const line of lines) {
-        const delta = parseAiStreamLine(config.provider, line);
-        if (delta) yield delta;
-      }
+      yield* lines;
     }
-    const delta = parseAiStreamLine(config.provider, buffer);
-    if (delta) yield delta;
+    yield buffer;
   } finally {
     reader.releaseLock();
   }
+}
+
+/**
+ * The answer piece by piece as it is written (Coach). An answer that stops early
+ * fails after the text that did arrive: `truncated` at the token limit, the
+ * provider's error when it reports one, `interrupted` when the stream just ends
+ * without saying the answer is done.
+ */
+export async function* aiStream(config: AiConfig, input: AiInput, signal?: AbortSignal): AsyncGenerator<string> {
+  const response = await send(config, { ...input, stream: true }, signal);
+  let finished = false;
+  for await (const line of streamLines(response, signal)) {
+    const delta = parseAiStreamLine(config.provider, line);
+    if (delta) yield delta;
+    const end = parseAiStreamEnd(config.provider, line);
+    if (end?.kind === "done") finished = true;
+    else if (end?.kind === "length") throw new AiError("truncated");
+    else if (end?.kind === "error") throw new AiError(end.errorKind, end.detail);
+  }
+  if (!finished) throw new AiError("interrupted");
 }
 
 /** «Probar»: a tiny call; a 2xx answer means key, model and server are right. */

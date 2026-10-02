@@ -1,14 +1,15 @@
 import { currentLanguage } from "./index";
 import { LOCALE_TAGS } from "./languages";
+import { formatDecimal } from "@/lib/core/numbers";
 
 /**
- * Numbers and dates in the active language (web counterpart of Android
- * `Format.kt`). Same output as the `…Es` helpers in `core/dates.ts` in Spanish.
+ * Dates in the active language and numbers in the app's single format (web
+ * counterpart of Android `Format.kt`).
  */
 
-const cache = new Map<string, Intl.NumberFormat | Intl.DateTimeFormat>();
+const cache = new Map<string, Intl.DateTimeFormat>();
 
-function formatter<T extends Intl.NumberFormat | Intl.DateTimeFormat>(key: string, create: (locale: string) => T): T {
+function formatter<T extends Intl.DateTimeFormat>(key: string, create: (locale: string) => T): T {
   const locale = LOCALE_TAGS[currentLanguage()];
   const id = `${locale}|${key}`;
   let found = cache.get(id) as T | undefined;
@@ -19,10 +20,12 @@ function formatter<T extends Intl.NumberFormat | Intl.DateTimeFormat>(key: strin
   return found;
 }
 
+/**
+ * The same in every language (core `formatDecimal`): «1,6», «2000», «12 345».
+ * See TECHNICAL.md «Numbers on screen and in inputs».
+ */
 export function formatNumber(value: number, maxDecimals = 0): string {
-  return formatter(`n${maxDecimals}`, (locale) => new Intl.NumberFormat(locale, { maximumFractionDigits: maxDecimals })).format(
-    value,
-  );
+  return formatDecimal(value, maxDecimals);
 }
 
 /** «Domingo, 27 de septiembre» / «Sunday 27 September». */

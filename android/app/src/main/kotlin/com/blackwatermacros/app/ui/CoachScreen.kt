@@ -329,6 +329,11 @@ private fun MessageBubble(message: ChatMessage, pending: Boolean) {
         ) {
             when {
                 message.error != null -> Column {
+                    // An answer that stopped early keeps what arrived, with the reason under it.
+                    if (message.text.isNotBlank()) {
+                        Text(simpleMarkdown(message.text), style = MaterialTheme.typography.bodyMedium)
+                        Spacer(Modifier.height(6.dp))
+                    }
                     Text(
                         stringResource(message.error.messageRes()),
                         style = MaterialTheme.typography.bodyMedium,

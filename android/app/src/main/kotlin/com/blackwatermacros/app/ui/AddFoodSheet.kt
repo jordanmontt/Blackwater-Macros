@@ -25,15 +25,12 @@ import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -73,7 +70,30 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.Flow
 
-private enum class AddFoodView { MENU, COPY, SEARCH, BARCODE, PORTION, PHOTO }
+internal enum class AddFoodView { MENU, COPY, SEARCH, BARCODE, PORTION, PHOTO }
+
+/**
+ * Whether closing «Añadir comida» now would lose something the user entered. The
+ * AI description and photos count in every view (they survive the sheet's Back
+ * arrow); the rest only on their own view.
+ */
+internal fun addFoodHasUnsavedInput(
+    view: AddFoodView,
+    photoText: String,
+    photoCount: Int,
+    estimating: Boolean,
+    query: String,
+    barcodeCode: String,
+    copySelected: Int,
+): Boolean =
+    photoText.isNotBlank() || photoCount > 0 || estimating ||
+        when (view) {
+            AddFoodView.SEARCH -> query.isNotBlank()
+            AddFoodView.BARCODE -> barcodeCode.isNotBlank()
+            AddFoodView.PORTION -> true
+            AddFoodView.COPY -> copySelected > 0
+            AddFoodView.MENU, AddFoodView.PHOTO -> false
+        }
 
 /**
  * «Añadir comida» (web `AddFoodSheet`): every way to add food to [day].
@@ -81,9 +101,11 @@ private enum class AddFoodView { MENU, COPY, SEARCH, BARCODE, PORTION, PHOTO }
  * ([onFoodPicked]) for the review form; Escribir a mano opens that form empty;
  * Copiar de otro día and the templates add meals directly (the caller offers
  * Undo). [pickOnly]: opened from the review form to add one more food, so only
- * Buscar and Código are offered. Swipe down or tap outside closes it.
+ * Buscar and Código are offered. Swipe down or tap outside closes it; once
+ * something was entered (an AI description, photos, a search…) it asks first
+ * ([GuardedBottomSheet]).
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddFoodSheet(
     day: String,
@@ -130,11 +152,24 @@ fun AddFoodSheet(
     }
     val copiedMessage = stringResource(R.string.add_food_copied, formatDateShort(day))
     val templateAppliedMessage = stringResource(R.string.template_applied)
+    var barcodeCode by rememberSaveable { mutableStateOf("") }
+    var copySelected by remember { mutableStateOf(setOf<String>()) }
+    val photoText by photo.description.collectAsStateWithLifecycle()
+    val photos by photo.photos.collectAsStateWithLifecycle()
+    val unsaved = addFoodHasUnsavedInput(
+        view = view,
+        photoText = photoText,
+        photoCount = photos.size,
+        estimating = photoState == PhotoEstimateState.Estimating,
+        query = searchState.query,
+        barcodeCode = barcodeCode,
+        copySelected = copySelected.size,
+    )
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surface,
+    GuardedBottomSheet(
+        hasUnsavedInput = unsaved,
+        discardBody = stringResource(R.string.discard_add_body),
+        onDismiss = onDismiss,
     ) {
         Column(
             Modifier
@@ -217,7 +252,12 @@ fun AddFoodSheet(
                 }
                 }
             }
-            AddFoodView.COPY -> CopyFromDay(targetDay = day, mealsOn = mealsOn) { meals ->
+            AddFoodView.COPY -> CopyFromDay(
+                targetDay = day,
+                mealsOn = mealsOn,
+                selected = copySelected,
+                onSelectedChange = { copySelected = it },
+            ) { meals ->
                 onDismiss()
                 onAdd(meals.map { it.toFormValue() }, copiedMessage)
             }
@@ -245,7 +285,7 @@ fun AddFoodSheet(
                     onManual()
                 }),
             )
-            AddFoodView.BARCODE -> BarcodeView(barcode, foods::lookUpBarcode)
+            AddFoodView.BARCODE -> BarcodeView(barcode, barcodeCode, { barcodeCode = it }, foods::lookUpBarcode)
             AddFoodView.PORTION -> choice?.let { picked ->
                 PortionView(picked) { grams ->
                     foods.remember(picked)
@@ -309,19 +349,26 @@ private fun SourceRow(icon: ImageVector, label: String, hint: String, onClick: (
 private fun CopyFromDay(
     targetDay: String,
     mealsOn: (String) -> Flow<List<MealDTO>>,
+    /** Ids of the ticked meals (kept by the sheet so it knows there is something to lose). */
+    selected: Set<String>,
+    onSelectedChange: (Set<String>) -> Unit,
     onCopy: (List<MealDTO>) -> Unit,
 ) {
     var sourceDay by rememberSaveable { mutableStateOf(addDaysToKey(targetDay, -1)) }
-    var selected by remember(sourceDay) { mutableStateOf(setOf<String>()) }
     val meals by remember(sourceDay) { mealsOn(sourceDay) }.collectAsState(initial = null)
+    // Another day: the ticks were for the meals of the previous one.
+    fun goTo(newDay: String) {
+        sourceDay = newDay
+        onSelectedChange(emptySet())
+    }
 
     DayNavigator(
         day = sourceDay,
         isToday = sourceDay == todayKey(),
         caption = formatDateLong(sourceDay),
-        onPrev = { sourceDay = addDaysToKey(sourceDay, -1) },
-        onNext = { sourceDay = addDaysToKey(sourceDay, 1) },
-        onToday = { sourceDay = todayKey() },
+        onPrev = { goTo(addDaysToKey(sourceDay, -1)) },
+        onNext = { goTo(addDaysToKey(sourceDay, 1)) },
+        onToday = { goTo(todayKey()) },
     )
     Spacer(Modifier.height(8.dp))
     val list = meals
@@ -347,11 +394,11 @@ private fun CopyFromDay(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clickable { selected = if (checked) selected - meal.id else selected + meal.id }
+                            .clickable { onSelectedChange(if (checked) selected - meal.id else selected + meal.id) }
                             .padding(end = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Checkbox(checked = checked, onCheckedChange = { selected = if (it) selected + meal.id else selected - meal.id })
+                        Checkbox(checked = checked, onCheckedChange = { onSelectedChange(if (it) selected + meal.id else selected - meal.id) })
                         Text(
                             meal.title,
                             style = MaterialTheme.typography.bodyMedium,

@@ -182,6 +182,45 @@ describe("cliente de IA", () => {
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).stream).toBe(true);
   });
 
+  it("una respuesta que se para antes de terminar falla después del texto recibido", async () => {
+    const read = async (response: Response, config: AiConfig = openai) => {
+      fetchMock.mockResolvedValueOnce(response);
+      const pieces: string[] = [];
+      const error = await (async () => {
+        for await (const piece of aiStream(config, input)) pieces.push(piece);
+      })().catch((e: unknown) => e);
+      return { pieces, error: error as AiError | undefined };
+    };
+
+    // Token limit (reasoning models spend part of it thinking).
+    let result = await read(sse(['data: {"choices":[{"delta":{"content":"Lunes"}}]}\n\n', 'data: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\n']));
+    expect(result.pieces).toEqual(["Lunes"]);
+    expect(result.error).toMatchObject({ kind: "truncated" });
+
+    // The connection ends without [DONE] or a finish reason.
+    result = await read(sse(['data: {"choices":[{"delta":{"content":"Lunes"}}]}\n\n']));
+    expect(result.pieces).toEqual(["Lunes"]);
+    expect(result.error).toMatchObject({ kind: "interrupted" });
+
+    // The provider reports a failure inside the stream (Anthropic, overloaded).
+    const anthropic: AiConfig = { provider: "anthropic", apiKey: "k", model: "", baseUrl: "" };
+    result = await read(
+      sse([
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Lunes"}}\n\n',
+        'event: error\ndata: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}\n\n',
+      ]),
+      anthropic,
+    );
+    expect(result.pieces).toEqual(["Lunes"]);
+    expect(result.error).toMatchObject({ kind: "unavailable", detail: "Overloaded" });
+
+    // Gemini's last chunk: text and finish reason together.
+    const gemini: AiConfig = { provider: "gemini", apiKey: "k", model: "", baseUrl: "" };
+    result = await read(sse(['data: {"candidates":[{"content":{"parts":[{"text":"Fin."}]},"finishReason":"STOP"}]}\n\n']), gemini);
+    expect(result.pieces).toEqual(["Fin."]);
+    expect(result.error).toBeUndefined();
+  });
+
   it("reintenta si el proveedor está saturado y luego explica el error con sus palabras", async () => {
     RETRY_DELAYS_MS.splice(0, RETRY_DELAYS_MS.length, 0, 0);
     const overloaded = '{"error":{"code":503,"message":"The model is overloaded. Please try again later.","status":"UNAVAILABLE"}}';

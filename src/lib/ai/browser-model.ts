@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import type { MLCEngineInterface } from "@mlc-ai/web-llm";
 import type { AiMessage } from "@/lib/core/ai-providers";
+import { AiError } from "@/lib/ai/client";
 import { getAiSettings, saveAiSettings } from "@/lib/ai/settings";
 
 /**
@@ -222,6 +223,8 @@ export async function* browserChatStream(
       if (signal?.aborted) break;
       const text = visible(chunk.choices[0]?.delta?.content ?? "");
       if (text) yield text;
+      // Said instead of stopping silently mid-sentence (same as the cloud stream).
+      if (chunk.choices[0]?.finish_reason === "length") throw new AiError("truncated");
     }
   } finally {
     signal?.removeEventListener("abort", onAbort);
