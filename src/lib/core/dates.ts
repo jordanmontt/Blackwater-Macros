@@ -49,36 +49,3 @@ export function toDateTimeLocalValue(date: Date): string {
 export function nowDateTimeLocalValue(): string {
   return toDateTimeLocalValue(new Date());
 }
-
-const longFormatter = new Intl.DateTimeFormat("es-ES", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-});
-
-const shortFormatter = new Intl.DateTimeFormat("es-ES", {
-  day: "numeric",
-  month: "short",
-});
-
-const timeFormatter = new Intl.DateTimeFormat("es-ES", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
-export function formatDateKeyLong(key: string): string {
-  const formatted = longFormatter.format(new Date(`${key}T00:00:00`));
-  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-}
-
-export function formatDateKeyShort(key: string): string {
-  return shortFormatter.format(new Date(`${key}T00:00:00`));
-}
-
-export function formatTimestamp(iso: string): string {
-  return timeFormatter.format(new Date(iso));
-}
-
-export function formatNumberEs(value: number, maxDecimals = 0): string {
-  return new Intl.NumberFormat("es-ES", { maximumFractionDigits: maxDecimals }).format(value);
-}

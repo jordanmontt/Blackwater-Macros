@@ -79,13 +79,4 @@ class DatesTest {
         val roundTrip = parseLocalDateTime(toDateTimeLocalValue(original))
         assertThat(roundTrip).isEqualTo(original)
     }
-
-    // --- Spanish date formatting ---
-
-    @Test
-    fun formatDateKeyLong_capitalizedSpanishLongDate() {
-        val formatted = formatDateKeyLong("2026-03-09") // lunes
-        assertThat(formatted).containsMatch(java.util.regex.Pattern.compile("lunes", java.util.regex.Pattern.CASE_INSENSITIVE))
-        assertThat(formatted.first().isUpperCase()).isTrue()
-    }
 }

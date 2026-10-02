@@ -6,14 +6,11 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -84,19 +81,16 @@ fun GuardedBottomSheet(
     }
 
     if (confirmDiscard) {
-        AlertDialog(
-            onDismissRequest = { confirmDiscard = false },
-            title = { Text(stringResource(R.string.discard_title)) },
-            text = { Text(discardBody) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDiscard = false
-                    onDismiss()
-                }) { Text(stringResource(R.string.discard), color = MaterialTheme.colorScheme.error) }
+        ConfirmDialog(
+            title = stringResource(R.string.discard_title),
+            text = discardBody,
+            confirmLabel = stringResource(R.string.discard),
+            cancelLabel = stringResource(R.string.keep_editing),
+            onConfirm = {
+                confirmDiscard = false
+                onDismiss()
             },
-            dismissButton = {
-                TextButton(onClick = { confirmDiscard = false }) { Text(stringResource(R.string.keep_editing)) }
-            },
+            onCancel = { confirmDiscard = false },
         )
     }
 }

@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
-import java.util.Locale
 import kotlin.text.Regex
 
 /**
@@ -55,32 +54,3 @@ fun toDateTimeLocalValue(date: LocalDateTime): String =
     date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"))
 
 fun nowDateTimeLocalValue(): String = toDateTimeLocalValue(LocalDateTime.now())
-
-private val LONG_FORMATTER: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", Locale("es", "ES"))
-
-private val SHORT_FORMATTER: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES"))
-
-private val TIME_FORMATTER: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("HH:mm", Locale("es", "ES"))
-
-fun formatDateKeyLong(key: String): String {
-    val formatted = LONG_FORMATTER.format(LocalDate.parse(key))
-    return formatted.replaceFirstChar { it.uppercase() }
-}
-
-fun formatDateKeyShort(key: String): String =
-    SHORT_FORMATTER.format(LocalDate.parse(key))
-
-fun formatTimestamp(iso: String): String =
-    TIME_FORMATTER.format(LocalDateTime.parse(iso))
-
-fun formatNumberEs(value: Double, maxDecimals: Int = 0): String =
-    formatNumberEsGrouped(value, maxDecimals).replace(".", "")
-
-/** es-ES number formatting that keeps the thousands separator (e.g. "2.000"). */
-fun formatNumberEsGrouped(value: Double, maxDecimals: Int = 0): String =
-    java.text.NumberFormat.getNumberInstance(Locale("es", "ES")).apply {
-        maximumFractionDigits = maxDecimals
-    }.format(value)

@@ -1,7 +1,6 @@
 package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,10 +33,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -61,11 +57,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.data.MealDTO
-import com.blackwatermacros.app.data.TemplateDTO
 import com.blackwatermacros.app.data.WireEntryMode
 import com.blackwatermacros.app.data.WireIngredient
 import kotlin.math.roundToLong
-import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -206,21 +200,15 @@ fun HoyScreen(
     }
 
     deletingMeal?.let { meal ->
-        AlertDialog(
-            onDismissRequest = { deletingMeal = null },
-            title = { Text(stringResource(R.string.meal_delete_title)) },
-            text = { Text(stringResource(R.string.meal_delete_body)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    deletingMeal = null
-                    deleteMeal(meal)
-                }) {
-                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
-                }
+        ConfirmDialog(
+            title = stringResource(R.string.meal_delete_title),
+            text = stringResource(R.string.meal_delete_body),
+            confirmLabel = stringResource(R.string.action_delete),
+            onConfirm = {
+                deletingMeal = null
+                deleteMeal(meal)
             },
-            dismissButton = {
-                TextButton(onClick = { deletingMeal = null }) { Text(stringResource(R.string.action_cancel)) }
-            },
+            onCancel = { deletingMeal = null },
         )
     }
 

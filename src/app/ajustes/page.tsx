@@ -17,16 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { TemplateForm } from "@/components/meals/template-form";
 import { parseBackupCsv } from "@/lib/csv-import";
 import { LanguageCard } from "@/components/settings/language-card";
@@ -407,27 +398,15 @@ export default function AjustesPage() {
       ) : null}
 
 
-      <AlertDialog
+      <ConfirmDialog
         open={deletingTemplate !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeletingTemplate(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.ajustes.deleteTemplateTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {formatTemplate(t.ajustes.deleteTemplateBody, { name: deletingTemplate?.name ?? "" })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t.meal.cancel}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => void handleDeleteTemplate()}>
-              {t.meal.delete}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={t.ajustes.deleteTemplateTitle}
+        description={formatTemplate(t.ajustes.deleteTemplateBody, { name: deletingTemplate?.name ?? "" })}
+        cancelLabel={t.meal.cancel}
+        confirmLabel={t.meal.delete}
+        onCancel={() => setDeletingTemplate(null)}
+        onConfirm={() => void handleDeleteTemplate()}
+      />
     </main>
   );
 }

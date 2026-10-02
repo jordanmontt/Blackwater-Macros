@@ -91,8 +91,6 @@ export const calorieProfileInputSchema = z.object({
   calorieGoal: z.enum(["cut", "maintain", "surplus"]).nullable(),
 });
 
-export type CalorieProfileInput = z.infer<typeof calorieProfileInputSchema>;
-
 export const loginInputSchema = z.object({
   username: z.string().trim().min(1).max(80),
   password: z.string().min(1).max(200),

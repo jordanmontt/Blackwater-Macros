@@ -948,7 +948,7 @@ thousands from five digits up** — «1,6 g», «2000 kcal», «12 345 kcal».
   Parsing accepts either separator (`.replace(",", ".")` on the web, `parseDecimal` on
   Android).
 - **Not affected:** the JSON wire format and CSV (`.`, IEEE 754), the text sent to AI
-  models (`plainNumber`, `formatNumberEs` — an exact-text contract), and the free-text
+  models (`plainNumber` — an exact-text contract), and the free-text
   quantity field, which holds strings like «30-40 g». The web profile's height/age fields
   are native `type="number"` inputs (whole numbers in practice).
 
@@ -1198,7 +1198,9 @@ app language, no medical claims.
   finish reason, `message_stop`); one that stops early fails *after* the text that arrived:
   `truncated` at the token limit, the provider's own error kind, or `interrupted` when it
   just ends (connection cut). Before this, all three looked like a finished answer that
-  stopped mid-sentence.
+  stopped mid-sentence. Android streams run on the IO dispatcher through `flowOnKeepingItems`
+  (`AiClient.kt`): with plain `flowOn` the failure cancelled the screen's collector before it
+  read the pieces still buffered, so a slow screen could lose the end of an answer, or all of it.
 - **Settings** (one key + model per provider, base URL, «El coach puede ver mis datos»):
   web `lib/ai/settings.ts` in `localStorage["bw:ai"]` (per browser), card
   `components/settings/ai-settings-card.tsx` in Ajustes; Android `data/ai/AiSettingsStore.kt`
@@ -1430,7 +1432,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `progress.test.ts` | `macroAverages` | `ProgressTest.kt` |
 | `numbers.test.ts` | `formatDecimal`, `normalizeDecimal` (the one number format, §6) | `NumbersTest.kt` |
 | `coach.test.ts` (+ `coach.fixture.ts`) | `weightProjection`, `buildCoachContext` (exact text), `buildCoachSystemPrompt` | `CoachTest.kt` |
-| `dates.test.ts` | date keys, `parseLocalDateTime`, es-ES formatters | `DatesTest.kt` |
+| `dates.test.ts` | date keys, `parseLocalDateTime`, `datetime-local` values | `DatesTest.kt` |
 | `stats.test.ts` | moving average, weekly rate, series | `StatsTest.kt` |
 | `stats-builder.test.ts` | `buildStatsFromData` | `StatsBuilderTest.kt` |
 | `auth-and-csv.test.ts` (CSV part) | `toCsv` | `CsvTest.kt` |
@@ -1445,8 +1447,9 @@ Porting notes: JSON is read as `kotlinx.serialization.json` element trees (no co
 `:core`); regexes run on Android's ICU engine, not the JVM's — avoid JVM-only syntax such as
 `(?U)` (crashes on the phone while JVM tests pass); numbers printed into text use
 `plainNumber()` so Kotlin writes «80» and «70.3» like JS `String(n)`; types become `data class`
-/ `enum class`; dates use `java.time`; clock reads are injected. The es-ES formatters exist to
-mirror the web exactly; the Android UI formats in the app language with `ui/Format.kt`.
+/ `enum class`; dates use `java.time`; clock reads are injected. Display formatting is not in
+the core except the one number format (`numbers.ts` / `Numbers.kt`); dates are formatted in the
+app language by `i18n/format.ts` / `ui/Format.kt`.
 Sharing one implementation (Kotlin Multiplatform / WebAssembly) was rejected: for this much
 stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lot.
 
@@ -1461,7 +1464,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.ts`) |
 | `data/CsvBackupTest.kt` | CSV round trip; reads a web export; skips rows the server would reject; unknown files |
 | `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, 404, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
-| `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; a stream cut by the token limit, by an error inside the stream or by the connection fails after the text that arrived; keys encrypted per provider; AI prefs excluded from backups |
+| `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; a stream cut by the token limit, by an error inside the stream or by the connection fails after the text that arrived, even when the screen reads slowly; keys encrypted per provider; AI prefs excluded from backups |
 | `data/ai/ModelListStoreTest.kt` | The model dropdown's list: reused for a day, asked again when old, forced or for another key; survives a restart; never stores the key |
 | `data/ai/MealEstimatorTest.kt` | «Foto o texto»: photos + description → one JSON request (mirrors `add-food-photo.test.tsx`); unreadable answers; the language told to the model; photo downscale; the camera FileProvider only reaches the temporary folder |
 | `data/ai/local/LocalModelTest.kt` | On-device model: resumable download, SHA-256 check, device support and the low-RAM warning, engine routing, model outside backups, what counts as an out-of-memory kill |
@@ -1652,8 +1655,8 @@ directly. The app follows the phone language; it can also be changed in Ajustes 
 Idioma (`setAppLanguage` in `ui/Format.kt`, AndroidX AppCompat per-app locales: the
 system per-app setting on Android 13+, stored by AppCompat's
 `AppLocalesMetadataHolderService` before) or in Android 13+ system settings
-(`generateLocaleConfig`). Dates and numbers are formatted with `ui/Format.kt` in the
-app language (not with `:core`'s es-ES formatters). `TranslationsTest` fails if a
+(`generateLocaleConfig`). Dates are formatted with `ui/Format.kt` in the app language;
+numbers use the one format of every language (§6). `TranslationsTest` fails if a
 language misses a key or a placeholder. CSV column names stay Spanish on purpose
 (they are the web's file format). The app label is «Blackwater Macros».
 
@@ -1668,6 +1671,8 @@ language misses a key or a placeholder. CSV column names stay Spanish on purpose
   2 dp primary border on the focused field.
 - **Numbers:** one format in every language, the same as the web: «1,6 g», «12 345 kcal»
   (§6 «Numbers on screen and in inputs»). Number fields turn a typed `.` into `,`.
+- **Confirmations:** `ConfirmDialog` (Android) / `components/confirm-dialog.tsx` (web) for
+  every «delete / discard / log out?» question: title, one text, Cancel, red confirm.
 - **Sheets that hold input** (`GuardedBottomSheet`: the meal/template form and «Añadir
   comida»): with nothing typed they close like any sheet (swipe down, tap outside, Back).
   Once something would be lost — form edits or a pre-filled meal; in «Añadir comida» an AI

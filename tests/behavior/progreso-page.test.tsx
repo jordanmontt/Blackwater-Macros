@@ -2,7 +2,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProgresoPage from "@/app/progreso/page";
-import { addDaysToKey, formatNumberEs, todayKey } from "@/lib/core/dates";
+import { addDaysToKey, todayKey } from "@/lib/core/dates";
+import { formatNumber } from "@/i18n/format";
 import { buildStatsFromData } from "@/lib/core/stats-builder";
 import type { CalorieProfile, MealDTO, StatsRange, WeightDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
@@ -114,10 +115,10 @@ describe("pantalla Progreso", () => {
     ];
     render(<ProgresoPage />);
 
-    expect(await screen.findByTestId("current-weight")).toHaveTextContent(`${formatNumberEs(79.5, 1)} kg`);
+    expect(await screen.findByTestId("current-weight")).toHaveTextContent(`${formatNumber(79.5, 1)} kg`);
     expect(screen.getByText(t.progreso.trend)).toBeInTheDocument();
-    expect(screen.getByText(`-${formatNumberEs(0.5, 1)}`)).toBeInTheDocument(); // cambio
-    expect(screen.getByText(formatNumberEs(18.5, 1))).toBeInTheDocument(); // grasa
+    expect(screen.getByText(`-${formatNumber(0.5, 1)}`)).toBeInTheDocument(); // cambio
+    expect(screen.getByText(formatNumber(18.5, 1))).toBeInTheDocument(); // grasa
     expect(screen.getByTestId("grafico-peso")).toHaveAttribute("data-puntos", "2");
   });
 
@@ -127,7 +128,7 @@ describe("pantalla Progreso", () => {
     render(<ProgresoPage />);
 
     expect(await screen.findByText(formatTemplateText(t.progreso.loggedDays, { n: 2, m: 30 }))).toBeInTheDocument();
-    expect(screen.getByText(`${formatNumberEs(2100)} kcal`)).toBeInTheDocument();
+    expect(screen.getByText(`${formatNumber(2100)} kcal`)).toBeInTheDocument();
     expect(screen.getByText("140 g")).toBeInTheDocument();
     expect(screen.getByTestId("macro-split")).toHaveTextContent("27 %");
     expect(screen.getByTestId("macro-split")).toHaveTextContent("44 %");

@@ -15,16 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -164,25 +155,15 @@ export default function ProgresoPage() {
         onSaved={() => weightsRes.trigger()}
       />
 
-      <AlertDialog
+      <ConfirmDialog
         open={deleting !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeleting(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.peso.deleteConfirmTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{t.peso.deleteConfirmBody}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t.peso.cancel}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => void handleDeleteConfirmed()}>
-              {t.peso.delete}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={t.peso.deleteConfirmTitle}
+        description={t.peso.deleteConfirmBody}
+        cancelLabel={t.peso.cancel}
+        confirmLabel={t.peso.delete}
+        onCancel={() => setDeleting(null)}
+        onConfirm={() => void handleDeleteConfirmed()}
+      />
 
       {/* Labelled: a bare «+» here did not say it logs a weigh-in. */}
       <Button

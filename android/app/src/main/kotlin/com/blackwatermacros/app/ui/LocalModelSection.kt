@@ -227,19 +227,15 @@ internal fun LocalModelSection(viewModel: AiSettingsViewModel) {
     }
 
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.local_model_delete)) },
-            text = { Text(stringResource(R.string.local_model_delete_body, sizeGb)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    viewModel.deleteModel()
-                }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
+        ConfirmDialog(
+            title = stringResource(R.string.local_model_delete),
+            text = stringResource(R.string.local_model_delete_body, sizeGb),
+            confirmLabel = stringResource(R.string.action_delete),
+            onConfirm = {
+                confirmDelete = false
+                viewModel.deleteModel()
             },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.action_cancel)) }
-            },
+            onCancel = { confirmDelete = false },
         )
     }
 }

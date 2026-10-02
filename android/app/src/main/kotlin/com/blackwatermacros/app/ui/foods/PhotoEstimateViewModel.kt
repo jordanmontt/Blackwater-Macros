@@ -2,7 +2,6 @@ package com.blackwatermacros.app.ui.foods
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
@@ -23,7 +22,6 @@ import com.blackwatermacros.app.data.ai.local.LocalModelState
 import kotlinx.coroutines.flow.combine
 import com.blackwatermacros.app.ui.appLocale
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,7 +30,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 
 class MealPhoto(val id: Long, val image: AiImage, val preview: ImageBitmap)

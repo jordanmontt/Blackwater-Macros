@@ -141,7 +141,6 @@ fun WeightFatChart(
             val chartWidth = size.width
             val plotHeight = size.height
             val plotTop = 48.dp.toPx()
-            val labelBaseline = 14.dp.toPx()
             val leftAxisWidth = 44.dp.toPx()
             val rightAxisWidth = if (pctRows.isNotEmpty()) 40.dp.toPx() else 6.dp.toPx()
             val plotLeft = leftAxisWidth

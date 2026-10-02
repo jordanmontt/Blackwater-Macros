@@ -33,12 +33,12 @@ class MealEstimator(
             // No constrained decoding: with Gemma 4 it returned valid JSON with garbled text
             // (every name «:»). The prompt describes the JSON and the parser is tolerant;
             // an unreadable answer gets one more try.
-            val first = local.complete(system, userText, photos, jsonSchema = null)
+            val first = local.complete(system, userText, photos)
             if (parseMealEstimate(first) is MealEstimateResult.Ok) {
                 first
             } else {
                 if (BuildConfig.DEBUG) Log.d("MealEstimator", "Unreadable local answer: ${first.take(500)}")
-                local.complete(system, userText, photos, jsonSchema = null)
+                local.complete(system, userText, photos)
             }
         } else {
             client.complete(

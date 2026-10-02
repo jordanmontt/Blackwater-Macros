@@ -6,16 +6,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AddFoodSheet } from "@/components/meals/add-food-sheet";
@@ -315,25 +306,15 @@ export default function HoyPage() {
         notice={editingMeal ? null : reviewNotice}
       />
 
-      <AlertDialog
+      <ConfirmDialog
         open={deletingMeal !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeletingMeal(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.meal.deleteConfirmTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{t.meal.deleteConfirmBody}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t.meal.cancel}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => void handleDeleteConfirmed()}>
-              {t.meal.delete}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={t.meal.deleteConfirmTitle}
+        description={t.meal.deleteConfirmBody}
+        cancelLabel={t.meal.cancel}
+        confirmLabel={t.meal.delete}
+        onCancel={() => setDeletingMeal(null)}
+        onConfirm={() => void handleDeleteConfirmed()}
+      />
 
       <Button
         onClick={openAdd}

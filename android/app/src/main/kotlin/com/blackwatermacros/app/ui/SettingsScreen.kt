@@ -187,64 +187,44 @@ fun SettingsScreen(
     }
 
     (logoutPrompt as? LogoutPrompt.UnsyncedChanges)?.let { prompt ->
-        AlertDialog(
-            onDismissRequest = viewModel::dismissLogout,
-            title = { Text(stringResource(R.string.logout_title)) },
-            text = { Text(pluralStringResource(R.plurals.logout_unsynced, prompt.count, prompt.count)) },
-            confirmButton = {
-                TextButton(onClick = viewModel::confirmLogout) {
-                    Text(stringResource(R.string.logout), color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissLogout) { Text(stringResource(R.string.action_cancel)) }
-            },
+        ConfirmDialog(
+            title = stringResource(R.string.logout_title),
+            text = pluralStringResource(R.plurals.logout_unsynced, prompt.count, prompt.count),
+            confirmLabel = stringResource(R.string.logout),
+            onConfirm = viewModel::confirmLogout,
+            onCancel = viewModel::dismissLogout,
         )
     }
 
     deletePrompt?.let { prompt ->
-        AlertDialog(
-            onDismissRequest = viewModel::dismissDeleteData,
-            title = { Text(stringResource(R.string.data_delete_title)) },
-            text = {
-                val body = stringResource(if (prompt.loggedIn) R.string.data_delete_body_account else R.string.data_delete_body_local)
-                val unsynced = if (prompt.unsyncedChanges > 0) {
-                    "\n\n" + pluralStringResource(R.plurals.data_delete_unsynced, prompt.unsyncedChanges, prompt.unsyncedChanges)
-                } else {
-                    ""
-                }
-                Text(body + unsynced)
-            },
-            confirmButton = {
-                TextButton(onClick = viewModel::confirmDeleteData) {
-                    Text(stringResource(R.string.data_delete_confirm), color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissDeleteData) { Text(stringResource(R.string.action_cancel)) }
-            },
+        val body = stringResource(if (prompt.loggedIn) R.string.data_delete_body_account else R.string.data_delete_body_local)
+        val unsynced = if (prompt.unsyncedChanges > 0) {
+            "\n\n" + pluralStringResource(R.plurals.data_delete_unsynced, prompt.unsyncedChanges, prompt.unsyncedChanges)
+        } else {
+            ""
+        }
+        ConfirmDialog(
+            title = stringResource(R.string.data_delete_title),
+            text = body + unsynced,
+            confirmLabel = stringResource(R.string.data_delete_confirm),
+            onConfirm = viewModel::confirmDeleteData,
+            onCancel = viewModel::dismissDeleteData,
         )
     }
 
     deletingTemplate?.let { template ->
-        AlertDialog(
-            onDismissRequest = { deletingTemplate = null },
-            title = { Text(stringResource(R.string.template_delete_title)) },
-            text = { Text(stringResource(R.string.template_delete_body)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteTemplate(template.id)
-                        deletingTemplate = null
-                        snackbarScope.offerUndo(snackbarHostState, templateDeletedMessage, undoLabel) {
-                            viewModel.restoreTemplate(template)
-                        }
-                    },
-                ) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
+        ConfirmDialog(
+            title = stringResource(R.string.template_delete_title),
+            text = stringResource(R.string.template_delete_body),
+            confirmLabel = stringResource(R.string.action_delete),
+            onConfirm = {
+                viewModel.deleteTemplate(template.id)
+                deletingTemplate = null
+                snackbarScope.offerUndo(snackbarHostState, templateDeletedMessage, undoLabel) {
+                    viewModel.restoreTemplate(template)
+                }
             },
-            dismissButton = {
-                TextButton(onClick = { deletingTemplate = null }) { Text(stringResource(R.string.action_cancel)) }
-            },
+            onCancel = { deletingTemplate = null },
         )
     }
 

@@ -3,16 +3,7 @@
 import { useCallback, useState } from "react";
 import { SparklesIcon } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Sheet } from "@/components/ui/sheet";
 import {
   NutritionEntryFields,
@@ -103,20 +94,15 @@ export function MealForm({
           />
         ) : null}
       </Sheet>
-      <AlertDialog open={confirmDiscard} onOpenChange={setConfirmDiscard}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.addFood.discardTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{t.addFood.discardBody}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t.addFood.keepEditing}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={close}>
-              {t.addFood.discard}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={confirmDiscard}
+        title={t.addFood.discardTitle}
+        description={t.addFood.discardBody}
+        cancelLabel={t.addFood.keepEditing}
+        confirmLabel={t.addFood.discard}
+        onCancel={() => setConfirmDiscard(false)}
+        onConfirm={close}
+      />
     </>
   );
 }

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   addDaysToKey,
   daysBetweenKeys,
-  formatDateKeyLong,
   isValidDateKey,
   nowDateTimeLocalValue,
   parseLocalDateTime,
@@ -65,13 +64,5 @@ describe("selector de fecha y hora (datetime-local)", () => {
     const original = new Date(2026, 6, 16, 8, 45);
     const roundTrip = parseLocalDateTime(toDateTimeLocalValue(original));
     expect(roundTrip?.getTime()).toBe(original.getTime());
-  });
-});
-
-describe("formato de fechas en español", () => {
-  it("muestra la fecha larga capitalizada para el encabezado del día", () => {
-    const formatted = formatDateKeyLong("2026-03-09"); // lunes
-    expect(formatted).toMatch(/lunes/i);
-    expect(formatted[0]).toBe(formatted[0].toUpperCase());
   });
 });

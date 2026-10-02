@@ -21,11 +21,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MonitorWeight
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -40,7 +38,6 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -149,22 +146,16 @@ fun ProgressScreen(
     }
 
     deletingWeight?.let { w ->
-        AlertDialog(
-            onDismissRequest = { deletingWeight = null },
-            title = { Text(stringResource(R.string.weight_delete_title)) },
-            text = { Text(stringResource(R.string.weight_delete_body)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteWeight(w.id)
-                    deletingWeight = null
-                    scope.offerUndo(snackbarHostState, weightDeletedMessage, undoLabel) { viewModel.restoreWeight(w) }
-                }) {
-                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
-                }
+        ConfirmDialog(
+            title = stringResource(R.string.weight_delete_title),
+            text = stringResource(R.string.weight_delete_body),
+            confirmLabel = stringResource(R.string.action_delete),
+            onConfirm = {
+                viewModel.deleteWeight(w.id)
+                deletingWeight = null
+                scope.offerUndo(snackbarHostState, weightDeletedMessage, undoLabel) { viewModel.restoreWeight(w) }
             },
-            dismissButton = {
-                TextButton(onClick = { deletingWeight = null }) { Text(stringResource(R.string.action_cancel)) }
-            },
+            onCancel = { deletingWeight = null },
         )
     }
 }

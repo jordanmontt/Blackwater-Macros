@@ -7,6 +7,7 @@ import com.blackwatermacros.app.core.AiImage
 import com.blackwatermacros.app.core.AiMessage
 import com.blackwatermacros.app.core.AiRole
 import com.blackwatermacros.app.data.ai.AiException
+import com.blackwatermacros.app.data.ai.flowOnKeepingItems
 import com.blackwatermacros.app.data.ai.AiFailure
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.Capabilities
@@ -16,7 +17,6 @@ import com.google.ai.edge.litertlm.ConversationConfig
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.Message
-import com.google.ai.edge.litertlm.ResponseFormat
 import com.google.ai.edge.litertlm.ThinkingConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -98,11 +97,10 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
         return candidate
     }
 
-    private fun config(system: String, history: List<AiMessage>, json: Boolean) = ConversationConfig(
+    private fun config(system: String, history: List<AiMessage>) = ConversationConfig(
         systemInstruction = Contents.of(system),
         initialMessages = history.map { if (it.role == AiRole.USER) Message.user(it.text) else Message.model(it.text) },
         thinkingConfig = ThinkingConfig(false),
-        enableResponseFormat = json,
     )
 
     private fun contents(text: String, images: List<AiImage>): Contents = Contents.of(
@@ -137,7 +135,7 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
     fun stream(system: String, messages: List<AiMessage>): Flow<String> = flow {
         mutex.withLock {
             withEngine(vision = messages.last().images.isNotEmpty()) { engine ->
-                engine.createConversation(config(system, messages.dropLast(1), json = false)).use { conversation ->
+                engine.createConversation(config(system, messages.dropLast(1))).use { conversation ->
                     conversation.sendMessageAsync(contents(messages.last().text, messages.last().images)).collect { piece ->
                         val text = piece.text()
                         if (text.isNotEmpty()) emit(text)
@@ -145,19 +143,16 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
                 }
             }
         }
-    }.flowOn(Dispatchers.IO)
+    }.flowOnKeepingItems(Dispatchers.IO)
 
-    /** A whole answer, as JSON following [jsonSchema] when given (meal estimates). */
-    suspend fun complete(system: String, text: String, images: List<AiImage>, jsonSchema: String?): String =
+    /** A whole answer (meal estimates; the prompt asks for JSON, see [MealEstimator]). */
+    suspend fun complete(system: String, text: String, images: List<AiImage>): String =
         withContext(Dispatchers.IO) {
             mutex.withLock {
                 withEngine(vision = images.isNotEmpty()) { engine ->
-                    engine.createConversation(config(system, emptyList(), json = jsonSchema != null)).use { conversation ->
+                    engine.createConversation(config(system, emptyList())).use { conversation ->
                         val answer = StringBuilder()
-                        conversation.sendMessageAsync(
-                            contents(text, images),
-                            responseFormat = jsonSchema?.let { ResponseFormat.json(it) },
-                        ).collect { answer.append(it.text()) }
+                        conversation.sendMessageAsync(contents(text, images)).collect { answer.append(it.text()) }
                         answer.toString()
                     }
                 }
@@ -190,8 +185,5 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
         const val MAX_IMAGES = 5
         /** Long enough for a follow-up question; reloading takes ~20 s on the CPU. */
         const val IDLE_RELEASE_MS = 60_000L
-
-        /** The meal estimate as a JSON schema, for constrained decoding (same fields as `MEAL_ESTIMATE_SHAPE`). */
-        const val MEAL_ESTIMATE_SCHEMA = """{"type":"object","properties":{"title":{"type":"string"},"items":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"grams":{"type":"number"},"calories":{"type":"number"},"protein":{"type":"number"},"carbs":{"type":"number"},"fat":{"type":"number"}},"required":["name","grams","calories","protein","carbs","fat"]}},"confidence":{"type":"string","enum":["low","medium","high"]},"notes":{"type":"string"}},"required":["title","items","confidence","notes"]}"""
     }
 }

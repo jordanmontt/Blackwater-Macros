@@ -12,7 +12,7 @@ import java.util.Locale
 
 /**
  * Display formatting: dates in the app's language, numbers in the app's single
- * format. `:core` keeps its es-ES formatters for the AI prompts (they mirror the web).
+ * format (core `formatDecimal`, the same as the web).
  */
 
 private val SupportedLanguages = setOf("en", "es", "fr", "it", "de")

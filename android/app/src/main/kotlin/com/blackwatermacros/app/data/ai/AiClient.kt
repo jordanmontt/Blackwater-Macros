@@ -16,11 +16,15 @@ import com.blackwatermacros.app.core.parseAiResponse
 import com.blackwatermacros.app.core.AiStreamEnd
 import com.blackwatermacros.app.core.parseAiStreamEnd
 import com.blackwatermacros.app.core.parseAiStreamLine
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -139,7 +143,7 @@ class AiClient(
             }
             if (!finished) throw AiException(AiFailure.INTERRUPTED)
         }
-    }.flowOn(Dispatchers.IO)
+    }.flowOnKeepingItems(Dispatchers.IO)
 
     /** The models [config]'s key can use, as the provider lists them (`:core` `parseModelList`). */
     suspend fun listModels(config: AiConfig): List<AiModelOption> = withContext(Dispatchers.IO) {
@@ -188,3 +192,14 @@ class AiClient(
         )
     }
 }
+
+/**
+ * [flowOn] that still delivers every item emitted before a failure. With plain
+ * [flowOn] a failure on [dispatcher] cancels the collector before it reads the
+ * items still in the buffer: a slow screen lost the end of an answer cut short.
+ */
+internal fun <T> Flow<T>.flowOnKeepingItems(dispatcher: CoroutineDispatcher): Flow<T> =
+    map { Result.success(it) }
+        .catch { if (it is CancellationException) throw it else emit(Result.failure(it)) }
+        .flowOn(dispatcher)
+        .map { it.getOrThrow() }

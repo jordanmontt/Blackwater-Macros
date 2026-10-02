@@ -495,24 +495,12 @@ export function ensureDemoStore(): DemoStore {
 // Read operations
 // ---------------------------------------------------------------------------
 
+/** The MealDTO without the client-only sort fields. */
 function stripMeal(meal: StoredMeal): MealDTO {
-  return {
-    id: meal.id,
-    logDate: meal.logDate,
-    title: meal.title,
-    notes: meal.notes,
-    entryMode: meal.entryMode,
-    ingredients: meal.ingredients,
-    totalCalories: meal.totalCalories,
-    totalProtein: meal.totalProtein,
-    totalCarbs: meal.totalCarbs,
-    totalFat: meal.totalFat,
-    resolvedCalories: meal.resolvedCalories,
-    resolvedProtein: meal.resolvedProtein,
-    resolvedCarbs: meal.resolvedCarbs,
-    resolvedFat: meal.resolvedFat,
-    updatedAt: meal.updatedAt,
-  };
+  const dto: Partial<StoredMeal> = { ...meal };
+  delete dto.order;
+  delete dto.createdAt;
+  return dto as MealDTO;
 }
 
 export function listDemoMeals(): MealDTO[] {
@@ -537,9 +525,7 @@ export function listDemoTemplates(): MealTemplateDTO[] {
 }
 
 export function listDemoWeights(): WeightDTO[] {
-  return [...ensureDemoStore().weights].sort((a, b) =>
-    a.measuredAt.localeCompare(b.measuredAt),
-  );
+  return [...ensureDemoStore().weights].sort(byTime);
 }
 
 // ---------------------------------------------------------------------------
@@ -548,6 +534,19 @@ export function listDemoWeights(): WeightDTO[] {
 
 function write(fn: (store: DemoStore) => DemoStore): void {
   saveStore(fn(loadStore()));
+}
+
+const byTime = (a: WeightDTO, b: WeightDTO) => a.measuredAt.localeCompare(b.measuredAt);
+
+/** Removes the item with [id] from one list; whether it was there. */
+function removeById(key: keyof DemoStore, id: string): boolean {
+  let found = false;
+  write((store) => {
+    const next = (store[key] as { id: string }[]).filter((item) => item.id !== id);
+    found = next.length !== store[key].length;
+    return { ...store, [key]: next };
+  });
+  return found;
 }
 
 export function createDemoMeal(payload: MealPayload): MealDTO {
@@ -588,13 +587,7 @@ export function updateDemoMeal(id: string, payload: MealPayload): MealDTO | null
 }
 
 export function deleteDemoMeal(id: string): boolean {
-  let found = false;
-  write((store) => {
-    const next = store.meals.filter((meal) => meal.id !== id);
-    found = next.length !== store.meals.length;
-    return { ...store, meals: next };
-  });
-  return found;
+  return removeById("meals", id);
 }
 
 /** Undo of a delete: the same meal (same id) back on its day; the caller restores the order. */
@@ -651,13 +644,7 @@ export function updateDemoTemplate(id: string, payload: TemplatePayload): MealTe
 }
 
 export function deleteDemoTemplate(id: string): boolean {
-  let found = false;
-  write((store) => {
-    const next = store.templates.filter((template) => template.id !== id);
-    found = next.length !== store.templates.length;
-    return { ...store, templates: next };
-  });
-  return found;
+  return removeById("templates", id);
 }
 
 export function createDemoWeight(payload: WeightPayload): WeightDTO {
@@ -669,12 +656,7 @@ export function createDemoWeight(payload: WeightPayload): WeightDTO {
     note: payload.note ?? null,
     updatedAt: new Date().toISOString(),
   };
-  write((store) => ({
-    ...store,
-    weights: [...store.weights, weight].sort((a, b) =>
-      a.measuredAt.localeCompare(b.measuredAt),
-    ),
-  }));
+  write((store) => ({ ...store, weights: [...store.weights, weight].sort(byTime) }));
   return weight;
 }
 
@@ -695,7 +677,7 @@ export function updateDemoWeight(id: string, payload: WeightPayload): WeightDTO 
         };
         return updated;
       })
-      .sort((a, b) => a.measuredAt.localeCompare(b.measuredAt)),
+      .sort(byTime),
   }));
   return updated;
 }
@@ -705,18 +687,12 @@ export function restoreDemoWeight(weight: WeightDTO): void {
   write((store) =>
     store.weights.some((existing) => existing.id === weight.id)
       ? store
-      : { ...store, weights: [...store.weights, weight].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt)) },
+      : { ...store, weights: [...store.weights, weight].sort(byTime) },
   );
 }
 
 export function deleteDemoWeight(id: string): boolean {
-  let found = false;
-  write((store) => {
-    const next = store.weights.filter((weight) => weight.id !== id);
-    found = next.length !== store.weights.length;
-    return { ...store, weights: next };
-  });
-  return found;
+  return removeById("weights", id);
 }
 
 // --- Settings ---

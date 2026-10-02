@@ -2,7 +2,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import HoyPage from "@/app/page";
-import { addDaysToKey, formatNumberEs, todayKey } from "@/lib/core/dates";
+import { addDaysToKey, todayKey } from "@/lib/core/dates";
+import { formatNumber } from "@/i18n/format";
 import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
 
 /**
@@ -82,8 +83,8 @@ describe("pantalla Hoy", () => {
     render(<HoyPage />);
 
     // 475 + 850 = 1325 kcal; 32.4 + 45 = 77.4 g
-    expect(await screen.findByText(formatNumberEs(1325))).toBeInTheDocument();
-    expect(screen.getByText(formatNumberEs(77.4, 1))).toBeInTheDocument();
+    expect(await screen.findByText(formatNumber(1325))).toBeInTheDocument();
+    expect(screen.getByText(formatNumber(77.4, 1))).toBeInTheDocument();
     expect(screen.getByText("Desayuno")).toBeInTheDocument();
     expect(screen.getByText("Comida")).toBeInTheDocument();
   });

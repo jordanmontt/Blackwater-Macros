@@ -7,6 +7,7 @@ import com.blackwatermacros.app.core.AiMessage
 import com.blackwatermacros.app.core.AiProvider
 import com.blackwatermacros.app.core.AiRole
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
@@ -178,6 +179,30 @@ class AiClientTest {
         val (done, doneError) = collect(gemini, "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"Fin.\"}]},\"finishReason\":\"STOP\"}]}\n\n")
         assertThat(done).containsExactly("Fin.")
         assertThat(doneError).isNull()
+    }
+
+    @Test
+    fun `a slow screen still gets every piece before the error`() = runBlocking {
+        // The phone's main thread can lag behind the network: the pieces already read must not be
+        // dropped when the failure comes right after them.
+        server.enqueue(
+            MockResponse().setHeader("Content-Type", "text/event-stream").setBody(
+                (1..5).joinToString("") { "data: {\"choices\":[{\"delta\":{\"content\":\"$it\"}}]}\n\n" } +
+                    "data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"length\"}]}\n\n",
+            ),
+        )
+        val pieces = mutableListOf<String>()
+        val error = try {
+            client.stream(openai, input).collect {
+                delay(50)
+                pieces += it
+            }
+            null
+        } catch (e: AiException) {
+            e
+        }
+        assertThat(pieces).containsExactly("1", "2", "3", "4", "5").inOrder()
+        assertThat(error?.failure).isEqualTo(AiFailure.TRUNCATED)
     }
 
     @Test

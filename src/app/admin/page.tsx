@@ -5,16 +5,7 @@ import { formatDateMedium } from "@/i18n/format";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeftIcon, PencilIcon, PlusIcon, ShieldIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -363,25 +354,15 @@ export default function AdminPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
+      <ConfirmDialog
         open={deleting !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeleting(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.admin.deleteConfirmTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{t.admin.deleteConfirmBody}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t.admin.cancel}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => void handleDelete()}>
-              {t.admin.delete}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={t.admin.deleteConfirmTitle}
+        description={t.admin.deleteConfirmBody}
+        cancelLabel={t.admin.cancel}
+        confirmLabel={t.admin.delete}
+        onCancel={() => setDeleting(null)}
+        onConfirm={() => void handleDelete()}
+      />
     </main>
   );
 }

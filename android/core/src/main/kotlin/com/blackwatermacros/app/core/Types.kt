@@ -41,24 +41,6 @@ data class MealDTO(
     val updatedAt: String,
 )
 
-data class MealTemplateDTO(
-    val id: String,
-    val name: String,
-    val title: String,
-    val notes: String?,
-    val entryMode: EntryMode,
-    val ingredients: List<IngredientInput>,
-    val totalCalories: Double?,
-    val totalProtein: Double?,
-    val totalCarbs: Double?,
-    val totalFat: Double?,
-    val resolvedCalories: Double,
-    val resolvedProtein: Double,
-    val resolvedCarbs: Double,
-    val resolvedFat: Double,
-    val updatedAt: String,
-)
-
 data class WeightDTO(
     val id: String,
     val measuredAt: String,
@@ -128,8 +110,6 @@ data class StatsSummary(
 )
 
 // --- Settings / users ---
-
-data class UserSettings(val calorieProfile: CalorieProfile)
 
 data class AdminUserDTO(
     val id: String,

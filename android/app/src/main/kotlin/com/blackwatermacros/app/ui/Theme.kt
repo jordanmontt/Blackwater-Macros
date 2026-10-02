@@ -35,8 +35,6 @@ internal val ChartClay = Color(0xFF9A6B5A)
 
 /** Shared corner radii. */
 internal val CardShape = RoundedCornerShape(12.dp)
-internal val FieldShape = RoundedCornerShape(10.dp)
-internal val PillShape = RoundedCornerShape(50)
 
 /** Material 3 shape tokens used across the app. */
 internal val BlackwaterShapes = Shapes(
@@ -149,10 +147,6 @@ internal val BlackwaterTypography = Typography(
         letterSpacing = 0.5.sp,
     ),
 )
-
-/** Convenience for the shared field shape. */
-@Composable
-internal fun MaterialTheme.fieldShape() = FieldShape
 
 /**
  * Standard card used across the app: a surface-container tone one step
