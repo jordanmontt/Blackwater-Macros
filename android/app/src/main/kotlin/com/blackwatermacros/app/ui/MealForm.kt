@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -137,18 +136,18 @@ fun MealFormSheet(
         discardBody = stringResource(R.string.discard_body),
         onDismiss = onDismiss,
     ) { requestDismiss ->
-        Column(Modifier.fillMaxWidth().fillMaxHeight(0.9f)) {
-            MealFormFields(
-                heading = heading,
-                initial = initial,
-                onCancel = requestDismiss,
-                onSubmit = onSubmit,
-                onDirtyChange = { dirty = it || prefilled },
-                onSearchFood = onSearchFood,
-                appendRequest = appendRequest,
-                notice = notice,
-            )
-        }
+        // Sized by its content, no fixed height: at 90% of the screen, a long form
+        // scrolled to the bottom made the sheet jump up and down by itself.
+        MealFormFields(
+            heading = heading,
+            initial = initial,
+            onCancel = requestDismiss,
+            onSubmit = onSubmit,
+            onDirtyChange = { dirty = it || prefilled },
+            onSearchFood = onSearchFood,
+            appendRequest = appendRequest,
+            notice = notice,
+        )
     }
 }
 

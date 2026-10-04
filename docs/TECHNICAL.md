@@ -1581,7 +1581,11 @@ every language (§6). CSV column names stay Spanish (the web's file format). The
   portion — the sheet's gestures are off, so scrolling a long form only scrolls it, and
   tapping outside, Back, Cancel or a swipe on the handle all ask «¿Descartar los cambios?».
   Don't veto the swipe with `confirmValueChange` instead (deprecated): the sheet keeps
-  following the content's scroll and jumps up and down on long forms.
+  following the content's scroll and jumps up and down on long forms. Let a sheet take its
+  content's height (no `fillMaxHeight(0.9f)`): with a fixed fraction, a long meal scrolled
+  to the bottom made the sheet jump up and down by itself.
+- **Orientation:** portrait only (`screenOrientation="portrait"` in the manifest); no
+  screen has a landscape layout.
 - **Charts:** hand-drawn Compose Canvas; all text sizes in sp (`AxisTextSize`,
   `TooltipTextSize`) so they follow the phone's font size.
 - **Intake bars** (Comidas): outlined track = what is left, solid fill = eaten (ember past
