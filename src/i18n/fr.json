@@ -48,7 +48,7 @@
     "editTitle": "Modifier le repas",
     "titleLabel": "Titre",
     "titlePlaceholder": "Petit-déjeuner",
-    "titleRequired": "Le titre est obligatoire.",
+    "titleRequired": "Saisissez un titre pour enregistrer.",
     "notesLabel": "Notes (facultatif)",
     "modeLabel": "Comment voulez-vous saisir la nutrition ?",
     "modePerIngredient": "Par ingrédient",

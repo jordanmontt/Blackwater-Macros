@@ -3,6 +3,7 @@ package com.blackwatermacros.app.ui
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -43,6 +44,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -396,46 +399,61 @@ private fun CopyFromDay(
     )
     Spacer(Modifier.height(8.dp))
     val list = meals
-    when {
-        list == null -> Unit
-        list.isEmpty() -> Text(
-            stringResource(R.string.add_food_copy_empty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(vertical = 16.dp).fillMaxWidth(),
-        )
-        else -> {
-            val shape = RoundedCornerShape(12.dp)
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(shape)
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape),
-            ) {
-                list.forEachIndexed { index, meal ->
-                    if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    val checked = meal.id in selected
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelectedChange(if (checked) selected - meal.id else selected + meal.id) }
-                            .padding(end = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Checkbox(checked = checked, onCheckedChange = { onSelectedChange(if (it) selected + meal.id else selected - meal.id) })
-                        Text(
-                            meal.title,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Text(
-                            "${formatNumber(meal.resolvedCalories)} kcal · ${formatNumber(meal.resolvedProtein, 1)} g",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+    // The list area keeps one height whatever the day holds (it scrolls when the day has
+    // more meals), so the sheet doesn't resize and the arrows above stay under the thumb
+    // while going back several days.
+    val listHeight = with(LocalDensity.current) { (LocalWindowInfo.current.containerSize.height * 0.4f).toDp() }
+    val shape = RoundedCornerShape(12.dp)
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(listHeight)
+            .clip(shape)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape),
+        contentAlignment = Alignment.Center,
+    ) {
+        when {
+            list == null -> Unit
+            list.isEmpty() -> Text(
+                stringResource(R.string.add_food_copy_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            )
+            else -> {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopStart)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    // A line under every row, the last one too: it marks the end of a short list.
+                    list.forEach { meal ->
+                        val checked = meal.id in selected
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelectedChange(if (checked) selected - meal.id else selected + meal.id) }
+                                .padding(end = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(checked = checked, onCheckedChange = { onSelectedChange(if (it) selected + meal.id else selected - meal.id) })
+                            Text(
+                                meal.title,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                "${formatNumber(meal.resolvedCalories)} kcal · ${formatNumber(meal.resolvedProtein, 1)} g",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
             }

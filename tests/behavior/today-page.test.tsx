@@ -213,6 +213,28 @@ describe("pantalla Hoy", () => {
     expect(within(form).getByLabelText(t.meal.titleLabel)).toHaveValue("");
   });
 
+  it("guardar sin título lo explica en el propio campo y lo enfoca; escribir lo quita", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+
+    const sheet = await openAddSheet(user);
+    await user.click(within(sheet).getByRole("button", { name: new RegExp(t.addFood.manual) }));
+    const form = await screen.findByRole("dialog", { name: t.meal.newTitle });
+    const title = within(form).getByLabelText(t.meal.titleLabel);
+    // En el móvil el teclado empieza en mayúscula.
+    expect(title).toHaveAttribute("autocapitalize", "sentences");
+
+    await user.click(within(form).getByRole("button", { name: t.meal.save }));
+    expect(within(form).getByRole("alert")).toHaveTextContent(t.meal.titleRequired);
+    expect(title).toHaveAttribute("aria-invalid", "true");
+    expect(title).toHaveFocus();
+    expect(vi.mocked(api.createMeal)).not.toHaveBeenCalled();
+
+    await user.type(title, "Merienda");
+    expect(within(form).queryByRole("alert")).toBeNull();
+    expect(title).not.toHaveAttribute("aria-invalid");
+  });
+
   it("copia comidas elegidas de otro día al día que se está viendo", async () => {
     const user = userEvent.setup();
     const yesterday = addDaysToKey(todayKey(), -1);

@@ -1596,6 +1596,14 @@ every language (§6). CSV column names stay Spanish (the web's file format). The
 - **Comidas:** double-tap the date → today; deleting a meal asks first, then offers Undo;
   single-ingredient meals don't repeat the numbers of the totals;
   ingredient columns have fixed widths that scale with the font size.
+- **Day navigator** (Comidas and «Copiar de otro día», web and Android): the arrows stay
+  in place whatever the date's length, and the «Hoy» line is always reserved. In «Copiar de
+  otro día» the meal list has a fixed height (40 % of the screen, scrolls inside), so
+  stepping back through days never moves the arrows.
+- **Meal form:** title, ingredient names and notes start with a capital letter on the
+  phone keyboard (`autoCapitalize="sentences"` / `KeyboardCapitalization.Sentences`).
+  Guardar with no title marks the title field (red border, «Escribe un título…» under it)
+  and focuses it; other errors show next to Guardar.
 - **Logo:** the 20 kg «BW» plate with a steel hub. `scripts/logo/render.html` is the
   single vector source; `scripts/logo/render-icons.sh` renders every size with headless
   Chrome: the Android adaptive icon (foreground = the plate filling the visible area,

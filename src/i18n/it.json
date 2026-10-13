@@ -48,7 +48,7 @@
     "editTitle": "Modifica pasto",
     "titleLabel": "Titolo",
     "titlePlaceholder": "Colazione",
-    "titleRequired": "Il titolo è obbligatorio.",
+    "titleRequired": "Inserisci un titolo per salvare.",
     "notesLabel": "Note (facoltativo)",
     "modeLabel": "Come vuoi inserire i valori nutrizionali?",
     "modePerIngredient": "Per ingrediente",

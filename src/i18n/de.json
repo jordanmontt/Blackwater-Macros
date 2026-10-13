@@ -48,7 +48,7 @@
     "editTitle": "Mahlzeit bearbeiten",
     "titleLabel": "Titel",
     "titlePlaceholder": "Frühstück",
-    "titleRequired": "Der Titel ist erforderlich.",
+    "titleRequired": "Gib einen Titel ein, um zu speichern.",
     "notesLabel": "Notizen (optional)",
     "modeLabel": "Wie möchtest du die Nährwerte eingeben?",
     "modePerIngredient": "Pro Zutat",

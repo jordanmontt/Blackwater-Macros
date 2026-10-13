@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -75,6 +76,7 @@ internal fun IngredientEditor(
                 value = item.name,
                 onValueChange = { onChange(item.copy(name = it)) },
                 placeholder = stringResource(R.string.ingredient_name_placeholder),
+                capitalize = true,
                 modifier = Modifier.weight(3f),
             )
             CompactField(
@@ -152,6 +154,10 @@ fun CompactField(
     keyboardType: KeyboardType? = null,
     /** Dots instead of the text (API keys). */
     secret: Boolean = false,
+    /** Keyboard starts with a capital letter (meal titles, ingredient names). */
+    capitalize: Boolean = false,
+    /** Red border: the form refused to save because of this field. */
+    isError: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
     BasicTextField(
@@ -167,13 +173,14 @@ fun CompactField(
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType ?: if (secret) KeyboardType.Password else if (decimal) KeyboardType.Decimal else KeyboardType.Text,
             autoCorrectEnabled = if (secret || keyboardType == KeyboardType.Uri) false else null,
+            capitalization = if (capitalize) KeyboardCapitalization.Sentences else KeyboardCapitalization.None,
         ),
         visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
         decorationBox = { innerTextField ->
             Row(
                 Modifier
                     .defaultMinSize(minHeight = 40.dp)
-                    .fieldBackground(enabled, focused && !readOnly)
+                    .fieldBackground(enabled, focused && !readOnly, isError)
                     .padding(start = 12.dp, end = if (trailingIcon != null && readOnly) 6.dp else 12.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -209,6 +216,8 @@ fun CompactTextArea(
         value = value,
         onValueChange = onValueChange,
         textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp),
+        // Free text (notes, descriptions, questions): sentences start with a capital.
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         // Default caret is black: invisible on the dark theme.
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         decorationBox = { innerTextField ->
@@ -238,9 +247,10 @@ private fun Placeholder(text: String) {
 }
 
 @Composable
-private fun Modifier.fieldBackground(enabled: Boolean, focused: Boolean = false): Modifier {
+private fun Modifier.fieldBackground(enabled: Boolean, focused: Boolean = false, isError: Boolean = false): Modifier {
     val colors = MaterialTheme.colorScheme
     val border = when {
+        isError -> BorderStroke(if (focused) 2.dp else 1.dp, colors.error)
         focused -> BorderStroke(2.dp, colors.primary)
         enabled -> BorderStroke(1.dp, colors.outline)
         else -> BorderStroke(1.dp, colors.outline.copy(alpha = 0.38f))

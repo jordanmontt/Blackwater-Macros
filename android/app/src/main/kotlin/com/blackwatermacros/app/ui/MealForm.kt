@@ -36,6 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -182,6 +184,10 @@ private fun MealFormFields(
         )
     }
     var errorRes by rememberSaveable { mutableStateOf<Int?>(null) }
+    // A missing title is shown on the field itself (red border, message under it, focused);
+    // other errors under the notes, next to Guardar.
+    val titleMissing = errorRes == R.string.error_title_required
+    val titleFocus = remember { FocusRequester() }
 
     // A food picked from search/barcode while the form is open joins the list,
     // replacing the empty starter row.
@@ -217,11 +223,20 @@ private fun MealFormFields(
         Spacer(Modifier.height(6.dp))
         CompactField(
             value = title,
-            onValueChange = { title = it },
+            onValueChange = {
+                title = it
+                if (titleMissing && it.isNotBlank()) errorRes = null
+            },
             placeholder = stringResource(R.string.form_title_placeholder),
             enabled = true,
-            modifier = Modifier.fillMaxWidth(),
+            capitalize = true,
+            isError = titleMissing,
+            modifier = Modifier.fillMaxWidth().focusRequester(titleFocus),
         )
+        if (titleMissing) {
+            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.error_title_required), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        }
 
         Spacer(Modifier.height(16.dp))
 
@@ -304,7 +319,7 @@ private fun MealFormFields(
         Spacer(Modifier.height(6.dp))
         CompactTextArea(value = notes, onValueChange = { notes = it }, modifier = Modifier.fillMaxWidth())
 
-        errorRes?.let {
+        errorRes?.takeUnless { titleMissing }?.let {
             Spacer(Modifier.height(12.dp))
             Text(stringResource(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
         }
@@ -317,7 +332,11 @@ private fun MealFormFields(
             Button(
                 onClick = {
                     when (val result = buildFormValue(title, notes, mode, ingredients, totals)) {
-                        is FormResult.Invalid -> errorRes = result.messageRes
+                        is FormResult.Invalid -> {
+                            errorRes = result.messageRes
+                            // Focusing scrolls the title back into view and opens the keyboard.
+                            if (result.messageRes == R.string.error_title_required) titleFocus.requestFocus()
+                        }
                         is FormResult.Valid -> onSubmit(result.value)
                     }
                 },

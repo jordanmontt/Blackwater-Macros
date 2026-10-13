@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -177,6 +177,9 @@ export function NutritionEntryFields({
   const [totalCarbs, setTotalCarbs] = useState(draft.totalCarbs);
   const [totalFat, setTotalFat] = useState(draft.totalFat);
   const [error, setError] = useState<string | null>(null);
+  /** Shown on the title field itself (red border, message under it), not next to Guardar. */
+  const [titleMissing, setTitleMissing] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
   const [appliedAppend, setAppliedAppend] = useState<number | null>(null);
 
   // A food picked from search/barcode while the form is open joins the list
@@ -216,7 +219,9 @@ export function NutritionEntryFields({
     setError(null);
 
     if (title.trim() === "") {
-      setError(t.meal.titleRequired);
+      setTitleMissing(true);
+      // Focusing scrolls the title back into view and opens the keyboard.
+      titleRef.current?.focus();
       return;
     }
 
@@ -281,11 +286,23 @@ export function NutritionEntryFields({
       <div className="space-y-2">
         <Label htmlFor="nutrition-title">{t.meal.titleLabel}</Label>
         <Input
+          ref={titleRef}
           id="nutrition-title"
           placeholder={t.meal.titlePlaceholder}
+          autoCapitalize="sentences"
+          aria-invalid={titleMissing || undefined}
+          aria-describedby={titleMissing ? "nutrition-title-error" : undefined}
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setTitle(event.target.value);
+            if (event.target.value.trim() !== "") setTitleMissing(false);
+          }}
         />
+        {titleMissing ? (
+          <p id="nutrition-title-error" role="alert" className="text-sm text-destructive">
+            {t.meal.titleRequired}
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
@@ -315,6 +332,7 @@ export function NutritionEntryFields({
                   <div className="flex min-w-0 flex-1 gap-2">
                     <Input
                       placeholder={t.meal.ingredientNamePlaceholder}
+                      autoCapitalize="sentences"
                       aria-label={`${t.meal.ingredientsLabel} ${index + 1}`}
                       className="min-w-0 flex-1"
                       value={item.name}
@@ -453,6 +471,7 @@ export function NutritionEntryFields({
         <Label htmlFor="nutrition-notes">{t.meal.notesLabel}</Label>
         <Textarea
           id="nutrition-notes"
+          autoCapitalize="sentences"
           rows={2}
           value={notes}
           onChange={(event) => setNotes(event.target.value)}

@@ -340,30 +340,36 @@ function CopyFromDay({
           }}
         />
       </div>
-      {meals === null ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">{t.common.loading}</p>
-      ) : meals.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">{t.addFood.copyEmpty}</p>
-      ) : (
-        <ul className="divide-y overflow-hidden rounded-xl border">
-          {meals.map((meal) => (
-            <li key={meal.id}>
-              <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5">
-                <input
-                  type="checkbox"
-                  className="size-4 accent-[var(--primary)]"
-                  checked={selected.has(meal.id)}
-                  onChange={() => toggle(meal.id)}
-                />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">{meal.title}</span>
-                <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-                  {formatNumber(meal.resolvedCalories)} kcal · {formatNumber(meal.resolvedProtein, 1)} g
-                </span>
-              </label>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* One height whatever the day holds (it scrolls when the day has more meals), so the
+          sheet doesn't resize and the arrows above stay under the thumb going back days. */}
+      <div className="h-[40dvh] overflow-y-auto overscroll-contain rounded-xl border">
+        {meals === null ? (
+          <p className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground">{t.common.loading}</p>
+        ) : meals.length === 0 ? (
+          <p className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
+            {t.addFood.copyEmpty}
+          </p>
+        ) : (
+          <ul className="divide-y border-b">
+            {meals.map((meal) => (
+              <li key={meal.id}>
+                <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-[var(--primary)]"
+                    checked={selected.has(meal.id)}
+                    onChange={() => toggle(meal.id)}
+                  />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{meal.title}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                    {formatNumber(meal.resolvedCalories)} kcal · {formatNumber(meal.resolvedProtein, 1)} g
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <p className="text-xs text-muted-foreground">
         {formatTemplate(t.addFood.copyTarget, { day: formatDateKeyShort(targetDay) })}
       </p>

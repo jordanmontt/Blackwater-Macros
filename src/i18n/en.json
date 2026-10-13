@@ -48,7 +48,7 @@
     "editTitle": "Edit meal",
     "titleLabel": "Title",
     "titlePlaceholder": "Breakfast",
-    "titleRequired": "The title is required.",
+    "titleRequired": "Enter a title to save.",
     "notesLabel": "Notes (optional)",
     "modeLabel": "How do you want to enter the nutrition?",
     "modePerIngredient": "Per ingredient",

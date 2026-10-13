@@ -48,7 +48,7 @@
     "editTitle": "Editar comida",
     "titleLabel": "Título",
     "titlePlaceholder": "Desayuno",
-    "titleRequired": "El título es obligatorio.",
+    "titleRequired": "Escribe un título para poder guardar.",
     "notesLabel": "Notas (opcional)",
     "modeLabel": "¿Cómo quieres introducir la nutrición?",
     "modePerIngredient": "Por ingrediente",
