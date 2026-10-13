@@ -148,6 +148,7 @@ fun CoachScreen(
         topBar = {
             CenteredTopAppBar(
                 title = stringResource(R.string.tab_coach),
+                leading = { AccountSwitcherButton() },
                 trailing = {
                     if (state.messages.isNotEmpty()) {
                         IconButton(onClick = viewModel::reset) {

@@ -46,7 +46,7 @@ class WorkManagerSyncScheduler(private val context: Context) : SyncScheduler {
 }
 
 class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
-    override suspend fun doWork(): Result = when (AppGraph.sync.sync()) {
+    override suspend fun doWork(): Result = when (AppGraph.profiles.syncAll()) {
         SyncOutcome.Success, SyncOutcome.NotLoggedIn, SyncOutcome.SessionExpired -> Result.success()
         SyncOutcome.Offline, is SyncOutcome.Failed -> Result.retry()
     }

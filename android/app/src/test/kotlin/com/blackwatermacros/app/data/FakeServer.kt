@@ -13,7 +13,7 @@ import java.util.UUID
  * `DELETE` of a missing id is 404, every call needs the Bearer token.
  */
 class FakeServer(
-    private val validToken: String = "token-ana",
+    val validToken: String = "token-ana",
     val username: String = "ana",
 ) : Dispatcher() {
 

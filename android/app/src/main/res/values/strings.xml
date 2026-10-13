@@ -125,6 +125,13 @@
     <string name="data_unknown_file">This isn\'t a Blackwater meals or weight CSV.</string>
     <string name="data_failed">The file couldn\'t be read or written.</string>
     <string name="login_description">Sync your meals and weight between your devices. Accounts are by invitation for now.</string>
+    <!-- Several accounts on one phone (Android only). -->
+    <string name="account_add">Add account</string>
+    <string name="account_add_description">Log in with another account to switch between them, for example to log the meals of someone in your family. Each account keeps its own data on this phone.</string>
+    <string name="accounts_title">Accounts</string>
+    <string name="account_switch">Switch account</string>
+    <string name="account_switch_cd">Switch account (now %1$s)</string>
+    <string name="account_session_expired_short">Session expired</string>
     <string name="login_username">Username</string>
     <string name="login_submit">Log in</string>
     <string name="login_local_data_title">This phone already has data</string>

@@ -132,6 +132,7 @@ fun HoyScreen(
         topBar = {
             CenteredTopAppBar(
                 title = stringResource(R.string.tab_meals),
+                leading = { AccountSwitcherButton() },
                 trailing = { SyncIndicator(onClick = onOpenSettings) },
             )
         },

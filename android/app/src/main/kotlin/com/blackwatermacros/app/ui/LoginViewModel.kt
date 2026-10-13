@@ -45,12 +45,15 @@ sealed interface LoginError {
  */
 class LoginViewModel(
     private val accounts: AccountController = AppGraph.accounts,
+    /** «Añadir cuenta» (Android only): another account in its own profile, see [com.blackwatermacros.app.data.AccountProfiles]. */
+    private val addAccount: suspend (username: String, password: String) -> Unit = { u, p -> AppGraph.profiles.addAccount(u, p) },
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     val state: StateFlow<LoginUiState> = _state.asStateFlow()
 
-    fun login(username: String, password: String) {
+    /** With [asNewAccount] the account is added next to the current one instead of linking this profile. */
+    fun login(username: String, password: String, asNewAccount: Boolean = false) {
         if (_state.value == LoginUiState.Loading) return
         if (username.isBlank() || password.isBlank()) {
             _state.value = LoginUiState.Error(LoginError.MissingFields)
@@ -59,6 +62,11 @@ class LoginViewModel(
         _state.value = LoginUiState.Loading
         viewModelScope.launch {
             try {
+                if (asNewAccount) {
+                    addAccount(username, password)
+                    _state.value = LoginUiState.Connected
+                    return@launch
+                }
                 val login = accounts.verify(username, password)
                 if (login.isReLogin || login.localData.isEmpty) {
                     connect(login, uploadLocalData = login.isReLogin)

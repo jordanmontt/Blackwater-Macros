@@ -1,6 +1,15 @@
 package com.blackwatermacros.app
 
+import android.content.Intent
 import android.os.Bundle
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.blackwatermacros.app.ui.LocalOpenAddAccount
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -119,6 +128,15 @@ class MainActivity : AppCompatActivity() {
         setContent {
             AppRoot()
         }
+        // Another account became active (switcher, «Añadir cuenta», logout of one of several):
+        // start over so every screen and ViewModel is built on that account's data.
+        lifecycleScope.launch {
+            AppGraph.profiles.activeId.drop(1).first()
+            startActivity(Intent(this@MainActivity, MainActivity::class.java))
+            finish()
+            @Suppress("DEPRECATION")
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
     }
 
     /** Every time the app comes to the foreground, catch up with the server (if connected). */
@@ -217,6 +235,7 @@ private fun AppNavHost(
         }
     }
     val start = startDestination ?: return
+    CompositionLocalProvider(LocalOpenAddAccount provides { navController.navigate("login?add=true") }) {
     NavHost(
         navController = navController,
         startDestination = start,
@@ -231,10 +250,14 @@ private fun AppNavHost(
                 },
             )
         }
-        composable("login") {
+        composable(
+            "login?add={add}",
+            arguments = listOf(navArgument("add") { type = NavType.BoolType; defaultValue = false }),
+        ) { entry ->
             LoginScreen(
                 onBack = { navController.popBackStack() },
                 onConnected = { navController.popBackStack() },
+                addAccount = entry.arguments?.getBoolean("add") == true,
             )
         }
         composable(AppTab.HOY.route) {
@@ -283,6 +306,7 @@ private fun AppNavHost(
         ) {
             AdminScreen(onBack = { navController.popBackStack() })
         }
+    }
     }
 }
 

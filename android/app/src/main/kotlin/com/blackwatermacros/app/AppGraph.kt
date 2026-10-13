@@ -8,6 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.blackwatermacros.app.data.AccountController
+import com.blackwatermacros.app.data.AccountProfiles
+import com.blackwatermacros.app.data.ProfileScope
 import com.blackwatermacros.app.data.AccountStore
 import com.blackwatermacros.app.data.AppPreferences
 import com.blackwatermacros.app.data.ApiClient
@@ -37,19 +39,17 @@ import com.blackwatermacros.app.data.sync.WorkManagerSyncScheduler
  */
 @SuppressLint("StaticFieldLeak")
 object AppGraph {
-    lateinit var account: AccountStore
+    /** Every account on the phone; the getters below are the active one's. */
+    lateinit var profiles: AccountProfiles
         private set
+    val account: AccountStore get() = profiles.active.account
+    val api: ApiService get() = profiles.active.api
+    val repository: AppRepository get() = profiles.active.repository
+    val sync: SyncEngine get() = profiles.active.sync
+    val accounts: AccountController get() = profiles.active.accounts
     lateinit var preferences: AppPreferences
         private set
-    lateinit var api: ApiService
-        private set
-    lateinit var repository: AppRepository
-        private set
-    lateinit var sync: SyncEngine
-        private set
     lateinit var scheduler: SyncScheduler
-        private set
-    lateinit var accounts: AccountController
         private set
     lateinit var genericFoods: GenericFoodsStore
         private set
@@ -88,13 +88,20 @@ object AppGraph {
 
     fun init(context: Context) {
         val baseUrl = BuildConfig.API_BASE_URL.let { if (it.endsWith("/")) it else "$it/" }
-        val db = LocalDatabase.open(context)
-        account = AccountStore(context)
         preferences = AppPreferences(context)
-        api = ApiClient.create(baseUrl = baseUrl, tokenProvider = account::token)
         scheduler = WorkManagerSyncScheduler(context)
-        sync = SyncEngine(db, account, api)
-        repository = AppRepository(db, account, onLocalChange = { scheduler.requestSync(delaySeconds = 2) })
+        val apiWithToken = { token: String -> ApiClient.create(baseUrl = baseUrl, tokenProvider = { token }) }
+        profiles = AccountProfiles(
+            prefs = context.getSharedPreferences(AccountProfiles.PREFS_NAME, Context.MODE_PRIVATE),
+            createScope = { id -> profileScope(context, id, baseUrl, apiWithToken) },
+            deleteFiles = { id ->
+                context.deleteDatabase(AccountProfiles.databaseName(id))
+                context.deleteSharedPreferences(AccountProfiles.accountPrefsName(id))
+            },
+            loginApi = ApiClient.create(baseUrl = baseUrl, tokenProvider = { null }),
+            apiWithToken = apiWithToken,
+            requestSync = { scheduler.requestSync() },
+        )
         genericFoods = GenericFoodsStore.fromAssets(context)
         openFoodFacts = OpenFoodFactsClient.create()
         recentFoods = RecentFoods(context)
@@ -107,14 +114,16 @@ object AppGraph {
         modelRunGuard = ModelRunGuard(context)
         localEngine = LocalEngine(context, modelRunGuard)
         mealEstimator = MealEstimator(ai, aiSettings, localEngine)
-        accounts = AccountController(
-            account = account,
-            repository = repository,
-            sync = sync,
-            scheduler = scheduler,
-            api = api,
-            apiWithToken = { token -> ApiClient.create(baseUrl = baseUrl, tokenProvider = { token }) },
-        )
+    }
+
+    private fun profileScope(context: Context, id: String, baseUrl: String, apiWithToken: (String) -> ApiService): ProfileScope {
+        val db = LocalDatabase.open(context, AccountProfiles.databaseName(id))
+        val account = AccountStore(context.getSharedPreferences(AccountProfiles.accountPrefsName(id), Context.MODE_PRIVATE))
+        val api = ApiClient.create(baseUrl = baseUrl, tokenProvider = account::token)
+        val sync = SyncEngine(db, account, api)
+        val repository = AppRepository(db, account, onLocalChange = { scheduler.requestSync(delaySeconds = 2) })
+        val accounts = AccountController(account, repository, sync, scheduler, api, apiWithToken)
+        return ProfileScope(id, db, account, api, sync, repository, accounts)
     }
 }
 

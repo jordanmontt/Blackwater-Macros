@@ -17,7 +17,9 @@ import com.blackwatermacros.app.data.sync.SyncEngine
 import com.blackwatermacros.app.data.sync.SyncOutcome
 import com.blackwatermacros.app.data.sync.SyncProblem
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,6 +37,8 @@ data class AccountUiState(
     val problem: SyncProblem? = null,
     /** The last manual sync found no connection. */
     val offline: Boolean = false,
+    /** Other accounts on this phone (Android only), to offer «Cambiar de cuenta». */
+    val otherAccounts: Int = 0,
 )
 
 sealed interface LogoutPrompt {
@@ -64,6 +68,9 @@ class SettingsViewModel(
     private val preferences: AppPreferences = AppGraph.preferences,
     private val sync: SyncEngine = AppGraph.sync,
     private val accounts: AccountController = AppGraph.accounts,
+    private val accountCount: Flow<Int> = AppGraph.profiles.summariesFlow().map { it.size },
+    /** Logs out of the active account; with others on the phone, one of them becomes active. */
+    private val logout: suspend () -> Unit = { AppGraph.profiles.logoutActive() },
 ) : ViewModel() {
 
     val templates: StateFlow<List<TemplateDTO>> = repository.templates()
@@ -79,8 +86,16 @@ class SettingsViewModel(
         sync.running,
         sync.lastProblem,
         offline,
-    ) { account, pending, running, problem, offline ->
-        AccountUiState(account, pending, running, problem, offline)
+        accountCount,
+    ) { values ->
+        AccountUiState(
+            account = values[0] as Account?,
+            pendingChanges = values[1] as Int,
+            syncing = values[2] as Boolean,
+            problem = values[3] as SyncProblem?,
+            offline = values[4] as Boolean,
+            otherAccounts = ((values[5] as Int) - 1).coerceAtLeast(0),
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountUiState(accountStore.current))
 
     private val _logoutPrompt = MutableStateFlow<LogoutPrompt>(LogoutPrompt.None)
@@ -178,7 +193,7 @@ class SettingsViewModel(
 
     fun confirmLogout() {
         viewModelScope.launch {
-            accounts.logout()
+            logout()
             offline.value = false
             _logoutPrompt.value = LogoutPrompt.None
         }

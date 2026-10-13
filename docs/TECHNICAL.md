@@ -24,7 +24,7 @@ For general usage and setup, read [README.md](../README.md) first.
 | DB | PostgreSQL (Neon) + **Drizzle ORM** | `postgres.js` driver; schema pushed with drizzle-kit |
 | Auth | Custom: scrypt hashes + opaque DB sessions | No external auth service, no public registration |
 | Validation | zod v4 | Single source of truth for request payloads |
-| Tests | Vitest 4 (+ Testing Library, happy-dom) | Three-project setup, see §11 |
+| Tests | Vitest 5 (+ Testing Library, happy-dom) | Three-project setup, see §11 |
 
 ---
 
@@ -279,6 +279,9 @@ URL contains `localhost`/`127.0.0.1`.
   (`event.persisted` restores bypass the proxy entirely). That check uses raw
   `fetch`, *not* `api.session()` — the global 401 handler would hard-reload /login
   for logged-out visitors.
+- **One account per browser on the web, on purpose.** Only the Android app keeps several
+  accounts and switches between them (§14.1 «Several accounts on one phone»); don't add a
+  switcher to the web.
 - **No self-service registration** — accounts are created by admins in the
   `/admin` UI (`POST /api/admin/users`) or via the `create-user`/`set-admin`
   scripts.
@@ -1281,9 +1284,10 @@ Three projects, one run (`npm test`):
 | `behavior-ui` | happy-dom | Renders actual pages and components (`today-page`, `progreso-page`, `ajustes-page`, `perfil-page`, `recommendations-card`, `day-navigator`, …) with mocked `@/lib/api` |
 
 Notes:
-- **happy-dom, not jsdom** (avoids jsdom's `require(esm)` chain). CI runs Node 22. On Node
-  ≥ 25 run the tests with `NODE_OPTIONS=--no-experimental-webstorage`: Node's own
-  `localStorage` global otherwise shadows happy-dom's and the AI/coach tests fail.
+- **happy-dom, not jsdom** (avoids jsdom's `require(esm)` chain). CI runs Node 22; the
+  tests also pass on Node ≥ 25. Node 25+ has its own `localStorage` global; Vitest 5
+  replaces it with happy-dom's (Vitest 4 didn't, and the 43 AI/coach/onboarding tests
+  failed), so keep Vitest ≥ 5 and `@types/node` ≥ 22.
 - Demo-mode store tests live in `tests/behavior/demo-mode.test.tsx` (happy-dom,
   because `sessionStorage` + `document.cookie` are needed). The shared stats
   builder is a pure, node-safe unit test in `tests/unit/stats-builder.test.ts`.
@@ -1356,6 +1360,8 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | Test | What it proves |
 | ---- | -------------- |
 | `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data |
+| `data/MultiAccountTest.kt` | Several accounts on one phone (Android only), with real Room + Retrofit and a two-user `FakeServer`: a single-account install keeps its files; no «Añadir cuenta» without an account; a new account starts empty and downloads only its own data; switching shows each account's meals; no duplicates; wrong password/offline adds nothing; accounts and the active one survive a restart; expired sessions show in the switcher; background sync uploads every account's changes to the right account; logging out of one removes only its data, of the last one goes back to local mode |
+| `ui/AddAccountLoginTest.kt` | The login screen in «Añadir cuenta» mode: connects without the local-data question; wrong password / no network / empty fields read like a normal login |
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and error envelopes |
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.json`) |
 | `data/CsvBackupTest.kt` | CSV round trip; reads a web export; skips rows the server would reject; unknown files |
@@ -1486,9 +1492,12 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
   Last to sync wins per record. A push only clears `pending` if the row was not edited
   again meanwhile (`updatedAt` doubles as a strictly increasing local edit stamp).
 - **Login with local data** → dialog: upload it to the account, or discard it.
-  Re-login after an expired session keeps everything (another account is refused).
-- **Logout** → a last sync attempt, a warning if changes would be lost, then all local
-  data is deleted (it is safe on the server) and the app is back in local mode.
+  Re-login after an expired session keeps everything (another account is refused: a
+  second account goes through «Añadir cuenta», see «Several accounts on one phone»).
+- **Logout** → a last sync attempt, a warning if changes would be lost, then that
+  account's local data is deleted (it is safe on the server). With other accounts on the
+  phone one of them becomes active; otherwise the app is back in local mode.
+- **Several accounts (Android only, on purpose)** — see «Several accounts on one phone» below.
 - **Delete all data** (Ajustes → Tus datos) wipes the phone only, after confirmation.
   Without an account that is permanent; with one, the server is untouched and the next
   sync downloads the account again (unsynced changes are lost — the dialog says how many).
@@ -1507,6 +1516,47 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
 - **Validation** uses the server's limits (weight 20–400 kg, fat 3–60 %, profile
   ranges) so a record saved offline is never rejected at sync time.
 
+#### Several accounts on one phone (Android only, on purpose)
+
+One phone often logs the macros of several people (e.g. someone who also enters their
+family's meals), so the app keeps several accounts side by side and switches between them
+with a tap from the header. **The web does not have this and must not get it:** a browser is one
+person's, and switching there is just logging out and in. Don't port it; the web stays
+one account per browser.
+
+- **One profile per account** (`data/AccountProfiles.kt`): each has its own Room database
+  and its own session (`AccountStore`), plus the clients built on them (`ProfileScope`:
+  `ApiService`, `SyncEngine`, `AppRepository`, `AccountController`). Accounts never share
+  a table, so a meal can't reach the wrong account. `AppGraph.account/api/repository/sync/
+  accounts` are the **active** profile's.
+- **Files:** the first profile is `default`, which uses the files of a single-account
+  install (`blackwater.db`, `account` preferences): updating the app migrates nothing.
+  Others are `blackwater-<uuid>.db` and `account-<uuid>`; the `profiles` preferences keep
+  the ids in order and the active one.
+- **Invariant:** one profile in local mode (no account, as before), or one or more
+  profiles that all have an account. Logging in from local mode is the usual flow (upload
+  or discard the local data); «Añadir cuenta» is offered only once an account is
+  connected, and the new account starts empty and downloads its data with the first sync.
+  An account already on the phone is not added twice (it becomes the active one, with a
+  new session).
+- **Switching:** with two or more accounts every tab header shows the active account's
+  initial (`AccountSwitcherButton`); tapping it opens `AccountSwitcherSheet` (accounts,
+  ✓ on the active one, «Sesión caducada» where needed, «Añadir cuenta»). Ajustes → Cuenta
+  offers «Añadir cuenta», or «Cambiar de cuenta» once there are several. Changing the
+  active id restarts `MainActivity` (it watches `profiles.activeId`), so every screen and
+  ViewModel is built again on that account's data.
+- **Sync:** the background job syncs **every** account (`AccountProfiles.syncAll`), so a
+  meal logged for one person before switching still uploads to that person's account.
+- **Logout** of one of several accounts wipes only its data and session, and the first
+  remaining account becomes active; its empty database file is deleted at the next start
+  (screens may still read it until `MainActivity` restarts). Logging out of the last one is
+  the single-account logout (back to local mode).
+- **Shared by all accounts on the phone:** theme, language, AI keys and settings, the
+  on-device model, recent foods and «first steps done». Per account: meals, weigh-ins,
+  templates, profile (Perfil), sync status; the Coach conversation is in memory and starts
+  over on a switch.
+- **Tests:** `data/MultiAccountTest.kt`, `ui/AddAccountLoginTest.kt` (§11.2).
+
 ### 14.2 Modules and structure
 
 - **`:core`** — pure JVM Kotlin port of `src/lib/core/*.ts` with `*Test.kt` mirrors of
@@ -1524,6 +1574,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     local/Mappers.kt         # DTO ⇄ entity, totals via :core resolveMealTotals, nowIso() edit stamp
     AppRepository.kt         # the only data API the screens use (Flows + writes + undo + CSV import)
     AccountStore.kt          # persisted account (token, username, isAdmin, sessionExpired, lastSyncAt)
+    AccountProfiles.kt       # several accounts on one phone (Android only): one database + session each, the active one
     AccountController.kt     # verify → connect (upload/discard) → logout / deleteLocalData (wipe)
     AppPreferences.kt        # theme (Sistema/Claro/Oscuro)
     CsvBackup.kt             # CSV export/import in the web export's exact format
@@ -1546,6 +1597,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
     LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen
     SyncIndicator.kt                        # cloud in the Comidas header (logged in only)
+    AccountSwitcher.kt                      # header avatar + account switcher sheet (2+ accounts, Android only)
     Format.kt                               # dates (app language) + the one number format + app language (appLocale, setAppLanguage)
     Theme.kt, CenteredTopAppBar.kt, BottomNavBar.kt  # tokens, AppCard, header, bottom bar, AppLogo
 ```

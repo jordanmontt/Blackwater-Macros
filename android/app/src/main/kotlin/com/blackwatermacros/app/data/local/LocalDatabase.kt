@@ -258,7 +258,8 @@ abstract class LocalDatabase : RoomDatabase() {
     abstract fun profile(): ProfileDao
 
     companion object {
-        fun open(context: Context): LocalDatabase =
-            Room.databaseBuilder(context, LocalDatabase::class.java, "blackwater.db").build()
+        /** One database per account on the phone (`AccountProfiles.databaseName`). */
+        fun open(context: Context, name: String): LocalDatabase =
+            Room.databaseBuilder(context, LocalDatabase::class.java, name).build()
     }
 }

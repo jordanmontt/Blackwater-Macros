@@ -52,6 +52,8 @@ import com.blackwatermacros.app.data.LocalDataSummary
 fun LoginScreen(
     onBack: () -> Unit,
     onConnected: () -> Unit,
+    /** «Añadir cuenta»: the account gets its own profile next to the current one. */
+    addAccount: Boolean = false,
     viewModel: LoginViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -95,12 +97,12 @@ fun LoginScreen(
             AppCard(modifier = Modifier.widthIn(max = 400.dp)) {
                 Column(Modifier.padding(20.dp)) {
                     Text(
-                        text = stringResource(R.string.account_login),
+                        text = stringResource(if (addAccount) R.string.account_add else R.string.account_login),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        text = stringResource(R.string.login_description),
+                        text = stringResource(if (addAccount) R.string.account_add_description else R.string.login_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -144,7 +146,7 @@ fun LoginScreen(
                     }
 
                     Button(
-                        onClick = { viewModel.login(username, password) },
+                        onClick = { viewModel.login(username, password, asNewAccount = addAccount) },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !busy,
                     ) {

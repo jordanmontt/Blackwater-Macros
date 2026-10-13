@@ -124,6 +124,13 @@
     <string name="data_unknown_file">Questo file non è un CSV di pasti o peso di Blackwater.</string>
     <string name="data_failed">Impossibile leggere o scrivere il file.</string>
     <string name="login_description">Sincronizza pasti e peso tra i tuoi dispositivi. Per ora gli account sono solo su invito.</string>
+    <!-- Several accounts on one phone (Android only). -->
+    <string name="account_add">Aggiungi account</string>
+    <string name="account_add_description">Accedi con un altro account per passare dall\'uno all\'altro, per esempio per registrare i pasti di qualcuno della tua famiglia. Ogni account conserva i propri dati su questo telefono.</string>
+    <string name="accounts_title">Account</string>
+    <string name="account_switch">Cambia account</string>
+    <string name="account_switch_cd">Cambia account (ora %1$s)</string>
+    <string name="account_session_expired_short">Sessione scaduta</string>
     <string name="login_username">Nome utente</string>
     <string name="login_submit">Accedi</string>
     <string name="login_local_data_title">Questo telefono contiene già dei dati</string>

@@ -124,6 +124,13 @@
     <string name="data_unknown_file">Diese Datei ist keine Blackwater-CSV mit Mahlzeiten oder Gewicht.</string>
     <string name="data_failed">Die Datei konnte nicht gelesen oder geschrieben werden.</string>
     <string name="login_description">Synchronisiere Mahlzeiten und Gewicht zwischen deinen Geräten. Konten gibt es vorerst nur auf Einladung.</string>
+    <!-- Several accounts on one phone (Android only). -->
+    <string name="account_add">Konto hinzufügen</string>
+    <string name="account_add_description">Melde dich mit einem weiteren Konto an, um zwischen ihnen zu wechseln, zum Beispiel um die Mahlzeiten eines Familienmitglieds einzutragen. Jedes Konto behält seine eigenen Daten auf diesem Telefon.</string>
+    <string name="accounts_title">Konten</string>
+    <string name="account_switch">Konto wechseln</string>
+    <string name="account_switch_cd">Konto wechseln (jetzt %1$s)</string>
+    <string name="account_session_expired_short">Sitzung abgelaufen</string>
     <string name="login_username">Benutzername</string>
     <string name="login_submit">Anmelden</string>
     <string name="login_local_data_title">Auf diesem Telefon sind bereits Daten</string>

@@ -45,6 +45,8 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.SwitchAccount
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Sync
@@ -132,7 +134,7 @@ fun SettingsScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = { CenteredTopAppBar(title = stringResource(R.string.tab_settings)) },
+        topBar = { CenteredTopAppBar(title = stringResource(R.string.tab_settings), leading = { AccountSwitcherButton() }) },
     ) { innerPadding ->
         Column(
             Modifier
@@ -146,6 +148,7 @@ fun SettingsScreen(
                 state = account,
                 loggingOut = logoutPrompt == LogoutPrompt.Checking,
                 onLogin = onOpenLogin,
+                onAddAccount = LocalOpenAddAccount.current,
                 onSyncNow = viewModel::syncNow,
                 onLogout = viewModel::requestLogout,
             )
@@ -275,10 +278,13 @@ private fun AccountCard(
     state: AccountUiState,
     loggingOut: Boolean,
     onLogin: () -> Unit,
+    onAddAccount: () -> Unit,
     onSyncNow: () -> Unit,
     onLogout: () -> Unit,
 ) {
     val account = state.account
+    var switching by rememberSaveable { mutableStateOf(false) }
+    if (switching) AccountSwitcherSheet(onDismiss = { switching = false })
     SettingsCard(stringResource(R.string.account_title)) {
         if (account == null) {
             CardDescription(stringResource(R.string.account_local_description))
@@ -329,6 +335,18 @@ private fun AccountCard(
                 OutlinedButton(onClick = onSyncNow, enabled = !state.syncing) {
                     ButtonIcon(Icons.Filled.Sync)
                     Text(stringResource(R.string.sync_now), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            // Several accounts on one phone (Android only): switch, or add one.
+            if (state.otherAccounts > 0) {
+                OutlinedButton(onClick = { switching = true }) {
+                    ButtonIcon(Icons.Filled.SwitchAccount)
+                    Text(stringResource(R.string.account_switch), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                OutlinedButton(onClick = onAddAccount) {
+                    ButtonIcon(Icons.Filled.PersonAdd)
+                    Text(stringResource(R.string.account_add), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             OutlinedButton(onClick = onLogout, enabled = !loggingOut) {

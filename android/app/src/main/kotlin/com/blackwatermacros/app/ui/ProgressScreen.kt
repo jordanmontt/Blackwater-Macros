@@ -96,6 +96,7 @@ fun ProgressScreen(
         topBar = {
             CenteredTopAppBar(
                 title = stringResource(R.string.tab_progress),
+                leading = { AccountSwitcherButton() },
                 trailing = {
                     IconButton(onClick = onOpenMetodologia) {
                         Icon(

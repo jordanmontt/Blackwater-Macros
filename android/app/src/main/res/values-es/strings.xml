@@ -124,6 +124,13 @@
     <string name="data_unknown_file">Este archivo no es un CSV de comidas o de peso de Blackwater.</string>
     <string name="data_failed">No se pudo leer o escribir el archivo.</string>
     <string name="login_description">Sincroniza tus comidas y tu peso entre tus dispositivos. Por ahora las cuentas son por invitación.</string>
+    <!-- Several accounts on one phone (Android only). -->
+    <string name="account_add">Añadir cuenta</string>
+    <string name="account_add_description">Inicia sesión con otra cuenta para cambiar entre ellas, por ejemplo para registrar las comidas de alguien de tu familia. Cada cuenta guarda sus propios datos en este teléfono.</string>
+    <string name="accounts_title">Cuentas</string>
+    <string name="account_switch">Cambiar de cuenta</string>
+    <string name="account_switch_cd">Cambiar de cuenta (ahora %1$s)</string>
+    <string name="account_session_expired_short">Sesión caducada</string>
     <string name="login_username">Usuario</string>
     <string name="login_submit">Entrar</string>
     <string name="login_local_data_title">Ya tienes datos en este teléfono</string>

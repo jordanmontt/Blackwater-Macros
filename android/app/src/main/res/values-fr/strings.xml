@@ -124,6 +124,13 @@
     <string name="data_unknown_file">Ce fichier n\'est pas un CSV de repas ou de poids Blackwater.</string>
     <string name="data_failed">Impossible de lire ou d\'écrire le fichier.</string>
     <string name="login_description">Synchronisez vos repas et votre poids entre vos appareils. Pour l\'instant, les comptes sont sur invitation.</string>
+    <!-- Several accounts on one phone (Android only). -->
+    <string name="account_add">Ajouter un compte</string>
+    <string name="account_add_description">Connectez-vous avec un autre compte pour passer de l\'un à l\'autre, par exemple pour noter les repas d\'un membre de votre famille. Chaque compte garde ses propres données sur ce téléphone.</string>
+    <string name="accounts_title">Comptes</string>
+    <string name="account_switch">Changer de compte</string>
+    <string name="account_switch_cd">Changer de compte (actuel : %1$s)</string>
+    <string name="account_session_expired_short">Session expirée</string>
     <string name="login_username">Nom d\'utilisateur</string>
     <string name="login_submit">Se connecter</string>
     <string name="login_local_data_title">Ce téléphone contient déjà des données</string>
