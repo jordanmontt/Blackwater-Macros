@@ -10,6 +10,7 @@
 </ul>
 
 <p><b>Targets based on science, not guesswork</b></p>
+<p>State-of-the-art science, explained in plain words: the methods of current nutrition research and sports dietitians, checked after a few weeks against your own weight.</p>
 <ul>
 <li>Your basal metabolic rate with the Mifflin-St Jeor equation.</li>
 <li>Your activity level calculated from what you actually do (gym days, session length, daily walking) with the factorial method of the FAO/WHO, instead of a vague “lightly active / very active” guess.</li>
@@ -31,9 +32,15 @@
 <p><b>Private by design</b></p>
 <ul>
 <li>Your data stays on your phone. Without logging in, it never leaves the device: the app never contacts our server. It only goes online when you ask: food search and barcodes (Open Food Facts), the AI provider you chose (only what you send it), and the list or download of phone AI models (GitHub, Hugging Face).</li>
-<li>Optional sync: with an account, your data is also kept in the cloud and synced between your devices. For now, accounts are by invitation only.</li>
 <li>No ads, no analytics, no trackers. Free software (AGPL-3.0).</li>
 <li>Export and import your data as CSV at any time.</li>
+</ul>
+
+<p><b>Accounts, if you want one</b></p>
+<ul>
+<li>The app works fully without one. With an account, your data is also kept in the cloud and synced between your devices.</li>
+<li>Several accounts on one phone: switch with a tap, for example to also log your family’s meals. Each account keeps its own data.</li>
+<li>For now, accounts are by invitation only.</li>
 </ul>
 
 <p>Available in English, Spanish, French, Italian and German.</p>

@@ -10,6 +10,7 @@
 </ul>
 
 <p><b>Obiettivi basati sulla scienza, non su supposizioni</b></p>
+<p>Scienza all’avanguardia, spiegata in parole semplici: i metodi della ricerca attuale sulla nutrizione e dei dietisti sportivi, verificati dopo qualche settimana con il tuo peso reale.</p>
 <ul>
 <li>Il tuo metabolismo basale con l’equazione di Mifflin-St Jeor.</li>
 <li>Il tuo livello di attività calcolato da quello che fai davvero (giorni di palestra, durata della sessione, camminata quotidiana) con il metodo fattoriale della FAO/OMS, invece di un vago «poco attivo / molto attivo».</li>
@@ -31,9 +32,15 @@
 <p><b>Privata per progetto</b></p>
 <ul>
 <li>I tuoi dati restano sul telefono. Senza accedere a un account non lasciano mai il dispositivo: l’app non contatta mai il nostro server. Si collega solo quando lo chiedi tu: ricerca di alimenti e codici a barre (Open Food Facts), il fornitore di IA scelto (solo ciò che gli invii), e l’elenco o il download dei modelli di IA per il telefono (GitHub, Hugging Face).</li>
-<li>Sincronizzazione facoltativa: con un account i tuoi dati sono conservati anche nel cloud e sincronizzati tra i tuoi dispositivi. Per ora gli account sono solo su invito.</li>
 <li>Niente pubblicità, niente analisi, niente tracker. Software libero (AGPL-3.0).</li>
 <li>Esporta e importa i tuoi dati in CSV quando vuoi.</li>
+</ul>
+
+<p><b>Account, se ne vuoi uno</b></p>
+<ul>
+<li>L’app funziona completamente senza account. Con un account i tuoi dati sono conservati anche nel cloud e sincronizzati tra i tuoi dispositivi.</li>
+<li>Più account sullo stesso telefono: passa dall’uno all’altro con un tocco, per esempio per registrare anche i pasti della tua famiglia. Ogni account conserva i propri dati.</li>
+<li>Per ora gli account sono solo su invito.</li>
 </ul>
 
 <p>Disponibile in italiano, inglese, spagnolo, francese e tedesco.</p>

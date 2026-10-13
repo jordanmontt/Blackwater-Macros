@@ -10,6 +10,7 @@
 </ul>
 
 <p><b>Ziele auf wissenschaftlicher Grundlage statt Schätzungen</b></p>
+<p>Wissenschaft auf dem neuesten Stand, einfach erklärt: die Methoden der aktuellen Ernährungsforschung und der Sporternährung, nach ein paar Wochen mit deinem eigenen Gewicht überprüft.</p>
 <ul>
 <li>Dein Grundumsatz mit der Mifflin-St-Jeor-Gleichung.</li>
 <li>Dein Aktivitätsniveau berechnet aus dem, was du wirklich tust (Trainingstage, Trainingsdauer, tägliches Gehen), mit der faktoriellen Methode der FAO/WHO statt eines vagen „wenig aktiv / sehr aktiv“.</li>
@@ -31,9 +32,15 @@
 <p><b>Privat von Grund auf</b></p>
 <ul>
 <li>Deine Daten bleiben auf deinem Telefon. Ohne Anmeldung verlassen sie nie das Gerät: Die App kontaktiert nie unseren Server. Sie geht nur online, wenn du es willst: Lebensmittelsuche und Barcodes (Open Food Facts), der gewählte KI-Anbieter (nur was du ihm schickst) und die Liste oder der Download von KI-Modellen fürs Telefon (GitHub, Hugging Face).</li>
-<li>Optionale Synchronisierung: Mit einem Konto werden deine Daten auch in der Cloud gespeichert und zwischen deinen Geräten synchronisiert. Konten gibt es vorerst nur auf Einladung.</li>
 <li>Keine Werbung, keine Analyse, keine Tracker. Freie Software (AGPL-3.0).</li>
 <li>Exportiere und importiere deine Daten jederzeit als CSV.</li>
+</ul>
+
+<p><b>Ein Konto, wenn du willst</b></p>
+<ul>
+<li>Die App funktioniert vollständig ohne Konto. Mit einem Konto werden deine Daten auch in der Cloud gespeichert und zwischen deinen Geräten synchronisiert.</li>
+<li>Mehrere Konten auf einem Telefon: Wechsle mit einem Tippen, zum Beispiel um auch die Mahlzeiten deiner Familie einzutragen. Jedes Konto behält seine eigenen Daten.</li>
+<li>Konten gibt es vorerst nur auf Einladung.</li>
 </ul>
 
 <p>Verfügbar auf Deutsch, Englisch, Spanisch, Französisch und Italienisch.</p>

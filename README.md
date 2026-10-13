@@ -38,8 +38,11 @@ recipe library.
 
 ## How the numbers are calculated
 
-Every formula, its sources and its limits are explained inside the
-app (Settings → Methodology) and in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
+**State-of-the-art science, explained in plain words.** Your targets don't come from rules
+of thumb: they use the methods of current nutrition research and sports dietitians, and
+after a few weeks the app checks them against your own weight. Every formula, its sources
+and its limits are explained inside the app (Settings → Methodology) and in
+[docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
 - **Basal metabolic rate** with the Mifflin-St Jeor equation, the most accurate of the common
   formulas for healthy adults.
@@ -87,8 +90,17 @@ app (Settings → Methodology) and in [docs/METHODOLOGY.md](docs/METHODOLOGY.md)
 
   A test (`NetworkHostsTest`) fails if the code ever learns another address.
 - **No ads, no analytics, no trackers, no Google services.**
-- **Optional sync.** With an account, your data is also kept in the cloud and synced between
-  your devices. For now, accounts are by invitation only.
+
+## Accounts, if you want one
+
+The app works fully without an account. An account adds:
+
+- **Sync and backup.** Your data is also kept in the cloud and synced between your devices.
+  Offline changes upload by themselves once you're back online.
+- **Several accounts on one phone.** Switch between them with a tap, for example to also
+  log your family's meals. Each account keeps its own data.
+
+For now, accounts are by invitation only.
 
 ## Permissions
 

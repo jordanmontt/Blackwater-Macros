@@ -62,7 +62,10 @@ previous release.
 - **New screenshots:** `scripts/screenshots.sh` (emulator + demo data). **Banner:** edit
   `scripts/store/feature-graphic-<lang>.svg`, then `npm i --no-save @resvg/resvg-js` and
   `node scripts/store/render-svg.mjs <svg> android/fastlane/metadata/android/<locale>/images/featureGraphic.png`.
-- **New features:** also update `full_description.txt` (≤ 4000 characters) and the README.
+- **New features:** update the README and `full_description.txt`. The README is the source
+  (English, full); `android/fastlane/metadata/android/<locale>/full_description.txt` is its
+  short version in the five languages: same facts and order, simple HTML only, ≤ 4000
+  characters each.
 - **The F-Droid recipe** only needs a merge request when the build itself changes (a new
   Gradle property, CPU type, build tool, anti-feature or licence). Check it locally with
   `brew install fdroidserver`, then `fdroid lint` and `fdroid build -l com.blackwatermacros.app`
