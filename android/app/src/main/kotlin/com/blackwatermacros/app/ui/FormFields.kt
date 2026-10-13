@@ -19,6 +19,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -128,6 +131,22 @@ internal fun MacroTotalGrid(values: List<String>, onValue: (Int, String) -> Unit
 @Composable
 private fun DecimalField(value: String, placeholder: String, modifier: Modifier, onValue: (String) -> Unit) {
     CompactField(value = value, onValueChange = onValue, placeholder = placeholder, decimal = true, modifier = modifier)
+}
+
+/**
+ * The eye at the end of a password field: hidden by default, tapping shows what was
+ * typed (same as the web's `PasswordInput`).
+ */
+@Composable
+fun PasswordVisibilityToggle(visible: Boolean, onToggle: () -> Unit, iconSize: Dp = 20.dp, modifier: Modifier = Modifier) {
+    IconButton(onClick = onToggle, modifier = modifier) {
+        Icon(
+            if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+            contentDescription = stringResource(if (visible) R.string.password_hide else R.string.password_show),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(iconSize),
+        )
+    }
 }
 
 @Composable

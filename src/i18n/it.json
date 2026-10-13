@@ -11,6 +11,8 @@
     "loginDescription": "Accedi al tuo diario di pasti e peso.",
     "username": "Utente",
     "password": "Password",
+    "showPassword": "Mostra la password",
+    "hidePassword": "Nascondi la password",
     "submit": "Entra",
     "invalidCredentials": "Utente o password errati.",
     "genericError": "Impossibile accedere. Riprova.",

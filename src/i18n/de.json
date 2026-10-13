@@ -11,6 +11,8 @@
     "loginDescription": "Greif auf dein Mahlzeiten- und Gewichtstagebuch zu.",
     "username": "Benutzer",
     "password": "Passwort",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
     "submit": "Anmelden",
     "invalidCredentials": "Benutzer oder Passwort falsch.",
     "genericError": "Anmeldung nicht möglich. Versuch es noch einmal.",

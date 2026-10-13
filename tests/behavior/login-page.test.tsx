@@ -56,6 +56,22 @@ describe("pantalla de inicio de sesión", () => {
     expect(routerMock.replace).toHaveBeenCalledWith("/");
   });
 
+  it("la contraseña está oculta y el ojo la muestra y la vuelve a ocultar", async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    const password = await screen.findByLabelText(t.auth.password);
+    await user.type(password, "clave-secreta");
+    expect(password).toHaveAttribute("type", "password");
+
+    await user.click(screen.getByRole("button", { name: t.auth.showPassword }));
+    expect(password).toHaveAttribute("type", "text");
+    expect(password).toHaveValue("clave-secreta");
+
+    await user.click(screen.getByRole("button", { name: t.auth.hidePassword }));
+    expect(password).toHaveAttribute("type", "password");
+  });
+
   it("muestra el error de credenciales y deja reintentar", async () => {
     const user = userEvent.setup();
     vi.mocked(api.login).mockRejectedValueOnce(new ApiError(401, "No autenticado"));

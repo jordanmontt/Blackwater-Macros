@@ -100,6 +100,8 @@
   "data_title": "ajustes.exportSection",
   "data_import": "ajustes.importCsv",
   "login_password": "auth.password",
+  "password_show": "auth.showPassword",
+  "password_hide": "auth.hidePassword",
   "admin_users": "admin.usersTitle",
   "admin_new_user": "admin.newUser",
   "admin_new_user_description": "admin.createDescription",

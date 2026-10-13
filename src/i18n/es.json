@@ -11,6 +11,8 @@
     "loginDescription": "Accede a tu registro de comidas y peso.",
     "username": "Usuario",
     "password": "Contraseña",
+    "showPassword": "Mostrar la contraseña",
+    "hidePassword": "Ocultar la contraseña",
     "submit": "Entrar",
     "invalidCredentials": "Usuario o contraseña incorrectos.",
     "genericError": "No se pudo iniciar sesión. Inténtalo de nuevo.",

@@ -1652,6 +1652,9 @@ every language (§6). CSV column names stay Spanish (the web's file format). The
   to the bottom made the sheet jump up and down by itself.
 - **Orientation:** portrait only (`screenOrientation="portrait"` in the manifest); no
   screen has a landscape layout.
+- **Password fields** (login, admin user forms) are hidden by default with an eye button to
+  show them: `PasswordVisibilityToggle` (Android) and `components/ui/password-input.tsx`
+  (web); texts `auth.showPassword` / `auth.hidePassword`. The AI key fields have their own eye.
 - **Charts:** hand-drawn Compose Canvas; all text sizes in sp (`AxisTextSize`,
   `TooltipTextSize`) so they follow the phone's font size.
 - **Intake bars** (Comidas): outlined track = what is left, solid fill = eaten (ember past

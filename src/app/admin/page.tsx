@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { api, ApiError } from "@/lib/api";
 import { t } from "@/i18n";
@@ -268,9 +269,8 @@ export default function AdminPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="admin-password">{t.admin.passwordLabel}</Label>
-              <Input
+              <PasswordInput
                 id="admin-password"
-                type="password"
                 autoComplete="new-password"
                 placeholder={t.admin.passwordPlaceholder}
                 value={form.password}
@@ -316,9 +316,8 @@ export default function AdminPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-password">{t.admin.newPasswordLabel}</Label>
-              <Input
+              <PasswordInput
                 id="edit-password"
-                type="password"
                 autoComplete="new-password"
                 placeholder={t.admin.passwordPlaceholder}
                 value={form.password}

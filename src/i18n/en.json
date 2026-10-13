@@ -11,6 +11,8 @@
     "loginDescription": "Access your meal and weight log.",
     "username": "Username",
     "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "submit": "Log in",
     "invalidCredentials": "Wrong username or password.",
     "genericError": "Could not log in. Try again.",

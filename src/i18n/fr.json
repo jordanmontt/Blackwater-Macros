@@ -11,6 +11,8 @@
     "loginDescription": "Accédez à votre journal de repas et de poids.",
     "username": "Utilisateur",
     "password": "Mot de passe",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "submit": "Entrer",
     "invalidCredentials": "Utilisateur ou mot de passe incorrect.",
     "genericError": "Connexion impossible. Réessayez.",
