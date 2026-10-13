@@ -29,6 +29,12 @@ class FakeServer(
     var offline = false
 
     var tokenRevoked = false
+
+    /** The server fails (500) when the phone downloads the lists; uploads still work. */
+    var failDownloads = false
+
+    /** The server refuses (400) every meal the phone uploads. */
+    var rejectMeals = false
     var requestCount = 0
         private set
 
@@ -58,6 +64,12 @@ class FakeServer(
         }
 
         val segments = path.removePrefix("/api/").split('/')
+        if (failDownloads && method == "GET" && segments.size == 1 && segments[0] in setOf("meals", "templates", "weights")) {
+            return json(500, """{"error":"Error interno"}""")
+        }
+        if (rejectMeals && method == "PUT" && segments[0] == "meals") {
+            return json(400, """{"error":"Datos inválidos","code":"invalid_data"}""")
+        }
         return when {
             path == "/api/auth/session" ->
                 ok(SessionResponse.serializer(), SessionResponse(username, isAdmin = false, calorieProfile = profile))

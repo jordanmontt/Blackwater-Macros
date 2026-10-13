@@ -1359,7 +1359,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 
 | Test | What it proves |
 | ---- | -------------- |
-| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data |
+| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data; the header cloud stays green when only the download fails and red while the server refuses a change |
 | `data/MultiAccountTest.kt` | Several accounts on one phone (Android only), with real Room + Retrofit and a two-user `FakeServer`: a single-account install keeps its files; no «Añadir cuenta» without an account; a new account starts empty and downloads only its own data; switching shows each account's meals; no duplicates; wrong password/offline adds nothing; accounts and the active one survive a restart; expired sessions show in the switcher; background sync uploads every account's changes to the right account; logging out of one removes only its data, of the last one goes back to local mode |
 | `ui/AddAccountLoginTest.kt` | The login screen in «Añadir cuenta» mode: connects without the local-data question; wrong password / no network / empty fields read like a normal login |
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and error envelopes |
@@ -1375,7 +1375,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period |
-| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, measured expenditure, sync indicator states, numbers edited with a decimal comma, when «Añadir comida» asks before closing |
+| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, measured expenditure, sync indicator states (red only when changes are not on the server), numbers edited with a decimal comma, when «Añadir comida» asks before closing |
 | `ui/TranslationsTest.kt` | Every language has every Android-only string and plural with the same placeholders (shared texts: `i18n.test.ts` + the build) |
 | `data/NiceTicksTest.kt` | Chart axis ticks |
 
@@ -1505,7 +1505,12 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
   Metodología and Admin; goal, body data and recommendations live in a pushed
   **Perfil** page (`ProfileScreen`), like the web's `/ajustes/perfil`.
 - **Comidas header** shows a small cloud when logged in (synced / N pending / syncing /
-  needs attention); tapping it opens Ajustes. Deleting a meal, weigh-in or template asks
+  needs attention); tapping it opens Ajustes. **Red («needs attention») only when the
+  user's changes are not on the server:** an expired session, or pending changes the last
+  run failed to upload (`syncIndicatorState`). A failed run with nothing pending (only the
+  download of the web's changes failed, or a brief server error after the upload) stays
+  «synced»: the data is safe and the next run retries. Ajustes → Cuenta follows the same
+  rule. Deleting a meal, weigh-in or template asks
   first and then offers **Undo** in a snackbar (`offerUndo`; `AppRepository.restoreMeal` /
   `restoreWeight` / `restoreTemplate` put back the same id and position, even if the
   delete already reached the server). Same on the web (toast with «Deshacer»).

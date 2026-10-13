@@ -298,7 +298,8 @@ private fun AccountCard(
 
         Text(stringResource(R.string.account_connected_as, account.username), style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.height(4.dp))
-        val problem = state.problem
+        // Same rule as the header cloud: a failed run only matters while changes are waiting.
+        val problem = state.problem?.takeIf { state.pendingChanges > 0 }
         val (status, isProblem) = when {
             account.sessionExpired -> stringResource(R.string.sync_session_expired) to true
             state.syncing -> stringResource(R.string.sync_in_progress) to false

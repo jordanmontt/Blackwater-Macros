@@ -43,7 +43,7 @@ sealed interface SyncIndicatorState {
     data object Synced : SyncIndicatorState
     data class Pending(val count: Int) : SyncIndicatorState
 
-    /** Session expired or the last sync failed: needs the user's attention. */
+    /** Session expired, or changes that the last sync could not upload: needs attention. */
     data object Problem : SyncIndicatorState
 }
 
@@ -61,6 +61,12 @@ class SyncIndicatorViewModel(
     ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SyncIndicatorState.Hidden)
 }
 
+/**
+ * Red only when something on the phone is not on the server and won't get there on its
+ * own: an expired session, or pending changes the last sync failed to upload. A failed
+ * run with nothing pending (e.g. only downloading the web's changes failed, or a brief
+ * server error after everything was uploaded) leaves the user's data safe: «Synced».
+ */
 internal fun syncIndicatorState(
     account: Account?,
     pendingChanges: Int,
@@ -68,7 +74,8 @@ internal fun syncIndicatorState(
     problem: SyncProblem?,
 ): SyncIndicatorState = when {
     account == null -> SyncIndicatorState.Hidden
-    account.sessionExpired || problem != null -> SyncIndicatorState.Problem
+    account.sessionExpired -> SyncIndicatorState.Problem
+    problem != null && pendingChanges > 0 -> SyncIndicatorState.Problem
     syncing -> SyncIndicatorState.Syncing
     pendingChanges > 0 -> SyncIndicatorState.Pending(pendingChanges)
     else -> SyncIndicatorState.Synced

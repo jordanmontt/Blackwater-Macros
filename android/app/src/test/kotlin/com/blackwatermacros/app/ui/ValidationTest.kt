@@ -179,8 +179,17 @@ class ValidationTest {
         assertThat(syncIndicatorState(account, 2, false, null)).isEqualTo(SyncIndicatorState.Pending(2))
         assertThat(syncIndicatorState(account, 2, true, null)).isEqualTo(SyncIndicatorState.Syncing)
         assertThat(syncIndicatorState(account.copy(sessionExpired = true), 0, false, null)).isEqualTo(SyncIndicatorState.Problem)
-        assertThat(
-            syncIndicatorState(account, 0, false, com.blackwatermacros.app.data.sync.SyncProblem.SERVER_ERROR),
-        ).isEqualTo(SyncIndicatorState.Problem)
+        assertThat(syncIndicatorState(account.copy(sessionExpired = true), 2, true, null)).isEqualTo(SyncIndicatorState.Problem)
+    }
+
+    @Test
+    fun `the header cloud is red only when changes are not on the server`() {
+        val account = com.blackwatermacros.app.data.Account("ana", "t", isAdmin = false)
+        for (problem in com.blackwatermacros.app.data.sync.SyncProblem.entries) {
+            // Changes waiting and the last run failed: they did not reach the server.
+            assertThat(syncIndicatorState(account, 2, false, problem)).isEqualTo(SyncIndicatorState.Problem)
+            // Everything uploaded; only the run as a whole failed (e.g. the download): data is safe.
+            assertThat(syncIndicatorState(account, 0, false, problem)).isEqualTo(SyncIndicatorState.Synced)
+        }
     }
 }

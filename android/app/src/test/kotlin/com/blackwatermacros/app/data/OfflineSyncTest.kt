@@ -8,6 +8,9 @@ import com.blackwatermacros.app.core.Goal
 import com.blackwatermacros.app.data.local.LocalDatabase
 import com.blackwatermacros.app.data.sync.SyncEngine
 import com.blackwatermacros.app.data.sync.SyncOutcome
+import com.blackwatermacros.app.data.sync.SyncProblem
+import com.blackwatermacros.app.ui.SyncIndicatorState
+import com.blackwatermacros.app.ui.syncIndicatorState
 import com.blackwatermacros.app.data.sync.SyncScheduler
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.first
@@ -424,6 +427,43 @@ class OfflineSyncTest {
 
         sync.sync()
         assertThat(repository.mealsForDay("2026-06-15").first().map { it.title }).containsExactly("Desayuno")
+    }
+
+    // --- The header cloud: red only when changes are not on the server ---
+
+    @Test
+    fun `a failed download after everything was uploaded leaves the cloud green`() = runBlocking<Unit> {
+        connect()
+        repository.saveMeal(null, breakfast())
+        backend.failDownloads = true
+
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Failed(SyncProblem.SERVER_ERROR))
+
+        assertThat(backend.meals.values.map { it.title }).containsExactly("Desayuno")
+        val pending = repository.pendingChanges().first()
+        assertThat(pending).isEqualTo(0)
+        assertThat(syncIndicatorState(account.current, pending, false, sync.lastProblem.value))
+            .isEqualTo(SyncIndicatorState.Synced)
+    }
+
+    @Test
+    fun `a change the server refuses keeps the cloud red until it uploads`() = runBlocking<Unit> {
+        connect()
+        backend.rejectMeals = true
+        repository.saveMeal(null, breakfast())
+
+        sync.sync()
+
+        assertThat(backend.meals).isEmpty()
+        val pending = repository.pendingChanges().first()
+        assertThat(pending).isEqualTo(1)
+        assertThat(syncIndicatorState(account.current, pending, false, sync.lastProblem.value))
+            .isEqualTo(SyncIndicatorState.Problem)
+
+        backend.rejectMeals = false
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Success)
+        assertThat(syncIndicatorState(account.current, repository.pendingChanges().first(), false, sync.lastProblem.value))
+            .isEqualTo(SyncIndicatorState.Synced)
     }
 
     private suspend fun connect() {
