@@ -5,6 +5,8 @@ import type { MemoryWorld } from "../helpers/repos";
 const holder = vi.hoisted(() => ({
   world: null as MemoryWorld | null,
   authCookie: { value: "" },
+  /** Cookies the route set on the response (`cookies().set`). */
+  setCookies: [] as { name: string; value: string; expires?: Date }[],
 }));
 
 vi.mock("@/server/composition", () => ({
@@ -22,6 +24,9 @@ vi.mock("next/headers", () => ({
       name === "bw_session" && holder.authCookie.value
         ? { name, value: holder.authCookie.value }
         : undefined,
+    set: (name: string, value: string, options: { expires?: Date }) => {
+      holder.setCookies.push({ name, value, expires: options?.expires });
+    },
   }),
 }));
 
@@ -46,6 +51,47 @@ describe("rutas de autenticación", () => {
   beforeEach(() => {
     world?.reset();
     holder.authCookie.value = "";
+    holder.setCookies.length = 0;
+  });
+
+  describe("sesión que se renueva mientras se usa", () => {
+    const DAY = 24 * 60 * 60 * 1000;
+
+    it("en el navegador renueva la sesión y también la cookie, pasada la mitad del plazo", async () => {
+      const user = await seedUser(world!, "ana", "pass");
+      holder.authCookie.value = seedSession(world!, user.id, "web-token", new Date(Date.now() + 20 * DAY));
+
+      const res = await getSession(new Request("http://test/api/auth/session"));
+
+      expect(res.status).toBe(200);
+      const renewed = world!.data.sessions.get("web-token")!.expiresAt.getTime();
+      expect(renewed).toBeGreaterThan(Date.now() + 89 * DAY);
+      expect(holder.setCookies).toEqual([{ name: "bw_session", value: "web-token", expires: new Date(renewed) }]);
+    });
+
+    it("en el móvil (token Bearer) renueva la sesión sin tocar cookies", async () => {
+      const user = await seedUser(world!, "ana", "pass");
+      const token = seedSession(world!, user.id, "phone-token", new Date(Date.now() + 20 * DAY));
+
+      const res = await getSession(
+        new Request("http://test/api/auth/session", { headers: { authorization: `Bearer ${token}` } }),
+      );
+
+      expect(res.status).toBe(200);
+      expect(world!.data.sessions.get("phone-token")!.expiresAt.getTime()).toBeGreaterThan(Date.now() + 89 * DAY);
+      expect(holder.setCookies).toEqual([]);
+    });
+
+    it("una sesión recién iniciada no se reescribe en cada petición", async () => {
+      const user = await seedUser(world!, "ana", "pass");
+      holder.authCookie.value = seedSession(world!, user.id);
+      const before = world!.data.sessions.get("test-token")!.expiresAt;
+
+      await getSession(new Request("http://test/api/auth/session"));
+
+      expect(world!.data.sessions.get("test-token")!.expiresAt).toBe(before);
+      expect(holder.setCookies).toEqual([]);
+    });
   });
 
   describe("POST /api/auth/login", () => {

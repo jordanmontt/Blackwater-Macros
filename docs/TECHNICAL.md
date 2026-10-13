@@ -260,10 +260,19 @@ URL contains `localhost`/`127.0.0.1`.
   `timingSafeEqual`. `maxmem: 64 MB` is required because OpenSSL's default caps out
   below 128·N·r·p.
 - **Sessions:** 32-byte random token (base64url), stored raw in `sessions.token`,
-  TTL 90 days (`SESSION_TTL_DAYS`). Web clients receive it as cookie `bw_session`
+  90 days (`SESSION_TTL_DAYS`), renewed while in use (below). Web clients receive it as cookie `bw_session`
   (httpOnly + secure (prod) + sameSite lax + path `/`); API/Android clients receive
   the same token in the login JSON body (`{ok, token, expiresAt}`) and send it as
   `Authorization: Bearer <token>`.
+- **Sliding expiry:** a session lasts 90 days *since it was last used*. When a request
+  arrives with less than half the window left (`shouldRenew`), `resolveSessionDetails`
+  pushes `expiresAt` to now + 90 days (`sessions.extend`): at most one write every ~45
+  days, not one per request. For the web, `api-auth.ts` also re-sets the `bw_session`
+  cookie with the new end (the browser drops a cookie at its own `expires`); Bearer
+  clients just keep their token. So a phone that syncs, or a browser in use, is never
+  logged out; a session unused for 90 days expires as before, and logout ends it at once.
+  The login's `expiresAt` is only the first end date. Tests: `auth-access.test.ts`,
+  `routes-auth.test.ts`.
 - **Two-layer check:** `proxy.ts` performs an optimistic cookie-*presence* redirect
   (cheap edge check, protects pages); every API route independently verifies the
   session against the DB via `withUserId`/`withAdmin` (source of truth). Deleting

@@ -2,6 +2,7 @@ import {
   generateSessionToken,
   isExpired,
   sessionExpiryFromNow,
+  shouldRenew,
   type IssuedSession,
 } from "../auth/session";
 import type { SessionsRepository } from "../repositories/sessions-repo";
@@ -80,15 +81,38 @@ export async function login(
   return issued;
 }
 
-/** Resolves the user id behind a session token, or null if invalid/expired. */
+export interface ResolvedSession {
+  userId: string;
+  /** Set when this request renewed the session: the new end (the web refreshes its cookie). */
+  renewedUntil: Date | null;
+}
+
+/**
+ * Checks a session token and, past the middle of its 90 days, renews it (sliding
+ * expiry): a session in use never runs out, so a phone syncing in the background is
+ * never logged out by surprise. Null if the token is unknown or expired.
+ */
+export async function resolveSessionDetails(
+  deps: AuthServiceDeps,
+  token: string | undefined,
+  now: Date = new Date(),
+): Promise<ResolvedSession | null> {
+  if (!token) return null;
+  const record = await deps.sessions.findByToken(token);
+  if (!record || isExpired(record.expiresAt, now)) return null;
+  if (!shouldRenew(record.expiresAt, now)) return { userId: record.userId, renewedUntil: null };
+  const renewedUntil = sessionExpiryFromNow(now);
+  await deps.sessions.extend(token, renewedUntil);
+  return { userId: record.userId, renewedUntil };
+}
+
+/** Resolves the user id behind a session token (renewing it when due), or null if invalid/expired. */
 export async function resolveSession(
   deps: AuthServiceDeps,
   token: string | undefined,
+  now: Date = new Date(),
 ): Promise<string | null> {
-  if (!token) return null;
-  const record = await deps.sessions.findByToken(token);
-  if (!record || isExpired(record.expiresAt)) return null;
-  return record.userId;
+  return (await resolveSessionDetails(deps, token, now))?.userId ?? null;
 }
 
 export async function logout(deps: AuthServiceDeps, token: string | undefined): Promise<void> {

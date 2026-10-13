@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { hashPassword } from "@/server/auth/password";
-import { InvalidCredentialsError, login, logout, resolveSession } from "@/server/services/auth-service";
+import { InvalidCredentialsError, login, logout, resolveSession, resolveSessionDetails } from "@/server/services/auth-service";
 
 /**
  * Requisitos de acceso:
@@ -96,6 +96,10 @@ function makeMemoryDeps() {
       async deleteByToken(token: string) {
         sessions.delete(token);
       },
+      async extend(token: string, expiresAt: Date) {
+        const record = sessions.get(token);
+        if (record) sessions.set(token, { ...record, expiresAt });
+      },
       async deleteExpiredBefore() {},
     },
   };
@@ -177,5 +181,58 @@ describe("mantener y cerrar la sesión", () => {
     });
 
     await expect(resolveSession(deps, expiredToken)).resolves.toBeNull();
+  });
+});
+
+/**
+ * Requisito: una sesión que se usa no caduca nunca (un móvil que sincroniza en segundo
+ * plano no debe pedir entrar de nuevo cada 90 días); una que no se usa en 90 días, sí.
+ */
+describe("la sesión se renueva mientras se usa", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const daysAfter = (start: Date, days: number) => new Date(start.getTime() + days * DAY);
+
+  async function loggedIn() {
+    const deps = makeMemoryDeps();
+    const credentials = await seedUser(deps);
+    const loginAt = new Date();
+    const issued = await login(deps, credentials.username, credentials.password);
+    return { deps, token: issued.token, loginAt };
+  }
+
+  it("usada cada mes, sigue funcionando un año después del login", async () => {
+    const { deps, token, loginAt } = await loggedIn();
+
+    for (let day = 30; day <= 365; day += 30) {
+      await expect(resolveSession(deps, token, daysAfter(loginAt, day))).resolves.toBeTruthy();
+    }
+  });
+
+  it("sin usarla durante 90 días caduca igual que antes", async () => {
+    const { deps, token, loginAt } = await loggedIn();
+
+    await expect(resolveSession(deps, token, daysAfter(loginAt, 60))).resolves.toBeTruthy();
+    await expect(resolveSession(deps, token, daysAfter(loginAt, 60 + 91))).resolves.toBeNull();
+  });
+
+  it("solo se renueva pasada la mitad del plazo (no escribe en la base de datos en cada petición)", async () => {
+    const { deps, token, loginAt } = await loggedIn();
+
+    const early = await resolveSessionDetails(deps, token, daysAfter(loginAt, 10));
+    expect(early?.renewedUntil).toBeNull();
+
+    const late = await resolveSessionDetails(deps, token, daysAfter(loginAt, 50));
+    expect(late?.renewedUntil?.getTime()).toBe(daysAfter(loginAt, 50 + 90).getTime());
+    // Justo después ya no hace falta renovar otra vez.
+    expect((await resolveSessionDetails(deps, token, daysAfter(loginAt, 51)))?.renewedUntil).toBeNull();
+  });
+
+  it("cerrar sesión la invalida aunque se estuviera renovando", async () => {
+    const { deps, token, loginAt } = await loggedIn();
+    await resolveSession(deps, token, daysAfter(loginAt, 50));
+
+    await logout(deps, token);
+
+    await expect(resolveSession(deps, token, daysAfter(loginAt, 51))).resolves.toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
-import { SESSION_COOKIE_NAME } from "./auth/session";
-import { resolveSession, type AuthServiceDeps } from "./services/auth-service";
+import { SESSION_COOKIE_NAME, sessionCookieOptions } from "./auth/session";
+import { resolveSessionDetails, type AuthServiceDeps } from "./services/auth-service";
 
 /**
  * Resolves the logged-in user id from a Request, checking both the session
@@ -15,14 +15,24 @@ export async function getSessionUserIdFromRequest(
   const store = await cookies();
   const cookieToken = store.get(SESSION_COOKIE_NAME)?.value;
   if (cookieToken) {
-    return resolveSession(deps, cookieToken);
+    const session = await resolveSessionDetails(deps, cookieToken);
+    // The session got a new 90 days: so does the browser's cookie (it carries the old end).
+    if (session?.renewedUntil) {
+      try {
+        store.set(SESSION_COOKIE_NAME, cookieToken, { ...sessionCookieOptions, expires: session.renewedUntil });
+      } catch {
+        // Only a route handler can set cookies (all callers are). Elsewhere the session is
+        // still renewed; only the browser's cookie keeps its old end date.
+      }
+    }
+    return session?.userId ?? null;
   }
 
   // 2. Check Authorization: Bearer header (Android/API clients)
   const authHeader = request.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     const bearerToken = authHeader.slice(7);
-    return resolveSession(deps, bearerToken);
+    return (await resolveSessionDetails(deps, bearerToken))?.userId ?? null;
   }
 
   return null;

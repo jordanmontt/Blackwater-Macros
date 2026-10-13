@@ -4,6 +4,7 @@ import type { WeightsRepository } from "@/server/repositories/weights-repo";
 import type { SettingsRepository } from "@/server/repositories/settings-repo";
 import type { UsersRepository } from "@/server/repositories/users-repo";
 import type { SessionsRepository } from "@/server/repositories/sessions-repo";
+import { sessionExpiryFromNow } from "@/server/auth/session";
 import type { AuthServiceDeps } from "@/server/services/auth-service";
 import type { StatsServiceDeps } from "@/server/services/stats-service";
 import type { MealRow, MealTemplateRow, WeightRow, UserRow } from "@/server/db/schema";
@@ -295,6 +296,10 @@ export function createMemoryWorld(): MemoryWorld {
     async deleteByToken(token) {
       sessionsData.delete(token);
     },
+    async extend(token, expiresAt) {
+      const record = sessionsData.get(token);
+      if (record) sessionsData.set(token, { ...record, expiresAt });
+    },
     async deleteExpiredBefore() {},
   };
 
@@ -328,8 +333,13 @@ export function createMemoryWorld(): MemoryWorld {
 }
 
 /** Establece una sesión válida para `userId` y devuelve el token que la acredita. */
-export function seedSession(world: MemoryWorld, userId: string, token = "test-token"): string {
-  world.data.sessions.set(token, { token, userId, expiresAt: new Date(Date.now() + 3_600_000) });
+export function seedSession(
+  world: MemoryWorld,
+  userId: string,
+  token = "test-token",
+  expiresAt: Date = sessionExpiryFromNow(),
+): string {
+  world.data.sessions.set(token, { token, userId, expiresAt });
   return token;
 }
 
