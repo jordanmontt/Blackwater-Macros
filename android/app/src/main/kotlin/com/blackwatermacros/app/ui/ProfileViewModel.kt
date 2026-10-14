@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.CalorieRecommendation
+import com.blackwatermacros.app.core.ExpenditureCheck
 import com.blackwatermacros.app.core.ExpenditureEstimate
 import com.blackwatermacros.app.core.Goal
 import com.blackwatermacros.app.core.ProteinRecommendation
@@ -25,6 +26,9 @@ sealed interface ProfileUiState {
         val calorieRec: CalorieRecommendation?,
         val proteinRec: ProteinRecommendation?,
         val expenditure: ExpenditureEstimate? = null,
+        /** Follows the profile being edited: change the activity, see if it now matches. */
+        val check: ExpenditureCheck? = null,
+        val inputs: FormulaInputs? = null,
     ) : ProfileUiState
 }
 
@@ -39,7 +43,7 @@ class ProfileViewModel(
         combine(repository.profile(), draft, repository.weights(), repository.allMeals()) { stored, draft, weights, meals ->
             val profile = draft ?: stored
             val ready = recommend(weights, profile, meals) as? RecommendationsUiState.Ready
-            ProfileUiState.Loaded(profile, ready?.calorie, ready?.protein, ready?.expenditure) as ProfileUiState
+            ProfileUiState.Loaded(profile, ready?.calorie, ready?.protein, ready?.expenditure, ready?.check, ready?.inputs) as ProfileUiState
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileUiState.Loading)
 
     private var saveJob: Job? = null

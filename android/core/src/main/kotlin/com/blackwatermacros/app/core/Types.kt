@@ -172,3 +172,52 @@ data class ExpenditureEstimate(
     val weighIns: Int,
     val windowDays: Int,
 )
+
+/**
+ * What the measurement found in its 28-day window, also when it is not enough
+ * (web `ExpenditureData`): the profile tells the user exactly what is missing.
+ */
+data class ExpenditureData(
+    /** Days with meals logged (kcal > 0). */
+    val loggedDays: Int,
+    /** Days with at least one weigh-in. */
+    val weighInDays: Int,
+    /** Days between the first and the last weigh-in (0 with fewer than 2). */
+    val weightSpanDays: Int,
+    /** 95 % margin of the weight trend, kcal/day; null with fewer than 3 weigh-in days. */
+    val margin: Double?,
+    /** The measured expenditure; null until every rule is met. */
+    val estimate: ExpenditureEstimate?,
+)
+
+/** Why the measured expenditure is not there yet, in the order the user should fix it. */
+enum class MissingExpenditureData { MEALS, WEIGH_INS, WEIGHT_SPAN, MARGIN }
+
+/** The measured expenditure is above, inside or below the formula's normal range. */
+enum class ExpenditureVerdict { HIGHER, MATCHES, LOWER }
+
+/** The formula's expenditure (profile) checked against the measured one (web `ExpenditureCheck`). */
+sealed interface ExpenditureCheck {
+    data class NotEnoughData(val data: ExpenditureData, val missing: List<MissingExpenditureData>) : ExpenditureCheck
+
+    data class Measured(
+        val verdict: ExpenditureVerdict,
+        /** The same verdict one week earlier too (always true for MATCHES). */
+        val confirmed: Boolean,
+        val estimate: ExpenditureEstimate,
+        /** From the profile: BMR × activity factor. */
+        val formulaTdee: Double,
+        val bmr: Double,
+        val activityFactor: Double,
+        /** formulaTdee ± 10 %: what the formula can be off by for anyone. */
+        val normalMin: Double,
+        val normalMax: Double,
+        /** Measured − formula, kcal/day. */
+        val gap: Double,
+        /** The activity factor the measured expenditure corresponds to (measured / BMR). */
+        val impliedActivityFactor: Double,
+    ) : ExpenditureCheck
+}
+
+/** «Not now» on the Today card's gap notice: it comes back if the verdict changes or after a new 4-week window. */
+data class ExpenditureNoticeDismissal(val verdict: ExpenditureVerdict, val date: String)

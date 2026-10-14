@@ -41,7 +41,7 @@ import com.blackwatermacros.app.core.Goal
  * recommendations derived from them. Same split as the web `/ajustes/perfil`.
  */
 @Composable
-fun ProfileScreen(onBack: () -> Unit, viewModel: ProfileViewModel = viewModel()) {
+fun ProfileScreen(onBack: () -> Unit, onOpenMethodology: () -> Unit = {}, viewModel: ProfileViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -68,7 +68,7 @@ fun ProfileScreen(onBack: () -> Unit, viewModel: ProfileViewModel = viewModel())
                 is ProfileUiState.Loaded -> {
                     GoalCard(goal = loaded.profile.calorieGoal, onGoalChange = viewModel::updateCalorieGoal)
                     ProfileCard(profile = loaded.profile, onProfileChange = viewModel::updateProfile)
-                    RecommendationsCard(loaded)
+                    RecommendationsCard(loaded, onOpenMethodology)
                     Spacer(Modifier.height(24.dp))
                 }
             }
@@ -188,7 +188,7 @@ private fun RowScope.NumberField(
 }
 
 @Composable
-private fun RecommendationsCard(loaded: ProfileUiState.Loaded) {
+private fun RecommendationsCard(loaded: ProfileUiState.Loaded, onOpenMethodology: () -> Unit) {
     val calorie = loaded.calorieRec
     val protein = loaded.proteinRec
     if (calorie == null && protein == null) return
@@ -227,9 +227,8 @@ private fun RecommendationsCard(loaded: ProfileUiState.Loaded) {
                                 (if (rate > 0) "+" else "") + formatNumber(rate, 2),
                             ),
                         )
-                    } else {
-                        CardDescription(stringResource(R.string.rec_measured_pending))
                     }
+                    ExpenditureCheckStatus(loaded.check, loaded.inputs, onOpenMethodology)
                 }
             }
             if (protein != null) {

@@ -59,9 +59,12 @@ fun NutritionRecommendationsCard(
     dailyProtein: Double,
     onOpenProfile: () -> Unit = {},
     onOpenWeight: () -> Unit = {},
+    onOpenMethodology: () -> Unit = {},
     viewModel: RecommendationsViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val noticeDismissal by viewModel.noticeDismissal.collectAsStateWithLifecycle()
+    val weighInHintDismissed by viewModel.weighInHintDismissed.collectAsStateWithLifecycle()
 
     when (state) {
         RecommendationsUiState.Loading -> AppCard(
@@ -104,7 +107,18 @@ fun NutritionRecommendationsCard(
                                     stringResource(R.string.rec_measured_tdee, formatNumber(it.tdee), formatNumber(it.margin))
                                 },
                             ),
-                        )
+                        ) {
+                            ExpenditureNotices(
+                                check = ready.check,
+                                inputs = ready.inputs,
+                                dismissal = noticeDismissal,
+                                weighInHintDismissed = weighInHintDismissed,
+                                onDismissGap = viewModel::dismissNotice,
+                                onDismissHint = viewModel::dismissWeighInHint,
+                                onReviewActivity = onOpenProfile,
+                                onOpenMethodology = onOpenMethodology,
+                            )
+                        }
                     }
                     if (calorie != null && protein != null) {
                         Spacer(Modifier.height(16.dp))
@@ -176,6 +190,8 @@ internal fun RecommendationSection(
     barUnit: String = "",
     showBar: Boolean = true,
     details: List<String> = emptyList(),
+    /** Shown after the details, before the bar (the expenditure check's notices). */
+    beforeBar: @Composable () -> Unit = {},
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -212,6 +228,7 @@ internal fun RecommendationSection(
         details.forEach {
             Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        beforeBar()
         if (showBar) {
             Spacer(Modifier.height(10.dp))
             IntakeBar(current, rangeMin, rangeMax, barUnit)

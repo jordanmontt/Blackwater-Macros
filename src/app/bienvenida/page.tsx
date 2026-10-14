@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2Icon, ExternalLinkIcon, Loader2Icon } from "lucide-react";
+import { CheckCircle2Icon, ExternalLinkIcon, FlaskConicalIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -171,6 +171,14 @@ function DataStep({ onDone }: { onDone: () => void }) {
         <CardDescription>{t.onboarding.dataIntro}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* One of what makes the app different: say it where the numbers start. */}
+        <div className="flex gap-3 rounded-lg bg-primary/10 px-3 py-2.5">
+          <FlaskConicalIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">{t.onboarding.scienceTitle}</p>
+            <p className="text-xs text-muted-foreground">{t.onboarding.scienceBody}</p>
+          </div>
+        </div>
         <Segmented
           label={t.calorias.genderLabel}
           options={[

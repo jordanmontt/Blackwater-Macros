@@ -3,7 +3,8 @@
 import { DumbbellIcon, FlameIcon } from "lucide-react";
 import { formatNumber } from "@/i18n/format";
 import { Card, CardContent } from "@/components/ui/card";
-import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
+import { ExpenditureNotices, formulaInputs } from "@/components/expenditure-check";
+import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import { useRecommendations } from "@/lib/use-recommendations";
 import type { Goal } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
@@ -119,8 +120,9 @@ export function NutritionRecommendationsCard({
   dailyCalories: number;
   dailyProtein: number;
 }) {
-  const { latestWeight, calorieRec, proteinRec } = useRecommendations();
+  const { profile, latestWeight, calorieRec, proteinRec } = useRecommendations();
   const measured = useMeasuredExpenditure();
+  const check = useExpenditureCheck(calorieRec);
 
   if (!latestWeight) {
     return (
@@ -177,6 +179,10 @@ export function NutritionRecommendationsCard({
                 </p>
               ) : null}
             </div>
+            <ExpenditureNotices
+              check={check}
+              inputs={formulaInputs(profile, latestWeight.weightKg, new Date().getFullYear())}
+            />
             {/* mt-auto: both columns' bars sit at the bottom, aligned side by side on desktop. */}
             <div className="mt-auto pt-1">
               <IntakeBar

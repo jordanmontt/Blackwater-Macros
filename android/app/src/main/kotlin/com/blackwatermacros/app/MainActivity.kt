@@ -53,6 +53,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
+import com.blackwatermacros.app.ui.CHECK_SECTION
 import com.blackwatermacros.app.ui.MethodologyScreen
 import com.blackwatermacros.app.ui.ProfileScreen
 import com.blackwatermacros.app.ui.SettingsScreen
@@ -266,6 +267,7 @@ private fun AppNavHost(
                 onOpenSettings = { navController.navigateToTab(AppTab.AJUSTES) },
                 onOpenProfile = { navController.navigate("perfil") },
                 onOpenWeight = { navController.navigateToTab(AppTab.PROGRESO) },
+                onOpenMethodology = { navController.navigate("metodologia?section=$CHECK_SECTION") },
                 onOpenAiSettings = { navController.navigate("ia") },
             )
         }
@@ -293,13 +295,19 @@ private fun AppNavHost(
             )
         }
         composable("perfil") {
-            ProfileScreen(onBack = { navController.popBackStack() })
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onOpenMethodology = { navController.navigate("metodologia?section=$CHECK_SECTION") },
+            )
         }
         composable("ia") {
             AiSettingsScreen(onBack = { navController.popBackStack() })
         }
-        composable("metodologia") {
-            MethodologyScreen(onBack = { navController.popBackStack() })
+        composable(
+            "metodologia?section={section}",
+            arguments = listOf(navArgument("section") { type = NavType.StringType; nullable = true; defaultValue = null }),
+        ) { entry ->
+            MethodologyScreen(onBack = { navController.popBackStack() }, section = entry.arguments?.getString("section"))
         }
         composable(
             "admin",

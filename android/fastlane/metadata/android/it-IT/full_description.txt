@@ -13,12 +13,13 @@
 <p>Scienza all’avanguardia, spiegata in parole semplici: i metodi della ricerca attuale sulla nutrizione e dei dietisti sportivi, verificati dopo qualche settimana con il tuo peso reale.</p>
 <ul>
 <li>Il tuo metabolismo basale con l’equazione di Mifflin-St Jeor.</li>
-<li>Il tuo livello di attività calcolato da quello che fai davvero (giorni di palestra, durata della sessione, camminata quotidiana) con il metodo fattoriale della FAO/OMS, invece di un vago «poco attivo / molto attivo».</li>
+<li>Il tuo livello di attività calcolato da quello che fai davvero (palestra, camminata) con il metodo fattoriale della FAO/OMS, invece di un vago «poco attivo / molto attivo».</li>
 <li>Un intervallo di calorie per il tuo obiettivo (perdere grasso, mantenere, aumentare la massa) che non scende mai sotto il tuo fabbisogno basale.</li>
 <li>Intervalli di proteine dalla ricerca in nutrizione sportiva, calcolati sulla massa magra se registri la tua massa grassa.</li>
 <li>Il tuo dispendio misurato: dopo qualche settimana, l’app confronta quello che hai mangiato con l’andamento del tuo peso e mostra quanto consumi davvero, con il suo margine di errore.</li>
+<li>Un controllo del tuo profilo: se il dispendio misurato non coincide chiaramente, l’app ti dice perché, con i tuoi numeri.</li>
 </ul>
-<p>Ogni formula e le sue fonti sono spiegate nell’app (Metodologia).</p>
+<p><b>Completamente trasparente:</b> ogni formula, le sue fonti e i suoi limiti sono spiegati nell’app (Metodologia), così puoi verificare ogni numero da solo.</p>
 
 <p><b>Guarda i tuoi progressi</b></p>
 <ul>
@@ -31,7 +32,7 @@
 
 <p><b>Privata per progetto</b></p>
 <ul>
-<li>I tuoi dati restano sul telefono. Senza accedere a un account non lasciano mai il dispositivo: l’app non contatta mai il nostro server. Si collega solo quando lo chiedi tu: ricerca di alimenti e codici a barre (Open Food Facts), il fornitore di IA scelto (solo ciò che gli invii), e l’elenco o il download dei modelli di IA per il telefono (GitHub, Hugging Face).</li>
+<li>I tuoi dati restano sul telefono. Senza account non lasciano mai il dispositivo: l’app non contatta mai il nostro server. Si collega solo quando lo chiedi tu: ricerca di alimenti e codici a barre (Open Food Facts), il fornitore di IA scelto (solo ciò che gli invii), e i modelli di IA per il telefono (GitHub, Hugging Face).</li>
 <li>Niente pubblicità, niente analisi, niente tracker. Software libero (AGPL-3.0).</li>
 <li>Esporta e importa i tuoi dati in CSV quando vuoi.</li>
 </ul>

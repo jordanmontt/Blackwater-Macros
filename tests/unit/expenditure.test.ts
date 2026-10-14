@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { addDaysToKey } from "../../src/lib/core/dates";
-import { dailyMeans, estimateExpenditure, fitWeightTrend } from "../../src/lib/core/expenditure";
+import {
+  approximateGap,
+  checkExpenditure,
+  dailyMeans,
+  estimateExpenditure,
+  fitWeightTrend,
+  measureExpenditure,
+  onlyWeighInsMissing,
+  showsGapNotice,
+} from "../../src/lib/core/expenditure";
 import type { DataPoint } from "../../src/lib/core/stats";
 
 const TODAY = "2026-03-01";
@@ -153,5 +162,109 @@ describe("fitWeightTrend", () => {
     expect(fitWeightTrend([{ date: "2026-02-01", value: 80 }, { date: "2026-02-08", value: 79 }])).toBeNull();
     const sameDay = [80, 80.5, 79.5].map((value) => ({ date: "2026-02-01", value }));
     expect(fitWeightTrend(sameDay)).toBeNull();
+  });
+});
+
+// Profile: BMR 1600 × activity factor 1.5 = 2400 kcal/day → normal range 2160–2640 (± 10 %).
+const FORMULA = { bmr: 1600, activityFactor: 1.5, tdee: 2400 };
+
+describe("measureExpenditure", () => {
+  it("returns the counts even when they are not enough, so the app can say what is missing", () => {
+    const data = measureExpenditure(meals(15, 2400), weighIns(80, -0.5, 7), TODAY);
+    expect(data.estimate).toBeNull();
+    expect(data.loggedDays).toBe(15);
+    expect(data.weighInDays).toBe(4);
+    expect(data.weightSpanDays).toBe(21);
+    expect(data.margin).toBe(482);
+  });
+
+  it("no margin without a trend (fewer than 3 weigh-in days)", () => {
+    const data = measureExpenditure(meals(28, 2400), [{ date: daysAgo(3), value: 80 }], TODAY);
+    expect(data.weighInDays).toBe(1);
+    expect(data.weightSpanDays).toBe(0);
+    expect(data.margin).toBeNull();
+  });
+});
+
+describe("checkExpenditure", () => {
+  it("measured inside formula ± 10 %: it matches, even with a 350 kcal gap", () => {
+    // 2750 ± 177: the low end (2573) is inside 2160–2640, so the formula may be right.
+    const check = checkExpenditure(meals(35, 2750), weighIns(80, 0, 1, 35), FORMULA, TODAY);
+    expect(check).toMatchObject({
+      status: "measured",
+      verdict: "matches",
+      confirmed: true,
+      formulaTdee: 2400,
+      normalMin: 2160,
+      normalMax: 2640,
+      gap: 350,
+    });
+  });
+
+  it("burning clearly more: the whole 95 % range is above formula + 10 %", () => {
+    // Eating 2400 and losing 0.7 kg/week: 2400 + 0.1 × 7700 = 3170 ± 177; 2993 > 2640.
+    const check = checkExpenditure(meals(35, 2400), weighIns(80, -0.7, 1, 35), FORMULA, TODAY);
+    expect(check).toMatchObject({ status: "measured", verdict: "higher", confirmed: true, gap: 770 });
+    if (check.status !== "measured") throw new Error();
+    expect(check.estimate.tdee).toBe(3170);
+    expect(check.estimate.margin).toBe(177);
+    // 3170 / 1600: the activity factor these data correspond to, against 1.5 in the profile.
+    expect(check.impliedActivityFactor).toBe(1.98);
+  });
+
+  it("burning clearly less: the whole 95 % range is below formula − 10 %", () => {
+    // Stable weight on 1800: 1800 ± 177; 1977 < 2160.
+    const check = checkExpenditure(meals(35, 1800), weighIns(80, 0, 1, 35), FORMULA, TODAY);
+    expect(check).toMatchObject({ status: "measured", verdict: "lower", confirmed: true, gap: -600 });
+  });
+
+  it("a gap is only confirmed when the window that ended a week earlier says the same", () => {
+    // Weigh-ins only in the last 20 days: today's window shows the gap (3170 ± 293),
+    // the window a week earlier has 13 weigh-in days spanning 12 days, not enough.
+    const check = checkExpenditure(meals(28, 2400), weighIns(80, -0.7, 1, 20), FORMULA, TODAY);
+    expect(check).toMatchObject({ status: "measured", verdict: "higher", confirmed: false });
+  });
+
+  it("not enough data: says what is missing, meals first", () => {
+    const missing = (intake: DataPoint[], weights: DataPoint[]) => {
+      const check = checkExpenditure(intake, weights, FORMULA, TODAY);
+      return check.status === "notEnoughData" ? check.missing : null;
+    };
+    expect(missing(meals(15, 2400), weighIns(80, 0, 1))).toEqual(["meals"]);
+    const three = [daysAgo(28), daysAgo(20), daysAgo(2)].map((date) => ({ date, value: 80 }));
+    expect(missing(meals(28, 2400), three)).toEqual(["weighIns"]);
+    expect(missing(meals(28, 2400), weighIns(80, 0, 1, 13))).toEqual(["weightSpan"]);
+    expect(missing(meals(28, 2400), weighIns(80, 0, 7))).toEqual(["margin"]);
+    expect(missing(meals(10, 2400), weighIns(80, 0, 7))).toEqual(["meals", "margin"]);
+  });
+});
+
+describe("Today card notices", () => {
+  const higher = checkExpenditure(meals(35, 2400), weighIns(80, -0.7, 1, 35), FORMULA, TODAY);
+
+  it("the gap notice shows only when confirmed, and «Not now» holds for one window of the same verdict", () => {
+    expect(showsGapNotice(higher, null, TODAY)).toBe(true);
+    expect(showsGapNotice(higher, { verdict: "higher", date: daysAgo(10) }, TODAY)).toBe(false);
+    expect(showsGapNotice(higher, { verdict: "higher", date: daysAgo(28) }, TODAY)).toBe(true);
+    expect(showsGapNotice(higher, { verdict: "lower", date: daysAgo(1) }, TODAY)).toBe(true);
+
+    const unconfirmed = checkExpenditure(meals(28, 2400), weighIns(80, -0.7, 1, 20), FORMULA, TODAY);
+    expect(showsGapNotice(unconfirmed, null, TODAY)).toBe(false);
+    const matches = checkExpenditure(meals(35, 2400), weighIns(80, 0, 1, 35), FORMULA, TODAY);
+    expect(showsGapNotice(matches, null, TODAY)).toBe(false);
+    expect(showsGapNotice(null, null, TODAY)).toBe(false);
+  });
+
+  it("the weigh-in hint shows when meals are logged well and only the weigh-ins are missing", () => {
+    expect(onlyWeighInsMissing(checkExpenditure(meals(28, 2400), weighIns(80, 0, 7), FORMULA, TODAY))).toBe(true);
+    expect(onlyWeighInsMissing(checkExpenditure(meals(10, 2400), weighIns(80, 0, 7), FORMULA, TODAY))).toBe(false);
+    expect(onlyWeighInsMissing(higher)).toBe(false);
+    expect(onlyWeighInsMissing(null)).toBe(false);
+  });
+
+  it("the gap is said rounded to 50 kcal", () => {
+    expect(approximateGap(770)).toBe(750);
+    expect(approximateGap(-523)).toBe(500);
+    expect(approximateGap(530)).toBe(550);
   });
 });

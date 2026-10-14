@@ -40,9 +40,27 @@ import androidx.compose.ui.unit.dp
 import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.R
+import androidx.compose.material.icons.automirrored.filled.CompareArrows
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 
+/** The section «Checking your profile against your data», opened from the expenditure check's «Why?». */
+const val CHECK_SECTION = "check"
+
+/** [section] = [CHECK_SECTION] opens the page on «Checking your profile against your data» (web `/metodologia#check`). */
 @Composable
-fun MethodologyScreen(onBack: () -> Unit) {
+fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
+    val scroll = rememberScrollState()
+    var checkTop by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(checkTop) {
+        val top = checkTop
+        if (section == CHECK_SECTION && top != null) scroll.animateScrollTo(top)
+    }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -64,7 +82,7 @@ fun MethodologyScreen(onBack: () -> Unit) {
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scroll),
         ) {
         Column(
             Modifier
@@ -118,6 +136,19 @@ fun MethodologyScreen(onBack: () -> Unit) {
                 ),
                 afterRes = R.string.meth_measured_after,
             )
+            MethodCard(
+                Icons.AutoMirrored.Filled.CompareArrows,
+                R.string.meth_check_title,
+                R.string.meth_check_body,
+                formula = stringResource(R.string.meth_check_formula).split("\n"),
+                afterTexts = listOf(
+                    stringResource(R.string.meth_check_why_10),
+                    stringResource(R.string.meth_check_why_strict),
+                    stringResource(R.string.meth_check_causes),
+                    stringResource(R.string.meth_check_shown),
+                ),
+                modifier = Modifier.onGloballyPositioned { checkTop = it.positionInParent().y.toInt() },
+            )
             MethodCard(Icons.Filled.AutoAwesome, R.string.meth_ai_title, R.string.meth_ai_body)
             MethodCard(Icons.Filled.Storage, R.string.meth_sources_title, R.string.meth_sources_body)
             ReferencesCard()
@@ -145,9 +176,11 @@ private fun MethodCard(
     @StringRes bodyRes: Int,
     formula: List<String>? = null,
     @StringRes afterRes: Int? = null,
+    afterTexts: List<String> = emptyList(),
+    modifier: Modifier = Modifier,
 ) {
     AppCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {
             SectionTitle(icon, stringResource(titleRes))
@@ -159,6 +192,10 @@ private fun MethodCard(
             if (afterRes != null) {
                 Spacer(Modifier.height(8.dp))
                 Paragraphs(stringResource(afterRes))
+            }
+            if (afterTexts.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                afterTexts.forEach { Paragraphs(it) }
             }
         }
     }
@@ -224,6 +261,10 @@ private fun ReferencesCard() {
                 "Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y. Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. Am J Clin Nutr. 2000;72(3):694–701. doi:10.1093/ajcn/72.3.694",
                 "McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). JPEN J Parenter Enteral Nutr. 2016;40(2):159–211. doi:10.1177/0148607115621863",
                 "Byrne NM, Hills AP, Hunter GR, Weinsier RL, Schutz Y. Metabolic equivalent: one size does not fit all. J Appl Physiol. 2005;99(3):1112–1119. doi:10.1152/japplphysiol.00023.2004",
+                "Lichtman SW, Pisarska K, Berman ER, et al. Discrepancy between self-reported and actual caloric intake and exercise in obese subjects. N Engl J Med. 1992;327(27):1893–1898. doi:10.1056/NEJM199212313272701",
+                "Schoeller DA. Limitations in the assessment of dietary energy intake by self-report. Metabolism. 1995;44(2 Suppl 2):18–22. doi:10.1016/0026-0495(95)90204-X",
+                "Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. Int J Obes. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184",
+                "Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. Am J Clin Nutr. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S",
             )
             Column {
                 refs.forEachIndexed { i, ref ->

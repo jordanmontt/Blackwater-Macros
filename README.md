@@ -2,7 +2,7 @@
   <img src="android/fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Blackwater Macros" width="720">
 </p>
 
-<p align="center"><b>A simple, private calorie and macro tracker for Android, with targets based on science.</b><br>
+<p align="center"><b>A simple, private calorie and macro tracker for Android, with targets based on fully transparent science.</b><br>
 Private. No tracking. No ads. Free software.</p>
 
 <p align="center"><i>Coming soon to F-Droid.</i></p>
@@ -38,11 +38,12 @@ recipe library.
 
 ## How the numbers are calculated
 
-**State-of-the-art science, explained in plain words.** Your targets don't come from rules
-of thumb: they use the methods of current nutrition research and sports dietitians, and
-after a few weeks the app checks them against your own weight. Every formula, its sources
-and its limits are explained inside the app (Settings → Methodology) and in
-[docs/METHODOLOGY.md](docs/METHODOLOGY.md).
+**State-of-the-art science, fully transparent.** Your targets don't come from rules of
+thumb: they use the methods of current nutrition research and sports dietitians, and after
+a few weeks the app checks them against your own weight. Nothing is a black box: every
+formula, its sources and its limits are explained in plain words inside the app (Settings
+→ Methodology, also from Progress) and in [docs/METHODOLOGY.md](docs/METHODOLOGY.md), and
+every number on screen can be checked by hand.
 
 - **Basal metabolic rate** with the Mifflin-St Jeor equation, the most accurate of the common
   formulas for healthy adults.
@@ -59,6 +60,13 @@ and its limits are explained inside the app (Settings → Methodology) and in
 - **Your measured expenditure.** After about four weeks of logging, the app compares what you
   ate with how your weight trend moved and shows how much you really burn, with its margin of
   error, next to the formula's estimate. Formulas are averages; this one is yours.
+- **A check of your profile, only when it matters.** If your measured expenditure is clearly
+  outside what your profile predicts (beyond both the formula's normal ±10 % and the
+  measurement's own margin, two weeks in a row), the app tells you, for example «you burn
+  about 500 kcal/day more than your profile estimates». «Why?» shows the whole calculation
+  with your own numbers and the likely causes: activity your profile doesn't count, food not
+  fully logged, water shifts. If weigh-ins are missing for the check, it tells you what to
+  log. Your target never changes on its own: you decide.
 
 ## AI, only if you want it
 

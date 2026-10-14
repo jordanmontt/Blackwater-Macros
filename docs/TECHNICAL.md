@@ -774,7 +774,7 @@ expired and keeps local data. Statistics are computed on the phone, so `/api/sta
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
-| Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, protein, measured expenditure) with the reasoning and Crossref-checked citations. Android: `MethodologyScreen.kt`, same content and reference list |
+| Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, protein, measured expenditure, the profile check at `#check`) with the reasoning and Crossref-checked citations. Android: `MethodologyScreen.kt`, same content and reference list |
 
 ### Client data layer (`lib/api.ts`)
 
@@ -1011,6 +1011,39 @@ Energy balance over the **28 days before today** (MacroFactor-style):
 - Web: `lib/use-measured-expenditure.ts` (meals `meals:<from>:<yesterday>` + `weights`
   cache keys). Android: `recommend(weights, profile, meals, today)` in
   `RecommendationsViewModel.kt`.
+- `measureExpenditure` returns the counts (logged days, weigh-in days, span, margin) even
+  when they aren't enough; `estimateExpenditure` is its `.estimate`.
+
+### 8.3.1 Checking the profile against the data (`checkExpenditure`)
+
+Science and every threshold: [METHODOLOGY.md](./METHODOLOGY.md) §3.1. In short, the
+verdict is «higher»/«lower» only when the whole 95 % range of the measured value lies
+outside the profile's TDEE ± 10 % (`FORMULA_TOLERANCE`), and it is `confirmed` only if the
+window that ended 7 days earlier says the same (so the check reads `CHECK_DAYS` = 35 days of
+meals). Otherwise «matches», or `notEnoughData` with `missing` in fixing order (meals,
+weigh-ins, span, margin).
+
+- **Layers** (the app's transparency rule: show only when needed, explain all of it):
+  1. *Comidas card* (`ExpenditureNotices`): one line, only when `showsGapNotice` (confirmed
+     gap, not dismissed for the same verdict in the last 28 days), with «¿Por qué?» and
+     «Ahora no». Or, once, «weigh yourself ~3×/week» when only weigh-ins are missing
+     (`onlyWeighInsMissing`).
+  2. *«¿Por qué?»* (web dialog, Android bottom sheet): the user's numbers in each formula
+     (Mifflin, PAL, BMR × PAL, energy balance), the normal band vs the measured range drawn
+     on one bar, the verdict, the implied PAL, the causes for that direction, «Revisar mi
+     actividad» and «Cómo funciona» (→ `/metodologia#check`, Android
+     `metodologia?section=check`).
+  3. *Metodología*: the «Comparar tu perfil con tus datos» section and its references.
+- **Perfil** (`ExpenditureCheckStatus`) always shows the status: what is missing, or the
+  verdict with «Ver el cálculo». It follows the profile being edited, so changing the
+  activity shows at once whether it now matches.
+- **«Ahora no»** is a per-device convenience: web `localStorage`
+  (`bw-expenditure-notice-dismissed`, `bw-weigh-in-hint-dismissed`, `lib/expenditure-notices.ts`),
+  Android `AppPreferences` (`expenditureNoticeDismissal`, `weighInHintDismissed`).
+- **Files:** core `expenditure.ts` / `Expenditure.kt` (mirror tests); web
+  `components/expenditure-check.tsx`; Android `ui/ExpenditureCheck.kt`. Texts in
+  `expenditureCheck.*` and `metodologia.check*` of the five JSON, mapped as `check_*` and
+  `meth_check_*`.
 
 ### 8.4 Where it is stored and shown
 
@@ -1224,7 +1257,9 @@ app language, no medical claims.
 - **Install banner** (`components/pwa-install.tsx`): Chromium on Android gets «Instalar»
   (the browser's install prompt); iPhone/iPad have no prompt, so they get the steps (Safari →
   Compartir → «Añadir a pantalla de inicio»), hidden for good once closed.
-- **First launch** (D12): web `/bienvenida` (your data → optional Google key → done) after a
+- **First launch** (D12): the first page says what makes the app different, «Ciencia
+  totalmente transparente» (`onboarding.scienceTitle/Body`: web on «Tus datos», Android on the
+  welcome page). Web `/bienvenida` (your data → optional Google key → done) after a
   login with an incomplete profile, flag `localStorage["bw:onboarding-done"]`; Android route
   `bienvenida` (welcome: «Empezar», and a quieter «Tengo una cuenta» → login → data → AI →
   done) only on a fresh install (no account, nothing logged), flag
@@ -1340,7 +1375,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `nutrition.test.ts` | `sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2` | `NutritionTest.kt` |
 | `protein.test.ts` | `calculateProteinRecommendation`, reference weight at BMI 25 | `ProteinTest.kt` |
 | `calories.test.ts` | `calculateBMR`, activity (PAL), `calculateCalorieRecommendation` (BMR floor) | `CaloriesTest.kt` |
-| `expenditure.test.ts` | `estimateExpenditure`, `fitWeightTrend`, `dailyMeans` | `ExpenditureTest.kt` |
+| `expenditure.test.ts` | `estimateExpenditure`, `measureExpenditure`, `fitWeightTrend`, `dailyMeans`, `checkExpenditure` (verdicts, confirmation, what is missing), `showsGapNotice`, `onlyWeighInsMissing`, `approximateGap` | `ExpenditureTest.kt` |
 | `foods.test.ts` | portions, Open Food Facts parsing, shop labels and why a barcode missed, `searchGenericFoods` | `FoodsTest.kt` |
 | `ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), answer and stream parsing, how a stream ended (`parseAiStreamEnd`), `aiErrorKind` | `AiProvidersTest.kt` |
 | `ai-models.test.ts` | `buildModelListRequest`, `parseModelList`, `naturalCompare` | `AiModelsTest.kt` |
@@ -1391,7 +1426,8 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period |
-| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, measured expenditure, sync indicator states (red only for an expired session or a refused change), numbers edited with a decimal comma, when «Añadir comida» asks before closing |
+| `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
+| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, measured expenditure, the profile check and the formula inputs behind its «¿Por qué?», sync indicator states (red only for an expired session or a refused change), numbers edited with a decimal comma, when «Añadir comida» asks before closing |
 | `ui/TranslationsTest.kt` | Every language has every Android-only string and plural with the same placeholders (shared texts: `i18n.test.ts` + the build) |
 | `data/NiceTicksTest.kt` | Chart axis ticks |
 
@@ -1675,7 +1711,8 @@ every language (§6). CSV column names stay Spanish (the web's file format). The
 - **Intake bars** (Comidas): outlined track = what is left, solid fill = eaten (ember past
   the target), two markers = target range, «eaten / min–max unit» next to the status.
   The calorie card lists Promedio estimado, TMB, TDEE and (when the data supports it) the
-  measured expenditure ± margin before the bar; the protein card shows g/kg (of lean mass
+  measured expenditure ± margin and the profile check's notice (§8.3.1) before the bar;
+  the protein card shows g/kg (of lean mass
   when a cut uses body fat). Same design on the web (`components/nutrition-recommendations.tsx`).
 - **Comidas:** double-tap the date → today; deleting a meal asks first, then offers Undo;
   single-ingredient meals don't repeat the numbers of the totals;

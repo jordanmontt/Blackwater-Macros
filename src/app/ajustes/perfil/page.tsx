@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, ApiError } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
-import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
+import { ExpenditureCheckStatus, formulaInputs } from "@/components/expenditure-check";
+import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 import { calculateCalorieRecommendation, isCalorieProfileComplete } from "@/lib/core/calories";
@@ -134,6 +135,9 @@ export default function PerfilPage() {
   const calorieRec = latestWeight
     ? calculateCalorieRecommendation(calorieProfile, latestWeight, new Date().getFullYear())
     : null;
+
+  // The verdict follows the profile being edited: change your activity, see if it now matches.
+  const check = useExpenditureCheck(calorieRec);
 
   const proteinRec = latestWeight && calorieProfile.calorieGoal
     ? calculateProteinRecommendation(latestWeight, calorieProfile.calorieGoal, bodyFatPct, {
@@ -361,9 +365,11 @@ export default function PerfilPage() {
                         })}
                       </p>
                     </>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">{t.calorias.measuredTdeePending}</p>
-                  )}
+                  ) : null}
+                  <ExpenditureCheckStatus
+                    check={check}
+                    inputs={formulaInputs(calorieProfile, latestWeight, new Date().getFullYear())}
+                  />
                 </div>
               )}
               {proteinRec && (

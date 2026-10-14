@@ -43,6 +43,7 @@ need individual guidance.
 | Calorie target | TDEE − 400 / ± 100 / + 300 kcal, never below BMR | Hall 2008; Helms 2014 (JISSN); Iraki 2019 |
 | Protein | g/kg by goal; lean mass when cutting with body fat; weight at BMI 25 above BMI 25 | Jäger 2017; Morton 2018; Helms 2014 (IJSNEM); McClave 2016; Kokura 2024; Gallagher 2000 |
 | Measured expenditure | Energy balance over 28 days, least-squares weight slope, 95 % margin | Hall 2008; Montgomery 2021 |
+| Profile check | Measured 95 % range entirely outside profile ± 10 %, on two weekly windows | Frankenfield 2005; Schoeller 1995; Lichtman 1992 |
 | Weight trend | 7-day moving average | Zheng 2015; Walker 2005 |
 | Weekly rate | Least-squares slope × 7 | Montgomery 2021 |
 | Coach projection | Trend line extended 30 days with its 95 % confidence band | Montgomery 2021 |
@@ -321,6 +322,58 @@ for several weeks, the measured value is the better description of *your* expend
 **Worked example.** Over 4 weeks you logged 25 days averaging 2300 kcal. The weight
 trend fell 0.1 kg/week (β = −0.0143 kg/day), so `TDEE = 2300 + 0.0143 × 7700 ≈ 2410`.
 
+### 3.1 Checking the profile against the data (`checkExpenditure`)
+
+The measured value is shown next to the formula (principle 3). When the two **clearly**
+disagree, the app also says so, explains why with the user's own numbers, and lists what
+can cause it. The target does not change.
+
+```
+profile  = BMR × PAL                                  (§1)
+normal   = profile × (1 ± 0.10)
+measured = TDEE ± margin                               (§3, 95 %)
+higher:    measured − margin > profile × 1.10
+lower:     measured + margin < profile × 0.90
+confirmed: the same verdict on the 28-day window that ended 7 days earlier
+```
+
+**Rules, and why.**
+
+| Rule | Reason |
+|---|---|
+| ±10 % around the profile is "normal" | Mifflin-St Jeor predicts the basal rate within about ±10 % of the measured value in most healthy adults, more often than any other equation (Frankenfield 2005). A gap inside that band is the formula's normal error for one person. The activity factor's own error is not added to the band: it is what the check is meant to reveal. |
+| The **whole** 95 % range must lie outside the band | Then neither the formula's normal error nor the scale's noise explains the gap. With daily weigh-ins (±177) the gap must be ≳ 10 % + 177 kcal, about 400 kcal/day for a 2400 kcal profile. Strict on purpose: the check speaks rarely, and is then very unlikely to be noise. |
+| Confirmed on the window a week earlier | One odd week (a holiday, the scale on another floor) cannot trigger it. The two windows share 21 days, so this adds stability, not statistical confidence. |
+| Today only when confirmed; «Not now» holds until the verdict changes or 28 days pass | Do not repeat what the user already read; a new full window is new data. |
+| The profile used is the one shown (current weight) | Over 4 weeks the weight changes a few kg at most: < 50 kcal/day of BMR × PAL. Using the same number the user sees keeps the explanation checkable. |
+
+**What it cannot tell apart.** Energy balance measures the total, not where the gap comes
+from, so the app lists the possible causes for each direction instead of naming one:
+
+- *Measured lower than the profile:* unlogged food is the most common cause. Self-reported
+  intake usually falls short of what doubly labelled water shows people really burn
+  (Schoeller 1995); in people who could not lose weight on what they reported, intake was
+  under-reported by 47 % and exercise over-reported by 51 % (Lichtman et al. 1992). Also:
+  activity minutes set too high, a basal rate below average, water retention, or adaptive
+  thermogenesis during a long diet (Rosenbaum & Leibel 2010).
+- *Measured higher than the profile:* activity the profile does not count (physical work,
+  other sports, more walking, §1.2), the fast loss of water and glycogen in the first weeks
+  of a diet (Kreitzman et al. 1992), over-logging, or a basal rate above average.
+
+**Implied activity factor.** The «Why?» also shows `measured ÷ BMR`, the activity factor the
+data correspond to. It is only a reference: it assumes the basal formula is right for the
+person, which is exactly one of the things the check cannot know.
+
+**When there is not enough data,** Perfil lists what is missing (logged days out of 21,
+weigh-in days out of 4, span out of 14 days, or the margin against ±300). When meals are
+logged but weigh-ins are what is missing, Today says so once.
+
+**Worked example.** Profile: man, 36, 180 cm, 80 kg → BMR 1750; 3 × 60 min of gym and
+30 min of walking → PAL 1.49; profile 2608 kcal/day, normal 2347–2869. Five weeks on
+2600 kcal/day losing 0.7 kg/week, weighed daily: measured `2600 + 0.1 × 7700 = 3370 ± 177`.
+The low end, 3193, is above 2869, and it was a week earlier too: «you burn about 750 kcal/day
+more than your profile estimates». His data correspond to a PAL of 3370 / 1750 ≈ 1.93.
+
 ---
 
 ## 4. Progress statistics (`stats.ts`, `stats-builder.ts`, `progress.ts`)
@@ -418,11 +471,15 @@ margin(x) = 1.96 × σ × √(1/n + (x − x̄)² / Sxx)        (σ floored at 0
 9. Iraki J, Fitschen P, Espinar S, Helms E. Nutrition recommendations for bodybuilders in the off-season: a narrative review. *Sports*. 2019;7(7):154. doi:10.3390/sports7070154
 10. Jäger R, Kerksick CM, Campbell BI, et al. International Society of Sports Nutrition Position Stand: protein and exercise. *J Int Soc Sports Nutr*. 2017;14:20. doi:10.1186/s12970-017-0177-8
 11. Kokura Y, Ueshima J, Saino Y, Maeda K. Enhanced protein intake on maintaining muscle mass, strength, and physical function in adults with overweight/obesity: a systematic review and meta-analysis. *Clin Nutr ESPEN*. 2024;63:417–426. doi:10.1016/j.clnesp.2024.06.030
-12. McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). *JPEN J Parenter Enteral Nutr*. 2016;40(2):159–211. doi:10.1177/0148607115621863
-13. Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. *Am J Clin Nutr*. 1990;51(2):241–247. doi:10.1093/ajcn/51.2.241
-14. Montgomery DC, Peck EA, Vining GG. *Introduction to Linear Regression Analysis*. 6th ed. Wiley; 2021.
-15. Morton RW, Murphy KT, McKellar SR, et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults. *Br J Sports Med*. 2018;52(6):376–384. doi:10.1136/bjsports-2017-097608
-16. Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. *J Cachexia Sarcopenia Muscle*. 2022;13(2):795–810. doi:10.1002/jcsm.12922
-17. Prince SA, Adamo KB, Hamel ME, Hardt J, Connor Gorber S, Tremblay M. A comparison of direct versus self-report measures for assessing physical activity in adults: a systematic review. *Int J Behav Nutr Phys Act*. 2008;5:56. doi:10.1186/1479-5868-5-56
-18. Walker J. *The Hacker's Diet: how to lose weight and hair through stress and poor nutrition*. fourmilab.ch; 2005.
-19. Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE. Self-weighing in weight management: a systematic literature review. *Obesity*. 2015;23(2):256–265. doi:10.1002/oby.20946
+12. Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. *Am J Clin Nutr*. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S
+13. Lichtman SW, Pisarska K, Berman ER, et al. Discrepancy between self-reported and actual caloric intake and exercise in obese subjects. *N Engl J Med*. 1992;327(27):1893–1898. doi:10.1056/NEJM199212313272701
+14. McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). *JPEN J Parenter Enteral Nutr*. 2016;40(2):159–211. doi:10.1177/0148607115621863
+15. Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. *Am J Clin Nutr*. 1990;51(2):241–247. doi:10.1093/ajcn/51.2.241
+16. Montgomery DC, Peck EA, Vining GG. *Introduction to Linear Regression Analysis*. 6th ed. Wiley; 2021.
+17. Morton RW, Murphy KT, McKellar SR, et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults. *Br J Sports Med*. 2018;52(6):376–384. doi:10.1136/bjsports-2017-097608
+18. Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. *J Cachexia Sarcopenia Muscle*. 2022;13(2):795–810. doi:10.1002/jcsm.12922
+19. Prince SA, Adamo KB, Hamel ME, Hardt J, Connor Gorber S, Tremblay M. A comparison of direct versus self-report measures for assessing physical activity in adults: a systematic review. *Int J Behav Nutr Phys Act*. 2008;5:56. doi:10.1186/1479-5868-5-56
+20. Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. *Int J Obes*. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184
+21. Schoeller DA. Limitations in the assessment of dietary energy intake by self-report. *Metabolism*. 1995;44(2 Suppl 2):18–22. doi:10.1016/0026-0495(95)90204-X
+22. Walker J. *The Hacker's Diet: how to lose weight and hair through stress and poor nutrition*. fourmilab.ch; 2005.
+23. Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE. Self-weighing in weight management: a systematic literature review. *Obesity*. 2015;23(2):256–265. doi:10.1002/oby.20946

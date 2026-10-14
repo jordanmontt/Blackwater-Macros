@@ -1,6 +1,14 @@
 import { addDaysToKey, daysBetweenKeys } from "./dates";
 import type { DataPoint } from "./stats";
-import type { ExpenditureEstimate } from "./types";
+import type {
+  CalorieRecommendation,
+  ExpenditureCheck,
+  ExpenditureData,
+  ExpenditureEstimate,
+  ExpenditureNoticeDismissal,
+  ExpenditureVerdict,
+  MissingExpenditureData,
+} from "./types";
 
 /** The last 4 complete weeks (today is excluded: it is still being logged). */
 export const EXPENDITURE_WINDOW_DAYS = 28;
@@ -103,15 +111,12 @@ export function fitWeightTrend(points: DataPoint[]): WeightTrend | null {
  * no meals are unlogged and left out, never counted as 0 kcal. `weights` holds
  * one point per weigh-in. Both are restricted to the 28 days before `today`.
  *
- * Returns null until the data can support it: ≥21 logged days, ≥4 weigh-in
- * days spanning ≥14 days, and a 95 % margin (1.96 × slope SE × 7700) of at
- * most ±300 kcal/day. In practice that means weighing in ~3 times a week.
+ * The estimate is null until the data can support it: ≥21 logged days, ≥4
+ * weigh-in days spanning ≥14 days, and a 95 % margin (1.96 × slope SE × 7700)
+ * of at most ±300 kcal/day. In practice that means weighing in ~3 times a week.
+ * The counts come back either way, so the app can say what is missing.
  */
-export function estimateExpenditure(
-  intake: DataPoint[],
-  weights: DataPoint[],
-  today: string,
-): ExpenditureEstimate | null {
+export function measureExpenditure(intake: DataPoint[], weights: DataPoint[], today: string): ExpenditureData {
   const from = addDaysToKey(today, -EXPENDITURE_WINDOW_DAYS);
   const inWindow = (point: DataPoint) => point.date >= from && point.date < today;
 
@@ -120,31 +125,155 @@ export function estimateExpenditure(
     caloriesByDay.set(point.date, (caloriesByDay.get(point.date) ?? 0) + point.value);
   }
   const loggedTotals = [...caloriesByDay.values()].filter((kcal) => kcal > 0);
-  if (loggedTotals.length < MIN_LOGGED_DAYS) return null;
+  const loggedDays = loggedTotals.length;
 
   const weighIns = dailyMeans(weights.filter(inWindow));
   const weighInDays = weighIns.length;
-  if (weighInDays < MIN_WEIGH_INS) return null;
-  if (daysBetweenKeys(weighIns[0].date, weighIns[weighIns.length - 1].date) < MIN_WEIGHT_SPAN_DAYS) {
-    return null;
+  const weightSpanDays =
+    weighInDays < 2 ? 0 : daysBetweenKeys(weighIns[0].date, weighIns[weighIns.length - 1].date);
+  const trend = fitWeightTrend(weighIns);
+  const margin = trend === null ? null : Math.round(Z_95 * trend.slopeError * KCAL_PER_KG);
+
+  const data: ExpenditureData = { loggedDays, weighInDays, weightSpanDays, margin, estimate: null };
+  if (
+    loggedDays < MIN_LOGGED_DAYS ||
+    weighInDays < MIN_WEIGH_INS ||
+    weightSpanDays < MIN_WEIGHT_SPAN_DAYS ||
+    trend === null ||
+    margin === null ||
+    margin > MAX_MARGIN_KCAL
+  ) {
+    return data;
   }
 
-  const trend = fitWeightTrend(weighIns);
-  if (trend === null) return null;
-  const margin = Math.round(Z_95 * trend.slopeError * KCAL_PER_KG);
-  if (margin > MAX_MARGIN_KCAL) return null;
-
-  const avgIntake = loggedTotals.reduce((a, b) => a + b, 0) / loggedTotals.length;
+  const avgIntake = loggedTotals.reduce((a, b) => a + b, 0) / loggedDays;
   const tdee = Math.round(avgIntake - trend.slopePerDay * KCAL_PER_KG);
-  if (tdee <= 0) return null;
+  if (tdee <= 0) return data;
 
   return {
-    tdee,
-    margin,
-    avgIntake: Math.round(avgIntake),
-    weightChangePerWeek: Math.round(trend.slopePerDay * 7 * 100) / 100,
-    loggedDays: loggedTotals.length,
-    weighIns: weighInDays,
-    windowDays: EXPENDITURE_WINDOW_DAYS,
+    ...data,
+    estimate: {
+      tdee,
+      margin,
+      avgIntake: Math.round(avgIntake),
+      weightChangePerWeek: Math.round(trend.slopePerDay * 7 * 100) / 100,
+      loggedDays,
+      weighIns: weighInDays,
+      windowDays: EXPENDITURE_WINDOW_DAYS,
+    },
   };
+}
+
+/** The measured expenditure, or null until the data can support it (see `measureExpenditure`). */
+export function estimateExpenditure(
+  intake: DataPoint[],
+  weights: DataPoint[],
+  today: string,
+): ExpenditureEstimate | null {
+  return measureExpenditure(intake, weights, today).estimate;
+}
+
+// --- Checking the profile against the data ---
+
+/**
+ * How far the formula can be off for anyone, as a fraction of its expenditure.
+ * Mifflin-St Jeor predicts the basal rate within ±10 % of the measured value in
+ * most healthy adults, more often than any other equation (Frankenfield 2005).
+ * Gaps inside this band are the formula's normal error, not something to fix.
+ */
+export const FORMULA_TOLERANCE = 0.1;
+/** The verdict must also hold on the window that ended a week earlier. */
+export const CHECK_CONFIRM_DAYS = 7;
+/** Days of meals the check reads: this window plus the one a week earlier. */
+export const CHECK_DAYS = EXPENDITURE_WINDOW_DAYS + CHECK_CONFIRM_DAYS;
+/** A dismissed notice comes back after a whole new window of data. */
+export const NOTICE_SNOOZE_DAYS = EXPENDITURE_WINDOW_DAYS;
+
+/** What stops the measurement, in the order the user should fix it. */
+export function missingExpenditureData(data: ExpenditureData): MissingExpenditureData[] {
+  const missing: MissingExpenditureData[] = [];
+  if (data.loggedDays < MIN_LOGGED_DAYS) missing.push("meals");
+  if (data.weighInDays < MIN_WEIGH_INS) missing.push("weighIns");
+  else if (data.weightSpanDays < MIN_WEIGHT_SPAN_DAYS) missing.push("weightSpan");
+  else if (data.margin === null || data.margin > MAX_MARGIN_KCAL) missing.push("margin");
+  return missing;
+}
+
+/**
+ * Above, inside or below the formula's normal range. Strict on purpose: the
+ * whole 95 % range of the measurement must lie outside formula ± 10 %, so the
+ * gap is beyond both the formula's normal error and the measurement's own.
+ */
+function verdictOf(estimate: ExpenditureEstimate, normalMin: number, normalMax: number): ExpenditureVerdict {
+  if (estimate.tdee - estimate.margin > normalMax) return "higher";
+  if (estimate.tdee + estimate.margin < normalMin) return "lower";
+  return "matches";
+}
+
+/**
+ * Checks the profile's expenditure (BMR × activity factor) against the one
+ * measured from meals and weigh-ins. A "higher" or "lower" verdict is
+ * `confirmed` only if the window that ended a week earlier says the same, so a
+ * single odd week (a party, a scale on a new floor) cannot trigger it. The two
+ * windows share 21 days: this is about stability, not extra statistical
+ * confidence. `intake` must cover `CHECK_DAYS` before today.
+ */
+export function checkExpenditure(
+  intake: DataPoint[],
+  weights: DataPoint[],
+  formula: Pick<CalorieRecommendation, "bmr" | "activityFactor" | "tdee">,
+  today: string,
+): ExpenditureCheck {
+  const data = measureExpenditure(intake, weights, today);
+  const estimate = data.estimate;
+  if (estimate === null) return { status: "notEnoughData", data, missing: missingExpenditureData(data) };
+
+  const normalMin = Math.round(formula.tdee * (1 - FORMULA_TOLERANCE));
+  const normalMax = Math.round(formula.tdee * (1 + FORMULA_TOLERANCE));
+  const verdict = verdictOf(estimate, normalMin, normalMax);
+  let confirmed = true;
+  if (verdict !== "matches") {
+    const weekBefore = estimateExpenditure(intake, weights, addDaysToKey(today, -CHECK_CONFIRM_DAYS));
+    confirmed = weekBefore !== null && verdictOf(weekBefore, normalMin, normalMax) === verdict;
+  }
+  return {
+    status: "measured",
+    verdict,
+    confirmed,
+    estimate,
+    formulaTdee: formula.tdee,
+    bmr: formula.bmr,
+    activityFactor: formula.activityFactor,
+    normalMin,
+    normalMax,
+    gap: estimate.tdee - formula.tdee,
+    impliedActivityFactor: Math.round((estimate.tdee / formula.bmr) * 100) / 100,
+  };
+}
+
+/** The gap as the Today card says it: «about 500», rounded to 50 kcal. */
+export function approximateGap(gap: number): number {
+  return Math.round(Math.abs(gap) / 50) * 50;
+}
+
+/**
+ * The Today card mentions the gap only when it is confirmed, and not again
+ * after «Not now» unless the verdict changes or a whole new window has passed.
+ */
+export function showsGapNotice(
+  check: ExpenditureCheck | null,
+  dismissed: ExpenditureNoticeDismissal | null,
+  today: string,
+): boolean {
+  if (check?.status !== "measured" || check.verdict === "matches" || !check.confirmed) return false;
+  if (dismissed === null || dismissed.verdict !== check.verdict) return true;
+  return daysBetweenKeys(dismissed.date, today) >= NOTICE_SNOOZE_DAYS;
+}
+
+/**
+ * The one case where a single habit unlocks the check: meals are logged well
+ * enough, only the weigh-ins are missing. Shown once on Today until dismissed.
+ */
+export function onlyWeighInsMissing(check: ExpenditureCheck | null): boolean {
+  return check?.status === "notEnoughData" && check.missing.length > 0 && !check.missing.includes("meals");
 }

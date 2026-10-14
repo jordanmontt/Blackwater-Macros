@@ -1,6 +1,6 @@
 "use client";
 
-import { ActivityIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, ScaleIcon, SigmaIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftRightIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, ScaleIcon, SigmaIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -69,6 +69,16 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.measuredData}</p>
         <p>{t.metodologia.measuredUncertainty}</p>
         <p>{t.metodologia.measuredLimits}</p>
+      </MethodologyCard>
+
+      {/* Linked from the «Why?» of the expenditure check (/metodologia#check). */}
+      <MethodologyCard id="check" icon={<ArrowLeftRightIcon />} title={t.metodologia.checkTitle}>
+        <p>{t.metodologia.checkBody}</p>
+        <FormulaLines text={t.metodologia.checkFormula} />
+        <p>{t.metodologia.checkWhy10}</p>
+        <p>{t.metodologia.checkWhyStrict}</p>
+        <p>{t.metodologia.checkCauses}</p>
+        <p>{t.metodologia.checkShown}</p>
       </MethodologyCard>
 
       <MethodologyCard icon={<SparklesIcon />} title={t.metodologia.aiTitle}>
@@ -257,6 +267,35 @@ const REFERENCES: { authors: string; title: string; source: string; details: str
     details: "2005;99(3):1112–1119.",
     doi: "10.1152/japplphysiol.00023.2004",
   },
+  {
+    authors: "Lichtman SW, Pisarska K, Berman ER, et al.",
+    title: "Discrepancy between self-reported and actual caloric intake and exercise in obese subjects",
+    source: "N Engl J Med",
+    details: "1992;327(27):1893–1898.",
+    doi: "10.1056/NEJM199212313272701",
+  },
+  {
+    authors: "Schoeller DA",
+    title: "Limitations in the assessment of dietary energy intake by self-report",
+    source: "Metabolism",
+    details: "1995;44(2 Suppl 2):18–22.",
+    doi: "10.1016/0026-0495(95)90204-X",
+  },
+  {
+    authors: "Rosenbaum M, Leibel RL",
+    title: "Adaptive thermogenesis in humans",
+    source: "Int J Obes",
+    details: "2010;34(Suppl 1):S47–S55.",
+    doi: "10.1038/ijo.2010.184",
+  },
+  {
+    authors: "Kreitzman SN, Coxon AY, Szaz KF",
+    title:
+      "Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition",
+    source: "Am J Clin Nutr",
+    details: "1992;56(1 Suppl):292S–293S.",
+    doi: "10.1093/ajcn/56.1.292S",
+  },
 ];
 
 function FormulaLines({ text }: { text: string }) {
@@ -273,16 +312,18 @@ function FormulaLines({ text }: { text: string }) {
 }
 
 function MethodologyCard({
+  id,
   icon,
   title,
   children,
 }: {
+  id?: string;
   icon: React.ReactNode;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <Card>
+    <Card id={id} className="scroll-mt-4">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           {icon} {title}

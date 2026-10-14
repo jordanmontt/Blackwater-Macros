@@ -24,6 +24,7 @@ const EMPTY_PROFILE: CalorieProfile = {
  */
 export function useRecommendations(): {
   weights: WeightDTO[] | undefined;
+  profile: CalorieProfile;
   latestWeight: WeightDTO | null;
   calorieRec: CalorieRecommendation | null;
   proteinRec: ProteinRecommendation | null;
@@ -53,5 +54,5 @@ export function useRecommendations(): {
     [latestWeight, profile.calorieGoal, profile.heightCm, profile.gender, profile.birthYear, bodyFatPct],
   );
 
-  return { weights, latestWeight, calorieRec, proteinRec };
+  return { weights, profile, latestWeight, calorieRec, proteinRec };
 }

@@ -82,6 +82,7 @@ fun HoyScreen(
     onOpenSettings: () -> Unit = {},
     onOpenProfile: () -> Unit = {},
     onOpenWeight: () -> Unit = {},
+    onOpenMethodology: () -> Unit = {},
     onOpenAiSettings: () -> Unit = {},
     viewModel: HoyViewModel = viewModel(),
 ) {
@@ -177,6 +178,7 @@ fun HoyScreen(
                             totals = totals,
                             onOpenProfile = onOpenProfile,
                             onOpenWeight = onOpenWeight,
+                            onOpenMethodology = onOpenMethodology,
                             onAdd = {
                                 pickOnly = false
                                 addOpen = true
@@ -193,6 +195,7 @@ fun HoyScreen(
                             onDelete = { deletingMeal = it },
                             onOpenProfile = onOpenProfile,
                             onOpenWeight = onOpenWeight,
+                            onOpenMethodology = onOpenMethodology,
                             onReorder = { newList ->
                                 listMeals = newList
                                 viewModel.reorder(newList)
@@ -302,6 +305,7 @@ private fun MealList(
     onDelete: (MealDTO) -> Unit,
     onOpenProfile: () -> Unit,
     onOpenWeight: () -> Unit,
+    onOpenMethodology: () -> Unit,
     onReorder: (List<MealDTO>) -> Unit,
 ) {
     val lazyListState: LazyListState = rememberLazyListState()
@@ -319,7 +323,7 @@ private fun MealList(
     ) {
         item(key = "totals") { DailyTotalsCard(totals) }
         item(key = "recommendations") {
-            NutritionRecommendationsCard(totals.calories, totals.protein, onOpenProfile, onOpenWeight)
+            NutritionRecommendationsCard(totals.calories, totals.protein, onOpenProfile, onOpenWeight, onOpenMethodology)
         }
         items(meals, key = { it.id }) { meal ->
             ReorderableItem(reorderableState, key = meal.id) { isDragging ->
@@ -347,6 +351,7 @@ private fun EmptyDayContent(
     totals: Totals,
     onOpenProfile: () -> Unit,
     onOpenWeight: () -> Unit,
+    onOpenMethodology: () -> Unit,
     onAdd: () -> Unit,
 ) {
     Column(
@@ -355,7 +360,7 @@ private fun EmptyDayContent(
             .verticalScroll(rememberScrollState()),
     ) {
         DailyTotalsCard(totals)
-        NutritionRecommendationsCard(totals.calories, totals.protein, onOpenProfile, onOpenWeight)
+        NutritionRecommendationsCard(totals.calories, totals.protein, onOpenProfile, onOpenWeight, onOpenMethodology)
         Spacer(Modifier.height(12.dp))
         Surface(
             onClick = onAdd,

@@ -168,3 +168,55 @@ export interface ExpenditureEstimate {
   weighIns: number;
   windowDays: number;
 }
+
+/**
+ * What the measurement found in its 28-day window, also when it is not enough:
+ * the profile tells the user exactly what is missing.
+ */
+export interface ExpenditureData {
+  /** Days with meals logged (kcal > 0). */
+  loggedDays: number;
+  /** Days with at least one weigh-in. */
+  weighInDays: number;
+  /** Days between the first and the last weigh-in (0 with fewer than 2). */
+  weightSpanDays: number;
+  /** 95 % margin of the weight trend, kcal/day; null with fewer than 3 weigh-in days. */
+  margin: number | null;
+  /** The measured expenditure; null until every rule is met. */
+  estimate: ExpenditureEstimate | null;
+}
+
+/** Why the measured expenditure is not there yet, in the order the user should fix it. */
+export type MissingExpenditureData = "meals" | "weighIns" | "weightSpan" | "margin";
+
+/** The measured expenditure is above, inside or below the formula's normal range. */
+export type ExpenditureVerdict = "higher" | "matches" | "lower";
+
+/** The formula's expenditure (profile) checked against the measured one (your data). */
+export type ExpenditureCheck =
+  | { status: "notEnoughData"; data: ExpenditureData; missing: MissingExpenditureData[] }
+  | {
+      status: "measured";
+      verdict: ExpenditureVerdict;
+      /** The same verdict one week earlier too (always true for "matches"). */
+      confirmed: boolean;
+      estimate: ExpenditureEstimate;
+      /** From the profile: BMR × activity factor. */
+      formulaTdee: number;
+      bmr: number;
+      activityFactor: number;
+      /** formulaTdee ± 10 %: what the formula can be off by for anyone. */
+      normalMin: number;
+      normalMax: number;
+      /** Measured − formula, kcal/day. */
+      gap: number;
+      /** The activity factor your measured expenditure corresponds to (measured / BMR). */
+      impliedActivityFactor: number;
+    };
+
+/** «Not now» on the Today card's gap notice: it comes back if the verdict changes or after a new 4-week window. */
+export interface ExpenditureNoticeDismissal {
+  verdict: "higher" | "lower";
+  /** YYYY-MM-DD. */
+  date: string;
+}

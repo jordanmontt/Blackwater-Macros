@@ -17,8 +17,9 @@
 <li>A calorie range for your goal (lose fat, maintain, build muscle) that never goes below your basal needs.</li>
 <li>Protein ranges from sports-nutrition research, on your lean mass when you log your body fat.</li>
 <li>Your measured expenditure: after a few weeks, the app compares what you ate with how your weight moved and shows what you really burn, with its margin of error.</li>
+<li>A check of your profile: if your measured expenditure clearly disagrees with it, the app tells you why, with your own numbers and the likely causes.</li>
 </ul>
-<p>Every formula and its sources are explained inside the app (Methodology).</p>
+<p><b>Fully transparent:</b> every formula, its sources and its limits are explained inside the app (Methodology), so you can check every number yourself.</p>
 
 <p><b>See your progress</b></p>
 <ul>

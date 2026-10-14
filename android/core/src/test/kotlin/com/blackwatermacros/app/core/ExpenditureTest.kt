@@ -164,4 +164,108 @@ class ExpenditureTest {
         assertThat(doubled.margin).isEqualTo(single.margin)
         assertThat(doubled.weighIns).isEqualTo(10)
     }
+
+    // Profile: BMR 1600 × activity factor 1.5 = 2400 kcal/day → normal range 2160–2640 (± 10 %).
+    private val FORMULA = CalorieRecommendation(
+        bmr = 1600.0, activityFactor = 1.5, tdee = 2400.0,
+        target = 2400.0, targetMin = 2300.0, targetMax = 2500.0, goal = Goal.MAINTAIN,
+    )
+
+    @Test
+    fun measure_returnsCountsEvenWhenNotEnough() {
+        val data = measureExpenditure(meals(15, 2400.0), weighIns(80.0, -0.5, 7), TODAY)
+        assertThat(data.estimate).isNull()
+        assertThat(data.loggedDays).isEqualTo(15)
+        assertThat(data.weighInDays).isEqualTo(4)
+        assertThat(data.weightSpanDays).isEqualTo(21)
+        assertThat(data.margin).isEqualTo(482.0)
+    }
+
+    @Test
+    fun measure_noMarginWithoutATrend() {
+        val data = measureExpenditure(meals(28, 2400.0), listOf(DataPoint(daysAgo(3), 80.0)), TODAY)
+        assertThat(data.weighInDays).isEqualTo(1)
+        assertThat(data.weightSpanDays).isEqualTo(0)
+        assertThat(data.margin).isNull()
+    }
+
+    @Test
+    fun check_insideFormulaPlusMinus10_matchesEvenWith350Gap() {
+        val check = checkExpenditure(meals(35, 2750.0), weighIns(80.0, 0.0, 1, 35), FORMULA, TODAY) as ExpenditureCheck.Measured
+        assertThat(check.verdict).isEqualTo(ExpenditureVerdict.MATCHES)
+        assertThat(check.confirmed).isTrue()
+        assertThat(check.formulaTdee).isEqualTo(2400.0)
+        assertThat(check.normalMin).isEqualTo(2160.0)
+        assertThat(check.normalMax).isEqualTo(2640.0)
+        assertThat(check.gap).isEqualTo(350.0)
+    }
+
+    @Test
+    fun check_burningClearlyMore() {
+        val check = checkExpenditure(meals(35, 2400.0), weighIns(80.0, -0.7, 1, 35), FORMULA, TODAY) as ExpenditureCheck.Measured
+        assertThat(check.verdict).isEqualTo(ExpenditureVerdict.HIGHER)
+        assertThat(check.confirmed).isTrue()
+        assertThat(check.gap).isEqualTo(770.0)
+        assertThat(check.estimate.tdee).isEqualTo(3170.0)
+        assertThat(check.estimate.margin).isEqualTo(177.0)
+        assertThat(check.impliedActivityFactor).isEqualTo(1.98)
+    }
+
+    @Test
+    fun check_burningClearlyLess() {
+        val check = checkExpenditure(meals(35, 1800.0), weighIns(80.0, 0.0, 1, 35), FORMULA, TODAY) as ExpenditureCheck.Measured
+        assertThat(check.verdict).isEqualTo(ExpenditureVerdict.LOWER)
+        assertThat(check.confirmed).isTrue()
+        assertThat(check.gap).isEqualTo(-600.0)
+    }
+
+    @Test
+    fun check_gapConfirmedOnlyWhenTheWeekBeforeSaysTheSame() {
+        val check = checkExpenditure(meals(28, 2400.0), weighIns(80.0, -0.7, 1, 20), FORMULA, TODAY) as ExpenditureCheck.Measured
+        assertThat(check.verdict).isEqualTo(ExpenditureVerdict.HIGHER)
+        assertThat(check.confirmed).isFalse()
+    }
+
+    @Test
+    fun check_notEnoughData_saysWhatIsMissing_mealsFirst() {
+        fun missing(intake: List<DataPoint>, weights: List<DataPoint>) =
+            (checkExpenditure(intake, weights, FORMULA, TODAY) as? ExpenditureCheck.NotEnoughData)?.missing
+        assertThat(missing(meals(15, 2400.0), weighIns(80.0, 0.0, 1))).containsExactly(MissingExpenditureData.MEALS)
+        val three = listOf(daysAgo(28), daysAgo(20), daysAgo(2)).map { DataPoint(it, 80.0) }
+        assertThat(missing(meals(28, 2400.0), three)).containsExactly(MissingExpenditureData.WEIGH_INS)
+        assertThat(missing(meals(28, 2400.0), weighIns(80.0, 0.0, 1, 13))).containsExactly(MissingExpenditureData.WEIGHT_SPAN)
+        assertThat(missing(meals(28, 2400.0), weighIns(80.0, 0.0, 7))).containsExactly(MissingExpenditureData.MARGIN)
+        assertThat(missing(meals(10, 2400.0), weighIns(80.0, 0.0, 7)))
+            .containsExactly(MissingExpenditureData.MEALS, MissingExpenditureData.MARGIN).inOrder()
+    }
+
+    @Test
+    fun gapNotice_onlyWhenConfirmed_andNotNowHoldsOneWindowOfTheSameVerdict() {
+        val higher = checkExpenditure(meals(35, 2400.0), weighIns(80.0, -0.7, 1, 35), FORMULA, TODAY)
+        assertThat(showsGapNotice(higher, null, TODAY)).isTrue()
+        assertThat(showsGapNotice(higher, ExpenditureNoticeDismissal(ExpenditureVerdict.HIGHER, daysAgo(10)), TODAY)).isFalse()
+        assertThat(showsGapNotice(higher, ExpenditureNoticeDismissal(ExpenditureVerdict.HIGHER, daysAgo(28)), TODAY)).isTrue()
+        assertThat(showsGapNotice(higher, ExpenditureNoticeDismissal(ExpenditureVerdict.LOWER, daysAgo(1)), TODAY)).isTrue()
+
+        val unconfirmed = checkExpenditure(meals(28, 2400.0), weighIns(80.0, -0.7, 1, 20), FORMULA, TODAY)
+        assertThat(showsGapNotice(unconfirmed, null, TODAY)).isFalse()
+        val matches = checkExpenditure(meals(35, 2400.0), weighIns(80.0, 0.0, 1, 35), FORMULA, TODAY)
+        assertThat(showsGapNotice(matches, null, TODAY)).isFalse()
+        assertThat(showsGapNotice(null, null, TODAY)).isFalse()
+    }
+
+    @Test
+    fun weighInHint_whenMealsAreLoggedAndOnlyWeighInsAreMissing() {
+        assertThat(onlyWeighInsMissing(checkExpenditure(meals(28, 2400.0), weighIns(80.0, 0.0, 7), FORMULA, TODAY))).isTrue()
+        assertThat(onlyWeighInsMissing(checkExpenditure(meals(10, 2400.0), weighIns(80.0, 0.0, 7), FORMULA, TODAY))).isFalse()
+        assertThat(onlyWeighInsMissing(checkExpenditure(meals(35, 2400.0), weighIns(80.0, -0.7, 1, 35), FORMULA, TODAY))).isFalse()
+        assertThat(onlyWeighInsMissing(null)).isFalse()
+    }
+
+    @Test
+    fun gapIsSaidRoundedTo50() {
+        assertThat(approximateGap(770.0)).isEqualTo(750.0)
+        assertThat(approximateGap(-523.0)).isEqualTo(500.0)
+        assertThat(approximateGap(530.0)).isEqualTo(550.0)
+    }
 }

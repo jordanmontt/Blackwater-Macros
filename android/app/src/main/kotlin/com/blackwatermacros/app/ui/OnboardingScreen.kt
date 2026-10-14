@@ -48,6 +48,9 @@ import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.AiProvider
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 
 /**
  * First launch: welcome with «Iniciar sesión» first,
@@ -129,7 +132,9 @@ private fun WelcomeStep(syncing: Boolean, onLogin: () -> Unit, onStart: () -> Un
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(20.dp))
+        ScienceCallout()
+        Spacer(Modifier.height(28.dp))
         if (syncing) {
             CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp)
             Spacer(Modifier.height(12.dp))
@@ -143,6 +148,34 @@ private fun WelcomeStep(syncing: Boolean, onLogin: () -> Unit, onStart: () -> Un
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onLogin) {
             Text(stringResource(R.string.onboarding_login))
+        }
+    }
+}
+
+/** One of what makes the app different, said on the first page (web: the «Your data» step). */
+@Composable
+private fun ScienceCallout() {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        Icon(
+            Icons.Filled.Science,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(top = 2.dp).size(18.dp),
+        )
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(stringResource(R.string.onboarding_science_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(2.dp))
+            Text(
+                stringResource(R.string.onboarding_science_body),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

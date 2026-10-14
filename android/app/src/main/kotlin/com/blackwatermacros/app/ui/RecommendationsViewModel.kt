@@ -6,13 +6,17 @@ import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.CalorieRecommendation
 import com.blackwatermacros.app.core.DataPoint
+import com.blackwatermacros.app.core.ExpenditureCheck
 import com.blackwatermacros.app.core.ExpenditureEstimate
+import com.blackwatermacros.app.core.ExpenditureNoticeDismissal
 import com.blackwatermacros.app.core.ProteinPerson
 import com.blackwatermacros.app.core.ProteinRecommendation
 import com.blackwatermacros.app.core.calculateCalorieRecommendation
 import com.blackwatermacros.app.core.calculateProteinRecommendation
+import com.blackwatermacros.app.core.checkExpenditure
 import com.blackwatermacros.app.core.estimateExpenditure
 import com.blackwatermacros.app.core.todayKey
+import com.blackwatermacros.app.data.AppPreferences
 import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.WeightDTO
@@ -36,6 +40,10 @@ sealed interface RecommendationsUiState {
         val protein: ProteinRecommendation?,
         /** Measured from the last 4 weeks; null until the data supports it. */
         val expenditure: ExpenditureEstimate? = null,
+        /** The profile's expenditure checked against the measured one; null without a calorie target. */
+        val check: ExpenditureCheck? = null,
+        /** What the formula was fed, to write its equations with the user's numbers. */
+        val inputs: FormulaInputs? = null,
     ) : RecommendationsUiState
 }
 
@@ -45,6 +53,7 @@ sealed interface RecommendationsUiState {
  */
 class RecommendationsViewModel(
     repository: AppRepository = AppGraph.repository,
+    private val preferences: AppPreferences = AppGraph.preferences,
 ) : ViewModel() {
 
     val state: StateFlow<RecommendationsUiState> =
@@ -52,6 +61,14 @@ class RecommendationsViewModel(
             recommend(weights, profile, meals)
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecommendationsUiState.Loading)
+
+    /** «Not now» on the Today card's expenditure notices (see [ExpenditureNotices]). */
+    val noticeDismissal: StateFlow<ExpenditureNoticeDismissal?> = preferences.expenditureNoticeDismissal
+    val weighInHintDismissed: StateFlow<Boolean> = preferences.weighInHintDismissed
+
+    fun dismissNotice(dismissal: ExpenditureNoticeDismissal) = preferences.dismissExpenditureNotice(dismissal)
+
+    fun dismissWeighInHint() = preferences.dismissWeighInHint()
 }
 
 internal fun recommend(
@@ -73,12 +90,11 @@ internal fun recommend(
         calculateProteinRecommendation(latestWeight.weightKg, it, bodyFatPct, ProteinPerson(profile.heightCm, profile.gender, profile.birthYear?.let { year - it }))
     }
     if (calorie == null && protein == null) return RecommendationsUiState.NeedsProfile
-    val expenditure = estimateExpenditure(
-        meals.map { DataPoint(it.logDate, it.resolvedCalories) },
-        weights.mapNotNull { w -> localDateKey(w.measuredAt)?.let { DataPoint(it, w.weightKg) } },
-        today,
-    )
-    return RecommendationsUiState.Ready(calorie, protein, expenditure)
+    val intake = meals.map { DataPoint(it.logDate, it.resolvedCalories) }
+    val weighIns = weights.mapNotNull { w -> localDateKey(w.measuredAt)?.let { DataPoint(it, w.weightKg) } }
+    val expenditure = estimateExpenditure(intake, weighIns, today)
+    val check = calorie?.let { checkExpenditure(intake, weighIns, it, today) }
+    return RecommendationsUiState.Ready(calorie, protein, expenditure, check, formulaInputs(profile, latestWeight.weightKg, year))
 }
 
 /** The local calendar day of an ISO instant ("2026-03-01T07:30:00Z" → "2026-03-01"). */

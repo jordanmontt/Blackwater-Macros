@@ -88,9 +88,10 @@ fun fitWeightTrend(points: List<DataPoint>): WeightTrend? {
 
 /**
  * `intake` holds one point per meal (date = log date, value = kcal); `weights`
- * one point per weigh-in.
+ * one point per weigh-in. The counts come back even when they are not enough,
+ * so the app can say what is missing (web `measureExpenditure`).
  */
-fun estimateExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today: String): ExpenditureEstimate? {
+fun measureExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today: String): ExpenditureData {
     val from = addDaysToKey(today, -EXPENDITURE_WINDOW_DAYS)
     val inWindow = { point: DataPoint -> point.date >= from && point.date < today }
 
@@ -99,28 +100,122 @@ fun estimateExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today
         caloriesByDay[point.date] = (caloriesByDay[point.date] ?: 0.0) + point.value
     }
     val loggedTotals = caloriesByDay.values.filter { it > 0 }
-    if (loggedTotals.size < MIN_LOGGED_DAYS) return null
+    val loggedDays = loggedTotals.size
 
     val weighIns = dailyMeans(weights.filter(inWindow))
     val weighInDays = weighIns.size
-    if (weighInDays < MIN_WEIGH_INS) return null
-    if (daysBetweenKeys(weighIns.first().date, weighIns.last().date) < MIN_WEIGHT_SPAN_DAYS) return null
+    val weightSpanDays = if (weighInDays < 2) 0 else daysBetweenKeys(weighIns.first().date, weighIns.last().date)
+    val trend = fitWeightTrend(weighIns)
+    val margin = trend?.let { mathRound(Z_95 * it.slopeError * KCAL_PER_KG) }
 
-    val trend = fitWeightTrend(weighIns) ?: return null
-    val margin = mathRound(Z_95 * trend.slopeError * KCAL_PER_KG)
-    if (margin > MAX_MARGIN_KCAL) return null
+    val data = ExpenditureData(loggedDays, weighInDays, weightSpanDays, margin, estimate = null)
+    if (loggedDays < MIN_LOGGED_DAYS || weighInDays < MIN_WEIGH_INS || weightSpanDays < MIN_WEIGHT_SPAN_DAYS) return data
+    if (trend == null || margin == null || margin > MAX_MARGIN_KCAL) return data
 
-    val avgIntake = loggedTotals.sum() / loggedTotals.size
+    val avgIntake = loggedTotals.sum() / loggedDays
     val tdee = mathRound(avgIntake - trend.slopePerDay * KCAL_PER_KG)
-    if (tdee <= 0) return null
+    if (tdee <= 0) return data
 
-    return ExpenditureEstimate(
-        tdee = tdee,
-        margin = margin,
-        avgIntake = mathRound(avgIntake),
-        weightChangePerWeek = mathRound(trend.slopePerDay * 7 * 100) / 100,
-        loggedDays = loggedTotals.size,
-        weighIns = weighInDays,
-        windowDays = EXPENDITURE_WINDOW_DAYS,
+    return data.copy(
+        estimate = ExpenditureEstimate(
+            tdee = tdee,
+            margin = margin,
+            avgIntake = mathRound(avgIntake),
+            weightChangePerWeek = mathRound(trend.slopePerDay * 7 * 100) / 100,
+            loggedDays = loggedDays,
+            weighIns = weighInDays,
+            windowDays = EXPENDITURE_WINDOW_DAYS,
+        ),
     )
 }
+
+/** The measured expenditure, or null until the data can support it (see [measureExpenditure]). */
+fun estimateExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today: String): ExpenditureEstimate? =
+    measureExpenditure(intake, weights, today).estimate
+
+// --- Checking the profile against the data (web `checkExpenditure`) ---
+
+/**
+ * How far the formula can be off for anyone, as a fraction of its expenditure:
+ * Mifflin-St Jeor predicts the basal rate within ±10 % in most healthy adults
+ * (Frankenfield 2005). Gaps inside this band are its normal error.
+ */
+const val FORMULA_TOLERANCE = 0.1
+
+/** The verdict must also hold on the window that ended a week earlier. */
+const val CHECK_CONFIRM_DAYS = 7
+
+/** Days of meals the check reads: this window plus the one a week earlier. */
+const val CHECK_DAYS = EXPENDITURE_WINDOW_DAYS + CHECK_CONFIRM_DAYS
+
+/** A dismissed notice comes back after a whole new window of data. */
+const val NOTICE_SNOOZE_DAYS = EXPENDITURE_WINDOW_DAYS
+
+/** What stops the measurement, in the order the user should fix it. */
+fun missingExpenditureData(data: ExpenditureData): List<MissingExpenditureData> = buildList {
+    if (data.loggedDays < MIN_LOGGED_DAYS) add(MissingExpenditureData.MEALS)
+    when {
+        data.weighInDays < MIN_WEIGH_INS -> add(MissingExpenditureData.WEIGH_INS)
+        data.weightSpanDays < MIN_WEIGHT_SPAN_DAYS -> add(MissingExpenditureData.WEIGHT_SPAN)
+        data.margin == null || data.margin > MAX_MARGIN_KCAL -> add(MissingExpenditureData.MARGIN)
+    }
+}
+
+/** Strict: the whole 95 % range must lie outside formula ± 10 %. */
+private fun verdictOf(estimate: ExpenditureEstimate, normalMin: Double, normalMax: Double): ExpenditureVerdict = when {
+    estimate.tdee - estimate.margin > normalMax -> ExpenditureVerdict.HIGHER
+    estimate.tdee + estimate.margin < normalMin -> ExpenditureVerdict.LOWER
+    else -> ExpenditureVerdict.MATCHES
+}
+
+/**
+ * Checks the profile's expenditure (BMR × activity factor) against the one
+ * measured from meals and weigh-ins. HIGHER or LOWER is `confirmed` only if the
+ * window that ended a week earlier says the same. `intake` must cover
+ * [CHECK_DAYS] before today.
+ */
+fun checkExpenditure(
+    intake: List<DataPoint>,
+    weights: List<DataPoint>,
+    formula: CalorieRecommendation,
+    today: String,
+): ExpenditureCheck {
+    val data = measureExpenditure(intake, weights, today)
+    val estimate = data.estimate ?: return ExpenditureCheck.NotEnoughData(data, missingExpenditureData(data))
+
+    val normalMin = mathRound(formula.tdee * (1 - FORMULA_TOLERANCE))
+    val normalMax = mathRound(formula.tdee * (1 + FORMULA_TOLERANCE))
+    val verdict = verdictOf(estimate, normalMin, normalMax)
+    val confirmed = verdict == ExpenditureVerdict.MATCHES ||
+        estimateExpenditure(intake, weights, addDaysToKey(today, -CHECK_CONFIRM_DAYS))
+            ?.let { verdictOf(it, normalMin, normalMax) == verdict } == true
+    return ExpenditureCheck.Measured(
+        verdict = verdict,
+        confirmed = confirmed,
+        estimate = estimate,
+        formulaTdee = formula.tdee,
+        bmr = formula.bmr,
+        activityFactor = formula.activityFactor,
+        normalMin = normalMin,
+        normalMax = normalMax,
+        gap = estimate.tdee - formula.tdee,
+        impliedActivityFactor = mathRound(estimate.tdee / formula.bmr * 100) / 100,
+    )
+}
+
+/** The gap as the Today card says it: «about 500», rounded to 50 kcal. */
+fun approximateGap(gap: Double): Double = mathRound(kotlin.math.abs(gap) / 50) * 50
+
+/**
+ * The Today card mentions the gap only when it is confirmed, and not again
+ * after «Not now» unless the verdict changes or a whole new window has passed.
+ */
+fun showsGapNotice(check: ExpenditureCheck?, dismissed: ExpenditureNoticeDismissal?, today: String): Boolean {
+    if (check !is ExpenditureCheck.Measured || check.verdict == ExpenditureVerdict.MATCHES || !check.confirmed) return false
+    if (dismissed == null || dismissed.verdict != check.verdict) return true
+    return daysBetweenKeys(dismissed.date, today) >= NOTICE_SNOOZE_DAYS
+}
+
+/** Meals are logged well enough, only the weigh-ins are missing: shown once on Today until dismissed. */
+fun onlyWeighInsMissing(check: ExpenditureCheck?): Boolean =
+    check is ExpenditureCheck.NotEnoughData && check.missing.isNotEmpty() && MissingExpenditureData.MEALS !in check.missing

@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PerfilPage from "@/app/ajustes/perfil/page";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 import { clearCache } from "@/lib/client-cache";
 import type { CalorieProfile } from "@/lib/core/types";
 import { emptyCalorieProfile } from "../helpers/repos";
@@ -12,7 +12,8 @@ import { emptyCalorieProfile } from "../helpers/repos";
  *  - elegir un objetivo guarda el perfil calórico con un breve debounce,
  *  - no guarda mientras haya errores de validación,
  *  - con peso y perfil completos muestra las recomendaciones, el factor de
- *    actividad y, sin 4 semanas de datos, qué falta para el gasto medido;
+ *    actividad y, sin 4 semanas de datos, qué falta exactamente para comparar
+ *    el perfil con el gasto medido;
  *    pide «introduce tus datos» solo mientras el perfil está incompleto,
  *  - vuelve a Ajustes.
  */
@@ -100,7 +101,11 @@ describe("pantalla Perfil", () => {
 
     // 3 × 60 min de gym y 30 min de caminata → 1,49 × TMB
     expect(await screen.findByText("Factor de actividad: 1,49 × TMB")).toBeInTheDocument();
-    expect(screen.getByText(t.calorias.measuredTdeePending)).toBeInTheDocument();
+    // Sin comidas ni pesajes recientes: dice exactamente qué falta para comparar perfil y datos.
+    expect(await screen.findByText(t.expenditureCheck.notEnoughIntro)).toBeInTheDocument();
+    expect(screen.getByText(formatTemplate(t.expenditureCheck.missingMeals, { days: 0 }))).toBeInTheDocument();
+    expect(screen.getByText(formatTemplate(t.expenditureCheck.missingWeighIns, { n: 0 }))).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: t.expenditureCheck.howItWorks })).toHaveAttribute("href", "/metodologia#check");
     // Nothing left to enter: the «introduce tus datos» hint is gone.
     expect(screen.queryByText(t.calorias.noProfile)).not.toBeInTheDocument();
   });

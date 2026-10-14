@@ -2,6 +2,8 @@ package com.blackwatermacros.app.ui
 
 import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.CalorieProfile
+import com.blackwatermacros.app.core.ExpenditureCheck
+import com.blackwatermacros.app.core.ExpenditureVerdict
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
 import com.blackwatermacros.app.core.ProteinBasis
@@ -152,6 +154,33 @@ class ValidationTest {
         // Weekly weigh-ins are too uncertain: no measured value.
         val weekly = weights.filterIndexed { i, _ -> i % 4 == 0 }
         assertThat((recommend(weekly, profile, meals, today) as RecommendationsUiState.Ready).expenditure).isNull()
+    }
+
+    @Test
+    fun `recommendations check the profile against the data and keep the formula's inputs for the why`() {
+        val today = "2026-03-01"
+        val profile = CalorieProfile(Gender.MALE, 1990, 178.0, 3, 60, 30, Goal.MAINTAIN)
+        // Stable 80 kg weighed daily for 5 weeks on 1800 kcal/day: 1800 ± 177, far below this profile.
+        val weights = (35 downTo 1).map { n -> WeightDTO("w$n", "${addDaysToKey(today, -n)}T12:00:00Z", 80.0, null, null, "") }
+        val meals = (1..35).map { n ->
+            MealDTO(
+                "m$n", addDaysToKey(today, -n), "Comida", null, WireEntryMode.TOTAL_ONLY, emptyList(),
+                1800.0, 150.0, null, null, 1800.0, 150.0, 0.0, 0.0, "",
+            )
+        }
+
+        val ready = recommend(weights, profile, meals, today) as RecommendationsUiState.Ready
+        val check = ready.check as ExpenditureCheck.Measured
+        assertThat(check.verdict).isEqualTo(ExpenditureVerdict.LOWER)
+        assertThat(check.confirmed).isTrue()
+        assertThat(check.formulaTdee).isEqualTo(ready.calorie!!.tdee)
+        val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+        assertThat(ready.inputs).isEqualTo(FormulaInputs(Gender.MALE, 80.0, 178.0, year - 1990, 3, 60, 30))
+
+        // Without a calorie target (no sex yet) there is nothing to check.
+        val noSex = recommend(weights, profile.copy(gender = null), meals, today) as RecommendationsUiState.Ready
+        assertThat(noSex.check).isNull()
+        assertThat(noSex.inputs).isNull()
     }
 
     @Test

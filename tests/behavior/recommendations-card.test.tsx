@@ -1,5 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { formatTemplate, t } from "@/i18n";
 import { NutritionRecommendationsCard } from "@/components/nutrition-recommendations";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import type { CalorieProfile, MealDTO, WeightDTO } from "@/lib/core/types";
@@ -14,7 +16,10 @@ import type { CalorieProfile, MealDTO, WeightDTO } from "@/lib/core/types";
  *  - si se excede se muestra un rango ("te pasaste de X–Y"),
  *  - con 4 semanas de comidas y pesajes frecuentes aparece el gasto medido
  *    con su margen; con pesajes semanales no aparece,
- *  - en definición con % de grasa, la proteína se calcula sobre la masa magra.
+ *  - en definición con % de grasa, la proteína se calcula sobre la masa magra,
+ *  - si el gasto medido queda claramente fuera del de tu perfil (dos semanas
+ *    seguidas), una línea lo dice; «¿Por qué?» enseña el cálculo con tus
+ *    números y «Ahora no» la oculta; si solo faltan pesajes, lo dice una vez.
  */
 
 vi.mock("@/lib/api", () => ({
@@ -58,6 +63,7 @@ describe("tarjetas de recomendación", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clearCache();
+    localStorage.clear();
     vi.mocked(api.listWeights).mockResolvedValue([weight]);
     vi.mocked(api.listMeals).mockResolvedValue([]);
     vi.mocked(api.session).mockResolvedValue({
@@ -186,5 +192,97 @@ describe("tarjetas de recomendación", () => {
     // 80 kg al 20 % → 64 kg de masa magra × 2,3–3,1 → 147–198 g
     expect(await screen.findByText("(2,3 – 3,1 g/kg de masa magra: 64 kg)")).toBeInTheDocument();
     expect(screen.getByText((_, el) => el?.tagName === "P" && /^147 – 198\s/.test(el.textContent ?? ""))).toBeInTheDocument();
+  });
+
+  // Profile: man, 36 years, 180 cm, 80 kg → BMR 1750; 3 × 60 min of gym, 30 min walking → PAL 1,49;
+  // profile expenditure 2608 kcal/day, normal for him 2347–2869 (± 10 %).
+
+  /** A weigh-in every day for the last `days` days, ending at 80 kg, changing `kgPerWeek`. */
+  function dailyWeighIns(days: number, kgPerWeek: number): WeightDTO[] {
+    return Array.from({ length: days }, (_, i) => {
+      const n = days - i;
+      const day = addDaysToKey(todayKey(), -n);
+      return { ...weight, id: `w${n}`, measuredAt: `${day}T08:00:00`, weightKg: 80 - (kgPerWeek / 7) * (n - 1) };
+    });
+  }
+
+  function meals(days: number, kcal: number): MealDTO[] {
+    return Array.from({ length: days }, (_, i) => ({ ...mealsEveryDay(kcal)[0], id: `m${i}`, logDate: addDaysToKey(todayKey(), -(i + 1)) }));
+  }
+
+  it("si gastas claramente más que tu perfil, lo dice y «¿Por qué?» enseña el cálculo con tus números", async () => {
+    // 2600 kcal/día perdiendo 0,7 kg/semana durante 5 semanas → 2600 + 0,1 × 7700 = 3370 ± 177.
+    vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, -0.7));
+    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 2600));
+    const user = userEvent.setup();
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+
+    const notice = formatTemplate(t.expenditureCheck.noticeHigher, { gap: "750" });
+    expect(await screen.findByText(notice)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: t.expenditureCheck.why }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(t.expenditureCheck.titleHigher)).toBeInTheDocument();
+    // Every step with his numbers: Mifflin-St Jeor, the activity factor, energy balance.
+    expect(within(dialog).getByText("10 × 80 + 6,25 × 180 − 5 × 36 + 5 = 1750 kcal")).toBeInTheDocument();
+    expect(within(dialog).getByText((_, el) => el?.tagName === "P" && (el.textContent ?? "").startsWith("1750 × 1,49") && (el.textContent ?? "").includes("2608"))).toBeInTheDocument();
+    expect(within(dialog).getByText((_, el) => el?.tagName === "P" && (el.textContent ?? "").startsWith("2600 − (-0,7 ÷ 7 × 7700) ≈ 3370 ± 177"))).toBeInTheDocument();
+    expect(within(dialog).getByText(formatTemplate(t.expenditureCheck.conclusionHigher, { low: "3193", high: "3547", min: "2347", max: "2869" }))).toBeInTheDocument();
+    expect(within(dialog).getByText(t.expenditureCheck.higherReason1)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: t.expenditureCheck.howItWorks })).toHaveAttribute("href", "/metodologia#check");
+  });
+
+  it("si gastas claramente menos, enumera las causas empezando por la comida sin registrar", async () => {
+    // Peso estable con 1800 kcal/día → 1800 ± 177, muy por debajo de 2347.
+    vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
+    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 1800));
+    const user = userEvent.setup();
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+
+    expect(await screen.findByText(formatTemplate(t.expenditureCheck.noticeLower, { gap: "800" }))).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.expenditureCheck.why }));
+    const reasons = within(await screen.findByRole("dialog")).getAllByRole("listitem");
+    expect(reasons.map((li) => li.textContent)).toContain(t.expenditureCheck.lowerReason1);
+  });
+
+  it("«Ahora no» oculta el aviso, también al volver a la pantalla", async () => {
+    vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
+    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 1800));
+    const user = userEvent.setup();
+    const { unmount } = render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+
+    const notice = formatTemplate(t.expenditureCheck.noticeLower, { gap: "800" });
+    await screen.findByText(notice);
+    await user.click(screen.getByRole("button", { name: t.expenditureCheck.notNow }));
+    expect(screen.queryByText(notice)).toBeNull();
+
+    unmount();
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    await screen.findByText((content) => content.startsWith("Gasto medido:"));
+    expect(screen.queryByText(notice)).toBeNull();
+  });
+
+  it("si el gasto medido cabe en el ±10 % del perfil, no dice nada", async () => {
+    vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
+    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 2500));
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+
+    await screen.findByText((content) => content.startsWith("Gasto medido:"));
+    expect(screen.queryByRole("button", { name: t.expenditureCheck.why })).toBeNull();
+  });
+
+  it("si registras las comidas pero faltan pesajes, lo dice una vez", async () => {
+    vi.mocked(api.listWeights).mockResolvedValue(weighIns(7));
+    vi.mocked(api.listMeals).mockResolvedValue(mealsEveryDay(2500));
+    const user = userEvent.setup();
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+
+    expect(await screen.findByText(t.expenditureCheck.weighInHint)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.expenditureCheck.why }));
+    // Weekly weigh-ins: 1,96 × 0,5 / √245 × 7700 = ±482, above the ±300 needed.
+    expect(within(await screen.findByRole("dialog")).getByText(formatTemplate(t.expenditureCheck.missingMargin, { margin: "482" }))).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: t.expenditureCheck.notNow }));
+    expect(screen.queryByText(t.expenditureCheck.weighInHint)).toBeNull();
   });
 });
