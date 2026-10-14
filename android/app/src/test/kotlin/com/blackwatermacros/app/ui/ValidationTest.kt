@@ -183,13 +183,19 @@ class ValidationTest {
     }
 
     @Test
-    fun `the header cloud is red only when changes are not on the server`() {
+    fun `the header cloud is red only when a change won't reach the server on its own`() {
         val account = com.blackwatermacros.app.data.Account("ana", "t", isAdmin = false)
         for (problem in com.blackwatermacros.app.data.sync.SyncProblem.entries) {
-            // Changes waiting and the last run failed: they did not reach the server.
-            assertThat(syncIndicatorState(account, 2, false, problem)).isEqualTo(SyncIndicatorState.Problem)
             // Everything uploaded; only the run as a whole failed (e.g. the download): data is safe.
             assertThat(syncIndicatorState(account, 0, false, problem)).isEqualTo(SyncIndicatorState.Synced)
         }
+        // The server refuses a change: retrying the same data won't help, it needs a look.
+        assertThat(syncIndicatorState(account, 2, false, com.blackwatermacros.app.data.sync.SyncProblem.CHANGE_REJECTED))
+            .isEqualTo(SyncIndicatorState.Problem)
+        // A brief server error or a Wi-Fi login page: retried on its own, the cloud just counts.
+        assertThat(syncIndicatorState(account, 2, false, com.blackwatermacros.app.data.sync.SyncProblem.SERVER_ERROR))
+            .isEqualTo(SyncIndicatorState.Pending(2))
+        assertThat(syncIndicatorState(account, 2, false, com.blackwatermacros.app.data.sync.SyncProblem.UNEXPECTED))
+            .isEqualTo(SyncIndicatorState.Pending(2))
     }
 }

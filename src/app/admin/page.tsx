@@ -262,6 +262,9 @@ export default function AdminPage() {
               <Input
                 id="admin-username"
                 autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 autoFocus
                 value={form.username}
                 onChange={(event) => setForm({ ...form, username: event.target.value })}
@@ -309,6 +312,9 @@ export default function AdminPage() {
               <Input
                 id="edit-username"
                 autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 autoFocus
                 value={form.username}
                 onChange={(event) => setForm({ ...form, username: event.target.value })}

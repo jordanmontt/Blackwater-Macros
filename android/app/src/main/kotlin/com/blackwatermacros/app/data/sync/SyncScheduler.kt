@@ -31,7 +31,9 @@ class WorkManagerSyncScheduler(private val context: Context) : SyncScheduler {
         val request = OneTimeWorkRequestBuilder<SyncWorker>()
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .setInitialDelay(delaySeconds, TimeUnit.SECONDS)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+            // Linear (30 s, 1 min, 1.5 min…): after a patch of poor signal the next try is
+            // minutes away, not hours as with exponential. Without network it doesn't run at all.
+            .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.SECONDS)
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, request)
     }

@@ -43,7 +43,7 @@ sealed interface SyncIndicatorState {
     data object Synced : SyncIndicatorState
     data class Pending(val count: Int) : SyncIndicatorState
 
-    /** Session expired, or changes that the last sync could not upload: needs attention. */
+    /** Session expired, or a change the server refuses: it won't upload on its own. */
     data object Problem : SyncIndicatorState
 }
 
@@ -62,10 +62,11 @@ class SyncIndicatorViewModel(
 }
 
 /**
- * Red only when something on the phone is not on the server and won't get there on its
- * own: an expired session, or pending changes the last sync failed to upload. A failed
- * run with nothing pending (e.g. only downloading the web's changes failed, or a brief
- * server error after everything was uploaded) leaves the user's data safe: «Synced».
+ * Red only when something on the phone won't reach the server on its own: an expired
+ * session, or a change the server refuses. Everything else that fails (no or poor
+ * connection, a brief server error, a Wi-Fi login page) is retried automatically, so the
+ * cloud just counts the changes still waiting. A failed run with nothing pending (e.g.
+ * only downloading the web's changes failed) leaves the user's data safe: «Synced».
  */
 internal fun syncIndicatorState(
     account: Account?,
@@ -75,11 +76,15 @@ internal fun syncIndicatorState(
 ): SyncIndicatorState = when {
     account == null -> SyncIndicatorState.Hidden
     account.sessionExpired -> SyncIndicatorState.Problem
-    problem != null && pendingChanges > 0 -> SyncIndicatorState.Problem
+    problem.needsAttention(pendingChanges) -> SyncIndicatorState.Problem
     syncing -> SyncIndicatorState.Syncing
     pendingChanges > 0 -> SyncIndicatorState.Pending(pendingChanges)
     else -> SyncIndicatorState.Synced
 }
+
+/** Same rule in Ajustes → Cuenta: only a refused change, while it is still waiting, is shown in red. */
+internal fun SyncProblem?.needsAttention(pendingChanges: Int): Boolean =
+    this == SyncProblem.CHANGE_REJECTED && pendingChanges > 0
 
 /**
  * Small cloud in the Comidas header: tells at a glance whether today's entries
@@ -103,7 +108,15 @@ fun SyncIndicator(onClick: () -> Unit, viewModel: SyncIndicatorViewModel = viewM
                     CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                 SyncIndicatorState.Synced ->
                     Icon(Icons.Filled.CloudDone, description, tint = MaterialTheme.colorScheme.primary)
-                is SyncIndicatorState.Pending -> BadgedBox(badge = { Badge { Text(s.count.coerceAtMost(99).toString()) } }) {
+                // Neutral badge: waiting to upload is normal (offline, poor signal), not an error.
+                is SyncIndicatorState.Pending -> BadgedBox(
+                    badge = {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ) { Text(s.count.coerceAtMost(99).toString()) }
+                    },
+                ) {
                     Icon(Icons.Filled.CloudUpload, description, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 SyncIndicatorState.Problem ->

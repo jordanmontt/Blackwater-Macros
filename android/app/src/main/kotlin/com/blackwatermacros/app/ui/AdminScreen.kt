@@ -319,6 +319,7 @@ private fun AdminUserDialog(
                         placeholder = "",
                         enabled = true,
                         modifier = Modifier.fillMaxWidth(),
+                        autoCorrect = false,
                     )
                 }
                 Column(Modifier.fillMaxWidth()) {

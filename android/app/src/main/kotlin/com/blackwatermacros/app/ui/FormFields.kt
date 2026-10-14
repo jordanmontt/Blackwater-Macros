@@ -177,6 +177,8 @@ fun CompactField(
     capitalize: Boolean = false,
     /** Red border: the form refused to save because of this field. */
     isError: Boolean = false,
+    /** False for usernames: the keyboard must not «fix» them. */
+    autoCorrect: Boolean = true,
 ) {
     var focused by remember { mutableStateOf(false) }
     BasicTextField(
@@ -191,7 +193,7 @@ fun CompactField(
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType ?: if (secret) KeyboardType.Password else if (decimal) KeyboardType.Decimal else KeyboardType.Text,
-            autoCorrectEnabled = if (secret || keyboardType == KeyboardType.Uri) false else null,
+            autoCorrectEnabled = if (secret || !autoCorrect || keyboardType == KeyboardType.Uri) false else null,
             capitalization = if (capitalize) KeyboardCapitalization.Sentences else KeyboardCapitalization.None,
         ),
         visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,

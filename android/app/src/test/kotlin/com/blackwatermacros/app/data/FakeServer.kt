@@ -35,6 +35,12 @@ class FakeServer(
 
     /** The server refuses (400) every meal the phone uploads. */
     var rejectMeals = false
+
+    /** Poor signal: the server saves each uploaded meal but the answer never reaches the phone. */
+    var loseMealAnswers = false
+
+    /** Any status the server (or Vercel in front of it) answers every upload with, e.g. 503 or 429. */
+    var uploadStatus: Int? = null
     var requestCount = 0
         private set
 
@@ -69,6 +75,11 @@ class FakeServer(
         }
         if (rejectMeals && method == "PUT" && segments[0] == "meals") {
             return json(400, """{"error":"Datos inválidos","code":"invalid_data"}""")
+        }
+        uploadStatus?.let { status -> if (method == "PUT") return json(status, """{"error":"Inténtalo más tarde"}""") }
+        if (loseMealAnswers && method == "PUT" && segments[0] == "meals") {
+            handleMeals(method, segments.getOrNull(1), request)
+            return MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST)
         }
         return when {
             path == "/api/auth/session" ->

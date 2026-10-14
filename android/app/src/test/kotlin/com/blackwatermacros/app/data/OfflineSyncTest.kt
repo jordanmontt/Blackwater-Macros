@@ -429,7 +429,7 @@ class OfflineSyncTest {
         assertThat(repository.mealsForDay("2026-06-15").first().map { it.title }).containsExactly("Desayuno")
     }
 
-    // --- The header cloud: red only when changes are not on the server ---
+    // --- The header cloud: red only when a change won't reach the server on its own ---
 
     @Test
     fun `a failed download after everything was uploaded leaves the cloud green`() = runBlocking<Unit> {
@@ -464,6 +464,47 @@ class OfflineSyncTest {
         assertThat(sync.sync()).isEqualTo(SyncOutcome.Success)
         assertThat(syncIndicatorState(account.current, repository.pendingChanges().first(), false, sync.lastProblem.value))
             .isEqualTo(SyncIndicatorState.Synced)
+    }
+
+    @Test
+    fun `poor signal - the server saved the meal but the answer was lost - waiting, not red, then clean`() = runBlocking<Unit> {
+        connect()
+        backend.loseMealAnswers = true
+        repository.saveMeal(null, breakfast())
+
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Offline)
+
+        // Already on the server (the web shows it), still waiting on the phone: grey, not red.
+        assertThat(backend.meals.values.map { it.title }).containsExactly("Desayuno")
+        assertThat(syncIndicatorState(account.current, repository.pendingChanges().first(), false, sync.lastProblem.value))
+            .isEqualTo(SyncIndicatorState.Pending(1))
+
+        // Signal back: the retry re-sends the same id (idempotent PUT), no duplicate.
+        backend.loseMealAnswers = false
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Success)
+        assertThat(backend.meals).hasSize(1)
+        assertThat(syncIndicatorState(account.current, repository.pendingChanges().first(), false, sync.lastProblem.value))
+            .isEqualTo(SyncIndicatorState.Synced)
+    }
+
+    @Test
+    fun `try again later answers are retried without turning the cloud red`() = runBlocking<Unit> {
+        connect()
+        repository.saveMeal(null, breakfast())
+        for (status in listOf(408, 429, 502, 503, 504)) {
+            backend.uploadStatus = status
+
+            assertThat(sync.sync()).isEqualTo(SyncOutcome.Failed(SyncProblem.SERVER_ERROR))
+
+            val pending = repository.pendingChanges().first()
+            assertThat(pending).isEqualTo(1)
+            assertThat(syncIndicatorState(account.current, pending, false, sync.lastProblem.value))
+                .isEqualTo(SyncIndicatorState.Pending(1))
+        }
+
+        backend.uploadStatus = null
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Success)
+        assertThat(backend.meals.values.map { it.title }).containsExactly("Desayuno")
     }
 
     private suspend fun connect() {

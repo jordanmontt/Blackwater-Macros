@@ -220,12 +220,16 @@ class SyncEngine(
         upsertKept { id -> id !in pendingIds }
     }
 
-    /** A record the server rejects (e.g. 400) stays pending but must not block the rest. */
+    /**
+     * A record the server rejects (e.g. 400) stays pending but must not block the rest.
+     * «Try again later» answers (408 timeout, 429 too many requests, 5xx) are not a
+     * rejection: they end the run and it is retried, like being offline.
+     */
     private suspend fun upload(label: String, block: suspend () -> Unit) {
         try {
             block()
         } catch (e: HttpException) {
-            if (e.code() == 401 || e.code() >= 500) throw e
+            if (e.code() == 401 || e.code() == 408 || e.code() == 429 || e.code() >= 500) throw e
             Log.w(TAG, "server rejected $label (${e.code()})")
             _lastProblem.value = SyncProblem.CHANGE_REJECTED
         }

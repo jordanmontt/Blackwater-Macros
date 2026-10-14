@@ -32,8 +32,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -116,8 +120,14 @@ fun LoginScreen(
                         onValueChange = { username = it },
                         label = { Text(stringResource(R.string.login_username)) },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        modifier = Modifier.fillMaxWidth(),
+                        // The keyboard must not «fix» a username (e.g. maria → María): the login would fail.
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrectEnabled = false,
+                            imeAction = ImeAction.Next,
+                        ),
+                        // Password managers fill and save the right account in the right field.
+                        modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.Username },
                         enabled = !busy,
                     )
                     Spacer(Modifier.height(12.dp))
@@ -133,7 +143,7 @@ fun LoginScreen(
                         ),
                         visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = { PasswordVisibilityToggle(showPassword, onToggle = { showPassword = !showPassword }) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.Password },
                         enabled = !busy,
                     )
 

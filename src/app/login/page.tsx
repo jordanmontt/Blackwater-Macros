@@ -103,6 +103,8 @@ export default function LoginPage() {
                   name="username"
                   autoComplete="username"
                   autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                 />

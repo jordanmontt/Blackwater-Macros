@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
@@ -298,12 +299,13 @@ private fun AccountCard(
 
         Text(stringResource(R.string.account_connected_as, account.username), style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.height(4.dp))
-        // Same rule as the header cloud: a failed run only matters while changes are waiting.
+        // Same rule as the header cloud: a failed run only matters while changes are waiting,
+        // and only a refused change is red (the rest is retried on its own).
         val problem = state.problem?.takeIf { state.pendingChanges > 0 }
         val (status, isProblem) = when {
             account.sessionExpired -> stringResource(R.string.sync_session_expired) to true
             state.syncing -> stringResource(R.string.sync_in_progress) to false
-            problem != null -> stringResource(problem.messageRes()) to true
+            problem != null -> stringResource(problem.messageRes()) to problem.needsAttention(state.pendingChanges)
             state.offline -> stringResource(R.string.sync_offline) to false
             state.pendingChanges > 0 ->
                 pluralStringResource(R.plurals.sync_pending, state.pendingChanges, state.pendingChanges) to false
@@ -315,10 +317,18 @@ private fun AccountCard(
                 CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
             } else {
                 Icon(
-                    if (isProblem) Icons.Filled.CloudOff else Icons.Filled.CloudDone,
+                    when {
+                        isProblem -> Icons.Filled.CloudOff
+                        state.pendingChanges > 0 -> Icons.Filled.CloudUpload
+                        else -> Icons.Filled.CloudDone
+                    },
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = if (isProblem) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    tint = when {
+                        isProblem -> MaterialTheme.colorScheme.error
+                        state.pendingChanges > 0 -> MaterialTheme.colorScheme.onSurfaceVariant
+                        else -> MaterialTheme.colorScheme.primary
+                    },
                 )
             }
             Spacer(Modifier.width(8.dp))
