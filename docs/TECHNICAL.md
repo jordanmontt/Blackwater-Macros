@@ -1257,12 +1257,15 @@ app language, no medical claims.
 - **Install banner** (`components/pwa-install.tsx`): Chromium on Android gets «Instalar»
   (the browser's install prompt); iPhone/iPad have no prompt, so they get the steps (Safari →
   Compartir → «Añadir a pantalla de inicio»), hidden for good once closed.
-- **First launch** (D12): the first page says what makes the app different, «Ciencia
-  totalmente transparente» (`onboarding.scienceTitle/Body`: web on «Tus datos», Android on the
-  welcome page). Web `/bienvenida` (your data → optional Google key → done) after a
+- **First launch** (D12): every run of the steps (also «Ver tutorial») opens on a welcome
+  page before asking for anything: logo, tagline and five points (log in seconds, targets,
+  «Ciencia totalmente transparente», checked against your real data, private and free;
+  `onboarding.welcomeTagline`, `feature*`, `science*`), same texts and order on both
+  platforms; the step counter starts after it. Web `/bienvenida` (welcome → your data →
+  optional Google key → done) after a
   login with an incomplete profile, flag `localStorage["bw:onboarding-done"]`; Android route
-  `bienvenida` (welcome: «Empezar», and a quieter «Tengo una cuenta» → login → data → AI →
-  done) only on a fresh install (no account, nothing logged), flag
+  `bienvenida` (welcome: «Empezar», and a quieter «Tengo una cuenta» → login, or «Saltar»
+  when opened from Ajustes with an account → data → AI → done) only on a fresh install (no account, nothing logged), flag
   `AppPreferences.onboardingDone`. After logging in, `afterLogin()` runs the first sync itself
   («Descargando tus datos…», up to 15 s): an account with a complete profile and a weigh-in
   skips «Tus datos»; the AI step always shows (the key is per phone). «Ver
@@ -1413,6 +1416,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data; the header cloud stays green when only the download fails, grey (not red) when the server saved a change but the answer was lost or answered «try again later», and red while the server refuses a change |
 | `data/MultiAccountTest.kt` | Several accounts on one phone (Android only), with real Room + Retrofit and a two-user `FakeServer`: a single-account install keeps its files; no «Añadir cuenta» without an account; a new account starts empty and downloads only its own data; switching shows each account's meals; no duplicates; wrong password/offline adds nothing; accounts and the active one survive a restart; expired sessions show in the switcher; background sync uploads every account's changes to the right account; logging out of one removes only its data, of the last one goes back to local mode |
 | `ui/AddAccountLoginTest.kt` | The login screen in «Añadir cuenta» mode: connects without the local-data question; wrong password / no network / empty fields read like a normal login |
+| `data/ReleaseRulesTest.kt` | Every `ApiService` response type is a `@Serializable` class of `data`, and `proguard-rules.pro` keeps them all (R8 removed an unread response and broke the profile sync in release builds, §14.7) |
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and error envelopes |
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.json`) |
 | `data/CsvBackupTest.kt` | CSV round trip; reads a web export; skips rows the server would reject; unknown files |
@@ -1423,7 +1427,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ai/local/LocalModelTest.kt` | On-device model: resumable download, SHA-256 check, device support and the low-RAM warning, engine routing, model outside backups, what counts as an out-of-memory kill |
 | `data/ai/local/LocalModelCatalogTest.kt` | The site's model catalog: valid entries become models, wrong ones are skipped (non-Hugging Face URL, bad checksum, path tricks, newer app), merge with the built-in list, `hidden`; the committed file matches the built-in models |
 | `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
-| `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
+| `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; they open on the welcome page, also from «Ver tutorial» with an account (which neither syncs nor skips ahead); ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period |
 | `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
@@ -1762,6 +1766,12 @@ covers: §11.1–11.4. No Compose UI tests yet: screens are checked on a device.
   `app/build/outputs/apk/release/` (arm64 ~15 MB), R8-shrunk. Signed with `keystore.properties`
   (storeFile, storePassword, keyAlias, keyPassword; never committed) when present, else with the
   debug key (fine for sharing test builds, not for a store).
+  **R8 and Retrofit:** a suspend call's response type lives only in the method's generic
+  signature, so R8 removed `SettingsResponse` (never read) and `updateSettings` failed in
+  release builds only («Unable to create converter for class java.lang.Object»): the profile
+  never uploaded and each sync stopped there. `proguard-rules.pro` keeps every `@Serializable`
+  class of `data`; `ReleaseRulesTest` checks every response type is one of them. Debug builds
+  and unit tests don't shrink, so check a release APK on a phone after touching the API.
 - **Release & F-Droid:** planned step by step in [FDROID-PLAN.md](./FDROID-PLAN.md)
   (repository, licence, catalog from the repository, metadata, signing). Builds shared so far
   are signed with the debug key. Bump `versionCode`/`versionName` for every release.

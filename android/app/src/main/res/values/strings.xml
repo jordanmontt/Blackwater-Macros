@@ -283,7 +283,6 @@
     </string-array>
 
     <!-- Onboarding (phase 8) -->
-    <string name="onboarding_welcome_body">Log your meals and your weight. Your data stays on your phone.</string>
     <string name="onboarding_login">I have an account</string>
     <string name="onboarding_no_account">Get started</string>
     <string name="onboarding_data_intro">With this we work out your calories and protein. You can change it in Settings → Profile.</string>

@@ -293,7 +293,6 @@
     </string-array>
 
     <!-- Onboarding (phase 8) -->
-    <string name="onboarding_welcome_body">Registra i tuoi pasti e il tuo peso. I tuoi dati restano sul telefono.</string>
     <string name="onboarding_login">Ho un account</string>
     <string name="onboarding_no_account">Inizia</string>
     <string name="onboarding_data_intro">Servono per calcolare calorie e proteine. Puoi cambiarli in Impostazioni → Profilo.</string>

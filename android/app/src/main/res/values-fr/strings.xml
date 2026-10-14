@@ -293,7 +293,6 @@
     </string-array>
 
     <!-- Onboarding (phase 8) -->
-    <string name="onboarding_welcome_body">Enregistrez vos repas et votre poids. Vos données restent sur votre téléphone.</string>
     <string name="onboarding_login">J\'ai un compte</string>
     <string name="onboarding_no_account">Commencer</string>
     <string name="onboarding_data_intro">Cela sert à calculer vos calories et vos protéines. Modifiable dans Réglages → Profil.</string>

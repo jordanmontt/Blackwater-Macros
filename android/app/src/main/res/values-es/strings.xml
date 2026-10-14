@@ -293,7 +293,6 @@
     </string-array>
 
     <!-- Onboarding (phase 8) -->
-    <string name="onboarding_welcome_body">Registra tus comidas y tu peso. Tus datos se quedan en tu teléfono.</string>
     <string name="onboarding_login">Tengo una cuenta</string>
     <string name="onboarding_no_account">Empezar</string>
     <string name="onboarding_data_intro">Con esto calculamos tus calorías y tu proteína. Puedes cambiarlo en Ajustes → Perfil.</string>

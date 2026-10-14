@@ -13,6 +13,7 @@ import { t } from "@/i18n";
  * Requisitos de los primeros pasos en la web:
  *  - tras el primer inicio de sesión, con el perfil incompleto, Comidas lleva a
  *    /bienvenida una sola vez; con el perfil completo no,
+ *  - la primera página explica qué es la app (ciencia transparente incluida) antes de pedir nada,
  *  - «Tus datos» guarda el perfil (con una actividad por defecto) y el peso actual,
  *  - la IA es opcional: la clave de Google se prueba y queda solo en este navegador,
  *  - «Saltar» y «Empezar» terminan los pasos y vuelven a Comidas.
@@ -103,6 +104,13 @@ describe("primeros pasos (web)", () => {
     fetchMock.mockResolvedValue(new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "OK" }] } }] })));
     const user = userEvent.setup();
     render(<BienvenidaPage />);
+
+    // First, what the app is: the five points, then «Empezar» opens «Tus datos».
+    expect(screen.getByRole("heading", { level: 1, name: t.appName })).toBeInTheDocument();
+    for (const title of [t.onboarding.featureLogTitle, t.onboarding.featureTargetsTitle, t.onboarding.scienceTitle, t.onboarding.featureCheckTitle, t.onboarding.featurePrivateTitle]) {
+      expect(screen.getByText(title)).toBeInTheDocument();
+    }
+    await user.click(screen.getByRole("button", { name: t.onboarding.welcomeStart }));
 
     const next = screen.getByRole("button", { name: t.onboarding.next });
     expect(next).toBeDisabled();

@@ -72,8 +72,11 @@ class OnboardingViewModel(
     private val firstSync: suspend () -> Unit = { AppGraph.sync.sync() },
 ) : ViewModel() {
 
-    // «Ver tutorial» while logged in: nothing to log in to, start at «Tus datos».
-    private val _step = MutableStateFlow(if (account.current != null) OnboardingStep.DATA else OnboardingStep.WELCOME)
+    /** «Ver tutorial» from Ajustes with an account: the welcome has nothing to log in to. */
+    val startedLoggedIn: Boolean = account.current != null
+
+    // Always the welcome first: what the app is, before asking for anything.
+    private val _step = MutableStateFlow(OnboardingStep.WELCOME)
     val step: StateFlow<OnboardingStep> = _step.asStateFlow()
 
     private val _form = MutableStateFlow(OnboardingForm())
@@ -124,7 +127,7 @@ class OnboardingViewModel(
      * the key lives on each phone.
      */
     fun afterLogin() {
-        if (account.current == null || _step.value != OnboardingStep.WELCOME) return
+        if (startedLoggedIn || account.current == null || _step.value != OnboardingStep.WELCOME) return
         viewModelScope.launch {
             _syncing.value = true
             try {

@@ -282,7 +282,6 @@
     </string-array>
 
     <!-- Onboarding (phase 8) -->
-    <string name="onboarding_welcome_body">Erfasse deine Mahlzeiten und dein Gewicht. Deine Daten bleiben auf deinem Telefon.</string>
     <string name="onboarding_login">Ich habe ein Konto</string>
     <string name="onboarding_no_account">Los geht\'s</string>
     <string name="onboarding_data_intro">Damit berechnen wir deine Kalorien und dein Eiweiß. Änderbar unter Einstellungen → Profil.</string>

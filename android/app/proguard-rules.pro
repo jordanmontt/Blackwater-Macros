@@ -10,7 +10,13 @@
 # zxing-cpp (barcodes): JNI results are built from these classes by name.
 -keep class zxingcpp.** { *; }
 
-# Our wire models are @Serializable (the serialization plugin keeps what it needs); keep the
-# names readable in crash reports.
+# Retrofit reads a suspend call's response type from the method's generic signature. A
+# response class the code never reads (updateSettings' SettingsResponse) is otherwise removed
+# by R8, the signature becomes Continuation<Object> and the call fails before the request
+# with «Unable to create converter for class java.lang.Object»: the profile never synced and
+# every sync run stopped there. Keep every wire model, read or not (names may still change).
+-keep,allowobfuscation @kotlinx.serialization.Serializable class com.blackwatermacros.app.data.** { *; }
+
+# Keep the names readable in crash reports.
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile

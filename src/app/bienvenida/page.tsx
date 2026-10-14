@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2Icon, ExternalLinkIcon, FlaskConicalIcon, Loader2Icon } from "lucide-react";
+import {
+  CheckCircle2Icon,
+  ExternalLinkIcon,
+  FlaskConicalIcon,
+  Loader2Icon,
+  ScaleIcon,
+  ShieldCheckIcon,
+  TargetIcon,
+  UtensilsCrossedIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,16 +29,17 @@ import type { CalorieProfile, Gender, Goal, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 import { formatTemplate, t } from "@/i18n";
 
-type Step = "datos" | "ia" | "listo";
+type Step = "inicio" | "datos" | "ia" | "listo";
+/** The numbered steps; «inicio» is the welcome before them. */
 const STEPS: Step[] = ["datos", "ia", "listo"];
 
 /**
- * First steps after the first login: your data
+ * First steps after the first login (and «Ver tutorial»): what the app is, your data
  * (profile + current weight), the optional AI key, done. «Saltar» always works.
  */
 export default function BienvenidaPage() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("datos");
+  const [step, setStep] = useState<Step>("inicio");
 
   function finish() {
     markOnboardingDone();
@@ -37,13 +47,15 @@ export default function BienvenidaPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-md space-y-4 px-4 pt-6">
+    <main className="mx-auto w-full max-w-md space-y-4 px-4 pt-6 pb-10">
       <header className="flex items-center justify-between gap-2">
-        <Logo size="header" />
+        {step === "inicio" ? <span /> : <Logo size="header" />}
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">
-            {formatTemplate(t.onboarding.step, { n: STEPS.indexOf(step) + 1, total: STEPS.length })}
-          </span>
+          {step !== "inicio" ? (
+            <span className="text-xs text-muted-foreground">
+              {formatTemplate(t.onboarding.step, { n: STEPS.indexOf(step) + 1, total: STEPS.length })}
+            </span>
+          ) : null}
           {step !== "listo" ? (
             <Button variant="ghost" size="sm" onClick={finish}>
               {t.onboarding.skip}
@@ -51,7 +63,9 @@ export default function BienvenidaPage() {
           ) : null}
         </div>
       </header>
-      {step === "datos" ? (
+      {step === "inicio" ? (
+        <WelcomeStep onStart={() => setStep("datos")} />
+      ) : step === "datos" ? (
         <DataStep onDone={() => setStep("ia")} />
       ) : step === "ia" ? (
         <AiStep onBack={() => setStep("datos")} onDone={() => setStep("listo")} />
@@ -59,6 +73,43 @@ export default function BienvenidaPage() {
         <DoneStep onStart={finish} />
       )}
     </main>
+  );
+}
+
+/** What the app does and what makes it different, before asking for anything. Same on Android. */
+const FEATURES = [
+  { icon: UtensilsCrossedIcon, title: t.onboarding.featureLogTitle, body: t.onboarding.featureLogBody },
+  { icon: TargetIcon, title: t.onboarding.featureTargetsTitle, body: t.onboarding.featureTargetsBody },
+  { icon: FlaskConicalIcon, title: t.onboarding.scienceTitle, body: t.onboarding.scienceBody },
+  { icon: ScaleIcon, title: t.onboarding.featureCheckTitle, body: t.onboarding.featureCheckBody },
+  { icon: ShieldCheckIcon, title: t.onboarding.featurePrivateTitle, body: t.onboarding.featurePrivateBody },
+];
+
+function WelcomeStep({ onStart }: { onStart: () => void }) {
+  return (
+    <section className="space-y-6">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <Logo size="login" priority />
+        <h1 className="text-2xl font-semibold">{t.appName}</h1>
+        <p className="text-sm text-muted-foreground">{t.onboarding.welcomeTagline}</p>
+      </div>
+      <ul className="space-y-4">
+        {FEATURES.map(({ icon: Icon, title, body }) => (
+          <li key={title} className="flex gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <Icon aria-hidden className="size-4" />
+            </span>
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">{title}</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">{body}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <Button className="w-full" size="lg" onClick={onStart}>
+        {t.onboarding.welcomeStart}
+      </Button>
+    </section>
   );
 }
 
@@ -171,14 +222,6 @@ function DataStep({ onDone }: { onDone: () => void }) {
         <CardDescription>{t.onboarding.dataIntro}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* One of what makes the app different: say it where the numbers start. */}
-        <div className="flex gap-3 rounded-lg bg-primary/10 px-3 py-2.5">
-          <FlaskConicalIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />
-          <div className="space-y-0.5">
-            <p className="text-sm font-medium">{t.onboarding.scienceTitle}</p>
-            <p className="text-xs text-muted-foreground">{t.onboarding.scienceBody}</p>
-          </div>
-        </div>
         <Segmented
           label={t.calorias.genderLabel}
           options={[

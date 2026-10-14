@@ -144,4 +144,18 @@ class OnboardingTest {
         withTimeout(5_000) { viewModel.step.first { it != OnboardingStep.WELCOME } }
         assertThat(viewModel.step.value).isEqualTo(OnboardingStep.DATA)
     }
+
+    @Test
+    fun `«Ver tutorial» with an account also starts on the welcome, and stays there until «Empezar»`() = runBlocking {
+        account.save(Account("ana", "token", isAdmin = false))
+        var synced = false
+        val viewModel = OnboardingViewModel(repository, preferences, account, firstSync = { synced = true })
+
+        assertThat(viewModel.startedLoggedIn).isTrue()
+        assertThat(viewModel.step.value).isEqualTo(OnboardingStep.WELCOME)
+        // The screen calls afterLogin() on start: it is only for coming back from «Iniciar sesión».
+        viewModel.afterLogin()
+        assertThat(viewModel.step.value).isEqualTo(OnboardingStep.WELCOME)
+        assertThat(synced).isFalse()
+    }
 }

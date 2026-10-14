@@ -49,8 +49,15 @@ import com.blackwatermacros.app.core.AiProvider
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
 import androidx.compose.material.icons.filled.Science
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
+import androidx.annotation.StringRes
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.TrackChanges
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Box
 
 /**
  * First launch: welcome with «Iniciar sesión» first,
@@ -97,7 +104,9 @@ fun OnboardingScreen(
             when (step) {
                 OnboardingStep.WELCOME -> WelcomeStep(
                     syncing = viewModel.syncing.collectAsStateWithLifecycle().value,
-                    onLogin = onLogin,
+                    // From Ajustes with an account there is nothing to log in to: «Saltar» instead.
+                    onLogin = if (viewModel.startedLoggedIn) null else onLogin,
+                    onSkip = ::finish,
                     onStart = { viewModel.goTo(OnboardingStep.DATA) },
                 )
                 OnboardingStep.DATA -> DataStep(viewModel)
@@ -117,24 +126,31 @@ private fun StepTitle(title: String, body: String) {
 }
 
 @Composable
-private fun WelcomeStep(syncing: Boolean, onLogin: () -> Unit, onStart: () -> Unit) {
+private fun WelcomeStep(syncing: Boolean, onLogin: (() -> Unit)?, onSkip: () -> Unit, onStart: () -> Unit) {
     Column(
-        Modifier.fillMaxWidth().padding(top = 48.dp),
+        Modifier.fillMaxWidth().padding(top = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Image(painterResource(R.drawable.logo_plate), contentDescription = null, modifier = Modifier.size(112.dp))
-        Spacer(Modifier.height(20.dp))
+        Image(painterResource(R.drawable.logo_plate), contentDescription = null, modifier = Modifier.size(96.dp))
+        Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(8.dp))
         Text(
-            stringResource(R.string.onboarding_welcome_body),
+            stringResource(R.string.onboarding_welcome_tagline),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(20.dp))
-        ScienceCallout()
         Spacer(Modifier.height(28.dp))
+        // What the app does and what makes it different, before asking for anything. Same on the web.
+        Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+            Feature(Icons.Filled.Restaurant, R.string.onboarding_feature_log_title, R.string.onboarding_feature_log_body)
+            Feature(Icons.Filled.TrackChanges, R.string.onboarding_feature_targets_title, R.string.onboarding_feature_targets_body)
+            Feature(Icons.Filled.Science, R.string.onboarding_science_title, R.string.onboarding_science_body)
+            Feature(Icons.Filled.MonitorWeight, R.string.onboarding_feature_check_title, R.string.onboarding_feature_check_body)
+            Feature(Icons.Filled.Shield, R.string.onboarding_feature_private_title, R.string.onboarding_feature_private_body)
+        }
+        Spacer(Modifier.height(32.dp))
         if (syncing) {
             CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp)
             Spacer(Modifier.height(12.dp))
@@ -146,36 +162,30 @@ private fun WelcomeStep(syncing: Boolean, onLogin: () -> Unit, onStart: () -> Un
             Text(stringResource(R.string.onboarding_no_account))
         }
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onLogin) {
-            Text(stringResource(R.string.onboarding_login))
+        if (onLogin != null) {
+            TextButton(onClick = onLogin) { Text(stringResource(R.string.onboarding_login)) }
+        } else {
+            TextButton(onClick = onSkip) { Text(stringResource(R.string.onboarding_skip)) }
         }
     }
 }
 
-/** One of what makes the app different, said on the first page (web: the «Your data» step). */
 @Composable
-private fun ScienceCallout() {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-    ) {
-        Icon(
-            Icons.Filled.Science,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 2.dp).size(18.dp),
-        )
-        Spacer(Modifier.width(12.dp))
-        Column {
-            Text(stringResource(R.string.onboarding_science_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+private fun Feature(icon: ImageVector, @StringRes title: Int, @StringRes body: Int) {
+    Row(Modifier.fillMaxWidth()) {
+        Box(
+            Modifier
+                .size(36.dp)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(2.dp))
-            Text(
-                stringResource(R.string.onboarding_science_body),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Text(stringResource(body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
