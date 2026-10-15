@@ -13,7 +13,7 @@ import {
   type NutritionDraft,
   type NutritionPayload,
 } from "@/components/meals/nutrition-fields";
-import { api, ApiError, type MealPayload } from "@/lib/api";
+import { api, errorText, type MealPayload } from "@/lib/api";
 import type { MealDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
 
@@ -139,23 +139,13 @@ function MealFormFields({
   const reportDirty = useCallback((dirty: boolean) => onDirtyChange(dirty || prefilled), [onDirtyChange, prefilled]);
 
   async function handleSubmit(payload: NutritionPayload) {
-    const mealPayload: MealPayload = {
-      logDate,
-      title: payload.title,
-      notes: payload.notes,
-      entryMode: payload.entryMode,
-      ingredients: payload.ingredients,
-      totalCalories: payload.totalCalories,
-      totalProtein: payload.totalProtein,
-      totalCarbs: payload.totalCarbs,
-      totalFat: payload.totalFat,
-    };
+    const mealPayload: MealPayload = { logDate, ...payload };
     setPending(true);
     try {
       const saved = meal ? await api.updateMeal(meal.id, mealPayload) : await api.createMeal(mealPayload);
       onSaved(saved);
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
+      toast.error(errorText(error));
     } finally {
       setPending(false);
     }

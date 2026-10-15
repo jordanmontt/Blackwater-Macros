@@ -252,17 +252,14 @@ export function AddFoodSheet({
   );
 }
 
-function BigSourceButton({
-  icon,
-  label,
-  hint,
-  onClick,
-}: {
+interface SourceButtonProps {
   icon: React.ReactNode;
   label: string;
   hint: string;
   onClick: () => void;
-}) {
+}
+
+function BigSourceButton({ icon, label, hint, onClick }: SourceButtonProps) {
   return (
     <button
       type="button"
@@ -276,17 +273,7 @@ function BigSourceButton({
   );
 }
 
-function SourceButton({
-  icon,
-  label,
-  hint,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  hint: string;
-  onClick: () => void;
-}) {
+function SourceButton({ icon, label, hint, onClick }: SourceButtonProps) {
   return (
     <button
       type="button"

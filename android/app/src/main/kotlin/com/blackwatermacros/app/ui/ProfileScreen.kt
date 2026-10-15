@@ -13,12 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -47,18 +44,7 @@ fun ProfileScreen(onBack: () -> Unit, onOpenMethodology: (section: String?) -> U
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            CenteredTopAppBar(
-                title = stringResource(R.string.profile_title),
-                leading = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                },
-            )
+            BackTopAppBar(title = stringResource(R.string.profile_title), onBack = onBack)
         },
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).verticalScroll(rememberScrollState())) {

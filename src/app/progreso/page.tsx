@@ -20,6 +20,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TOOLTIP_STYLE } from "@/components/chart-style";
 import { WeightFatChart, type WeightFatRow } from "@/components/weight-fat-chart";
 import { WeightFormDialog } from "@/components/weight-form-dialog";
 import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
@@ -259,14 +260,6 @@ function MiniStat({
     </div>
   );
 }
-
-const TOOLTIP_STYLE = {
-  background: "var(--popover)",
-  border: "1px solid var(--border)",
-  borderRadius: 10,
-  fontSize: 12,
-  color: "var(--popover-foreground)",
-} as const;
 
 function CaloriesSection({
   summary,

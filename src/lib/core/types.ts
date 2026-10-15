@@ -9,9 +9,8 @@ export interface IngredientInput {
   fat?: number;
 }
 
-export interface MealDTO {
-  id: string;
-  logDate: string;
+/** What a meal and a template share: the nutrition as entered (meal-level totals only for «Solo total»). */
+export interface MealContent {
   title: string;
   notes: string | null;
   entryMode: EntryMode;
@@ -20,28 +19,25 @@ export interface MealDTO {
   totalProtein: number | null;
   totalCarbs: number | null;
   totalFat: number | null;
+}
+
+/** The totals the server stores with the content (`resolveMealTotals`). */
+export interface ResolvedTotals {
   resolvedCalories: number;
   resolvedProtein: number;
   resolvedCarbs: number;
   resolvedFat: number;
+}
+
+export interface MealDTO extends MealContent, ResolvedTotals {
+  id: string;
+  logDate: string;
   updatedAt: string;
 }
 
-export interface MealTemplateDTO {
+export interface MealTemplateDTO extends MealContent, ResolvedTotals {
   id: string;
   name: string;
-  title: string;
-  notes: string | null;
-  entryMode: EntryMode;
-  ingredients: IngredientInput[];
-  totalCalories: number | null;
-  totalProtein: number | null;
-  totalCarbs: number | null;
-  totalFat: number | null;
-  resolvedCalories: number;
-  resolvedProtein: number;
-  resolvedCarbs: number;
-  resolvedFat: number;
   updatedAt: string;
 }
 

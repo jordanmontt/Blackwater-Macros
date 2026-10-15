@@ -12,10 +12,8 @@ export const ingredientInputSchema = z.object({
   fat: z.number().min(0).max(10_000).optional(),
 });
 
-export const mealInputSchema = z.object({
-  logDate: z
-    .string()
-    .refine(isValidDateKey, "invalid_date"),
+/** The content a meal and a template share (web `MealContent`). */
+const mealContentShape = {
   title: z.string().trim().min(1, "title_required").max(120),
   notes: z.string().trim().max(2_000).nullish(),
   entryMode: z.enum(["per_ingredient", "total_only"]),
@@ -24,6 +22,13 @@ export const mealInputSchema = z.object({
   totalProtein: z.number().min(0).max(10_000).nullish(),
   totalCarbs: z.number().min(0).max(10_000).nullish(),
   totalFat: z.number().min(0).max(10_000).nullish(),
+};
+
+export const mealInputSchema = z.object({
+  logDate: z
+    .string()
+    .refine(isValidDateKey, "invalid_date"),
+  ...mealContentShape,
 });
 
 export type MealInput = z.infer<typeof mealInputSchema>;
@@ -38,14 +43,7 @@ export const recordIdSchema = z.string().uuid("invalid_id");
 
 export const templateInputSchema = z.object({
   name: z.string().trim().min(1, "template_name_required").max(120),
-  title: z.string().trim().min(1, "title_required").max(120),
-  notes: z.string().trim().max(2_000).nullish(),
-  entryMode: z.enum(["per_ingredient", "total_only"]),
-  ingredients: z.array(ingredientInputSchema).max(100),
-  totalCalories: z.number().min(0).max(100_000).nullish(),
-  totalProtein: z.number().min(0).max(10_000).nullish(),
-  totalCarbs: z.number().min(0).max(10_000).nullish(),
-  totalFat: z.number().min(0).max(10_000).nullish(),
+  ...mealContentShape,
 });
 
 export type TemplateInput = z.infer<typeof templateInputSchema>;
@@ -61,33 +59,18 @@ export const weightInputSchema = z.object({
 
 export type WeightInput = z.infer<typeof weightInputSchema>;
 
+/** A profile number: null, or inside [min, max] (out of range = `code`). */
+function profileNumber(min: number, max: number, code: string) {
+  return z.number().min(min, code).max(max, code).nullable();
+}
+
 export const calorieProfileInputSchema = z.object({
   gender: z.enum(["male", "female"]).nullable(),
-  birthYear: z
-    .number()
-    .min(1920, "birth_year_out_of_range")
-    .max(2010, "birth_year_out_of_range")
-    .nullable(),
-  heightCm: z
-    .number()
-    .min(100, "height_out_of_range")
-    .max(250, "height_out_of_range")
-    .nullable(),
-  gymDaysPerWeek: z
-    .number()
-    .min(0, "gym_days_out_of_range")
-    .max(7, "gym_days_out_of_range")
-    .nullable(),
-  gymSessionMinutes: z
-    .number()
-    .min(0, "gym_minutes_out_of_range")
-    .max(300, "gym_minutes_out_of_range")
-    .nullable(),
-  walkingMinutesPerDay: z
-    .number()
-    .min(0, "walking_out_of_range")
-    .max(480, "walking_out_of_range")
-    .nullable(),
+  birthYear: profileNumber(1920, 2010, "birth_year_out_of_range"),
+  heightCm: profileNumber(100, 250, "height_out_of_range"),
+  gymDaysPerWeek: profileNumber(0, 7, "gym_days_out_of_range"),
+  gymSessionMinutes: profileNumber(0, 300, "gym_minutes_out_of_range"),
+  walkingMinutesPerDay: profileNumber(0, 480, "walking_out_of_range"),
   calorieGoal: z.enum(["cut", "maintain", "surplus"]).nullable(),
 });
 

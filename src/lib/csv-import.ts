@@ -1,5 +1,5 @@
 import { isValidDateKey } from "@/lib/core/dates";
-import type { EntryMode, IngredientInput } from "@/lib/core/types";
+import type { EntryMode, IngredientInput, MealContent } from "@/lib/core/types";
 
 /**
  * Reads the CSV files that the export writes (web `export-service.ts`, Android
@@ -9,16 +9,8 @@ import type { EntryMode, IngredientInput } from "@/lib/core/types";
  * counted and skipped. Column names are a file format: they stay in Spanish.
  */
 
-export interface ImportedMeal {
+export interface ImportedMeal extends MealContent {
   logDate: string;
-  title: string;
-  notes: string | null;
-  entryMode: EntryMode;
-  ingredients: IngredientInput[];
-  totalCalories: number | null;
-  totalProtein: number | null;
-  totalCarbs: number | null;
-  totalFat: number | null;
 }
 
 export interface ImportedWeight {

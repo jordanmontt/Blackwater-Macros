@@ -26,11 +26,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, errorText } from "@/lib/api";
 import { t } from "@/i18n";
 import type { AdminUserDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
-
+import { SubpageHeader } from "@/components/subpage-header";
 
 interface UserFormState {
   username: string;
@@ -43,7 +43,8 @@ export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [users, setUsers] = useState<AdminUserDTO[] | null>(null);
 
-  const [createOpen, setCreateOpen] = useState(false);
+  /** The user dialog: a new user (null) or the user being edited; kept while it closes. */
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<AdminUserDTO | null>(null);
   const [deleting, setDeleting] = useState<AdminUserDTO | null>(null);
   const [form, setForm] = useState<UserFormState>({ username: "", password: "", isAdmin: false });
@@ -71,56 +72,31 @@ export default function AdminPage() {
     };
   }, [refresh]);
 
-  function openCreate() {
-    setForm({ username: "", password: "", isAdmin: false });
-    setError("");
-    setCreateOpen(true);
-  }
-
-  function openEdit(user: AdminUserDTO) {
-    setForm({ username: user.username, password: "", isAdmin: user.isAdmin });
+  function openDialog(user: AdminUserDTO | null) {
+    setForm({ username: user?.username ?? "", password: "", isAdmin: user?.isAdmin ?? false });
     setError("");
     setEditing(user);
+    setDialogOpen(true);
   }
 
-  function closeCreate() {
-    setCreateOpen(false);
-  }
-
-  function closeEdit() {
-    setEditing(null);
-  }
-
-  async function handleCreate() {
+  async function handleSave() {
     setPending(true);
     setError("");
     try {
-      await api.adminCreateUser({ username: form.username, password: form.password });
-      toast.success(t.admin.userCreated);
-      setCreateOpen(false);
+      if (editing) {
+        await api.adminUpdateUser(editing.id, {
+          username: form.username,
+          password: form.password || undefined,
+          isAdmin: editing.username === username ? undefined : form.isAdmin,
+        });
+      } else {
+        await api.adminCreateUser({ username: form.username, password: form.password });
+      }
+      toast.success(editing ? t.admin.userUpdated : t.admin.userCreated);
+      setDialogOpen(false);
       await refresh();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t.common.errorGeneric);
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function handleUpdate() {
-    if (!editing) return;
-    setPending(true);
-    setError("");
-    try {
-      await api.adminUpdateUser(editing.id, {
-        username: form.username,
-        password: form.password || undefined,
-        isAdmin: editing.username === username ? undefined : form.isAdmin,
-      });
-      toast.success(t.admin.userUpdated);
-      setEditing(null);
-      await refresh();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : t.common.errorGeneric);
+      setError(errorText(err));
     } finally {
       setPending(false);
     }
@@ -134,7 +110,7 @@ export default function AdminPage() {
       setDeleting(null);
       await refresh();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t.common.errorGeneric);
+      toast.error(errorText(err));
       setDeleting(null);
     }
   }
@@ -144,19 +120,7 @@ export default function AdminPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 md:pt-6">
-      <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t.admin.title}</h1>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          nativeButton={false}
-          render={<Link href="/ajustes" aria-label={t.admin.backToSettings} />}
-        >
-          <ArrowLeftIcon />
-        </Button>
-      </header>
+      <SubpageHeader title={t.admin.title} backLabel={t.admin.backToSettings} />
 
       {loading ? (
         <Card>
@@ -186,7 +150,7 @@ export default function AdminPage() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between gap-2 text-base">
               {t.admin.usersTitle}
-              <Button size="sm" onClick={openCreate}>
+              <Button size="sm" onClick={() => openDialog(null)}>
                 <PlusIcon /> {t.admin.newUser}
               </Button>
             </CardTitle>
@@ -221,7 +185,7 @@ export default function AdminPage() {
                         variant="ghost"
                         size="icon"
                         aria-label={`${t.admin.edit} ${user.username}`}
-                        onClick={() => openEdit(user)}
+                        onClick={() => openDialog(user)}
                       >
                         <PencilIcon className="text-muted-foreground" />
                       </Button>
@@ -243,24 +207,24 @@ export default function AdminPage() {
         </Card>
       )}
 
-      <Dialog open={createOpen} onOpenChange={(open) => (open ? undefined : closeCreate())}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t.admin.createTitle}</DialogTitle>
-            <DialogDescription>{t.admin.createDescription}</DialogDescription>
+            <DialogTitle>{editing ? t.admin.editTitle : t.admin.createTitle}</DialogTitle>
+            <DialogDescription>{editing ? t.admin.editDescription : t.admin.createDescription}</DialogDescription>
           </DialogHeader>
           <form
             className="space-y-4"
             noValidate
             onSubmit={(event) => {
               event.preventDefault();
-              void handleCreate();
+              void handleSave();
             }}
           >
             <div className="space-y-2">
-              <Label htmlFor="admin-username">{t.admin.usernameLabel}</Label>
+              <Label htmlFor="user-username">{t.admin.usernameLabel}</Label>
               <Input
-                id="admin-username"
+                id="user-username"
                 autoComplete="off"
                 autoCapitalize="none"
                 autoCorrect="off"
@@ -271,84 +235,38 @@ export default function AdminPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-password">{t.admin.passwordLabel}</Label>
-              <PasswordInput
-                id="admin-password"
-                autoComplete="new-password"
-                placeholder={t.admin.passwordPlaceholder}
-                value={form.password}
-                onChange={(event) => setForm({ ...form, password: event.target.value })}
-              />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={closeCreate}>
-                {t.admin.cancel}
-              </Button>
-              <Button type="submit" disabled={pending}>
-                {pending ? t.common.loading : t.admin.save}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={editing !== null} onOpenChange={(open) => (open ? undefined : closeEdit())}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{t.admin.editTitle}</DialogTitle>
-            <DialogDescription>{t.admin.editDescription}</DialogDescription>
-          </DialogHeader>
-          <form
-            className="space-y-4"
-            noValidate
-            onSubmit={(event) => {
-              event.preventDefault();
-              void handleUpdate();
-            }}
-          >
-            <div className="space-y-2">
-              <Label htmlFor="edit-username">{t.admin.usernameLabel}</Label>
-              <Input
-                id="edit-username"
-                autoComplete="off"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                autoFocus
-                value={form.username}
-                onChange={(event) => setForm({ ...form, username: event.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-password">{t.admin.newPasswordLabel}</Label>
-              <PasswordInput
-                id="edit-password"
-                autoComplete="new-password"
-                placeholder={t.admin.passwordPlaceholder}
-                value={form.password}
-                onChange={(event) => setForm({ ...form, password: event.target.value })}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
-              <Label htmlFor="edit-is-admin" className="cursor-pointer">
-                {t.admin.isAdminLabel}
+              <Label htmlFor="user-password">
+                {editing ? t.admin.newPasswordLabel : t.admin.passwordLabel}
               </Label>
-              {/* Native checkbox with switch semantics; Safari 17.4+ even draws it as an iOS switch. */}
-              <input
-                id="edit-is-admin"
-                type="checkbox"
-                role="switch"
-                {...{ switch: "" }}
-                className="size-5"
-                checked={form.isAdmin}
-                disabled={editing?.username === username}
-                onChange={(event) => setForm({ ...form, isAdmin: event.target.checked })}
+              <PasswordInput
+                id="user-password"
+                autoComplete="new-password"
+                placeholder={t.admin.passwordPlaceholder}
+                value={form.password}
+                onChange={(event) => setForm({ ...form, password: event.target.value })}
               />
             </div>
+            {editing && (
+              <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                <Label htmlFor="user-is-admin" className="cursor-pointer">
+                  {t.admin.isAdminLabel}
+                </Label>
+                {/* Native checkbox with switch semantics; Safari 17.4+ even draws it as an iOS switch. */}
+                <input
+                  id="user-is-admin"
+                  type="checkbox"
+                  role="switch"
+                  {...{ switch: "" }}
+                  className="size-5"
+                  checked={form.isAdmin}
+                  disabled={editing.username === username}
+                  onChange={(event) => setForm({ ...form, isAdmin: event.target.checked })}
+                />
+              </div>
+            )}
             {error && <p className="text-sm text-destructive">{error}</p>}
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={closeEdit}>
+              <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>
                 {t.admin.cancel}
               </Button>
               <Button type="submit" disabled={pending}>

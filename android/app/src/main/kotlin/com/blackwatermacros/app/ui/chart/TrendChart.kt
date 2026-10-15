@@ -22,10 +22,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -216,65 +219,16 @@ fun TrendChart(
                 )
             }
 
-            if (points.isNotEmpty()) {
-                val labels = listOf(0, points.size / 2, points.size - 1).distinct().filter { it in points.indices }
-                axisPaint.textAlign = android.graphics.Paint.Align.CENTER
-                labels.forEach { i ->
-                    val text = formatDateShort(points[i].date)
-                    drawContext.canvas.nativeCanvas.drawText(
-                        text,
-                        centredInside(axisPaint, text, x(i), chartWidth),
-                        plotHeight - 2.dp.toPx(),
-                        axisPaint,
-                    )
-                }
-            }
+            drawDateLabels(points.map { it.date }, ::x, axisPaint, chartWidth, plotHeight)
 
             selectedIndex?.let { si ->
-                val sx = x(si)
-                drawLine(
-                    color = labelColor.copy(alpha = 0.6f),
-                    start = Offset(sx, plotTop),
-                    end = Offset(sx, plotBottom),
-                    strokeWidth = 1.dp.toPx(),
-                )
                 val row = points[si]
                 val lines = buildList {
                     add(formatDateShort(row.date))
                     add("$valueLabel: ${formatNumber(row.value, 1)} $unit")
                     trendRows.getOrNull(si)?.let { add("$averageLabel: ${formatNumber(it.second, 1)} $unit") }
                 }
-                val tooltipPaint = android.graphics.Paint().apply {
-                    setColor(fillArgb)
-                    textSize = TooltipTextSize.toPx()
-                    textAlign = android.graphics.Paint.Align.LEFT
-                }
-                val lineH = tooltipPaint.textSize * 1.4f
-                val pad = 10.dp.toPx()
-                val tw = lines.maxOf { tooltipPaint.measureText(it) } + pad * 2
-                val th = lineH * lines.size + pad
-                val minX = 4.dp.toPx()
-                val maxX = chartWidth - tw - 4.dp.toPx()
-                val rawTx = sx + 8.dp.toPx()
-                val tx = rawTx.coerceIn(minX, maxX)
-                val ty = 8.dp.toPx()
-                drawRoundRect(
-                    color = surfaceColor.copy(alpha = 0.95f),
-                    topLeft = Offset(tx, ty),
-                    size = androidx.compose.ui.geometry.Size(tw, th),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
-                )
-                drawRoundRect(
-                    color = labelColor.copy(alpha = 0.3f),
-                    topLeft = Offset(tx, ty),
-                    size = androidx.compose.ui.geometry.Size(tw, th),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
-                    style = Stroke(width = 1.dp.toPx()),
-                )
-                val baseline = ty + pad + lineH * 0.7f
-                lines.forEachIndexed { li, line ->
-                    drawContext.canvas.nativeCanvas.drawText(line, tx + pad, baseline + li * lineH, tooltipPaint)
-                }
+                drawSelection(x(si), plotTop, plotBottom, chartWidth, lines, labelColor, surfaceColor)
             }
         }
         }
@@ -290,8 +244,9 @@ fun TrendChart(
     }
 }
 
+/** A legend entry under a chart: a dot of the series colour and its name. */
 @Composable
-private fun LegendDot(color: Color, label: String) {
+internal fun LegendDot(color: Color, label: String) {
     Row {
         Canvas(modifier = Modifier.size(8.dp)) {
             drawCircle(color)
@@ -313,3 +268,61 @@ internal fun centredInside(paint: android.graphics.Paint, text: String, x: Float
 /** Chart text sizes in sp, so labels follow the phone's font size (they were raw pixels, tiny on dense screens). */
 internal val AxisTextSize = 12.sp
 internal val TooltipTextSize = 13.sp
+
+/** The first, middle and last dates under the plot ([x] = the x of point i). */
+internal fun DrawScope.drawDateLabels(
+    dates: List<String>,
+    x: (Int) -> Float,
+    paint: android.graphics.Paint,
+    chartWidth: Float,
+    plotHeight: Float,
+) {
+    if (dates.isEmpty()) return
+    paint.textAlign = android.graphics.Paint.Align.CENTER
+    listOf(0, dates.size / 2, dates.size - 1).distinct().filter { it in dates.indices }.forEach { i ->
+        val text = formatDateShort(dates[i])
+        drawContext.canvas.nativeCanvas.drawText(text, centredInside(paint, text, x(i), chartWidth), plotHeight - 2.dp.toPx(), paint)
+    }
+}
+
+/** The tapped point: a vertical line at [x] and a box with [lines] beside it, kept inside the chart. */
+internal fun DrawScope.drawSelection(
+    x: Float,
+    plotTop: Float,
+    plotBottom: Float,
+    chartWidth: Float,
+    lines: List<String>,
+    labelColor: Color,
+    surfaceColor: Color,
+) {
+    drawLine(
+        color = labelColor.copy(alpha = 0.6f),
+        start = Offset(x, plotTop),
+        end = Offset(x, plotBottom),
+        strokeWidth = 1.dp.toPx(),
+    )
+    val tooltipPaint = android.graphics.Paint().apply {
+        color = labelColor.toArgb()
+        textSize = TooltipTextSize.toPx()
+        textAlign = android.graphics.Paint.Align.LEFT
+    }
+    val lineH = tooltipPaint.textSize * 1.4f
+    val pad = 10.dp.toPx()
+    val tw = lines.maxOf { tooltipPaint.measureText(it) } + pad * 2
+    val th = lineH * lines.size + pad
+    val tx = (x + 8.dp.toPx()).coerceIn(4.dp.toPx(), chartWidth - tw - 4.dp.toPx())
+    val ty = 8.dp.toPx()
+    val corner = CornerRadius(8.dp.toPx(), 8.dp.toPx())
+    drawRoundRect(color = surfaceColor.copy(alpha = 0.95f), topLeft = Offset(tx, ty), size = Size(tw, th), cornerRadius = corner)
+    drawRoundRect(
+        color = labelColor.copy(alpha = 0.3f),
+        topLeft = Offset(tx, ty),
+        size = Size(tw, th),
+        cornerRadius = corner,
+        style = Stroke(width = 1.dp.toPx()),
+    )
+    val baseline = ty + pad + lineH * 0.7f
+    lines.forEachIndexed { li, line ->
+        drawContext.canvas.nativeCanvas.drawText(line, tx + pad, baseline + li * lineH, tooltipPaint)
+    }
+}

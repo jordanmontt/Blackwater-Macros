@@ -1,21 +1,10 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import type { AppDb } from "../db/client";
-import { mealTemplates, type MealIngredient, type MealTemplateRow } from "../db/schema";
+import { mealTemplates, type MealTemplateRow } from "../db/schema";
+import type { MealContent, ResolvedTotals } from "@/lib/core/types";
 
-export interface NewTemplateData {
+export interface NewTemplateData extends MealContent, ResolvedTotals {
   name: string;
-  title: string;
-  notes: string | null;
-  entryMode: "per_ingredient" | "total_only";
-  ingredients: MealIngredient[];
-  totalCalories: number | null;
-  totalProtein: number | null;
-  totalCarbs: number | null;
-  totalFat: number | null;
-  resolvedCalories: number;
-  resolvedProtein: number;
-  resolvedCarbs: number;
-  resolvedFat: number;
 }
 
 export interface MealTemplatesRepository {

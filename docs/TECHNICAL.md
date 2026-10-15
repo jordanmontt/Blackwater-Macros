@@ -59,11 +59,15 @@ src/
     nutrition-recommendations.tsx  # Merged calorie + protein recommendations card (Comidas page)
     weight-fat-chart.tsx          # Combined weight (kg) + body fat (%) chart with trend line
     demo-banner.tsx         # Persistent "demo mode" banner + exit to login
+    subpage-header.tsx      # Title + arrow back to Ajustes (Perfil, IA, Admin)
+    chart-style.ts          # The charts' shared tooltip style
     app-nav.tsx theme-provider.tsx
   lib/                      # Shared pure logic + types (importable from both sides)
     core/                   # PURE algorithms, zero deps — single source of truth, ported to Kotlin
       one file per domain (nutrition, stats, calories, ai-providers…) — list in §11.1
     api.ts demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
+    meal-payload.ts         # A meal's/template's content as sent and stored (mealContent, storedMealContent)
+    local-json-store.ts     # A JSON value in localStorage as a useSyncExternalStore store (AI settings, model lists)
     csv-import.ts           # Reads the export's CSV (and Android's) back: parse, validate, import keys
   i18n/<lang>.json          # ALL user-facing copy, es (the reference) en fr it de; Android reads them too (§6 i18n)
   i18n/<lang>.ts            # Typed wrappers: every language has the shape of es (tests/unit/i18n.test.ts)
@@ -150,6 +154,13 @@ weights      id, user_id → users(cascade), measured_at TIMESTAMPTZ,
 - **`total_only`**: user enters one kcal/protein pair; those land in
   `total_calories/total_protein`; resolved columns copy them.
 
+Both rules live in one place, `lib/meal-payload.ts`: `mealContent` (the content as sent,
+meal-level totals only for `total_only`) and `storedMealContent` (plus the resolved totals),
+used by the meals and templates services, the demo store and the client (copy, undo). The
+shared types are `MealContent` and `ResolvedTotals` (`lib/core/types.ts`); the DTOs, the
+repositories' write data, the CSV import and the form payload extend them, and the server
+schemas share `mealContentShape` (`validation.ts`). Android: `Mappers.kt` `toEntity`.
+
 The MealForm defaults **new** meals to `per_ingredient` ("Por ingrediente"); editing keeps
 the stored mode. The DB column default (`per_ingredient`) is never relied upon —
 the service always writes an explicit value.
@@ -158,6 +169,8 @@ the service always writes an explicit value.
 `SUM(...)` queries over one column instead of re-parsing JSONB on every request.
 
 ### MealIngredient (JSONB)
+
+The core `IngredientInput` (`lib/core/types.ts`):
 
 ```ts
 { name: string; quantity?: string; calories?: number; protein?: number;
@@ -816,7 +829,7 @@ delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
 - **Mutability:** users can add/edit/delete meals, weights, and templates, and
   update the calorie profile freely (its history stays empty: the demo profile is
   not kept). All writes go through `lib/demo-store.ts`,
-  which reuses `resolveMealTotals` (`lib/core/nutrition.ts`) so totals are computed
+  which reuses `storedMealContent` (`lib/meal-payload.ts`) so totals are computed
   identically to the server. Nothing is ever sent to the network.
 - **Exit:** a persistent `DemoBanner` (rendered in `layout.tsx` on every app
   page) shows «Estás en modo demo…» with a **«Iniciar sesión»** button that calls
@@ -1338,6 +1351,17 @@ Base UI gotchas (differs from Radix-era shadcn docs):
   to labels — see `modeItems` in `components/meals/meal-form.tsx`.
 - `AlertDialogAction` accepts Button props (`variant="destructive"` works directly).
 
+**Shared building blocks** — reuse them instead of copying the code again:
+
+| Need | Web | Android |
+|---|---|---|
+| A caught error as a toast text | `errorText(error)` (`lib/api.ts`) | `ResponseErrorMapper` (`UiText`) |
+| A page opened from Ajustes | `SubpageHeader` | `BackTopAppBar` |
+| A meal's or template's content to send or store | `mealContent` / `storedMealContent` | `Mappers.kt` `toEntity` |
+| A setting kept in this browser | `localJsonStore` | `SharedPreferences` stores |
+| A chart tooltip | `TOOLTIP_STYLE` (`components/chart-style.ts`) | `drawSelection` (`chart/TrendChart.kt`) |
+| «g/kg» of the protein recommendation | `proteinPerKgText` | `proteinPerKg` |
+
 Next.js 16 specifics honored throughout: `params` in route handlers is a Promise
 (`await context.params`), `cookies()` is async, middleware lives in `src/proxy.ts`.
 Per the root AGENTS.md, consult bundled docs at `node_modules/next/dist/docs/` before
@@ -1707,14 +1731,15 @@ app/src/main/kotlin/com/blackwatermacros/app/
                                             #   validation, in a GuardedBottomSheet (asks before losing edits)
     NutritionRecommendationsCard.kt, RecommendationsViewModel.kt  # calorie/protein card + intake bars
     ProgressScreen/ViewModel, WeightFormDialog  # Progreso: local stats + weigh-ins (validation = server limits)
-    chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a per-point target band)
+    chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a per-point target band;
+                                                #   TrendChart.kt also holds what both share: drawDateLabels, drawSelection, LegendDot)
     SettingsScreen/ViewModel, SettingsComponents.kt  # Ajustes (account, templates, data, theme, language)
     ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
     LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen
     SyncIndicator.kt                        # cloud in the Comidas header (logged in only)
     AccountSwitcher.kt                      # header avatar + account switcher sheet (2+ accounts, Android only)
     Format.kt                               # dates (app language) + the one number format + app language (appLocale, setAppLanguage)
-    Theme.kt, CenteredTopAppBar.kt, BottomNavBar.kt  # tokens, AppCard, header, bottom bar, AppLogo
+    Theme.kt, CenteredTopAppBar.kt, BottomNavBar.kt  # tokens, AppCard, header (BackTopAppBar = title + arrow back), bottom bar, AppLogo
 ```
 
 ### 14.3 Languages

@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { buildModelListRequest, parseModelList, type AiModelOption } from "@/lib/core/ai-models";
 import { aiErrorDetail, aiErrorKind, isAiConfigured, type AiConfig, type AiProvider } from "@/lib/core/ai-providers";
 import { AiError } from "@/lib/ai/client";
+import { localJsonStore } from "@/lib/local-json-store";
 
 /**
  * The models the user's key can use, asked to the provider (`core/ai-models.ts`)
@@ -20,11 +21,15 @@ export interface ModelList {
 }
 
 export const MODEL_LIST_MAX_AGE_MS = 24 * 60 * 60 * 1000;
-const STORAGE_KEY = "bw:ai-models";
-const listeners = new Set<() => void>();
+type ModelLists = Partial<Record<AiProvider, ModelList>>;
+const store = localJsonStore<ModelLists>("bw:ai-models", (raw) => {
+  try {
+    return raw ? (JSON.parse(raw) as ModelLists) : {};
+  } catch {
+    return {};
+  }
+});
 const inFlight = new Map<string, Promise<ModelList>>();
-let cachedRaw: string | null | undefined;
-let cachedLists: Partial<Record<AiProvider, ModelList>> = {};
 
 /** Bump when `parseModelList` filters differently: older cached lists are then asked again. */
 const LIST_FORMAT = 2;
@@ -39,41 +44,9 @@ export function configFingerprint(config: AiConfig): string {
   return hash.toString(16);
 }
 
-function readRaw(): string | null {
-  try {
-    return localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function getLists(): Partial<Record<AiProvider, ModelList>> {
-  const raw = readRaw();
-  if (raw !== cachedRaw) {
-    cachedRaw = raw;
-    try {
-      cachedLists = raw ? (JSON.parse(raw) as Partial<Record<AiProvider, ModelList>>) : {};
-    } catch {
-      cachedLists = {};
-    }
-  }
-  return cachedLists;
-}
-
-function save(provider: AiProvider, list: ModelList) {
-  const next = { ...getLists(), [provider]: list };
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    cachedRaw = JSON.stringify(next);
-    cachedLists = next;
-  }
-  listeners.forEach((listener) => listener());
-}
-
 /** The cached list for this key, or null (none yet, or it was for another key). */
 export function cachedModelList(config: AiConfig): ModelList | null {
-  const list = getLists()[config.provider];
+  const list = store.get()[config.provider];
   return list && list.fingerprint === configFingerprint(config) ? list : null;
 }
 
@@ -105,7 +78,7 @@ export async function refreshModelList(config: AiConfig, force = false): Promise
       fetchedAt: new Date().toISOString(),
       fingerprint,
     };
-    save(config.provider, list);
+    store.set({ ...store.get(), [config.provider]: list });
     return list;
   })();
   inFlight.set(fingerprint, request);
@@ -116,23 +89,11 @@ export async function refreshModelList(config: AiConfig, force = false): Promise
   }
 }
 
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === STORAGE_KEY) listener();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-
-const NONE: Partial<Record<AiProvider, ModelList>> = {};
+const NONE: ModelLists = {};
 
 /** The cached list for [config]'s key, updating when a refresh lands. */
 export function useModelList(config: AiConfig): ModelList | null {
-  const lists = useSyncExternalStore(subscribe, getLists, () => NONE);
+  const lists = useSyncExternalStore(store.subscribe, store.get, () => NONE);
   const list = lists[config.provider];
   return list && list.fingerprint === configFingerprint(config) ? list : null;
 }

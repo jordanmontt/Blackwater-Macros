@@ -264,28 +264,9 @@ fun WeightFatChart(
                     center = Offset(xIndex(i), yPct(v)),
                 )
             }
-            if (data.isNotEmpty()) {
-                val labels = listOf(0, data.size / 2, data.size - 1).distinct().filter { it in data.indices }
-                axisPaint.textAlign = android.graphics.Paint.Align.CENTER
-                labels.forEach { i ->
-                    val text = formatDateShort(data[i].date)
-                    drawContext.canvas.nativeCanvas.drawText(
-                        text,
-                        centredInside(axisPaint, text, xIndex(i), chartWidth),
-                        plotHeight - 2.dp.toPx(),
-                        axisPaint,
-                    )
-                }
-            }
+            drawDateLabels(data.map { it.date }, ::xIndex, axisPaint, chartWidth, plotHeight)
 
             selectedIndex?.let { si ->
-                val sx = xIndex(si)
-                drawLine(
-                    color = labelColor.copy(alpha = 0.6f),
-                    start = Offset(sx, plotTop),
-                    end = Offset(sx, plotBottom),
-                    strokeWidth = 1.dp.toPx(),
-                )
                 val row = data[si]
                 val lines = buildList {
                     add(formatDateShort(row.date))
@@ -293,37 +274,7 @@ fun WeightFatChart(
                     row.weightTrend?.let { add("$trendLabel: ${formatNumber(it, 1)} kg") }
                     row.bodyFatPct?.let { add("$fatLabel: ${formatNumber(it, 1)}%") }
                 }
-                val tooltipPaint = android.graphics.Paint().apply {
-                    color = labelColor.toArgb()
-                    textSize = TooltipTextSize.toPx()
-                    textAlign = android.graphics.Paint.Align.LEFT
-                }
-                val lineH = tooltipPaint.textSize * 1.4f
-                val pad = 10.dp.toPx()
-                val tw = lines.maxOf { tooltipPaint.measureText(it) } + pad * 2
-                val th = lineH * lines.size + pad
-                val minX = 4.dp.toPx()
-                val maxX = chartWidth - tw - 4.dp.toPx()
-                val rawTx = sx + 8.dp.toPx()
-                val tx = rawTx.coerceIn(minX, maxX)
-                val ty = 8.dp.toPx()
-                drawRoundRect(
-                    color = surfaceColor.copy(alpha = 0.95f),
-                    topLeft = Offset(tx, ty),
-                    size = androidx.compose.ui.geometry.Size(tw, th),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
-                )
-                drawRoundRect(
-                    color = labelColor.copy(alpha = 0.3f),
-                    topLeft = Offset(tx, ty),
-                    size = androidx.compose.ui.geometry.Size(tw, th),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
-                    style = Stroke(width = 1.dp.toPx()),
-                )
-                val baseline = ty + pad + lineH * 0.7f
-                lines.forEachIndexed { li, line ->
-                    drawContext.canvas.nativeCanvas.drawText(line, tx + pad, baseline + li * lineH, tooltipPaint)
-                }
+                drawSelection(xIndex(si), plotTop, plotBottom, chartWidth, lines, labelColor, surfaceColor)
             }
         }
         Spacer(Modifier.height(4.dp))
@@ -336,16 +287,5 @@ fun WeightFatChart(
                 LegendDot(Chart2, bodyFatLabel)
             }
         }
-    }
-}
-
-@Composable
-private fun LegendDot(color: Color, label: String) {
-    Row {
-        Canvas(modifier = Modifier.size(8.dp)) {
-            drawCircle(color)
-        }
-        Spacer(Modifier.width(4.dp))
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

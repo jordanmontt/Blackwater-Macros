@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
@@ -73,18 +72,7 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            CenteredTopAppBar(
-                title = stringResource(R.string.ai_title),
-                leading = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                },
-            )
+            BackTopAppBar(title = stringResource(R.string.ai_title), onBack = onBack)
         },
     ) { innerPadding ->
         Column(

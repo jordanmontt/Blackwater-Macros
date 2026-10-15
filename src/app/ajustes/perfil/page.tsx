@@ -3,9 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatNumber } from "@/i18n/format";
 import Link from "next/link";
-import { ArrowLeftIcon, DumbbellIcon, FlameIcon } from "lucide-react";
+import { DumbbellIcon, FlameIcon } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,15 +14,17 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api, ApiError } from "@/lib/api";
+import { api, errorText } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { ExpenditureCheckStatus, formulaInputs } from "@/components/expenditure-check";
+import { proteinPerKgText } from "@/components/nutrition-recommendations";
 import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 import { calculateCalorieRecommendation, isCalorieProfileComplete } from "@/lib/core/calories";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
 import { formatTemplate, t } from "@/i18n";
+import { SubpageHeader } from "@/components/subpage-header";
 
 const GOAL_LABELS: Record<Goal, string> = {
   cut: t.ajustes.goalCut,
@@ -127,7 +128,7 @@ export default function PerfilPage() {
       try {
         await api.updateSettings(newProfile, session);
       } catch (error) {
-        toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
+        toast.error(errorText(error));
       }
     }, 500);
   }
@@ -149,19 +150,7 @@ export default function PerfilPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 md:pt-6">
-      <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t.perfil.title}</h1>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          nativeButton={false}
-          render={<Link href="/ajustes" aria-label={t.perfil.backToSettings} />}
-        >
-          <ArrowLeftIcon />
-        </Button>
-      </header>
+      <SubpageHeader title={t.perfil.title} backLabel={t.perfil.backToSettings} />
 
       <Card>
         <CardHeader className="pb-3">
@@ -388,16 +377,7 @@ export default function PerfilPage() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {proteinRec.range.min} – {proteinRec.range.max} g/día{" "}
-                    {proteinRec.basis !== "bodyWeight"
-                ? formatTemplate(proteinRec.basis === "leanMass" ? t.protein.perKgLeanMass : t.protein.perKgReference, {
-                          min: formatNumber(proteinRec.perKg.min, 1),
-                          max: formatNumber(proteinRec.perKg.max, 1),
-                          kg: formatNumber(proteinRec.basisKg, 1),
-                        })
-                      : formatTemplate(t.protein.perKg, {
-                          min: formatNumber(proteinRec.perKg.min, 1),
-                          max: formatNumber(proteinRec.perKg.max, 1),
-                        })}
+                    {proteinPerKgText(proteinRec)}
                   </p>
                 </div>
               )}

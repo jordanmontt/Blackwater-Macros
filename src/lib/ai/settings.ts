@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { DEFAULT_MODELS, isAiConfigured, type AiConfig, type AiProvider } from "@/lib/core/ai-providers";
+import { localJsonStore } from "@/lib/local-json-store";
 
 /**
  * Ajustes → IA, kept only in this browser's localStorage: the key never
@@ -35,19 +36,6 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   browserModel: "",
 };
 
-const STORAGE_KEY = "bw:ai";
-const listeners = new Set<() => void>();
-let cachedRaw: string | null | undefined;
-let cachedSettings: AiSettings = DEFAULT_AI_SETTINGS;
-
-function readRaw(): string | null {
-  try {
-    return localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
 function parse(raw: string | null): AiSettings {
   if (!raw) return DEFAULT_AI_SETTINGS;
   try {
@@ -66,42 +54,17 @@ function parse(raw: string | null): AiSettings {
   }
 }
 
+const store = localJsonStore("bw:ai", parse);
+
 /** The stored settings; the same object until they change (for useSyncExternalStore). */
-export function getAiSettings(): AiSettings {
-  const raw = readRaw();
-  if (raw !== cachedRaw) {
-    cachedRaw = raw;
-    cachedSettings = parse(raw);
-  }
-  return cachedSettings;
-}
+export const getAiSettings = store.get;
 
 export function saveAiSettings(update: (current: AiSettings) => AiSettings): void {
-  const next = update(getAiSettings());
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    // Private mode / storage full: the settings only last for this page.
-    cachedRaw = JSON.stringify(next);
-    cachedSettings = next;
-  }
-  listeners.forEach((listener) => listener());
-}
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === STORAGE_KEY) listener();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
-  };
+  store.set(update(store.get()));
 }
 
 export function useAiSettings(): AiSettings {
-  return useSyncExternalStore(subscribe, getAiSettings, () => DEFAULT_AI_SETTINGS);
+  return useSyncExternalStore(store.subscribe, store.get, () => DEFAULT_AI_SETTINGS);
 }
 
 /** What the provider calls need, from the settings. */

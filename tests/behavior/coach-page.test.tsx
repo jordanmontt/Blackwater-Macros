@@ -54,7 +54,7 @@ vi.mock("@/lib/api", () => ({
 
 vi.mock("@/lib/ai/images", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/images")>()),
-  // jsdom has no canvas: the photo arrives already reduced.
+  // happy-dom has no canvas: the photo arrives already reduced.
   downscalePhoto: vi.fn(async () => ({ mimeType: "image/jpeg", data: "Zm90bw==" })),
 }));
 

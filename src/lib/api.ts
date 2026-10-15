@@ -2,7 +2,6 @@ import type { ImportedMeal, ImportedWeight } from "@/lib/csv-import";
 import type {
   AdminUserDTO,
   CalorieProfile,
-  IngredientInput,
   MealDTO,
   MealTemplateDTO,
   StatsRange,
@@ -15,6 +14,7 @@ import type { FoodLang, FoodProduct } from "./core/foods";
 import { demoApi } from "./demo-api";
 import { todayKey } from "./core/dates";
 import { withProfileChange } from "./core/profile-history";
+import { mealContent, type MealContentInput } from "./meal-payload";
 import { isDemoMode } from "./demo-store";
 import { clearCache, invalidate } from "./client-cache";
 import { isServerErrorCode, type ServerErrorCode } from "./server-errors";
@@ -85,20 +85,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-/** What the server needs to recreate a meal or template (it recomputes the resolved totals). */
-function nutritionOf(source: MealDTO | MealTemplateDTO): Omit<MealPayload, "logDate"> {
-  return {
-    title: source.title,
-    notes: source.notes,
-    entryMode: source.entryMode,
-    ingredients: source.ingredients,
-    totalCalories: source.totalCalories,
-    totalProtein: source.totalProtein,
-    totalCarbs: source.totalCarbs,
-    totalFat: source.totalFat,
-  };
-}
-
 /** How long a «… deleted · Undo» toast stays (Android: `SnackbarDuration.Long`). */
 export const UNDO_TOAST_MS = 10_000;
 
@@ -111,16 +97,8 @@ function jsonBody(payload: unknown): RequestInit {
   return { method: "POST", body: JSON.stringify(payload) };
 }
 
-export interface MealPayload {
+export interface MealPayload extends MealContentInput {
   logDate: string;
-  title: string;
-  notes?: string | null;
-  entryMode: "per_ingredient" | "total_only";
-  ingredients: IngredientInput[];
-  totalCalories?: number | null;
-  totalProtein?: number | null;
-  totalCarbs?: number | null;
-  totalFat?: number | null;
 }
 
 export interface WeightPayload {
@@ -130,16 +108,8 @@ export interface WeightPayload {
   note?: string | null;
 }
 
-export interface TemplatePayload {
+export interface TemplatePayload extends MealContentInput {
   name: string;
-  title: string;
-  notes?: string | null;
-  entryMode: "per_ingredient" | "total_only";
-  ingredients: IngredientInput[];
-  totalCalories?: number | null;
-  totalProtein?: number | null;
-  totalCarbs?: number | null;
-  totalFat?: number | null;
 }
 
 export const api = {
@@ -219,7 +189,7 @@ export const api = {
     if (isDemoMode()) return demoApi.restoreMeal(meal, orderedIds);
     await request<{ meal: MealDTO }>(`/api/meals/${meal.id}`, {
       method: "PUT",
-      body: JSON.stringify({ logDate: meal.logDate, ...nutritionOf(meal) } satisfies MealPayload),
+      body: JSON.stringify({ logDate: meal.logDate, ...mealContent(meal) } satisfies MealPayload),
     });
     await request<{ ok: true }>("/api/meals/reorder", { method: "PATCH", body: JSON.stringify({ orderedIds }) });
     invalidate("meals:");
@@ -265,7 +235,7 @@ export const api = {
     if (isDemoMode()) return demoApi.restoreTemplate(template);
     await request<{ template: MealTemplateDTO }>(`/api/templates/${template.id}`, {
       method: "PUT",
-      body: JSON.stringify({ name: template.name, ...nutritionOf(template) } satisfies TemplatePayload),
+      body: JSON.stringify({ name: template.name, ...mealContent(template) } satisfies TemplatePayload),
     });
     invalidate("templates");
   },

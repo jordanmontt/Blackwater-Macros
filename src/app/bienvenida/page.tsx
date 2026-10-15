@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/logo";
 import { AI_STUDIO_URL } from "@/components/settings/ai-settings-card";
-import { api, ApiError } from "@/lib/api";
+import { api, errorText } from "@/lib/api";
 import { invalidate } from "@/lib/client-cache";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { AiError, testAi } from "@/lib/ai/client";
@@ -209,7 +209,7 @@ function DataStep({ onDone }: { onDone: () => void }) {
       invalidate("weights");
       onDone();
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
+      toast.error(errorText(error));
     } finally {
       setBusy(false);
     }

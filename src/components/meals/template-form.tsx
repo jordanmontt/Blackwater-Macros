@@ -9,7 +9,7 @@ import {
   resultToNutritionDraft,
   type NutritionPayload,
 } from "@/components/meals/nutrition-fields";
-import { api, ApiError, type TemplatePayload } from "@/lib/api";
+import { api, errorText, type TemplatePayload } from "@/lib/api";
 import type { MealTemplateDTO } from "@/lib/core/types";
 import { t } from "@/i18n";
 
@@ -59,17 +59,7 @@ function TemplateFormFields({ template, onClose, onSaved }: TemplateFormFieldsPr
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(payload: NutritionPayload) {
-    const templatePayload: TemplatePayload = {
-      name: payload.title,
-      title: payload.title,
-      notes: payload.notes,
-      entryMode: payload.entryMode,
-      ingredients: payload.ingredients,
-      totalCalories: payload.totalCalories,
-      totalProtein: payload.totalProtein,
-      totalCarbs: payload.totalCarbs,
-      totalFat: payload.totalFat,
-    };
+    const templatePayload: TemplatePayload = { name: payload.title, ...payload };
     setPending(true);
     try {
       const saved = template
@@ -78,7 +68,7 @@ function TemplateFormFields({ template, onClose, onSaved }: TemplateFormFieldsPr
       onClose();
       onSaved(saved);
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
+      toast.error(errorText(error));
     } finally {
       setPending(false);
     }

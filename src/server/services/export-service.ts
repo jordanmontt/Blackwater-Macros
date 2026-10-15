@@ -1,71 +1,36 @@
 import { toCsv } from "@/lib/core/csv";
+import { MEAL_HEADER, WEIGHT_HEADER } from "@/lib/csv-import";
 import type { MealRow, WeightRow } from "../db/schema";
 
 /**
- * Builds the meals CSV: one row per ingredient with the meal context repeated,
- * plus the meal-level totals. Total-only meals produce a single row where the
+ * Builds the meals CSV (columns: `MEAL_HEADER`, the format `csv-import.ts` reads
+ * back): one row per ingredient with the meal context repeated, plus the
+ * meal-level totals. Total-only meals produce a single row where the
  * ingredient columns are empty and only the totals are filled.
  */
 export function buildMealsCsv(meals: MealRow[]): string {
-  const header = [
-    "fecha",
-    "comida",
-    "modo",
-    "notas",
-    "ingrediente",
-    "cantidad",
-    "kcal_ingrediente",
-    "proteina_ingrediente_g",
-    "carbohidratos_ingrediente_g",
-    "grasa_ingrediente_g",
-    "total_kcal_comida",
-    "total_proteina_comida_g",
-    "total_carbohidratos_comida_g",
-    "total_grasa_comida_g",
-  ];
-
-  const rows: (string | number | null)[][] = [header];
+  const noIngredient = [null, null, null, null, null, null];
+  const noTotals = [null, null, null, null];
+  const rows: (string | number | null)[][] = [MEAL_HEADER];
   for (const meal of meals) {
+    const context = [meal.logDate, meal.title, meal.entryMode, meal.notes];
     if (meal.entryMode === "total_only") {
-      rows.push([
-        meal.logDate,
-        meal.title,
-        meal.entryMode,
-        meal.notes,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        meal.totalCalories,
-        meal.totalProtein,
-        meal.totalCarbs,
-        meal.totalFat,
-      ]);
-      continue;
-    }
-    if (meal.ingredients.length === 0) {
-      rows.push([meal.logDate, meal.title, meal.entryMode, meal.notes, null, null, null, null, null, null, null, null, null, null]);
-      continue;
-    }
-    for (const ingredient of meal.ingredients) {
-      rows.push([
-        meal.logDate,
-        meal.title,
-        meal.entryMode,
-        meal.notes,
-        ingredient.name,
-        ingredient.quantity ?? null,
-        ingredient.calories ?? null,
-        ingredient.protein ?? null,
-        ingredient.carbs ?? null,
-        ingredient.fat ?? null,
-        null,
-        null,
-        null,
-        null,
-      ]);
+      rows.push([...context, ...noIngredient, meal.totalCalories, meal.totalProtein, meal.totalCarbs, meal.totalFat]);
+    } else if (meal.ingredients.length === 0) {
+      rows.push([...context, ...noIngredient, ...noTotals]);
+    } else {
+      for (const ingredient of meal.ingredients) {
+        rows.push([
+          ...context,
+          ingredient.name,
+          ingredient.quantity ?? null,
+          ingredient.calories ?? null,
+          ingredient.protein ?? null,
+          ingredient.carbs ?? null,
+          ingredient.fat ?? null,
+          ...noTotals,
+        ]);
+      }
     }
   }
   return toCsv(rows);
@@ -73,12 +38,11 @@ export function buildMealsCsv(meals: MealRow[]): string {
 
 /** Builds the weight CSV: one row per weigh-in, newest-friendly ascending order. */
 export function buildWeightsCsv(weights: WeightRow[]): string {
-  const header = ["fecha_hora", "peso_kg", "grasa_corporal_pct", "nota"];
   const rows: (string | number | null)[][] = weights.map((row) => [
     row.measuredAt.toISOString(),
     row.weightKg,
     row.bodyFatPct,
     row.note,
   ]);
-  return toCsv([header, ...rows]);
+  return toCsv([WEIGHT_HEADER, ...rows]);
 }

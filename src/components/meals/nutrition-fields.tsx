@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import type { EntryMode, IngredientInput } from "@/lib/core/types";
+import type { EntryMode, IngredientInput, MealContent } from "@/lib/core/types";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { t } from "@/i18n";
 
@@ -40,16 +40,8 @@ export interface NutritionDraft {
   totalFat: string;
 }
 
-export interface NutritionPayload {
-  title: string;
-  notes: string | null;
-  entryMode: EntryMode;
-  ingredients: IngredientInput[];
-  totalCalories: number | null;
-  totalProtein: number | null;
-  totalCarbs: number | null;
-  totalFat: number | null;
-}
+/** What the form submits: the content of the meal or template. */
+export type NutritionPayload = MealContent;
 
 export function rawNutritionDraft(): NutritionDraft {
   return {

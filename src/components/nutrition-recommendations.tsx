@@ -7,7 +7,7 @@ import { ExpenditureNotices, formulaInputs } from "@/components/expenditure-chec
 import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { todayKey } from "@/lib/core/dates";
-import type { Goal } from "@/lib/core/types";
+import type { Goal, ProteinRecommendation } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -235,16 +235,7 @@ export function NutritionRecommendationsCard({
               {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} g/día
             </p>
             <p className="text-xs text-muted-foreground">
-              {proteinRec.basis !== "bodyWeight"
-                ? formatTemplate(proteinRec.basis === "leanMass" ? t.protein.perKgLeanMass : t.protein.perKgReference, {
-                    min: formatNumber(proteinRec.perKg.min, 1),
-                    max: formatNumber(proteinRec.perKg.max, 1),
-                    kg: formatNumber(proteinRec.basisKg, 1),
-                  })
-                : formatTemplate(t.protein.perKg, {
-                    min: formatNumber(proteinRec.perKg.min, 1),
-                    max: formatNumber(proteinRec.perKg.max, 1),
-                  })}
+              {proteinPerKgText(proteinRec)}
             </p>
             <div className="mt-auto pt-1">
               <IntakeBar
@@ -273,4 +264,14 @@ export function NutritionRecommendationsCard({
       </CardContent>
     </Card>
   );
+}
+
+/** «2,3–3,1 g/kg» of body weight, of lean mass («… de 43,9 kg de masa magra») or of the reference weight. */
+export function proteinPerKgText(rec: ProteinRecommendation): string {
+  const perKg = { min: formatNumber(rec.perKg.min, 1), max: formatNumber(rec.perKg.max, 1) };
+  if (rec.basis === "bodyWeight") return formatTemplate(t.protein.perKg, perKg);
+  return formatTemplate(rec.basis === "leanMass" ? t.protein.perKgLeanMass : t.protein.perKgReference, {
+    ...perKg,
+    kg: formatNumber(rec.basisKg, 1),
+  });
 }

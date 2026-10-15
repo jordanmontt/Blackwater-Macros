@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { api, ApiError } from "@/lib/api";
+import { api, errorText } from "@/lib/api";
 import { nowDateTimeLocalValue, parseLocalDateTime, toDateTimeLocalValue } from "@/lib/core/dates";
 import type { WeightDTO } from "@/lib/core/types";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
@@ -69,7 +69,7 @@ export function WeightFormDialog({
       onOpenChange(false);
       await onSaved();
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
+      toast.error(errorText(error));
     } finally {
       setPending(false);
     }

@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { formatDateKeyShort, formatNumber } from "@/i18n/format";
 import { t } from "@/i18n";
+import { TOOLTIP_STYLE } from "./chart-style";
 
 export interface WeightFatRow {
   date: string;
@@ -19,14 +20,6 @@ export interface WeightFatRow {
   weightTrend?: number | null;
   bodyFatPct?: number | null;
 }
-
-const TOOLTIP_STYLE = {
-  background: "var(--popover)",
-  border: "1px solid var(--border)",
-  borderRadius: 10,
-  fontSize: 12,
-  color: "var(--popover-foreground)",
-} as const;
 
 /**
  * Combined evolution chart: weight (solid line), 7-day weight trend (dotted)

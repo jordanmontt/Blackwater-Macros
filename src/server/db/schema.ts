@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { ProfilePeriod } from "@/lib/core/types";
+import type { IngredientInput, ProfilePeriod } from "@/lib/core/types";
 import {
   boolean,
   date,
@@ -48,20 +48,8 @@ export const sessions = pgTable(
   (table) => [index("sessions_user_id_idx").on(table.userId)],
 );
 
-/**
- * A single ingredient of a meal. Stored as JSONB inside `meals.ingredients`.
- * Nutrition values are optional per ingredient; calories/protein may be added
- * for any ingredient. `carbs`/`fat` are reserved for future macro support and
- * are not collected by the UI yet.
- */
-export type MealIngredient = {
-  name: string;
-  quantity?: string;
-  calories?: number;
-  protein?: number;
-  carbs?: number;
-  fat?: number;
-};
+/** A single ingredient of a meal or template, stored as JSONB inside `ingredients`. */
+export type MealIngredient = IngredientInput;
 
 export const meals = pgTable(
   "meals",

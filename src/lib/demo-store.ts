@@ -1,5 +1,4 @@
 import { todayKey, addDaysToKey } from "./core/dates";
-import { resolveMealTotals } from "./core/nutrition";
 import type {
   CalorieProfile,
   IngredientInput,
@@ -8,6 +7,7 @@ import type {
   WeightDTO,
 } from "./core/types";
 import type { MealPayload, WeightPayload, TemplatePayload } from "./api";
+import { storedMealContent } from "./meal-payload";
 
 export const DEMO_COOKIE_NAME = "bw_demo";
 const STORAGE_KEY = "blackwater_demo_store_v1";
@@ -268,64 +268,21 @@ function buildMealDto(input: {
   order: number;
   createdAt: number;
 }): StoredMeal {
-  const totals = resolveMealTotals(
-    input.payload.entryMode,
-    input.payload.ingredients,
-    input.payload.totalCalories ?? null,
-    input.payload.totalProtein ?? null,
-    input.payload.totalCarbs ?? null,
-    input.payload.totalFat ?? null,
-  );
-  const isTotalOnly = input.payload.entryMode === "total_only";
   return {
     id: input.id,
     logDate: input.logDate,
-    title: input.payload.title,
-    notes: input.payload.notes ?? null,
-    entryMode: input.payload.entryMode,
-    ingredients: input.payload.ingredients,
-    totalCalories: isTotalOnly ? (input.payload.totalCalories ?? null) : null,
-    totalProtein: isTotalOnly ? (input.payload.totalProtein ?? null) : null,
-    totalCarbs: isTotalOnly ? (input.payload.totalCarbs ?? null) : null,
-    totalFat: isTotalOnly ? (input.payload.totalFat ?? null) : null,
-    resolvedCalories: totals.calories,
-    resolvedProtein: totals.protein,
-    resolvedCarbs: totals.carbs,
-    resolvedFat: totals.fat,
+    ...storedMealContent(input.payload),
     order: input.order,
     createdAt: input.createdAt,
     updatedAt: new Date(input.createdAt).toISOString(),
   };
 }
 
-function buildTemplateDto(input: {
-  id: string;
-  payload: TemplatePayload;
-}): MealTemplateDTO {
-  const totals = resolveMealTotals(
-    input.payload.entryMode,
-    input.payload.ingredients,
-    input.payload.totalCalories ?? null,
-    input.payload.totalProtein ?? null,
-    input.payload.totalCarbs ?? null,
-    input.payload.totalFat ?? null,
-  );
-  const isTotalOnly = input.payload.entryMode === "total_only";
+function buildTemplateDto(input: { id: string; payload: TemplatePayload }): MealTemplateDTO {
   return {
     id: input.id,
     name: input.payload.name,
-    title: input.payload.title,
-    notes: input.payload.notes ?? null,
-    entryMode: input.payload.entryMode,
-    ingredients: input.payload.ingredients,
-    totalCalories: isTotalOnly ? (input.payload.totalCalories ?? null) : null,
-    totalProtein: isTotalOnly ? (input.payload.totalProtein ?? null) : null,
-    totalCarbs: isTotalOnly ? (input.payload.totalCarbs ?? null) : null,
-    totalFat: isTotalOnly ? (input.payload.totalFat ?? null) : null,
-    resolvedCalories: totals.calories,
-    resolvedProtein: totals.protein,
-    resolvedCarbs: totals.carbs,
-    resolvedFat: totals.fat,
+    ...storedMealContent(input.payload),
     updatedAt: new Date().toISOString(),
   };
 }
