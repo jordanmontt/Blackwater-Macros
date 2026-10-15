@@ -775,14 +775,14 @@ expired and keeps local data. Statistics are computed on the phone, so `/api/sta
 
 | Page | File | Highlights |
 |---|---|---|
-| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars), meal list, delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
-| Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band; «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
+| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars; a past day shows the targets it had, §8.1.1), meal list, delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
+| Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band (it steps where a day's target changed, §8.1.1); «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets = mean of the logged days' own targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), links to Perfil and to IA, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
 | IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly |
-| Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
+| Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
-| Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, protein, measured expenditure, the profile check at `#check`) with the reasoning and Crossref-checked citations. Android: `MethodologyScreen.kt`, same content and reference list |
+| Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, why past days keep their targets at `#past-days`, protein, measured expenditure, the profile check at `#check`) with the reasoning and Crossref-checked citations. Android: `MethodologyScreen.kt`, same content and reference list |
 
 ### Client data layer (`lib/api.ts`)
 
@@ -790,7 +790,8 @@ Typed fetcher: JSON headers, network-failure → `ApiError(0)`, non-OK → `ApiE
 A 401 outside the login call throws `ApiError(401)` and dispatches the
 `AUTH_EXPIRED_EVENT` custom event; `components/auth-redirect.tsx` listens and
 navigates to `/login` (a graceful SPA redirect instead of a hard reload).
-`api.session()` swallows failures and resolves to an empty profile. Components
+`api.session()` swallows failures and resolves to an empty profile without
+`profileHistory`, so a profile saved then sends no history and the server keeps its own. Components
 catch errors locally and show `sonner` toasts.
 
 ### 6.1 Client-side demo mode (`lib/api.ts` + `lib/demo-store.ts` + `lib/demo-api.ts`)
@@ -813,7 +814,8 @@ delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
   isolated copy; everything resets when the tab/browser closes or when site
   cookies are cleared.
 - **Mutability:** users can add/edit/delete meals, weights, and templates, and
-  update the calorie profile freely. All writes go through `lib/demo-store.ts`,
+  update the calorie profile freely (its history stays empty: the demo profile is
+  not kept). All writes go through `lib/demo-store.ts`,
   which reuses `resolveMealTotals` (`lib/core/nutrition.ts`) so totals are computed
   identically to the server. Nothing is ever sent to the network.
 - **Exit:** a persistent `DemoBanner` (rendered in `layout.tsx` on every app
