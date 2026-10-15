@@ -60,6 +60,8 @@ data class SessionResponse(
     val username: String,
     val isAdmin: Boolean,
     val calorieProfile: WireCalorieProfile,
+    /** Null from a server that predates the history: the phone keeps its own. */
+    val profileHistory: List<WireProfilePeriod>? = null,
 )
 
 @Serializable
@@ -197,8 +199,24 @@ data class WireCalorieProfile(
     val calorieGoal: WireGoal? = null,
 )
 
+/** A former profile and the last day it applied to (web `ProfilePeriod`, flat like the profile). */
 @Serializable
-data class SettingsResponse(val calorieProfile: WireCalorieProfile)
+data class WireProfilePeriod(
+    val until: String,
+    val gender: WireGender? = null,
+    val birthYear: Int? = null,
+    val heightCm: Double? = null,
+    val gymDaysPerWeek: Int? = null,
+    val gymSessionMinutes: Int? = null,
+    val walkingMinutesPerDay: Int? = null,
+    val calorieGoal: WireGoal? = null,
+)
+
+@Serializable
+data class SettingsResponse(
+    val calorieProfile: WireCalorieProfile,
+    val profileHistory: List<WireProfilePeriod>? = null,
+)
 
 // --- Admin ---
 

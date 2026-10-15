@@ -5,7 +5,8 @@ import ProgresoPage from "@/app/progreso/page";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import { formatNumber } from "@/i18n/format";
 import { buildStatsFromData } from "@/lib/core/stats-builder";
-import type { CalorieProfile, MealDTO, StatsRange, WeightDTO } from "@/lib/core/types";
+import type { CalorieProfile, MealDTO, ProfilePeriod, StatsRange, WeightDTO } from "@/lib/core/types";
+import { calculateCalorieRecommendation } from "@/lib/core/calories";
 import { t } from "@/i18n";
 
 /**
@@ -13,13 +14,15 @@ import { t } from "@/i18n";
  *  - un selector de periodo que manda sobre toda la pantalla,
  *  - resumen de peso (actual, tendencia, cambio, ritmo, grasa) y su gráfico,
  *  - gráfico de calorías y «Promedio de macros» solo sobre los días registrados
- *    («N de M días registrados»), con el reparto de calorías y los objetivos,
+ *    («N de M días registrados»), con el reparto de calorías y los objetivos
+ *    (la media de los de cada día: cambiar el perfil no reescribe el pasado),
  *  - la lista de pesajes del periodo, con añadir, editar y borrar (pregunta
  *    antes y luego ofrece «Deshacer»).
  */
 
 let weights: WeightDTO[] = [];
 let meals: MealDTO[] = [];
+let profileHistory: ProfilePeriod[] = [];
 
 const profile: CalorieProfile = {
   gender: "male",
@@ -45,7 +48,7 @@ vi.mock("@/lib/api", () => ({
   api: {
     listWeights: vi.fn(async () => weights),
     listMeals: vi.fn(async () => meals),
-    session: vi.fn(async () => ({ username: "ana", isAdmin: false, calorieProfile: profile })),
+    session: vi.fn(async () => ({ username: "ana", isAdmin: false, calorieProfile: profile, profileHistory })),
     stats: vi.fn(async (range: StatsRange, today: string) =>
       buildStatsFromData(
         meals,
@@ -100,6 +103,7 @@ describe("pantalla Progreso", () => {
     sessionStorage.clear();
     weights = [];
     meals = [];
+    profileHistory = [];
   });
 
   it("sin datos invita a registrar el primer pesaje y dice que no hay comidas", async () => {
@@ -136,6 +140,27 @@ describe("pantalla Progreso", () => {
     // Perfil completo → objetivos de calorías y proteína junto a la media.
     expect(await screen.findAllByText(/^objetivo \S+–\S+$/)).toHaveLength(2);
     expect(screen.getByTestId("calories-chart")).toBeInTheDocument();
+  });
+
+  it("compara la media con los objetivos que tuvo cada día", async () => {
+    // Walked less until 2 days ago: that day keeps its lower target.
+    const before = { ...profile, walkingMinutesPerDay: 0 };
+    profileHistory = [{ ...before, until: daysAgo(2) }];
+    weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(5)), weightKg: 80 })];
+    meals = [meal(daysAgo(1), 2000, 150, 200, 60), meal(daysAgo(3), 2200, 130, 250, 70)];
+    const year = Number(today.slice(0, 4));
+    const old = calculateCalorieRecommendation(before, 80, year)!;
+    const now = calculateCalorieRecommendation(profile, 80, year)!;
+    render(<ProgresoPage />);
+
+    expect(
+      await screen.findByText(
+        formatTemplateText(t.progreso.target, {
+          min: formatNumber(Math.round((old.targetMin + now.targetMin) / 2)),
+          max: formatNumber(Math.round((old.targetMax + now.targetMax) / 2)),
+        }),
+      ),
+    ).toBeInTheDocument();
   });
 
   it("el periodo manda sobre toda la pantalla", async () => {

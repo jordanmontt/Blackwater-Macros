@@ -7,7 +7,8 @@ import { en } from "@/i18n/en";
 /**
  * Requisitos de «Metodología»: se lee en el idioma elegido (antes salía siempre
  * en español porque la página se generaba en el servidor), y explica la
- * comprobación del perfil con sus fuentes en el ancla que abre su «¿Por qué?».
+ * comprobación del perfil con sus fuentes en el ancla que abre su «¿Por qué?»,
+ * y por qué los días pasados conservan sus objetivos (enlazado desde Perfil).
  */
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ back: vi.fn(), push: vi.fn() }) }));
@@ -32,5 +33,13 @@ describe("Metodología", () => {
     for (const source of ["Lichtman SW", "Schoeller DA", "Rosenbaum M", "Kreitzman SN", "Frankenfield D"]) {
       expect(screen.getByText((content) => content.startsWith(source))).toBeInTheDocument();
     }
+  });
+
+  it("explica en /metodologia#past-days por qué los días pasados conservan sus objetivos", () => {
+    const { container } = render(<MetodologiaPage />);
+    const section = container.querySelector("#past-days");
+    expect(section).not.toBeNull();
+    expect(section!.textContent).toContain(t.metodologia.pastDaysTitle);
+    expect(section!.textContent).toContain(t.metodologia.pastDaysScale);
   });
 });

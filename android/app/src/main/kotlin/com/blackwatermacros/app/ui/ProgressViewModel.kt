@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.R
+import com.blackwatermacros.app.core.AverageTargets
 import com.blackwatermacros.app.core.CalorieProfile
-import com.blackwatermacros.app.core.CalorieRecommendation
 import com.blackwatermacros.app.core.ExpenditureEstimate
 import com.blackwatermacros.app.core.MacroAverages
-import com.blackwatermacros.app.core.ProteinRecommendation
+import com.blackwatermacros.app.core.ProfilePeriod
 import com.blackwatermacros.app.core.StatsMeal
 import com.blackwatermacros.app.core.StatsRange
 import com.blackwatermacros.app.core.StatsSummary
@@ -55,8 +55,10 @@ data class Progress(
     val weightRows: List<WeightFatRow>,
     /** Averages over logged days of the period; null when nothing was logged. */
     val averages: MacroAverages?,
-    val calorie: CalorieRecommendation?,
-    val protein: ProteinRecommendation?,
+    /** The calorie target of each logged day (aligned with the chart's points), as it was that day. */
+    val calorieBands: List<Pair<Double, Double>?>,
+    /** The mean of the logged days' own targets, next to the averages. */
+    val targets: AverageTargets,
     val expenditure: ExpenditureEstimate?,
     /** Weigh-ins of the period by local day, newest first. */
     val groupedWeights: List<Pair<String, List<WeightDTO>>>,
@@ -80,8 +82,14 @@ class ProgressViewModel(
     val range: StateFlow<StatsRangeOption> = _range.asStateFlow()
 
     val state: StateFlow<ProgressUiState> =
-        combine(_range, repository.allMeals(), repository.weights(), repository.profile()) { range, meals, weights, profile ->
-            ProgressUiState.Loaded(buildProgress(range, meals, weights, profile, todayKey())) as ProgressUiState
+        combine(
+            _range,
+            repository.allMeals(),
+            repository.weights(),
+            repository.profile(),
+            repository.profileHistory(),
+        ) { range, meals, weights, profile, history ->
+            ProgressUiState.Loaded(buildProgress(range, meals, weights, profile, todayKey(), history)) as ProgressUiState
         }
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProgressUiState.Loading)
@@ -109,6 +117,7 @@ internal fun buildProgress(
     weights: List<WeightDTO>,
     profile: CalorieProfile,
     today: String,
+    history: List<ProfilePeriod> = emptyList(),
 ): Progress {
     // Same window the server applies before calling the builder.
     val fromKey = range.days?.let { addDaysToKey(today, -(it - 1)) }
@@ -123,7 +132,10 @@ internal fun buildProgress(
     // The stats series has every day of the period (0 when nothing was logged).
     val averages = macroAverages(summary.calories)
 
-    val ready = recommend(weights, profile, meals, today) as? RecommendationsUiState.Ready
+    val ready = recommend(weights, profile, meals, today, history) as? RecommendationsUiState.Ready
+    // Each day keeps the targets it had (its profile and weight).
+    val loggedDays = summary.calories.filter { it.calories > 0 }.map { it.date }
+    val calorieBands = loggedDays.map { day -> ready?.targets?.on(day)?.calorie?.let { it.targetMin to it.targetMax } }
 
     val grouped = weights
         .filter { fromKey == null || it.measuredAt.localDay() >= fromKey }
@@ -135,8 +147,8 @@ internal fun buildProgress(
         summary = summary,
         weightRows = weightRows(summary),
         averages = averages,
-        calorie = ready?.calorie,
-        protein = ready?.protein,
+        calorieBands = calorieBands,
+        targets = ready?.targets?.average(loggedDays) ?: AverageTargets(null, null),
         expenditure = ready?.expenditure,
         groupedWeights = grouped,
         hasAnyWeight = weights.isNotEmpty(),

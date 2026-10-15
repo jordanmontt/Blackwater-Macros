@@ -25,6 +25,7 @@ import type {
   CalorieProfile,
   MealDTO,
   MealTemplateDTO,
+  ProfilePeriod,
   StatsRange,
   StatsSummary,
   WeightDTO,
@@ -40,6 +41,7 @@ export const demoApi = {
     username: DEMO_USERNAME,
     isAdmin: false,
     calorieProfile: { ...DEMO_CALORIE_PROFILE },
+    profileHistory: [] as ProfilePeriod[],
   }),
 
   listMeals: async (from: string, to: string): Promise<MealDTO[]> =>
@@ -119,6 +121,6 @@ export const demoApi = {
 
   updateSettings: async (profile: CalorieProfile) => {
     const updated = updateDemoSettings(profile);
-    return { calorieProfile: updated };
+    return { calorieProfile: updated, profileHistory: [] as ProfilePeriod[] };
   },
 };

@@ -54,6 +54,9 @@ every number on screen can be checked by hand.
   walking, each with its own energy cost.
 - **A calorie range for your goal**: about −400 kcal a day to lose fat, ±100 to maintain,
   +300 to build muscle. It never goes below your basal needs.
+- **Past days keep their targets.** Changing your activity, goal or weight counts from today:
+  each day is judged with the profile and weight it had, because what you burned last week
+  depends on what you did last week.
 - **Protein from sports-nutrition research**: 1.4–2.0 g/kg to maintain, 1.6–2.2 to build
   muscle, more while cutting; calculated on your lean mass when you log your body fat, and on
   a healthy reference weight when a high BMI is not muscle.

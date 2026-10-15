@@ -53,7 +53,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.blackwatermacros.app.ui.HoyScreen
 import com.blackwatermacros.app.ui.LoginScreen
-import com.blackwatermacros.app.ui.CHECK_SECTION
 import com.blackwatermacros.app.ui.MethodologyScreen
 import com.blackwatermacros.app.ui.ProfileScreen
 import com.blackwatermacros.app.ui.SettingsScreen
@@ -267,7 +266,7 @@ private fun AppNavHost(
                 onOpenSettings = { navController.navigateToTab(AppTab.AJUSTES) },
                 onOpenProfile = { navController.navigate("perfil") },
                 onOpenWeight = { navController.navigateToTab(AppTab.PROGRESO) },
-                onOpenMethodology = { navController.navigate("metodologia?section=$CHECK_SECTION") },
+                onOpenMethodology = { section -> navController.navigate("metodologia?section=${section.orEmpty()}") },
                 onOpenAiSettings = { navController.navigate("ia") },
             )
         }
@@ -297,7 +296,7 @@ private fun AppNavHost(
         composable("perfil") {
             ProfileScreen(
                 onBack = { navController.popBackStack() },
-                onOpenMethodology = { navController.navigate("metodologia?section=$CHECK_SECTION") },
+                onOpenMethodology = { section -> navController.navigate("metodologia?section=${section.orEmpty()}") },
             )
         }
         composable("ia") {

@@ -224,7 +224,8 @@
     "measuredTdee": "Gasto medido",
     "measuredTdeeValue": "{n} ± {margin} kcal/día",
     "measuredTdeeDetail": "Últimas 4 semanas: comiste {intake} kcal/día de media ({days} días registrados) y tu peso cambió {rate} kg/semana.",
-    "measuredTdeePending": "El gasto medido aparecerá con 4 semanas de datos: comidas registradas al menos 3 de cada 4 días y pesajes unas 3 veces por semana."
+    "measuredTdeePending": "El gasto medido aparecerá con 4 semanas de datos: comidas registradas al menos 3 de cada 4 días y pesajes unas 3 veces por semana.",
+    "pastDayTargets": "Objetivos de ese día, con el perfil y el peso que tenías entonces."
   },
   "expenditureCheck": {
     "noticeHigher": "Tu peso indica que gastas unas {gap} kcal/día más de lo que estima tu perfil.",
@@ -312,6 +313,10 @@
     "tdeeActivity": "Es el método factorial de FAO/OMS/UNU (2004): los 1440 minutos del día se reparten en bloques y cada uno cuenta según su intensidad, en múltiplos del metabolismo basal. Los minutos sin ejercicio (dormir, estar sentado, tareas ligeras) cuentan 1,4, el extremo bajo del rango «sedentario o ligero» (PAL 1,40–1,69). El gimnasio cuenta 4,0: el Compendio de Actividades Físicas 2024 asigna 3,5–6 MET al entrenamiento de fuerza, y una sesión real incluye descansos entre series. Caminar cuenta 3,5 (paso moderado, 4–5 km/h). Los MET se usan como múltiplos de tu metabolismo basal: es una aproximación, porque 1 MET (3,5 ml de O₂/kg/min) suele ser algo mayor que el metabolismo basal real (Byrne et al. 2005), así que el gasto del ejercicio queda más bien corto, en línea con un modelo conservador. Por ejemplo, 3 sesiones de 60 minutos a la semana y 30 minutos de caminata al día dan un PAL de 1,49; sin ejercicio, 1,40.",
     "tdeeWhyNotScale": "¿Por qué no una escala de actividad? Muchas apps piden elegir tu nivel (de sedentario a muy activo). Lo que la gente declara de su actividad se aleja a menudo de lo medido y, frente a acelerómetros, suele quedar por encima, sobre todo en la actividad intensa (Prince et al. 2008). Aquí solo das tiempos (días, minutos de gimnasio y de caminata) y la intensidad la pone la app con valores prudentes, así que no tienes que juzgar si eres «activo» o «muy activo»; además, cada minuto extra de ejercicio sube el resultado de forma continua, sin saltos entre categorías. El modelo es deliberadamente conservador y no incluye otras actividades (trabajo físico, deportes); si tu día es más activo, el gasto medido lo reflejará.",
     "tdeeGoals": "El objetivo suma o resta una cantidad fija al TDEE: definición −400 kcal (rango −500 a −300), mantenimiento ±100 kcal, volumen +300 kcal (rango +200 a +400). Con la aproximación de ~7700 kcal por kg (Hall 2008), −400 kcal/día son unos 0,36 kg/semana, un ritmo prudente: Helms et al. (2014, JISSN) recomiendan perder un 0,5–1 % del peso por semana para conservar músculo (0,35–0,7 kg para 70 kg). +300 kcal/día son unos 0,27 kg/semana, en línea con el 0,25–0,5 % semanal que proponen Iraki et al. (2019) para el volumen. El rango nunca baja de tu metabolismo basal: si el déficit lo dejaría por debajo (personas pequeñas y poco activas), se queda en el TMB; un déficit más profundo conviene hacerlo con supervisión.",
+    "pastDaysTitle": "Los días pasados conservan sus objetivos",
+    "pastDaysBody": "Cada día se compara con los objetivos que tenía: el perfil (actividad, objetivo, altura…) vigente ese día y el último pesaje hasta ese día. Si cambias tu actividad o tu objetivo, el cambio cuenta desde hoy y los días anteriores no se recalculan, porque la energía que gastaste un día depende de lo que hiciste ese día, no de lo que haces ahora.",
+    "pastDaysScale": "La actividad del perfil describe tu semana habitual, no una semana suelta. Un día de gimnasio de 60 min menos a la semana son unas 25 kcal/día, y 30 min menos de caminar al día unas 65 kcal/día: menos que el margen de la propia fórmula (±10 %, unas ±200 kcal). Cámbiala cuando tu rutina cambie de verdad.",
+    "pastDaysFix": "Si los datos anteriores estaban mal (por ejemplo, anotaste menos actividad de la que hacías), los días pasados conservan el objetivo calculado con ellos. Tu gasto medido no depende del perfil (sale solo de lo que comes y de tu peso), así que sigue siendo la referencia de lo que gastas de verdad.",
     "measuredTitle": "Gasto medido (balance energético)",
     "measuredBody": "La fórmula es una estimación de población: dos personas con los mismos datos pueden gastar varios cientos de kcal distintas. Cuando hay datos suficientes, la app mide tu gasto real a partir de lo que comes y de cómo cambia tu peso, como hacen apps adaptativas como MacroFactor: si tu peso se mantiene, gastas lo que comes; si sube o baja, la diferencia es la energía que almacenas o pierdes.",
     "measuredFormula": "Ventana: los 28 días anteriores a hoy\ningesta = media de kcal de los días con comidas registradas\nβ = pendiente de la regresión del peso [kg/día]\ngasto = ingesta − β × 7700\nmargen = 1,96 × σ / √Σ(xᵢ − x̄)² × 7700",
@@ -561,7 +566,8 @@
     "errorHeight": "La altura debe estar entre 100 y 250 cm",
     "errorGymDays": "Los días deben ser entre 0 y 7",
     "errorGymMinutes": "La duración debe ser entre 0 y 300 min",
-    "errorWalking": "El tiempo debe ser entre 0 y 480 min"
+    "errorWalking": "El tiempo debe ser entre 0 y 480 min",
+    "changesFromToday": "Los cambios cuentan desde hoy: los días pasados conservan sus objetivos."
   },
   "admin": {
     "title": "Administración",

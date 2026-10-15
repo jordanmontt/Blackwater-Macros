@@ -2,7 +2,7 @@ import { jsonError } from "@/server/route-utils";
 import { NextResponse } from "next/server";
 import { withUserId, parseJsonBody } from "@/server/route-utils";
 import { repositories } from "@/server/composition";
-import { calorieProfileInputSchema } from "@/server/validation";
+import { settingsInputSchema } from "@/server/validation";
 import { updateCalorieProfile } from "@/server/services/settings-service";
 
 export async function PUT(request: Request) {
@@ -15,8 +15,8 @@ export async function PUT(request: Request) {
       "heightCm" in body ||
       "calorieGoal" in body
     ) {
-      const input = calorieProfileInputSchema.parse(body);
-      const settings = await updateCalorieProfile(repositories.settings, userId, input);
+      const { profileHistory, ...profile } = settingsInputSchema.parse(body);
+      const settings = await updateCalorieProfile(repositories.settings, userId, profile, profileHistory);
       return NextResponse.json(settings);
     }
 

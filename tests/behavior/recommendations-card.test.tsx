@@ -5,6 +5,8 @@ import { formatTemplate, t } from "@/i18n";
 import { NutritionRecommendationsCard } from "@/components/nutrition-recommendations";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import type { CalorieProfile, MealDTO, WeightDTO } from "@/lib/core/types";
+import { calculateCalorieRecommendation } from "@/lib/core/calories";
+import { formatNumber } from "@/i18n/format";
 
 /**
  * Requisitos visibles en las tarjetas de recomendación (calorías y proteína)
@@ -19,7 +21,9 @@ import type { CalorieProfile, MealDTO, WeightDTO } from "@/lib/core/types";
  *  - en definición con % de grasa, la proteína se calcula sobre la masa magra,
  *  - si el gasto medido queda claramente fuera del de tu perfil (dos semanas
  *    seguidas), una línea lo dice; «¿Por qué?» enseña el cálculo con tus
- *    números y «Ahora no» la oculta; si solo faltan pesajes, lo dice una vez.
+ *    números y «Ahora no» la oculta; si solo faltan pesajes, lo dice una vez,
+ *  - un día pasado conserva los objetivos que tenía: cambiar el perfil cuenta
+ *    desde hoy (como MyFitnessPal), y la tarjeta dice que son los de ese día.
  */
 
 vi.mock("@/lib/api", () => ({
@@ -284,5 +288,40 @@ describe("tarjetas de recomendación", () => {
     await user.keyboard("{Escape}");
     await user.click(screen.getByRole("button", { name: t.expenditureCheck.notNow }));
     expect(screen.queryByText(t.expenditureCheck.weighInHint)).toBeNull();
+  });
+
+  it("un día pasado conserva el rango que tenía antes de cambiar la actividad", async () => {
+    const yesterday = addDaysToKey(todayKey(), -1);
+    const before = { ...profile, gymDaysPerWeek: 1, walkingMinutesPerDay: 10 };
+    vi.mocked(api.session).mockResolvedValue({
+      username: "demo",
+      isAdmin: false,
+      calorieProfile: profile,
+      profileHistory: [{ ...before, until: yesterday }],
+    });
+    const year = Number(todayKey().slice(0, 4));
+    const range = (p: CalorieProfile) => {
+      const rec = calculateCalorieRecommendation(p, 80, year)!;
+      return `${formatNumber(rec.targetMin)} – ${formatNumber(rec.targetMax)}`;
+    };
+
+    const { unmount } = render(
+      <NutritionRecommendationsCard day={yesterday} dailyCalories={2000} dailyProtein={50} />,
+    );
+    expect(await screen.findByText((content) => content.startsWith(range(before)))).toBeInTheDocument();
+    expect(screen.getByTestId("past-day-targets")).toHaveTextContent(t.calorias.pastDayTargets);
+    unmount();
+
+    render(<NutritionRecommendationsCard day={todayKey()} dailyCalories={2000} dailyProtein={50} />);
+    expect(await screen.findByText((content) => content.startsWith(range(profile)))).toBeInTheDocument();
+    expect(screen.queryByTestId("past-day-targets")).toBeNull();
+  });
+
+  it("sin historial, un día pasado usa el perfil actual y no dice nada más", async () => {
+    render(
+      <NutritionRecommendationsCard day={addDaysToKey(todayKey(), -3)} dailyCalories={2000} dailyProtein={50} />,
+    );
+    await screen.findByText(/te faltan \d+–\d+ kcal/);
+    expect(screen.queryByTestId("past-day-targets")).toBeNull();
   });
 });

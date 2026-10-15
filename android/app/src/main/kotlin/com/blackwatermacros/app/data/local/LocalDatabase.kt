@@ -1,6 +1,7 @@
 package com.blackwatermacros.app.data.local
 
 import android.content.Context
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -10,6 +11,8 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Upsert
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -82,7 +85,10 @@ data class WeightEntity(
     val deleted: Boolean = false,
 )
 
-/** Single-row table (id = 0) holding the calorie profile. */
+/**
+ * Single-row table (id = 0) holding the calorie profile. [history] is the JSON list of
+ * former profiles (`WireProfilePeriod`), so past days keep their targets.
+ */
 @Entity(tableName = "profile")
 data class ProfileEntity(
     @PrimaryKey val id: Int = 0,
@@ -94,6 +100,7 @@ data class ProfileEntity(
     val walkingMinutesPerDay: Int?,
     val calorieGoal: String?,
     val pending: Boolean,
+    @ColumnInfo(defaultValue = "[]") val history: String = "[]",
 )
 
 @Dao
@@ -248,8 +255,8 @@ interface ProfileDao {
 
 @Database(
     entities = [MealEntity::class, TemplateEntity::class, WeightEntity::class, ProfileEntity::class],
-    version = 1,
-    exportSchema = false,
+    version = 2,
+    exportSchema = true,
 )
 abstract class LocalDatabase : RoomDatabase() {
     abstract fun meals(): MealDao
@@ -260,6 +267,21 @@ abstract class LocalDatabase : RoomDatabase() {
     companion object {
         /** One database per account on the phone (`AccountProfiles.databaseName`). */
         fun open(context: Context, name: String): LocalDatabase =
-            Room.databaseBuilder(context, LocalDatabase::class.java, name).build()
+            Room.databaseBuilder(context, LocalDatabase::class.java, name)
+                .addMigrations(*MIGRATIONS)
+                .build()
+
+        /**
+         * Every schema change gets a real migration and an exported schema (`app/schemas/`),
+         * never a destructive fallback: without an account the phone holds the only copy.
+         */
+        val MIGRATIONS: Array<Migration> = arrayOf(
+            // 1 → 2: the profile history (past days keep their targets). Empty = as before.
+            object : Migration(1, 2) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE profile ADD COLUMN history TEXT NOT NULL DEFAULT '[]'")
+                }
+            },
+        )
     }
 }

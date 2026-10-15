@@ -6,6 +6,7 @@ import Link from "next/link";
 import { InfoIcon, PencilIcon, WeightIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import {
+  Area,
   CartesianGrid,
   ComposedChart,
   Line,
@@ -24,12 +25,13 @@ import { WeightFormDialog } from "@/components/weight-form-dialog";
 import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
-import { useRecommendations } from "@/lib/use-recommendations";
+import { datedWeights, useRecommendations } from "@/lib/use-recommendations";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import { round1 } from "@/lib/core/nutrition";
 import { macroAverages } from "@/lib/core/progress";
+import { averageTargets, targetsOn, type TargetRange } from "@/lib/core/profile-history";
 import { movingAverageByDays, rangeToDays } from "@/lib/core/stats";
-import type { CalorieRecommendation, StatsRange, StatsSummary, WeightDTO } from "@/lib/core/types";
+import type { StatsRange, StatsSummary, WeightDTO } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 
 const ranges: { value: StatsRange; label: string }[] = [
@@ -58,7 +60,18 @@ export default function ProgresoPage() {
     },
   });
   const summary = summaryRes.data ?? null;
-  const { weights, calorieRec, proteinRec } = useRecommendations();
+  const { weights, profile, profileHistory } = useRecommendations();
+  // Each day keeps the targets it had (the profile and weight of that day).
+  const targets = useMemo(() => {
+    const dated = datedWeights(weights ?? []);
+    return {
+      calorieOn: (day: string): TargetRange | null => {
+        const calorie = targetsOn(profile, profileHistory, dated, day).calorie;
+        return calorie ? { min: calorie.targetMin, max: calorie.targetMax } : null;
+      },
+      average: (days: string[]) => averageTargets(profile, profileHistory, dated, days),
+    };
+  }, [weights, profile, profileHistory]);
   const weightsRes = useCachedResource<WeightDTO[]>("weights", () => api.listWeights());
 
   function openForm(entry: WeightDTO | null) {
@@ -131,12 +144,8 @@ export default function ProgresoPage() {
       ) : (
         <div className="mt-5 space-y-4">
           <WeightSection summary={summary} onAdd={() => openForm(null)} />
-          <CaloriesSection summary={summary} calorieRec={calorieRec} />
-          <MacrosCard
-            summary={summary}
-            calorieRange={calorieRec ? { min: calorieRec.targetMin, max: calorieRec.targetMax } : null}
-            proteinRange={proteinRec ? proteinRec.range : null}
-          />
+          <CaloriesSection summary={summary} calorieOn={targets.calorieOn} />
+          <MacrosCard summary={summary} averageTargets={targets.average} />
           <WeightEntries
             weights={weights ?? null}
             range={range}
@@ -259,7 +268,13 @@ const TOOLTIP_STYLE = {
   color: "var(--popover-foreground)",
 } as const;
 
-function CaloriesSection({ summary, calorieRec }: { summary: StatsSummary; calorieRec: CalorieRecommendation | null }) {
+function CaloriesSection({
+  summary,
+  calorieOn,
+}: {
+  summary: StatsSummary;
+  calorieOn: (day: string) => TargetRange | null;
+}) {
   const rows = useMemo(() => {
     // Logged days only: a 0 would pull the trend down for a day that was simply not logged.
     const logged = summary.calories.filter((p) => p.calories > 0);
@@ -267,14 +282,22 @@ function CaloriesSection({ summary, calorieRec }: { summary: StatsSummary; calor
       logged.map((p) => ({ date: p.date, value: p.calories })),
       7,
     );
-    return logged.map((point, i) => ({
-      date: point.date,
-      calories: Math.round(point.calories),
-      tendencia: trend[i] === null ? null : round1(trend[i] as number),
-    }));
-  }, [summary]);
+    return logged.map((point, i) => {
+      const band = calorieOn(point.date);
+      return {
+        date: point.date,
+        calories: Math.round(point.calories),
+        tendencia: trend[i] === null ? null : round1(trend[i] as number),
+        band: band ? ([band.min, band.max] as [number, number]) : null,
+      };
+    });
+  }, [summary, calorieOn]);
 
   if (rows.length === 0) return null;
+  // One range for the whole period: a labelled band. Ranges that changed (profile
+  // or weight): a band that steps with each day's own range.
+  const bands = rows.map((row) => row.band).filter((band): band is [number, number] => band !== null);
+  const sameBand = bands.every((band) => band[0] === bands[0]?.[0] && band[1] === bands[0]?.[1]);
 
   return (
     <Card>
@@ -295,10 +318,10 @@ function CaloriesSection({ summary, calorieRec }: { summary: StatsSummary; calor
               axisLine={false}
             />
             <YAxis domain={[0, "auto"]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={(value: number) => formatNumber(value)} />
-            {calorieRec ? (
+            {bands.length > 0 && sameBand ? (
               <ReferenceArea
-                y1={calorieRec.targetMin}
-                y2={calorieRec.targetMax}
+                y1={bands[0][0]}
+                y2={bands[0][1]}
                 fill="var(--primary)"
                 fillOpacity={0.12}
                 stroke="none"
@@ -306,9 +329,27 @@ function CaloriesSection({ summary, calorieRec }: { summary: StatsSummary; calor
                 label={{ value: t.progreso.targetBand, position: "insideTopLeft", fontSize: 10, fill: "var(--muted-foreground)" }}
               />
             ) : null}
+            {bands.length > 0 && !sameBand ? (
+              <Area
+                type="step"
+                dataKey="band"
+                name={t.progreso.targetBand}
+                fill="var(--primary)"
+                fillOpacity={0.12}
+                stroke="none"
+                isAnimationActive={false}
+                connectNulls
+              />
+            ) : null}
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
-              formatter={(value) => (value === null || value === undefined ? "—" : formatNumber(Number(value)))}
+              formatter={(value) =>
+                value === null || value === undefined
+                  ? "—"
+                  : Array.isArray(value)
+                    ? `${formatNumber(Number(value[0]))} – ${formatNumber(Number(value[1]))}`
+                    : formatNumber(Number(value))
+              }
               labelFormatter={(value) => formatDateKeyShort(String(value))}
             />
             <Line type="monotone" dataKey="calories" name={t.stats.dailyIntake} stroke="var(--chart-1)" strokeWidth={1.5} dot={{ r: 2 }} />
@@ -330,16 +371,21 @@ function CaloriesSection({ summary, calorieRec }: { summary: StatsSummary; calor
 
 function MacrosCard({
   summary,
-  calorieRange,
-  proteinRange,
+  averageTargets,
 }: {
   summary: StatsSummary;
-  calorieRange: { min: number; max: number } | null;
-  proteinRange: { min: number; max: number } | null;
+  averageTargets: (days: string[]) => { calorie: TargetRange | null; protein: TargetRange | null };
 }) {
   const measured = useMeasuredExpenditure();
   // The stats series has every day of the period (0 when nothing was logged).
   const averages = useMemo(() => macroAverages(summary.calories), [summary]);
+  // Compared with the mean of the logged days' own targets.
+  const target = useMemo(
+    () => averageTargets(summary.calories.filter((day) => day.calories > 0).map((day) => day.date)),
+    [summary, averageTargets],
+  );
+  const calorieRange = target.calorie;
+  const proteinRange = target.protein;
 
   if (!averages) {
     return (

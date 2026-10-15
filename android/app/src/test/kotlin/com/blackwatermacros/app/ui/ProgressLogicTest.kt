@@ -4,6 +4,10 @@ import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
 import com.blackwatermacros.app.core.MacroSplit
+import com.blackwatermacros.app.core.ProfilePeriod
+import com.blackwatermacros.app.core.TargetRange
+import com.blackwatermacros.app.core.calculateCalorieRecommendation
+import com.blackwatermacros.app.core.mathRound
 import com.blackwatermacros.app.core.addDaysToKey
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.WeightDTO
@@ -13,7 +17,8 @@ import org.junit.Test
 
 /**
  * The Progreso screen's numbers (mirror of `tests/behavior/progreso-page.test.tsx`):
- * one period for everything, averages over logged days only, weigh-ins of the period.
+ * one period for everything, averages over logged days only, weigh-ins of the period,
+ * and each day compared with the target it had.
  */
 class ProgressLogicTest {
 
@@ -41,8 +46,8 @@ class ProgressLogicTest {
         assertThat(averages.protein).isEqualTo(140.0)
         assertThat(averages.split).isEqualTo(MacroSplit(27.0, 44.0, 29.0))
         // Complete profile → calorie and protein targets next to the averages.
-        assertThat(progress.calorie).isNotNull()
-        assertThat(progress.protein).isNotNull()
+        assertThat(progress.targets.calorie).isNotNull()
+        assertThat(progress.targets.protein).isNotNull()
     }
 
     @Test
@@ -64,6 +69,20 @@ class ProgressLogicTest {
         assertThat(empty.averages).isNull()
         assertThat(empty.groupedWeights).isEmpty()
         assertThat(empty.hasAnyWeight).isFalse()
-        assertThat(empty.calorie).isNull()
+        assertThat(empty.targets.calorie).isNull()
+    }
+
+    @Test
+    fun `each logged day keeps its own target, in the band and in the average`() {
+        // Walked less until 2 days ago; 82 kg then, 80 kg from 2 days ago.
+        val before = profile.copy(walkingMinutesPerDay = 0)
+        val history = listOf(ProfilePeriod(addDaysToKey(today, -2), before))
+        val progress = buildProgress(StatsRangeOption.R30D, meals, weights, profile, today, history)
+
+        val old = calculateCalorieRecommendation(before, 82.0, 2026)!!
+        val now = calculateCalorieRecommendation(profile, 80.0, 2026)!!
+        assertThat(progress.calorieBands).containsExactly(old.targetMin to old.targetMax, now.targetMin to now.targetMax).inOrder()
+        assertThat(progress.targets.calorie)
+            .isEqualTo(TargetRange(mathRound((old.targetMin + now.targetMin) / 2), mathRound((old.targetMax + now.targetMax) / 2)))
     }
 }

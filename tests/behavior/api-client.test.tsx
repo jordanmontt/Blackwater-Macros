@@ -3,6 +3,8 @@ import { api, ApiError, AUTH_EXPIRED_EVENT } from "@/lib/api";
 import { DEMO_COOKIE_NAME } from "@/lib/demo-store";
 import { jsonResponse } from "../helpers/repos";
 import { applyLanguage, t } from "@/i18n";
+import { addDaysToKey, todayKey } from "@/lib/core/dates";
+import type { CalorieProfile } from "@/lib/core/types";
 
 /**
  * Requisitos del cliente de API:
@@ -12,7 +14,10 @@ import { applyLanguage, t } from "@/i18n";
  *  - el propio endpoint de login nunca emite el evento (para poder mostrar el
  *    error en pantalla y reintentar),
  *  - un error de servidor o de red no emite el evento,
- *  - no se emite dos veces en menos de 3 segundos (evita loops).
+ *  - no se emite dos veces en menos de 3 segundos (evita loops),
+ *  - al guardar el perfil, el cambio cuenta desde hoy: se envía el historial con
+ *    el perfil anterior hasta ayer; sin historial conocido no se envía (el
+ *    servidor conserva el suyo).
  */
 
 const REDIRECT_KEY = "_authRedirect";
@@ -134,5 +139,42 @@ describe("cliente de API", () => {
 
     expect(events).toEqual([AUTH_EXPIRED_EVENT]);
     expect(setItemSpy).toHaveBeenCalledTimes(1);
+  });
+
+  const OLD: CalorieProfile = {
+    gender: "female",
+    birthYear: 1995,
+    heightCm: 165,
+    gymDaysPerWeek: 2,
+    gymSessionMinutes: 60,
+    walkingMinutesPerDay: 20,
+    calorieGoal: "cut",
+  };
+
+  function captureSettingsBody() {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      jsonResponse(200, { calorieProfile: JSON.parse(String(init?.body)), profileHistory: [] }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    return () => JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+  }
+
+  it("al cambiar el perfil envía el anterior como historial hasta ayer", async () => {
+    const body = captureSettingsBody();
+    await api.updateSettings(
+      { ...OLD, gymDaysPerWeek: 4 },
+      { username: "ana", isAdmin: false, calorieProfile: OLD, profileHistory: [] },
+    );
+    expect(body().gymDaysPerWeek).toBe(4);
+    expect(body().profileHistory).toEqual([{ ...OLD, until: addDaysToKey(todayKey(), -1) }]);
+  });
+
+  it("sin historial conocido no envía profileHistory", async () => {
+    const body = captureSettingsBody();
+    await api.updateSettings(
+      { ...OLD, gymDaysPerWeek: 4 },
+      { username: "", isAdmin: false, calorieProfile: OLD },
+    );
+    expect(body()).not.toHaveProperty("profileHistory");
   });
 });

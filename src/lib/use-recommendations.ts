@@ -3,9 +3,15 @@
 import { useMemo } from "react";
 import { api } from "./api";
 import { useCachedResource } from "./use-cached-resource";
-import { calculateCalorieRecommendation } from "./core/calories";
-import { calculateProteinRecommendation } from "./core/protein";
-import type { CalorieProfile, CalorieRecommendation, ProteinRecommendation, WeightDTO } from "./core/types";
+import { toDateKey, todayKey } from "./core/dates";
+import { targetsOn, type DatedWeight } from "./core/profile-history";
+import type {
+  CalorieProfile,
+  CalorieRecommendation,
+  ProfilePeriod,
+  ProteinRecommendation,
+  WeightDTO,
+} from "./core/types";
 
 const EMPTY_PROFILE: CalorieProfile = {
   gender: null,
@@ -17,14 +23,27 @@ const EMPTY_PROFILE: CalorieProfile = {
   calorieGoal: null,
 };
 
+const NO_HISTORY: ProfilePeriod[] = [];
+
+/** Weigh-ins on their local calendar day, in measuring order (`core/profile-history.ts`). */
+export function datedWeights(weights: WeightDTO[]): DatedWeight[] {
+  return weights.map((w) => ({
+    date: toDateKey(new Date(w.measuredAt)),
+    weightKg: w.weightKg,
+    bodyFatPct: w.bodyFatPct,
+  }));
+}
+
 /**
- * Calorie and protein recommendations from the latest weigh-in and the saved
- * profile (the same numbers everywhere: Comidas card, Progreso). `weights` is
- * undefined while loading.
+ * Calorie and protein recommendations of `day` (today by default): the profile
+ * that applied that day and the last weigh-in on or before it, so editing the
+ * profile never rewrites past days (the same numbers everywhere: Comidas card,
+ * Progreso). `weights` is undefined while loading.
  */
-export function useRecommendations(): {
+export function useRecommendations(day?: string): {
   weights: WeightDTO[] | undefined;
   profile: CalorieProfile;
+  profileHistory: ProfilePeriod[];
   latestWeight: WeightDTO | null;
   calorieRec: CalorieRecommendation | null;
   proteinRec: ProteinRecommendation | null;
@@ -34,25 +53,14 @@ export function useRecommendations(): {
 
   const weights = weightsRes.data;
   const profile = sessionRes.data?.calorieProfile ?? EMPTY_PROFILE;
+  const profileHistory = sessionRes.data?.profileHistory ?? NO_HISTORY;
   const latestWeight = weights?.at(-1) ?? null;
-  // Body fat is not logged at every weigh-in: use the most recent one there is.
-  const bodyFatPct = weights?.findLast((w) => w.bodyFatPct !== null)?.bodyFatPct ?? null;
+  const targetDay = day ?? todayKey();
 
-  const calorieRec = useMemo(
-    () => (latestWeight ? calculateCalorieRecommendation(profile, latestWeight.weightKg, new Date().getFullYear()) : null),
-    [latestWeight, profile],
-  );
-  const proteinRec = useMemo(
-    () =>
-      latestWeight && profile.calorieGoal
-        ? calculateProteinRecommendation(latestWeight.weightKg, profile.calorieGoal, bodyFatPct, {
-            heightCm: profile.heightCm,
-            gender: profile.gender,
-            age: profile.birthYear === null ? null : new Date().getFullYear() - profile.birthYear,
-          })
-        : null,
-    [latestWeight, profile.calorieGoal, profile.heightCm, profile.gender, profile.birthYear, bodyFatPct],
+  const { calorie, protein } = useMemo(
+    () => targetsOn(profile, profileHistory, datedWeights(weights ?? []), targetDay),
+    [profile, profileHistory, weights, targetDay],
   );
 
-  return { weights, profile, latestWeight, calorieRec, proteinRec };
+  return { weights, profile, profileHistory, latestWeight, calorieRec: calorie, proteinRec: protein };
 }

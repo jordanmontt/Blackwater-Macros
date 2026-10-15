@@ -21,5 +21,6 @@ export async function GET(request: Request) {
       walkingMinutesPerDay: user?.walkingMinutesPerDay ?? null,
       calorieGoal: user?.calorieGoal ?? null,
     },
+    profileHistory: user?.profileHistory ?? [],
   });
 }

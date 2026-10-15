@@ -236,6 +236,7 @@ export default function HoyPage() {
 
       <section className="mt-4">
         <NutritionRecommendationsCard
+          day={selectedDay}
           dailyCalories={totals.calories}
           dailyProtein={totals.protein}
         />

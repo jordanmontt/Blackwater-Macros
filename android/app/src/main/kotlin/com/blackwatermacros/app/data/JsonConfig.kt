@@ -1,5 +1,6 @@
 package com.blackwatermacros.app.data
 
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -17,5 +18,13 @@ val ApiJson: Json = Json {
 /** Encodes every key, nulls included — required by `PUT /api/settings`. */
 private val ExplicitNullsJson: Json = Json(ApiJson) { explicitNulls = true }
 
-fun profileBody(profile: WireCalorieProfile): JsonObject =
-    ExplicitNullsJson.encodeToJsonElement(WireCalorieProfile.serializer(), profile).jsonObject
+/**
+ * `PUT /api/settings`: the profile and, when given, the history of former profiles
+ * (left out, the server keeps the one it has).
+ */
+fun profileBody(profile: WireCalorieProfile, history: List<WireProfilePeriod>? = null): JsonObject {
+    val body = ExplicitNullsJson.encodeToJsonElement(WireCalorieProfile.serializer(), profile).jsonObject
+    if (history == null) return body
+    val periods = ExplicitNullsJson.encodeToJsonElement(ListSerializer(WireProfilePeriod.serializer()), history)
+    return JsonObject(body + ("profileHistory" to periods))
+}

@@ -6,15 +6,30 @@ import type {
   MealDTO,
   MealTemplateDTO,
   StatsRange,
+  ProfilePeriod,
   StatsSummary,
+  UserSettings,
   WeightDTO,
 } from "./core/types";
 import type { FoodLang, FoodProduct } from "./core/foods";
 import { demoApi } from "./demo-api";
+import { todayKey } from "./core/dates";
+import { withProfileChange } from "./core/profile-history";
 import { isDemoMode } from "./demo-store";
 import { clearCache, invalidate } from "./client-cache";
 import { isServerErrorCode, type ServerErrorCode } from "./server-errors";
 import { formatTemplate, t } from "@/i18n";
+
+/**
+ * The signed-in user. `profileHistory` is missing when it is unknown (an
+ * older server, or the session could not be read).
+ */
+export interface SessionData {
+  username: string;
+  isAdmin: boolean;
+  calorieProfile: CalorieProfile;
+  profileHistory?: ProfilePeriod[];
+}
 
 export class ApiError extends Error {
   constructor(
@@ -144,13 +159,9 @@ export const api = {
 
   session: () => {
     if (isDemoMode()) return demoApi.session();
-    return request<{
-      username: string;
-      isAdmin: boolean;
-      calorieProfile: CalorieProfile;
-    }>("/api/auth/session", {
+    return request<SessionData>("/api/auth/session", {
       method: "GET",
-    }).catch(() => ({
+    }).catch((): SessionData => ({
       username: "",
       isAdmin: false,
       calorieProfile: {
@@ -347,13 +358,19 @@ export const api = {
     return request<StatsSummary>(`/api/stats?${query}`);
   },
 
-  updateSettings: async (payload: CalorieProfile) => {
+  /**
+   * Saves the profile. With `saved` (the session it replaces), the change applies
+   * from today on: the history keeps the old profile for the days up to yesterday.
+   * Without a known history nothing is sent for it, and the server keeps its own.
+   */
+  updateSettings: async (payload: CalorieProfile, saved?: SessionData) => {
     if (isDemoMode()) return demoApi.updateSettings(payload);
-    const data = await request<{
-      calorieProfile: CalorieProfile;
-    }>("/api/settings", {
+    const profileHistory = saved?.profileHistory
+      ? withProfileChange(saved.calorieProfile, saved.profileHistory, payload, todayKey())
+      : undefined;
+    const data = await request<UserSettings>("/api/settings", {
       method: "PUT",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, profileHistory }),
     });
     invalidate("session");
     return data;

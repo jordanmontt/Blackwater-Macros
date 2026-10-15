@@ -8,7 +8,7 @@ import { sessionExpiryFromNow } from "@/server/auth/session";
 import type { AuthServiceDeps } from "@/server/services/auth-service";
 import type { StatsServiceDeps } from "@/server/services/stats-service";
 import type { MealRow, MealTemplateRow, WeightRow, UserRow } from "@/server/db/schema";
-import type { CalorieProfile, MealDTO, MealTemplateDTO, WeightDTO } from "@/lib/core/types";
+import type { CalorieProfile, MealDTO, MealTemplateDTO, ProfilePeriod, WeightDTO } from "@/lib/core/types";
 
 /**
  * Infraestructura en memoria para probar rutas HTTP (handlers de la API) sin
@@ -41,6 +41,7 @@ export interface MemoryWorld {
     templates: Map<string, MealTemplateRow>;
     weights: Map<string, WeightRow>;
     settings: Map<string, CalorieProfile>;
+    profileHistory: Map<string, ProfilePeriod[]>;
     users: Map<string, UserRow>;
     sessions: Map<string, SessionRow>;
   };
@@ -52,6 +53,7 @@ export function createMemoryWorld(): MemoryWorld {
   const templatesData = new Map<string, MealTemplateRow>();
   const weightsData = new Map<string, WeightRow>();
   const settingsData = new Map<string, CalorieProfile>();
+  const historyData = new Map<string, ProfilePeriod[]>();
   const usersData = new Map<string, UserRow>();
   const sessionsData = new Map<string, SessionRow>();
 
@@ -231,8 +233,12 @@ export function createMemoryWorld(): MemoryWorld {
     async getCalorieProfile(userId) {
       return settingsData.get(userId) ?? emptyProfile;
     },
-    async updateCalorieProfile(userId, profile) {
+    async getProfileHistory(userId) {
+      return historyData.get(userId) ?? [];
+    },
+    async updateCalorieProfile(userId, profile, history) {
       settingsData.set(userId, profile);
+      if (history !== undefined) historyData.set(userId, history);
     },
   };
 
@@ -264,6 +270,7 @@ export function createMemoryWorld(): MemoryWorld {
         gymSessionMinutes: null,
         walkingMinutesPerDay: null,
         calorieGoal: null,
+        profileHistory: [],
         createdAt: new Date(),
       };
       usersData.set(id, row);
@@ -318,6 +325,7 @@ export function createMemoryWorld(): MemoryWorld {
       templates: templatesData,
       weights: weightsData,
       settings: settingsData,
+      profileHistory: historyData,
       users: usersData,
       sessions: sessionsData,
     },
@@ -326,6 +334,7 @@ export function createMemoryWorld(): MemoryWorld {
       templatesData.clear();
       weightsData.clear();
       settingsData.clear();
+      historyData.clear();
       usersData.clear();
       sessionsData.clear();
     },

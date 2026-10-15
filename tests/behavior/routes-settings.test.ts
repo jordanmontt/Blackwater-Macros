@@ -115,4 +115,47 @@ describe("ruta de ajustes", () => {
     expect(body.calorieProfile.gender).toBeNull();
     expect(body.calorieProfile.calorieGoal).toBeNull();
   });
+
+  const PROFILE = {
+    gender: "female",
+    birthYear: 1995,
+    heightCm: 165,
+    gymDaysPerWeek: 4,
+    gymSessionMinutes: 60,
+    walkingMinutesPerDay: 60,
+    calorieGoal: "cut",
+  };
+  const HISTORY = [{ ...PROFILE, gymDaysPerWeek: 2, walkingMinutesPerDay: 20, until: "2026-10-14" }];
+
+  it("guarda y devuelve el historial de perfiles", async () => {
+    authenticate();
+    const res = await putSettings(settingsRequest({ ...PROFILE, profileHistory: HISTORY }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).profileHistory).toEqual(HISTORY);
+  });
+
+  it("sin profileHistory (la app 1.0.0) conserva el historial guardado", async () => {
+    authenticate();
+    await putSettings(settingsRequest({ ...PROFILE, profileHistory: HISTORY }));
+    const res = await putSettings(settingsRequest({ ...PROFILE, gymDaysPerWeek: 5 }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.calorieProfile.gymDaysPerWeek).toBe(5);
+    expect(body.profileHistory).toEqual(HISTORY);
+  });
+
+  it("rechaza un periodo con fecha o valores no válidos", async () => {
+    authenticate();
+    const badDate = await putSettings(
+      settingsRequest({ ...PROFILE, profileHistory: [{ ...HISTORY[0], until: "2026-13-40" }] }),
+    );
+    expect(badDate.status).toBe(400);
+    expect((await badDate.json()).code).toBe("invalid_date");
+
+    const badValue = await putSettings(
+      settingsRequest({ ...PROFILE, profileHistory: [{ ...HISTORY[0], gymDaysPerWeek: 9 }] }),
+    );
+    expect(badValue.status).toBe(400);
+    expect((await badValue.json()).code).toBe("gym_days_out_of_range");
+  });
 });

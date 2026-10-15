@@ -91,6 +91,17 @@ export const calorieProfileInputSchema = z.object({
   calorieGoal: z.enum(["cut", "maintain", "surplus"]).nullable(),
 });
 
+/** Former profiles (`ProfilePeriod`): the same limits, plus the last day each applied to. */
+export const MAX_PROFILE_PERIODS = 1000;
+export const profilePeriodSchema = calorieProfileInputSchema.extend({
+  until: z.string().refine(isValidDateKey, "invalid_date"),
+});
+
+/** `PUT /api/settings`: the profile, and the history when the app sends it. */
+export const settingsInputSchema = calorieProfileInputSchema.extend({
+  profileHistory: z.array(profilePeriodSchema).max(MAX_PROFILE_PERIODS, "invalid_data").optional(),
+});
+
 export const loginInputSchema = z.object({
   username: z.string().trim().min(1).max(80),
   password: z.string().min(1).max(200),

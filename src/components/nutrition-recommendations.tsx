@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ExpenditureNotices, formulaInputs } from "@/components/expenditure-check";
 import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import { useRecommendations } from "@/lib/use-recommendations";
+import { todayKey } from "@/lib/core/dates";
 import type { Goal } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -114,15 +115,28 @@ function IntakeBar({
  * with the intake bars for the selected day.
  */
 export function NutritionRecommendationsCard({
+  day,
   dailyCalories,
   dailyProtein,
 }: {
+  /** The day shown (today when omitted): a past day keeps the targets it had. */
+  day?: string;
   dailyCalories: number;
   dailyProtein: number;
 }) {
-  const { profile, latestWeight, calorieRec, proteinRec } = useRecommendations();
+  const today = useRecommendations();
+  const { profile, latestWeight } = today;
+  const { calorieRec, proteinRec } = useRecommendations(day);
+  const isToday = day === undefined || day === todayKey();
   const measured = useMeasuredExpenditure();
-  const check = useExpenditureCheck(calorieRec);
+  // The check judges the current profile, whatever day is shown.
+  const check = useExpenditureCheck(today.calorieRec);
+  const differsFromToday =
+    !isToday &&
+    (calorieRec?.targetMin !== today.calorieRec?.targetMin ||
+      calorieRec?.targetMax !== today.calorieRec?.targetMax ||
+      proteinRec?.range.min !== today.proteinRec?.range.min ||
+      proteinRec?.range.max !== today.proteinRec?.range.max);
 
   if (!latestWeight) {
     return (
@@ -179,10 +193,12 @@ export function NutritionRecommendationsCard({
                 </p>
               ) : null}
             </div>
-            <ExpenditureNotices
-              check={check}
-              inputs={formulaInputs(profile, latestWeight.weightKg, new Date().getFullYear())}
-            />
+            {isToday ? (
+              <ExpenditureNotices
+                check={check}
+                inputs={formulaInputs(profile, latestWeight.weightKg, new Date().getFullYear())}
+              />
+            ) : null}
             {/* mt-auto: both columns' bars sit at the bottom, aligned side by side on desktop. */}
             <div className="mt-auto pt-1">
               <IntakeBar
@@ -247,6 +263,12 @@ export function NutritionRecommendationsCard({
               />
             </div>
           </section>
+        ) : null}
+
+        {differsFromToday ? (
+          <p className="text-xs text-muted-foreground sm:col-span-2" data-testid="past-day-targets">
+            {t.calorias.pastDayTargets}
+          </p>
         ) : null}
       </CardContent>
     </Card>

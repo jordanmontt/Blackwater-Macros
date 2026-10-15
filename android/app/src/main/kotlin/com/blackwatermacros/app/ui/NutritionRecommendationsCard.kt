@@ -46,20 +46,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.core.Goal
 import com.blackwatermacros.app.core.ProteinBasis
 import com.blackwatermacros.app.core.ProteinRecommendation
+import com.blackwatermacros.app.core.todayKey
 import kotlin.math.round
 
 /**
  * Collapsed calorie + protein recommendation card (web
  * `NutritionRecommendationsCard`). Fetches weights + profile and renders both
- * ranges with an intake bar comparing today's intake against the goal.
+ * ranges with an intake bar comparing the day's intake against the goal. A past
+ * [day] keeps the targets it had (its profile and weight); the expenditure
+ * notices are about the current profile, so they show on today only.
  */
 @Composable
 fun NutritionRecommendationsCard(
+    day: String,
     dailyCalories: Double,
     dailyProtein: Double,
     onOpenProfile: () -> Unit = {},
     onOpenWeight: () -> Unit = {},
-    onOpenMethodology: () -> Unit = {},
+    onOpenMethodology: (section: String?) -> Unit = {},
     viewModel: RecommendationsViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -80,8 +84,13 @@ fun NutritionRecommendationsCard(
             HintCard(stringResource(R.string.rec_need_profile), stringResource(R.string.rec_go_to_profile), onOpenProfile)
         is RecommendationsUiState.Ready -> {
             val ready = state as RecommendationsUiState.Ready
-            val calorie = ready.calorie
-            val protein = ready.protein
+            val isToday = day == todayKey()
+            val dayTargets = if (isToday) null else ready.targets?.on(day)
+            val calorie = if (dayTargets != null) dayTargets.calorie else ready.calorie
+            val protein = if (dayTargets != null) dayTargets.protein else ready.protein
+            val differsFromToday = dayTargets != null &&
+                (calorie?.targetMin != ready.calorie?.targetMin || calorie?.targetMax != ready.calorie?.targetMax ||
+                    protein?.range != ready.protein?.range)
             if (calorie == null && protein == null) return
             AppCard(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -108,16 +117,18 @@ fun NutritionRecommendationsCard(
                                 },
                             ),
                         ) {
-                            ExpenditureNotices(
-                                check = ready.check,
-                                inputs = ready.inputs,
-                                dismissal = noticeDismissal,
-                                weighInHintDismissed = weighInHintDismissed,
-                                onDismissGap = viewModel::dismissNotice,
-                                onDismissHint = viewModel::dismissWeighInHint,
-                                onReviewActivity = onOpenProfile,
-                                onOpenMethodology = onOpenMethodology,
-                            )
+                            if (isToday) {
+                                ExpenditureNotices(
+                                    check = ready.check,
+                                    inputs = ready.inputs,
+                                    dismissal = noticeDismissal,
+                                    weighInHintDismissed = weighInHintDismissed,
+                                    onDismissGap = viewModel::dismissNotice,
+                                    onDismissHint = viewModel::dismissWeighInHint,
+                                    onReviewActivity = onOpenProfile,
+                                    onOpenMethodology = { onOpenMethodology(CHECK_SECTION) },
+                                )
+                            }
                         }
                     }
                     if (calorie != null && protein != null) {
@@ -136,6 +147,15 @@ fun NutritionRecommendationsCard(
                             rangeMax = protein.range.max,
                             barUnit = "g",
                             details = listOf(proteinPerKg(protein)),
+                        )
+                    }
+                    if (differsFromToday) {
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            stringResource(R.string.past_day_targets),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.clickable { onOpenMethodology(PAST_DAYS_SECTION) },
                         )
                     }
                 }

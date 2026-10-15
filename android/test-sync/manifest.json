@@ -75,6 +75,11 @@
       "source": "src/lib/core/ai-models.ts",
       "ts": "tests/unit/ai-models.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/AiModelsTest.kt"
+    },
+    {
+      "source": "src/lib/core/profile-history.ts",
+      "ts": "tests/unit/profile-history.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/ProfileHistoryTest.kt"
     }
   ]
 }

@@ -125,7 +125,7 @@ export default function PerfilPage() {
     if (hasErrors) return;
     saveTimer.current = setTimeout(async () => {
       try {
-        await api.updateSettings(newProfile);
+        await api.updateSettings(newProfile, session);
       } catch (error) {
         toast.error(error instanceof ApiError ? error.message : t.common.errorGeneric);
       }
@@ -325,6 +325,15 @@ export default function PerfilPage() {
                 <p className="text-xs text-destructive">{profileErrors.walkingMinutesPerDay}</p>
               )}
           </div>
+
+          {/* Edits never rewrite past days (core/profile-history.ts); the method explains why. */}
+          <Link
+            href="/metodologia#past-days"
+            className="block text-xs text-muted-foreground underline-offset-4 hover:underline"
+            data-testid="changes-from-today"
+          >
+            {t.perfil.changesFromToday}
+          </Link>
 
           {(calorieRec || proteinRec) && (
             <div className="rounded-lg border bg-muted/40 p-3 space-y-3">

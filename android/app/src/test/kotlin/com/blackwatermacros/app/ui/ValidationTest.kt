@@ -2,10 +2,12 @@ package com.blackwatermacros.app.ui
 
 import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.CalorieProfile
+import com.blackwatermacros.app.core.DayTargets
 import com.blackwatermacros.app.core.ExpenditureCheck
 import com.blackwatermacros.app.core.ExpenditureVerdict
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
+import com.blackwatermacros.app.core.ProfilePeriod
 import com.blackwatermacros.app.core.ProteinBasis
 import com.blackwatermacros.app.core.addDaysToKey
 import com.blackwatermacros.app.data.MealDTO
@@ -174,13 +176,30 @@ class ValidationTest {
         assertThat(check.verdict).isEqualTo(ExpenditureVerdict.LOWER)
         assertThat(check.confirmed).isTrue()
         assertThat(check.formulaTdee).isEqualTo(ready.calorie!!.tdee)
-        val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
-        assertThat(ready.inputs).isEqualTo(FormulaInputs(Gender.MALE, 80.0, 178.0, year - 1990, 3, 60, 30))
+        assertThat(ready.inputs).isEqualTo(FormulaInputs(Gender.MALE, 80.0, 178.0, 2026 - 1990, 3, 60, 30))
 
         // Without a calorie target (no sex yet) there is nothing to check.
         val noSex = recommend(weights, profile.copy(gender = null), meals, today) as RecommendationsUiState.Ready
         assertThat(noSex.check).isNull()
         assertThat(noSex.inputs).isNull()
+    }
+
+    @Test
+    fun `a past day keeps the targets it had, today uses the current profile`() {
+        val today = "2026-10-15"
+        val before = CalorieProfile(Gender.FEMALE, 1995, 165.0, 2, 60, 20, Goal.CUT)
+        val after = before.copy(gymDaysPerWeek = 4, walkingMinutesPerDay = 60)
+        val weights = listOf(
+            WeightDTO("w1", "2026-10-10T12:00:00Z", 61.0, null, null, ""),
+            WeightDTO("w2", "2026-10-15T12:00:00Z", 60.5, null, null, ""),
+        )
+        val history = listOf(ProfilePeriod("2026-10-14", before))
+
+        val ready = recommend(weights, after, today = today, history = history) as RecommendationsUiState.Ready
+        // Same numbers as core ProfileHistoryTest: +111 kcal from the new activity.
+        assertThat(ready.calorie!!.targetMin).isEqualTo(1546.0)
+        assertThat(ready.targets!!.on("2026-10-12").calorie!!.targetMin).isEqualTo(1435.0)
+        assertThat(ready.targets!!.on(today)).isEqualTo(DayTargets(ready.calorie, ready.protein))
     }
 
     @Test

@@ -9,10 +9,13 @@ import com.blackwatermacros.app.core.DataPoint
 import com.blackwatermacros.app.core.ExpenditureCheck
 import com.blackwatermacros.app.core.ExpenditureEstimate
 import com.blackwatermacros.app.core.ExpenditureNoticeDismissal
-import com.blackwatermacros.app.core.ProteinPerson
+import com.blackwatermacros.app.core.AverageTargets
+import com.blackwatermacros.app.core.DatedWeight
+import com.blackwatermacros.app.core.DayTargets
+import com.blackwatermacros.app.core.ProfilePeriod
 import com.blackwatermacros.app.core.ProteinRecommendation
-import com.blackwatermacros.app.core.calculateCalorieRecommendation
-import com.blackwatermacros.app.core.calculateProteinRecommendation
+import com.blackwatermacros.app.core.averageTargets
+import com.blackwatermacros.app.core.targetsOn
 import com.blackwatermacros.app.core.checkExpenditure
 import com.blackwatermacros.app.core.estimateExpenditure
 import com.blackwatermacros.app.core.todayKey
@@ -26,7 +29,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
 import java.time.ZoneId
-import java.util.Calendar
 
 /** Immutable recommendation results for a single day's intake. */
 sealed interface RecommendationsUiState {
@@ -44,7 +46,21 @@ sealed interface RecommendationsUiState {
         val check: ExpenditureCheck? = null,
         /** What the formula was fed, to write its equations with the user's numbers. */
         val inputs: FormulaInputs? = null,
+        /** Any day's targets, with the profile and weight it had (a past day keeps its own). */
+        val targets: TargetHistory? = null,
     ) : RecommendationsUiState
+}
+
+/** What a day's targets come from: each day keeps the profile and the weight it had (`core/ProfileHistory.kt`). */
+data class TargetHistory(
+    val profile: CalorieProfile,
+    val history: List<ProfilePeriod>,
+    val weights: List<DatedWeight>,
+) {
+    fun on(day: String): DayTargets = targetsOn(profile, history, weights, day)
+
+    /** The mean of [days]' own targets (Progreso compares the period's average with it). */
+    fun average(days: List<String>): AverageTargets = averageTargets(profile, history, weights, days)
 }
 
 /**
@@ -57,8 +73,13 @@ class RecommendationsViewModel(
 ) : ViewModel() {
 
     val state: StateFlow<RecommendationsUiState> =
-        combine(repository.weights(), repository.profile(), repository.allMeals()) { weights, profile, meals ->
-            recommend(weights, profile, meals)
+        combine(
+            repository.weights(),
+            repository.profile(),
+            repository.allMeals(),
+            repository.profileHistory(),
+        ) { weights, profile, meals, history ->
+            recommend(weights, profile, meals, history = history)
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecommendationsUiState.Loading)
 
@@ -76,26 +97,31 @@ internal fun recommend(
     profile: CalorieProfile,
     meals: List<MealDTO> = emptyList(),
     today: String = todayKey(),
+    history: List<ProfilePeriod> = emptyList(),
 ): RecommendationsUiState {
     val latestWeight = weights.lastOrNull() ?: return RecommendationsUiState.NoWeight
-    // Body fat is not logged at every weigh-in: use the most recent one there is.
-    val bodyFatPct = weights.lastOrNull { it.bodyFatPct != null }?.bodyFatPct
-    val year = Calendar.getInstance().get(Calendar.YEAR)
-    val calorie = if (profile.gender != null && profile.calorieGoal != null) {
-        calculateCalorieRecommendation(profile, latestWeight.weightKg, year)
-    } else {
-        null
-    }
-    val protein = profile.calorieGoal?.let {
-        calculateProteinRecommendation(latestWeight.weightKg, it, bodyFatPct, ProteinPerson(profile.heightCm, profile.gender, profile.birthYear?.let { year - it }))
-    }
+    val targets = TargetHistory(profile, history, datedWeights(weights))
+    // Today: the current profile and the latest weigh-in.
+    val (calorie, protein) = targets.on(today)
     if (calorie == null && protein == null) return RecommendationsUiState.NeedsProfile
+    val year = today.substring(0, 4).toInt()
     val intake = meals.map { DataPoint(it.logDate, it.resolvedCalories) }
     val weighIns = weights.mapNotNull { w -> localDateKey(w.measuredAt)?.let { DataPoint(it, w.weightKg) } }
     val expenditure = estimateExpenditure(intake, weighIns, today)
     val check = calorie?.let { checkExpenditure(intake, weighIns, it, today) }
-    return RecommendationsUiState.Ready(calorie, protein, expenditure, check, formulaInputs(profile, latestWeight.weightKg, year))
+    return RecommendationsUiState.Ready(
+        calorie,
+        protein,
+        expenditure,
+        check,
+        formulaInputs(profile, latestWeight.weightKg, year),
+        targets,
+    )
 }
+
+/** Weigh-ins on their local calendar day, in measuring order. */
+internal fun datedWeights(weights: List<WeightDTO>): List<DatedWeight> =
+    weights.mapNotNull { w -> localDateKey(w.measuredAt)?.let { DatedWeight(it, w.weightKg, w.bodyFatPct) } }
 
 /** The local calendar day of an ISO instant ("2026-03-01T07:30:00Z" → "2026-03-01"). */
 internal fun localDateKey(instant: String): String? =

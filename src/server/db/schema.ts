@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { ProfilePeriod } from "@/lib/core/types";
 import {
   boolean,
   date,
@@ -29,6 +30,8 @@ export const users = pgTable("users", {
   gymSessionMinutes: integer("gym_session_minutes"),
   walkingMinutesPerDay: integer("walking_minutes_per_day"),
   calorieGoal: calorieGoalEnum("calorie_goal"),
+  /** Former profiles with the last day each applied to; past days keep their targets. */
+  profileHistory: jsonb("profile_history").$type<ProfilePeriod[]>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

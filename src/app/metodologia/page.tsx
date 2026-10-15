@@ -1,6 +1,6 @@
 "use client";
 
-import { ActivityIcon, ArrowLeftRightIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, ScaleIcon, SigmaIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftRightIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -61,6 +61,12 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.tdeeActivity}</p>
         <p>{t.metodologia.tdeeWhyNotScale}</p>
         <p>{t.metodologia.tdeeGoals}</p>
+      </MethodologyCard>
+
+      <MethodologyCard id="past-days" icon={<HistoryIcon />} title={t.metodologia.pastDaysTitle}>
+        <p>{t.metodologia.pastDaysBody}</p>
+        <p>{t.metodologia.pastDaysScale}</p>
+        <p>{t.metodologia.pastDaysFix}</p>
       </MethodologyCard>
 
       <MethodologyCard icon={<ActivityIcon />} title={t.metodologia.measuredTitle}>

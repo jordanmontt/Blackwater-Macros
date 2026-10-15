@@ -1,11 +1,13 @@
 import { eq } from "drizzle-orm";
 import type { AppDb } from "../db/client";
 import { users } from "../db/schema";
-import type { CalorieProfile, Gender, Goal } from "@/lib/core/types";
+import type { CalorieProfile, Gender, Goal, ProfilePeriod } from "@/lib/core/types";
 
 export interface SettingsRepository {
   getCalorieProfile(userId: string): Promise<CalorieProfile>;
-  updateCalorieProfile(userId: string, profile: CalorieProfile): Promise<void>;
+  getProfileHistory(userId: string): Promise<ProfilePeriod[]>;
+  /** `history` undefined leaves the stored history as it is. */
+  updateCalorieProfile(userId: string, profile: CalorieProfile, history?: ProfilePeriod[]): Promise<void>;
 }
 
 export function createSettingsRepository(db: AppDb): SettingsRepository {
@@ -35,7 +37,15 @@ export function createSettingsRepository(db: AppDb): SettingsRepository {
         calorieGoal: (row?.calorieGoal as Goal | undefined) ?? null,
       };
     },
-    async updateCalorieProfile(userId, profile) {
+    async getProfileHistory(userId) {
+      const rows = await db
+        .select({ profileHistory: users.profileHistory })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      return rows[0]?.profileHistory ?? [];
+    },
+    async updateCalorieProfile(userId, profile, history) {
       await db
         .update(users)
         .set({
@@ -46,6 +56,7 @@ export function createSettingsRepository(db: AppDb): SettingsRepository {
           gymSessionMinutes: profile.gymSessionMinutes,
           walkingMinutesPerDay: profile.walkingMinutesPerDay,
           calorieGoal: profile.calorieGoal,
+          ...(history === undefined ? {} : { profileHistory: history }),
         })
         .where(eq(users.id, userId));
     },

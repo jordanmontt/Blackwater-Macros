@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { hashPassword } from "@/server/auth/password";
 import { InvalidCredentialsError, login, logout, resolveSession, resolveSessionDetails } from "@/server/services/auth-service";
+import type { ProfilePeriod } from "@/lib/core/types";
 
 /**
  * Requisitos de acceso:
@@ -25,6 +26,7 @@ function makeMemoryDeps() {
       gymSessionMinutes: number | null;
       walkingMinutesPerDay: number | null;
       calorieGoal: "cut" | "maintain" | "surplus" | null;
+      profileHistory: ProfilePeriod[];
       createdAt: Date;
     }
   >();
@@ -57,6 +59,7 @@ function makeMemoryDeps() {
           gymSessionMinutes: null,
           walkingMinutesPerDay: null,
           calorieGoal: null,
+          profileHistory: [],
           createdAt: new Date(),
         };
         users.set(user.id, user);

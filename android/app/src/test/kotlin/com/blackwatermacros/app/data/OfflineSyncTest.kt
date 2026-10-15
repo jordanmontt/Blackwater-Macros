@@ -4,8 +4,11 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.blackwatermacros.app.core.CalorieProfile
+import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
+import com.blackwatermacros.app.core.ProfilePeriod
 import com.blackwatermacros.app.data.local.LocalDatabase
+import com.blackwatermacros.app.data.local.toWire
 import com.blackwatermacros.app.data.sync.SyncEngine
 import com.blackwatermacros.app.data.sync.SyncOutcome
 import com.blackwatermacros.app.data.sync.SyncProblem
@@ -16,6 +19,8 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Before
@@ -293,6 +298,43 @@ class OfflineSyncTest {
         sync.sync()
         assertThat(backend.profile.calorieGoal).isEqualTo(WireGoal.MAINTAIN)
         assertThat(backend.settingsBodies.last()["gender"]).isEqualTo(JsonNull)
+    }
+
+    @Test
+    fun `changing the profile keeps the old one for past days, and the history syncs both ways`() = runBlocking<Unit> {
+        val before = CalorieProfile(Gender.FEMALE, 1995, 165.0, 2, 60, 20, Goal.CUT)
+        val after = before.copy(gymDaysPerWeek = 4, walkingMinutesPerDay = 60)
+        connect()
+        repository.saveProfile(before, today = "2026-10-01")
+        repository.saveProfile(after, today = "2026-10-15")
+        // A second edit the same day keeps the first saved period.
+        repository.saveProfile(after.copy(walkingMinutesPerDay = 45), today = "2026-10-15")
+        assertThat(repository.profileHistory().first()).containsExactly(ProfilePeriod("2026-10-14", before))
+
+        sync.sync()
+        assertThat(backend.profileHistory).containsExactly(ProfilePeriod("2026-10-14", before).toWire())
+        val sentPeriod = backend.settingsBodies.last()["profileHistory"]!!.jsonArray.single().jsonObject
+        assertThat(sentPeriod.keys).containsAtLeast("until", "gender", "calorieGoal")
+
+        // A change made on the web comes down with its history.
+        backend.profileHistory = listOf(
+            ProfilePeriod("2026-10-14", before).toWire(),
+            ProfilePeriod("2026-10-20", after).toWire(),
+        )
+        sync.sync()
+        assertThat(repository.profileHistory().first()).hasSize(2)
+    }
+
+    @Test
+    fun `a server without the history leaves the phone's history alone`() = runBlocking<Unit> {
+        val before = CalorieProfile(Gender.MALE, 1990, 180.0, 3, 60, 30, Goal.MAINTAIN)
+        backend.profileHistory = null
+        connect()
+        repository.saveProfile(before, today = "2026-10-01")
+        repository.saveProfile(before.copy(gymDaysPerWeek = 5), today = "2026-10-15")
+        sync.sync()
+        sync.sync()
+        assertThat(repository.profileHistory().first()).containsExactly(ProfilePeriod("2026-10-14", before))
     }
 
     @Test

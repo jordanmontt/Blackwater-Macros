@@ -99,6 +99,8 @@ export interface StatsSummary {
 
 export interface UserSettings {
   calorieProfile: CalorieProfile;
+  /** Former profiles, so past days keep their targets (`core/profile-history.ts`). */
+  profileHistory: ProfilePeriod[];
 }
 
 export interface AdminUserDTO {
@@ -119,6 +121,15 @@ export interface CalorieProfile {
   gymSessionMinutes: number | null;
   walkingMinutesPerDay: number | null;
   calorieGoal: Goal | null;
+}
+
+/**
+ * A former profile and the last day it applied to (inclusive). The current
+ * profile applies to every day after the last period; an empty history means
+ * the current profile applies to every day.
+ */
+export interface ProfilePeriod extends CalorieProfile {
+  until: string;
 }
 
 export interface CalorieRecommendation {

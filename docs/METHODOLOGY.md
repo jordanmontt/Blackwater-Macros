@@ -41,6 +41,7 @@ need individual guidance.
 | Basal metabolic rate (BMR) | Mifflin-St Jeor | Mifflin 1990; Frankenfield 2005 |
 | Activity factor (PAL) | Factorial method from gym and walking minutes | FAO/WHO/UNU 2004; Compendium 2024 |
 | Calorie target | TDEE − 400 / ± 100 / + 300 kcal, never below BMR | Hall 2008; Helms 2014 (JISSN); Iraki 2019 |
+| Past days | Each day keeps the profile and weigh-in it had; changes count from today | FAO/WHO/UNU 2004 (PAL as habitual average) |
 | Protein | g/kg by goal; lean mass when cutting with body fat; weight at BMI 25 above BMI 25 | Jäger 2017; Morton 2018; Helms 2014 (IJSNEM); McClave 2016; Kokura 2024; Gallagher 2000 |
 | Measured expenditure | Energy balance over 28 days, least-squares weight slope, 95 % margin | Hall 2008; Montgomery 2021 |
 | Profile check | Measured 95 % range entirely outside profile ± 10 %, on two weekly windows | Frankenfield 2005; Schoeller 1995; Lichtman 1992 |
@@ -166,6 +167,37 @@ adapts and a fixed deficit slows down. Here it is used only for two things:
 a small, sedentary person reaches it (e.g. TDEE 1540 − 500 = 1040 against a BMR of
 1100). This is a safety convention, not a published threshold: eating below your BMR is
 a very-low-calorie diet and is better done with supervision.
+
+### 1.4 Past days keep their targets (`profile-history.ts`)
+
+**Rule.** A day's targets use the profile in effect that day and the last weigh-in on or
+before it (before the first weigh-in, the first one). Editing the activity, the goal or any
+other profile field counts from today: the app keeps the old profile for the days up to
+yesterday. Several edits on the same day are one change.
+
+**Why.** The energy you burned on a day depends on what you did that day. Judging last
+week's intake with this week's activity (or goal, or weight) moves the goalposts. The
+same holds for weight: BMR goes up and down with it, so each day uses the weigh-in known
+then. MyFitnessPal works this way; Cronometer rewrites past days, and its users have asked
+for years to change that.
+
+**Proportion.** The profile's PAL describes a habitual week (FAO/WHO/UNU 2004 define PAL as
+a 24-hour average over a typical period), not one week. With a BMR of about 1500 kcal:
+- one 60-minute gym day less per week is ≈ −25 kcal/day (60/7 min × (4.0 − 1.4) / 1440 × 1500);
+- 30 minutes less walking per day is ≈ −65 kcal/day (30 × (3.5 − 1.4) / 1440 × 1500).
+
+Both are below the formula's own uncertainty (±10 %, about ±200 kcal; Frankenfield 2005).
+So this rule is about consistency, not precision, and one atypical week is not a reason
+to edit the profile.
+
+**Corrections.** The app cannot tell a change of routine from a correction (activity that
+was always higher than entered). Past days keep the targets computed with the old numbers,
+as MyFitnessPal does; asking on every edit was rejected as one more decision most people
+cannot answer. The measured expenditure (§3) uses only intake and weight, so it is the
+reference for what was really burned, whatever the profile said.
+
+**Not affected.** The measured expenditure does not use the profile, and the profile check
+(§3.1) compares it with the current profile, which is the one it judges.
 
 ---
 

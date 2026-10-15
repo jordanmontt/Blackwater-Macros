@@ -5,6 +5,7 @@ import androidx.room.withTransaction
 import com.blackwatermacros.app.data.AccountStore
 import com.blackwatermacros.app.data.ApiService
 import com.blackwatermacros.app.data.local.LocalDatabase
+import com.blackwatermacros.app.data.local.history
 import com.blackwatermacros.app.data.local.nowIso
 import com.blackwatermacros.app.data.local.toCore
 import com.blackwatermacros.app.data.local.toEntity
@@ -149,7 +150,7 @@ class SyncEngine(
         val sent = profile.get()
         if (sent != null && sent.pending) {
             upload("profile") {
-                api.updateSettings(profileBody(sent.toCore().toWire()))
+                api.updateSettings(profileBody(sent.toCore().toWire(), sent.history().map { it.toWire() }))
                 // Only clear the flag if it was not edited while the request was in flight.
                 if (profile.get() == sent) profile.markSynced()
             }
@@ -197,7 +198,9 @@ class SyncEngine(
             }
             val localProfile = db.profile().get()
             if (localProfile?.pending != true) {
-                db.profile().upsert(serverSession.calorieProfile.toCore().toEntity(pending = false))
+                // An older server sends no history: keep the phone's.
+                val history = serverSession.profileHistory?.map { it.toCore() } ?: localProfile.history()
+                db.profile().upsert(serverSession.calorieProfile.toCore().toEntity(pending = false, history = history))
             }
         }
         account.update { it.copy(username = serverSession.username, isAdmin = serverSession.isAdmin) }

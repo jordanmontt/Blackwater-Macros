@@ -5,6 +5,7 @@ import com.blackwatermacros.app.core.EntryMode
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
 import com.blackwatermacros.app.core.IngredientInput
+import com.blackwatermacros.app.core.ProfilePeriod
 import com.blackwatermacros.app.core.resolveMealTotals
 import com.blackwatermacros.app.data.ApiJson
 import com.blackwatermacros.app.data.MealDTO
@@ -18,6 +19,7 @@ import com.blackwatermacros.app.data.WireEntryMode
 import com.blackwatermacros.app.data.WireGender
 import com.blackwatermacros.app.data.WireGoal
 import com.blackwatermacros.app.data.WireIngredient
+import com.blackwatermacros.app.data.WireProfilePeriod
 import kotlinx.serialization.builtins.ListSerializer
 import java.time.Instant
 import java.time.LocalDateTime
@@ -294,7 +296,7 @@ fun ProfileEntity?.toCore(): CalorieProfile = if (this == null) EmptyProfile els
     calorieGoal = calorieGoal?.let { Goal.valueOf(it) },
 )
 
-fun CalorieProfile.toEntity(pending: Boolean): ProfileEntity = ProfileEntity(
+fun CalorieProfile.toEntity(pending: Boolean, history: List<ProfilePeriod>): ProfileEntity = ProfileEntity(
     gender = gender?.name,
     birthYear = birthYear,
     heightCm = heightCm,
@@ -303,7 +305,16 @@ fun CalorieProfile.toEntity(pending: Boolean): ProfileEntity = ProfileEntity(
     walkingMinutesPerDay = walkingMinutesPerDay,
     calorieGoal = calorieGoal?.name,
     pending = pending,
+    history = ApiJson.encodeToString(ListSerializer(WireProfilePeriod.serializer()), history.map { it.toWire() }),
 )
+
+/** The stored former profiles; an unreadable value counts as none (the current profile for every day). */
+fun ProfileEntity?.history(): List<ProfilePeriod> {
+    val json = this?.history ?: return emptyList()
+    return runCatching { ApiJson.decodeFromString(ListSerializer(WireProfilePeriod.serializer()), json) }
+        .getOrDefault(emptyList())
+        .map { it.toCore() }
+}
 
 fun WireCalorieProfile.toCore(): CalorieProfile = CalorieProfile(
     gender = when (gender) {
@@ -341,4 +352,30 @@ fun CalorieProfile.toWire(): WireCalorieProfile = WireCalorieProfile(
         Goal.SURPLUS -> WireGoal.SURPLUS
         null -> null
     },
+)
+
+fun ProfilePeriod.toWire(): WireProfilePeriod = profile.toWire().let {
+    WireProfilePeriod(
+        until = until,
+        gender = it.gender,
+        birthYear = it.birthYear,
+        heightCm = it.heightCm,
+        gymDaysPerWeek = it.gymDaysPerWeek,
+        gymSessionMinutes = it.gymSessionMinutes,
+        walkingMinutesPerDay = it.walkingMinutesPerDay,
+        calorieGoal = it.calorieGoal,
+    )
+}
+
+fun WireProfilePeriod.toCore(): ProfilePeriod = ProfilePeriod(
+    until = until,
+    profile = WireCalorieProfile(
+        gender = gender,
+        birthYear = birthYear,
+        heightCm = heightCm,
+        gymDaysPerWeek = gymDaysPerWeek,
+        gymSessionMinutes = gymSessionMinutes,
+        walkingMinutesPerDay = walkingMinutesPerDay,
+        calorieGoal = calorieGoal,
+    ).toCore(),
 )

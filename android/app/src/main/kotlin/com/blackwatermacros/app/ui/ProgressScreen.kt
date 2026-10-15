@@ -315,7 +315,7 @@ private fun CaloriesCard(progress: Progress) {
                 trendColor = ChartBlue,
                 unit = "kcal",
                 peak = null,
-                band = progress.calorie?.let { it.targetMin to it.targetMax },
+                bands = progress.calorieBands,
                 bandColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -332,18 +332,18 @@ private fun MacrosCard(progress: Progress, averages: MacroAverages) {
                 trailing = stringResource(R.string.progress_logged_days, averages.loggedDays, averages.totalDays),
             )
             Spacer(Modifier.height(8.dp))
-            val calorie = progress.calorie
-            val protein = progress.protein
+            val calorie = progress.targets.calorie
+            val protein = progress.targets.protein
             MacroRow(
                 stringResource(R.string.total_calories),
                 "${formatNumber(averages.calories)} kcal",
-                calorie?.let { stringResource(R.string.progress_target, formatNumber(it.targetMin), formatNumber(it.targetMax)) },
+                calorie?.let { stringResource(R.string.progress_target, formatNumber(it.min), formatNumber(it.max)) },
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             MacroRow(
                 stringResource(R.string.macro_protein),
                 "${formatNumber(averages.protein)} g",
-                protein?.let { stringResource(R.string.progress_target, formatNumber(it.range.min), formatNumber(it.range.max)) },
+                protein?.let { stringResource(R.string.progress_target, formatNumber(it.min), formatNumber(it.max)) },
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             MacroRow(stringResource(R.string.macro_carbs), "${formatNumber(averages.carbs)} g", null)

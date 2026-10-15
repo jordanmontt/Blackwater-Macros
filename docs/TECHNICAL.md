@@ -116,6 +116,7 @@ users        id, username (unique), password_hash, is_admin (default false),
              birth_year, height_cm, gym_days_per_week,
              gym_session_minutes, walking_minutes_per_day,
              calorie_goal ENUM calorie_goal (cut|maintain|surplus),
+             profile_history JSONB (ProfilePeriod[], default []),
              created_at
 sessions     token (PK), user_id → users(cascade), expires_at, created_at
              index: sessions_user_id_idx
@@ -220,7 +221,7 @@ Two reasons:
 | `meals-service` | create/update/delete/list meals; computes `resolved_*` on every write |
 | `templates-service` | CRUD over meal_templates |
 | `weights-service` | CRUD over weights (timestamps kept exact, UTC); DTOs include `bodyFatPct` |
-| `settings-service` | calorie profile CRUD (read via session endpoint, updated via `PUT /api/settings`) |
+| `settings-service` | calorie profile CRUD and its history (read via session endpoint, updated via `PUT /api/settings`; no history sent = kept) |
 | `stats-service` | builds the whole `StatsSummary` DTO including body fat series (see §7) |
 | `export-service` | CSV builders using `lib/core/csv.ts` (RFC-escaped, UTF-8 BOM for Excel) |
 
@@ -401,9 +402,11 @@ Success `200`:
     "gymSessionMinutes": 60 | null,
     "walkingMinutesPerDay": 30 | null,
     "calorieGoal": "cut" | "maintain" | "surplus" | null
-  }
+  },
+  "profileHistory": [ { "until": "2026-10-14", "gender": "male", "...": "every profile field" } ]
 }
 ```
+`profileHistory` holds the former profiles, each with the last day it applied to (§8.1.1).
 - `401` not authenticated: `{ "error": "No autenticado" }`
 
 ### 5.3 Error convention
@@ -710,7 +713,12 @@ Constraints:
 - `gymSessionMinutes` 0–300
 - `walkingMinutesPerDay` 0–480
 
-Success `200` returns the updated settings object.
+Optional `profileHistory`: the former profiles (§8.1.1), each with every profile key (same
+limits, explicit nulls) plus `until` (a valid `YYYY-MM-DD`), at most 1000. The client computes
+it (`withProfileChange`) and sends the whole list. **Absent = unchanged**: the Android 1.0.0
+app, which doesn't know the field, never wipes it.
+
+Success `200` returns the updated settings object: `{ calorieProfile, profileHistory }`.
 
 ---
 
@@ -974,6 +982,38 @@ math**. Why each formula was chosen, its sources, limits and the rejected altern
   cut for small, sedentary people).
 - METs are used as multiples of BMR (an approximation: 1 MET is usually a bit above the real
   RMR, Byrne et al. 2005, so exercise energy comes out low — conservative).
+
+### 8.1.1 Past days keep their targets (`profile-history.ts`)
+
+Like MyFitnessPal: editing the profile counts from today and never rewrites past days. Why and
+the magnitudes: [METHODOLOGY.md](./METHODOLOGY.md) §1.4.
+
+- **Data:** `profileHistory: ProfilePeriod[]` next to the profile (`users.profile_history`,
+  Android `ProfileEntity.history` as JSON). A period is a former profile plus `until`, the last
+  day it applied to; after the last period the current profile applies. Empty (every existing
+  user) = the current profile for every day, as before.
+- **Saving** (`withProfileChange(previous, history, next, today)`): appends
+  `{...previous, until: yesterday}` unless nothing changed, `previous` gave no calorie target
+  (an unfinished profile; the new one covers the earlier days too) or a period already ends
+  yesterday or later (a second edit the same day). Web: `api.updateSettings(profile, session)`
+  (without a known history it sends none); Android: `AppRepository.saveProfile`, in one
+  transaction.
+- **Reading** (`targetsOn(profile, history, weights, day)`): `profileOn` (the earliest period
+  with `until ≥ day`, else the current profile), `weightOn` (last weigh-in ≤ day, else the
+  first), `bodyFatOn` (same, among weigh-ins with body fat), age from the day's year. Today
+  gives the usual numbers. `averageTargets` is the mean of several days' ranges.
+- **Where:** the Today card on a past day (web `NutritionRecommendationsCard day`, Android
+  `RecommendationsUiState.Ready.targets`), with «Objetivos de ese día…» when they differ from
+  today's; the expenditure notices only on today. Progreso: the calorie band steps with each
+  logged day's range (web Recharts `Area type="step"`, Android `TrendChart(bands)`; one range
+  for all = the flat labelled band), and «objetivo» next to the averages is `averageTargets`
+  of the logged days. Perfil: «Los cambios cuentan desde hoy…», linked to
+  `/metodologia#past-days` (Android `metodologia?section=past-days`).
+- **Unchanged:** the profile check and the coach read the current profile.
+- **Sync:** the history travels with the profile (same last-write-wins): `SyncEngine` sends it
+  in `PUT /api/settings`; the download replaces it when the local profile isn't pending, and a
+  server without the field (`profileHistory` null) leaves the phone's alone.
+- **CSV:** not exported (the CSV holds meals and weigh-ins only).
 
 ### 8.2 Protein (`protein.ts`)
 
@@ -1378,6 +1418,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `nutrition.test.ts` | `sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2` | `NutritionTest.kt` |
 | `protein.test.ts` | `calculateProteinRecommendation`, reference weight at BMI 25 | `ProteinTest.kt` |
 | `calories.test.ts` | `calculateBMR`, activity (PAL), `calculateCalorieRecommendation` (BMR floor) | `CaloriesTest.kt` |
+| `profile-history.test.ts` | `withProfileChange`, `profileOn`, `weightOn`, `bodyFatOn`, `targetsOn`, `averageTargets` | `ProfileHistoryTest.kt` |
 | `expenditure.test.ts` | `estimateExpenditure`, `measureExpenditure`, `fitWeightTrend`, `dailyMeans`, `checkExpenditure` (verdicts, confirmation, what is missing), `showsGapNotice`, `onlyWeighInsMissing`, `approximateGap` | `ExpenditureTest.kt` |
 | `foods.test.ts` | portions, Open Food Facts parsing, shop labels and why a barcode missed, `searchGenericFoods` | `FoodsTest.kt` |
 | `ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), answer and stream parsing, how a stream ended (`parseAiStreamEnd`), `aiErrorKind` | `AiProvidersTest.kt` |
@@ -1413,11 +1454,11 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 
 | Test | What it proves |
 | ---- | -------------- |
-| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data; the header cloud stays green when only the download fails, grey (not red) when the server saved a change but the answer was lost or answered «try again later», and red while the server refuses a change |
+| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; the profile history (past days keep their targets) syncs both ways, and a server without it leaves the phone's alone; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data; the header cloud stays green when only the download fails, grey (not red) when the server saved a change but the answer was lost or answered «try again later», and red while the server refuses a change |
 | `data/MultiAccountTest.kt` | Several accounts on one phone (Android only), with real Room + Retrofit and a two-user `FakeServer`: a single-account install keeps its files; no «Añadir cuenta» without an account; a new account starts empty and downloads only its own data; switching shows each account's meals; no duplicates; wrong password/offline adds nothing; accounts and the active one survive a restart; expired sessions show in the switcher; background sync uploads every account's changes to the right account; logging out of one removes only its data, of the last one goes back to local mode |
 | `ui/AddAccountLoginTest.kt` | The login screen in «Añadir cuenta» mode: connects without the local-data question; wrong password / no network / empty fields read like a normal login |
 | `data/ReleaseRulesTest.kt` | Every `ApiService` response type is a `@Serializable` class of `data`, and `proguard-rules.pro` keeps them all (R8 removed an unread response and broke the profile sync in release builds, §14.7) |
-| `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls, admin; status codes and error envelopes |
+| `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls (also each period of `profileHistory`; no history = key left out), admin; status codes and error envelopes |
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.json`) |
 | `data/CsvBackupTest.kt` | CSV round trip; reads a web export; skips rows the server would reject; unknown files |
 | `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, why a code missed, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
@@ -1429,9 +1470,10 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; they open on the welcome page, also from «Ver tutorial» with an account (which neither syncs nor skips ahead); ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
-| `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period |
+| `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period, each logged day's own target in the band and the average |
+| `data/local/MigrationTest.kt` | Updating the app keeps the phone's data: a version 1 database built from `app/schemas/…/1.json` opens with today's code through `MIGRATIONS` (the profile gets an empty history) |
 | `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
-| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, measured expenditure, the profile check and the formula inputs behind its «¿Por qué?», sync indicator states (red only for an expired session or a refused change), numbers edited with a decimal comma, when «Añadir comida» asks before closing |
+| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, a past day's targets (its profile and weight), measured expenditure, the profile check and the formula inputs behind its «¿Por qué?», sync indicator states (red only for an expired session or a refused change), numbers edited with a decimal comma, when «Añadir comida» asks before closing |
 | `ui/TranslationsTest.kt` | Every language has every Android-only string and plural with the same placeholders (shared texts: `i18n.test.ts` + the build) |
 | `data/NiceTicksTest.kt` | Chart axis ticks |
 
@@ -1501,7 +1543,7 @@ Gotchas:
 | Want to… | Touch |
 |---|---|
 | New stats metric | pure helper in `lib/core/stats.ts` (+ unit test) → wire into `lib/core/stats-builder.ts` (shared with server + demo) → **port to Kotlin `:core` with its mirror test** → card/chart in Progreso on web and Android → explain in `/metodologia` (texts in `i18n/<lang>.json`, shared with Android through `strings-from-web.json`) |
-| Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → Perfil/Ajustes page → read via session endpoint. Android: `ProfileEntity` + migration, `WireCalorieProfile`, `profileBody` (explicit nulls) and the Perfil screen |
+| Add user settings | add column to `users` table + enum if needed → `settings-repo.ts` + `settings-service.ts` → `PUT /api/settings` route → Perfil/Ajustes page → read via session endpoint. Android: `ProfileEntity` + migration (§14.2), `WireCalorieProfile`, `profileBody` (explicit nulls) and the Perfil screen. A field that changes the targets is kept per day too: add it to `ProfilePeriod` (`profile-history.ts`), `profilePeriodSchema` and `WireProfilePeriod` |
 | New field on meals/templates/weights (synced) | DB column + zod schema + DTO (web); Android: wire DTO, Room entity **+ `Migration`** (bump `LocalDatabase` version; never destructive: local-only users have no other copy), mappers, `FakeServer`; add a round-trip case to `OfflineSyncTest` |
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in the five `i18n/*.json`; proxy already protects it. Android: screen + route in `MainActivity`, texts as in «New UI text» |
 | New UI text | add it to the five `src/i18n/*.json` (a missing key fails the build; `i18n.test.ts` checks `{placeholders}`). Android: map it in `android/app/strings-from-web.json` (`"key": "path"`, or `["path", "n:d"]` with arguments) and use `stringResource`; Android-only texts and plurals go in the five `res/values*/strings.xml` (`TranslationsTest`) |
@@ -1627,6 +1669,12 @@ one account per browser.
 - **`:core`** — pure JVM Kotlin port of `src/lib/core/*.ts` with `*Test.kt` mirrors of
   `tests/unit/*.test.ts` (`npm run core:sync-check` enforces parity).
 - **`:app`** — everything Android.
+- **Room schema and migrations:** every version's schema is exported to `app/schemas/`
+  (committed) and every change gets a real `Migration` in `LocalDatabase.MIGRATIONS`, never
+  `fallbackToDestructiveMigration` (users without an account would lose everything).
+  `MigrationTest` builds each old version from its schema file, seeds it and opens it with
+  today's code. 1 → 2 added `profile.history` (§8.1.1). Changing an entity = bump the version,
+  build (writes the new schema), add the migration and a `MigrationTest` case.
 
 ```
 app/src/main/kotlin/com/blackwatermacros/app/
@@ -1635,7 +1683,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
                              #   NavHost: 4 tabs + login / perfil / metodologia / admin pages;
                              #   requests a sync on every onStart when logged in
   data/
-    local/LocalDatabase.kt   # Room entities (pending/deleted flags) + DAOs (version 1)
+    local/LocalDatabase.kt   # Room entities (pending/deleted flags) + DAOs + MIGRATIONS (version 2)
     local/Mappers.kt         # DTO ⇄ entity, totals via :core resolveMealTotals, nowIso() edit stamp
     AppRepository.kt         # the only data API the screens use (Flows + writes + undo + CSV import)
     AccountStore.kt          # persisted account (token, username, isAdmin, sessionExpired, lastSyncAt)
@@ -1657,7 +1705,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
                                             #   validation, in a GuardedBottomSheet (asks before losing edits)
     NutritionRecommendationsCard.kt, RecommendationsViewModel.kt  # calorie/protein card + intake bars
     ProgressScreen/ViewModel, WeightFormDialog  # Progreso: local stats + weigh-ins (validation = server limits)
-    chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a target band)
+    chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a per-point target band)
     SettingsScreen/ViewModel, SettingsComponents.kt  # Ajustes (account, templates, data, theme, language)
     ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
     LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen
@@ -1775,9 +1823,6 @@ covers: §11.1–11.4. No Compose UI tests yet: screens are checked on a device.
 - **Release & F-Droid:** planned step by step in [FDROID-PLAN.md](./FDROID-PLAN.md)
   (repository, licence, catalog from the repository, metadata, signing). Builds shared so far
   are signed with the debug key. Bump `versionCode`/`versionName` for every release.
-- **Room migrations:** the local database is at version 1 with `exportSchema = false`.
-  Before the first schema change, turn on schema export and write a real `Migration`
-  (never `fallbackToDestructiveMigration`: users without an account would lose everything).
 - **Incremental sync:** every sync pulls the full lists — fine at personal scale; a
   `?since=` delta endpoint with server tombstones would be needed for large histories.
 - **Compose UI tests** for the main flows.

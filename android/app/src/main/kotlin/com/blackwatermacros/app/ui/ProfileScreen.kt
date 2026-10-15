@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -41,7 +42,7 @@ import com.blackwatermacros.app.core.Goal
  * recommendations derived from them. Same split as the web `/ajustes/perfil`.
  */
 @Composable
-fun ProfileScreen(onBack: () -> Unit, onOpenMethodology: () -> Unit = {}, viewModel: ProfileViewModel = viewModel()) {
+fun ProfileScreen(onBack: () -> Unit, onOpenMethodology: (section: String?) -> Unit = {}, viewModel: ProfileViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -67,8 +68,12 @@ fun ProfileScreen(onBack: () -> Unit, onOpenMethodology: () -> Unit = {}, viewMo
                 }
                 is ProfileUiState.Loaded -> {
                     GoalCard(goal = loaded.profile.calorieGoal, onGoalChange = viewModel::updateCalorieGoal)
-                    ProfileCard(profile = loaded.profile, onProfileChange = viewModel::updateProfile)
-                    RecommendationsCard(loaded, onOpenMethodology)
+                    ProfileCard(
+                        profile = loaded.profile,
+                        onProfileChange = viewModel::updateProfile,
+                        onOpenPastDays = { onOpenMethodology(PAST_DAYS_SECTION) },
+                    )
+                    RecommendationsCard(loaded) { onOpenMethodology(CHECK_SECTION) }
                     Spacer(Modifier.height(24.dp))
                 }
             }
@@ -96,7 +101,7 @@ private fun GoalCard(goal: Goal?, onGoalChange: (Goal) -> Unit) {
 }
 
 @Composable
-private fun ProfileCard(profile: CalorieProfile, onProfileChange: (CalorieProfile) -> Unit) {
+private fun ProfileCard(profile: CalorieProfile, onProfileChange: (CalorieProfile) -> Unit, onOpenPastDays: () -> Unit) {
     SettingsCard(stringResource(R.string.profile_body_title)) {
         CardDescription(stringResource(R.string.profile_description))
         Spacer(Modifier.height(12.dp))
@@ -151,6 +156,14 @@ private fun ProfileCard(profile: CalorieProfile, onProfileChange: (CalorieProfil
             )
             Spacer(Modifier.weight(1f))
         }
+        // Edits never rewrite past days (core ProfileHistory.kt); the method explains why.
+        Spacer(Modifier.height(8.dp))
+        Text(
+            stringResource(R.string.profile_changes_from_today),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.clickable(onClick = onOpenPastDays).padding(vertical = 4.dp),
+        )
     }
 }
 

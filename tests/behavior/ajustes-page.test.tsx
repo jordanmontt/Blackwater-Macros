@@ -54,7 +54,7 @@ vi.mock("@/lib/api", () => ({
     })),
     listTemplates: vi.fn(async () => [template()]),
     listWeights: vi.fn(async () => [{ id: "w-1", measuredAt: "2026-06-15T08:00:00.000Z", weightKg: 80, bodyFatPct: null, note: null, updatedAt: "2026-06-15T08:00:00.000Z" }]),
-    updateSettings: vi.fn(async (calorieProfile: CalorieProfile) => ({ calorieProfile })),
+    updateSettings: vi.fn(async (calorieProfile: CalorieProfile) => ({ calorieProfile, profileHistory: [] })),
     deleteTemplate: vi.fn(async () => ({ ok: true as const })),
     createTemplate: vi.fn(),
     updateTemplate: vi.fn(),

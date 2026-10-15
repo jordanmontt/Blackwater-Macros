@@ -50,8 +50,12 @@ fun TrendChart(
     unit: String,
     peak: DataPoint?,
     modifier: Modifier = Modifier,
-    /** Target range drawn as a shaded band behind the lines (e.g. the calorie target). */
-    band: Pair<Double, Double>? = null,
+    /**
+     * Target range of each point (aligned with [points]), drawn as a shaded band behind the
+     * lines (e.g. the calorie target). One range for all: a flat band; ranges that changed
+     * (profile or weight): a band that steps at each change.
+     */
+    bands: List<Pair<Double, Double>?>? = null,
     bandColor: Color = color.copy(alpha = 0.14f),
 ) {
     val axisColor = MaterialTheme.colorScheme.outlineVariant
@@ -72,7 +76,8 @@ fun TrendChart(
     val allValues = points.map { it.value }
     val trendVals = trendRows.map { it.second }
     val vMin = 0.0
-    val vMax = (allValues + trendVals + listOfNotNull(band?.second)).maxOrNull()?.let { it * 1.15 } ?: 1.0
+    val bandTops = bands.orEmpty().mapNotNull { it?.second }
+    val vMax = (allValues + trendVals + bandTops).maxOrNull()?.let { it * 1.15 } ?: 1.0
 
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
     // Plot edges from the last draw (they follow the font size), for mapping taps.
@@ -170,13 +175,25 @@ fun TrendChart(
                 )
             }
 
-            if (band != null) {
+            fun drawBand(band: Pair<Double, Double>, from: Float, to: Float) {
                 val top = y(band.second)
                 drawRect(
                     color = bandColor,
-                    topLeft = Offset(plotLeft, top),
-                    size = androidx.compose.ui.geometry.Size(plotWidth, y(band.first) - top),
+                    topLeft = Offset(from, top),
+                    size = androidx.compose.ui.geometry.Size(to - from, y(band.first) - top),
                 )
+            }
+            val known = bands.orEmpty().filterNotNull()
+            if (known.isNotEmpty() && known.all { it == known.first() }) {
+                drawBand(known.first(), plotLeft, plotRight)
+            } else {
+                // Each point's range, from halfway to the previous point to halfway to the next.
+                bands.orEmpty().forEachIndexed { i, band ->
+                    if (band == null || i >= points.size) return@forEachIndexed
+                    val from = if (i == 0) plotLeft else (x(i - 1) + x(i)) / 2f
+                    val to = if (i == points.size - 1) plotRight else (x(i) + x(i + 1)) / 2f
+                    drawBand(band, from, to)
+                }
             }
 
             // Trend line first (behind), then value line.

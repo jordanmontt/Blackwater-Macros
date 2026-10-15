@@ -2,8 +2,12 @@ package com.blackwatermacros.app.data
 
 import androidx.room.withTransaction
 import com.blackwatermacros.app.core.CalorieProfile
+import com.blackwatermacros.app.core.ProfilePeriod
+import com.blackwatermacros.app.core.todayKey
+import com.blackwatermacros.app.core.withProfileChange
 import com.blackwatermacros.app.data.local.LocalDatabase
 import com.blackwatermacros.app.data.local.MealEntity
+import com.blackwatermacros.app.data.local.history
 import com.blackwatermacros.app.data.local.nowIso
 import com.blackwatermacros.app.data.local.toCore
 import com.blackwatermacros.app.data.local.toDto
@@ -148,8 +152,16 @@ class AppRepository(
 
     fun profile(): Flow<CalorieProfile> = db.profile().observe().map { it.toCore() }
 
-    suspend fun saveProfile(profile: CalorieProfile) {
-        db.profile().upsert(profile.toEntity(pending = true))
+    /** Former profiles: past days keep the targets they had (`core/ProfileHistory.kt`). */
+    fun profileHistory(): Flow<List<ProfilePeriod>> = db.profile().observe().map { it.history() }
+
+    /** Saves the profile; the change applies from today on (days up to yesterday keep the old one). */
+    suspend fun saveProfile(profile: CalorieProfile, today: String = todayKey()) {
+        db.withTransaction {
+            val saved = db.profile().get()
+            val history = withProfileChange(saved.toCore(), saved.history(), profile, today)
+            db.profile().upsert(profile.toEntity(pending = true, history = history))
+        }
         changed()
     }
 

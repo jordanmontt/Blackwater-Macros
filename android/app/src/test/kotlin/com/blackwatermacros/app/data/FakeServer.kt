@@ -1,5 +1,6 @@
 package com.blackwatermacros.app.data
 
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import okhttp3.mockwebserver.Dispatcher
@@ -21,6 +22,9 @@ class FakeServer(
     val templates = linkedMapOf<String, TemplateDTO>()
     val weights = linkedMapOf<String, WeightDTO>()
     var profile: WireCalorieProfile = WireCalorieProfile()
+
+    /** Former profiles; null plays a server from before the history (it never sends nor stores one). */
+    var profileHistory: List<WireProfilePeriod>? = emptyList()
 
     /** Raw `PUT /api/settings` bodies, to check explicit nulls. */
     val settingsBodies = mutableListOf<JsonObject>()
@@ -83,13 +87,18 @@ class FakeServer(
         }
         return when {
             path == "/api/auth/session" ->
-                ok(SessionResponse.serializer(), SessionResponse(username, isAdmin = false, calorieProfile = profile))
+                ok(SessionResponse.serializer(), SessionResponse(username, isAdmin = false, calorieProfile = profile, profileHistory = profileHistory))
             path == "/api/auth/logout" -> json(200, """{"ok":true}""")
             path == "/api/settings" && method == "PUT" -> {
                 val raw = ApiJson.parseToJsonElement(request.body.readUtf8()).jsonObject
                 settingsBodies += raw
                 profile = ApiJson.decodeFromJsonElement(WireCalorieProfile.serializer(), raw)
-                ok(SettingsResponse.serializer(), SettingsResponse(profile))
+                // Like the web route: no history in the body keeps the stored one.
+                val sentHistory = raw["profileHistory"]
+                if (profileHistory != null && sentHistory != null) {
+                    profileHistory = ApiJson.decodeFromJsonElement(ListSerializer(WireProfilePeriod.serializer()), sentHistory)
+                }
+                ok(SettingsResponse.serializer(), SettingsResponse(profile, profileHistory))
             }
             segments[0] == "meals" -> handleMeals(method, segments.getOrNull(1), request)
             segments[0] == "templates" -> handleTemplates(method, segments.getOrNull(1), request)

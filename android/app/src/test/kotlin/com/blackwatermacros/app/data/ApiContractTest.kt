@@ -275,6 +275,31 @@ class ApiContractTest {
         assertThat(body).contains("\"calorieGoal\":\"maintain\"")
     }
 
+    @Test
+    fun updateSettings_sendsTheHistoryWithExplicitNullsAndReadsItBack() = runTest {
+        server.enqueue(
+            jsonResponse(
+                200,
+                """{"calorieProfile":{"calorieGoal":"cut"},"profileHistory":[{"until":"2026-10-14","gender":null,"birthYear":null,"heightCm":null,"gymDaysPerWeek":2,"gymSessionMinutes":60,"walkingMinutesPerDay":20,"calorieGoal":"cut"}]}""",
+            ),
+        )
+        val period = WireProfilePeriod(until = "2026-10-14", gymDaysPerWeek = 2, gymSessionMinutes = 60, walkingMinutesPerDay = 20, calorieGoal = WireGoal.CUT)
+        val settings = api.updateSettings(profileBody(WireCalorieProfile(calorieGoal = WireGoal.CUT), listOf(period)))
+        val body = server.takeRequest().body.readUtf8()
+        // Each period needs every key too (same `.nullable()` schema as the profile).
+        assertThat(body).contains("\"profileHistory\":[{\"until\":\"2026-10-14\",\"gender\":null")
+        assertThat(settings.profileHistory).containsExactly(period)
+    }
+
+    @Test
+    fun updateSettings_withoutHistoryLeavesTheKeyOut() = runTest {
+        // An absent key keeps the server's history; an older server's answer has none either.
+        server.enqueue(jsonResponse(200, """{"calorieProfile":{}}"""))
+        val settings = api.updateSettings(profileBody(WireCalorieProfile(calorieGoal = WireGoal.MAINTAIN)))
+        assertThat(server.takeRequest().body.readUtf8()).doesNotContain("profileHistory")
+        assertThat(settings.profileHistory).isNull()
+    }
+
     // --- Offline sync upserts ---
 
     @Test

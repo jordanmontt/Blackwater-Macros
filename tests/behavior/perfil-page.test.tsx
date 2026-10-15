@@ -39,7 +39,7 @@ vi.mock("@/lib/api", () => ({
     })),
     listWeights: vi.fn(async () => [{ id: "w-1", measuredAt: "2026-06-15T08:00:00.000Z", weightKg: 80, bodyFatPct: null, note: null, updatedAt: "2026-06-15T08:00:00.000Z" }]),
     listMeals: vi.fn(async () => []),
-    updateSettings: vi.fn(async (calorieProfile: CalorieProfile) => ({ calorieProfile })),
+    updateSettings: vi.fn(async (calorieProfile: CalorieProfile) => ({ calorieProfile, profileHistory: [] })),
   } satisfies Pick<typeof import("@/lib/api").api, "session" | "listWeights" | "listMeals" | "updateSettings">,
 }));
 
@@ -59,10 +59,19 @@ describe("pantalla Perfil", () => {
     expect(vi.mocked(api.updateSettings)).not.toHaveBeenCalled();
 
     await waitFor(() =>
+      // With the saved session, so the change applies from today on (past days keep their targets).
       expect(vi.mocked(api.updateSettings)).toHaveBeenCalledWith(
         expect.objectContaining({ calorieGoal: "surplus" }),
+        expect.objectContaining({ calorieProfile: expect.objectContaining({ calorieGoal: "maintain" }) }),
       ),
     );
+  });
+
+  it("dice que los cambios cuentan desde hoy y enlaza a la explicación", async () => {
+    render(<PerfilPage />);
+    const note = await screen.findByTestId("changes-from-today");
+    expect(note).toHaveTextContent(t.perfil.changesFromToday);
+    expect(note).toHaveAttribute("href", "/metodologia#past-days");
   });
 
   it("no guarda el perfil y muestra el error si un campo no valida", async () => {

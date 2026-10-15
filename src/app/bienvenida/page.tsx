@@ -201,7 +201,7 @@ function DataStep({ onDone }: { onDone: () => void }) {
     };
     setBusy(true);
     try {
-      await api.updateSettings(profile);
+      await api.updateSettings(profile, sessionRes.data);
       if (latest === null || latest.weightKg !== weight) {
         await api.createWeight({ measuredAt: new Date().toISOString(), weightKg: weight });
       }

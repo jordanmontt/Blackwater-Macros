@@ -130,7 +130,7 @@ describe("primeros pasos (web)", () => {
         gymSessionMinutes: 60,
         walkingMinutesPerDay: 30,
         calorieGoal: "cut",
-      }),
+      }, expect.objectContaining({ calorieProfile: expect.anything() })),
     );
     expect(vi.mocked(api.createWeight)).toHaveBeenCalledWith(expect.objectContaining({ weightKg: 62.5 }));
 

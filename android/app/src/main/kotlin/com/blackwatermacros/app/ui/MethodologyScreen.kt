@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Functions
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.MonitorWeight
@@ -42,24 +43,28 @@ import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.R
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 
 /** The section «Checking your profile against your data», opened from the expenditure check's «Why?». */
 const val CHECK_SECTION = "check"
 
-/** [section] = [CHECK_SECTION] opens the page on «Checking your profile against your data» (web `/metodologia#check`). */
+/** The section «Past days keep their targets», opened from Perfil and from a past day's card. */
+const val PAST_DAYS_SECTION = "past-days"
+
+/**
+ * [section] opens the page on that section: [CHECK_SECTION] or [PAST_DAYS_SECTION]
+ * (web `/metodologia#check`, `/metodologia#past-days`).
+ */
 @Composable
 fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
     val scroll = rememberScrollState()
-    var checkTop by remember { mutableStateOf<Int?>(null) }
-    LaunchedEffect(checkTop) {
-        val top = checkTop
-        if (section == CHECK_SECTION && top != null) scroll.animateScrollTo(top)
+    val sectionTops = remember { mutableStateMapOf<String, Int>() }
+    val sectionTop = section?.let { sectionTops[it] }
+    LaunchedEffect(sectionTop) {
+        if (sectionTop != null) scroll.animateScrollTo(sectionTop)
     }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -124,6 +129,18 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                 afterRes = R.string.meth_tdee_after,
             )
             MethodCard(
+                Icons.Filled.History,
+                R.string.meth_past_days_title,
+                R.string.meth_past_days_body,
+                afterTexts = listOf(
+                    stringResource(R.string.meth_past_days_scale),
+                    stringResource(R.string.meth_past_days_fix),
+                ),
+                modifier = Modifier.onGloballyPositioned {
+                    sectionTops[PAST_DAYS_SECTION] = it.positionInParent().y.toInt()
+                },
+            )
+            MethodCard(
                 Icons.Filled.MonitorHeart,
                 R.string.meth_measured_title,
                 R.string.meth_measured_body,
@@ -147,7 +164,9 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_check_causes),
                     stringResource(R.string.meth_check_shown),
                 ),
-                modifier = Modifier.onGloballyPositioned { checkTop = it.positionInParent().y.toInt() },
+                modifier = Modifier.onGloballyPositioned {
+                    sectionTops[CHECK_SECTION] = it.positionInParent().y.toInt()
+                },
             )
             MethodCard(Icons.Filled.AutoAwesome, R.string.meth_ai_title, R.string.meth_ai_body)
             MethodCard(Icons.Filled.Storage, R.string.meth_sources_title, R.string.meth_sources_body)
