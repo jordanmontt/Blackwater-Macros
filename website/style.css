@@ -191,6 +191,46 @@ h2 { font-size: 1.6rem; margin: 0 0 1rem; }
 
 .features dd { margin: 0.2rem 0 0; color: var(--muted); }
 
+/* The method is a sequence (basal rate → activity → target → check), so it is numbered. */
+.steps { list-style: none; counter-reset: step; margin: 0 0 1.5rem; padding: 0; }
+
+.steps li {
+  counter-increment: step;
+  position: relative;
+  padding: 0 0 1.25rem 2.75rem;
+}
+
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.05rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  display: grid;
+  place-items: center;
+  font: 600 0.95rem/1 Karla, system-ui, sans-serif;
+  color: var(--link);
+}
+
+.steps h3 { font-size: 1.05rem; margin: 0.2rem 0 0.25rem; }
+
+.steps p { margin: 0; color: var(--muted); }
+
+.steps .formula {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  border-left: 3px solid var(--link);
+  background: color-mix(in srgb, var(--link) 7%, transparent);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.steps .formula span { display: block; font-size: 0.9rem; color: var(--muted); }
+
 table { width: 100%; border-collapse: collapse; margin: 0 0 1.5rem; font-size: 0.98rem; }
 
 th, td { text-align: left; padding: 0.6rem 0.75rem 0.6rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
