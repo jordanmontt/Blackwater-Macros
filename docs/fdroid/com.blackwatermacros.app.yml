@@ -1,9 +1,9 @@
 AntiFeatures:
   NonFreeNet:
-    en-US: Optional AI features use the cloud provider the user chooses with 
-      their own key (Google Gemini, OpenAI, Anthropic, OpenRouter), and 
-      on-device models are downloaded from Hugging Face. Logging, targets and 
-      statistics work without them.
+    en-US: Optional AI features use the cloud provider the user chooses with their
+      own key (Google Gemini, OpenAI, Anthropic, OpenRouter), and on-device models
+      are downloaded from Hugging Face. Logging, targets and statistics work without
+      them.
 Categories:
   - Diet
   - Sports & Health
