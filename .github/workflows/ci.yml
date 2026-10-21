@@ -38,18 +38,11 @@ jobs:
   android:
     name: Android (Kotlin/Compose)
     runs-on: ubuntu-latest
-    # Runs once the Gradle project exists (android/ is scaffolded).
-    if: hashFiles('android/settings.gradle.kts') != ''
     defaults:
       run:
         working-directory: android
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-      - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew test
-      - run: ./gradlew lint
-      - run: ./gradlew build --stacktrace
+      - uses: ./.github/actions/android-setup
+      # The same gate as docs/RELEASING.md (a release APK is only built by release.yml).
+      - run: ./gradlew :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --stacktrace
