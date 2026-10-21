@@ -29,6 +29,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AddComment
@@ -52,6 +55,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -308,7 +312,6 @@ fun CoachScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MessageBubble(message: ChatMessage, pending: Boolean) {
     val mine = message.role == AiRole.USER
@@ -328,51 +331,69 @@ private fun MessageBubble(message: ChatMessage, pending: Boolean) {
                 )
                 .padding(horizontal = 14.dp, vertical = 9.dp),
         ) {
-            when {
-                message.error != null -> Column {
-                    // An answer that stopped early keeps what arrived, with the reason under it.
-                    if (message.text.isNotBlank()) {
-                        Text(simpleMarkdown(message.text), style = MaterialTheme.typography.bodyMedium)
-                        Spacer(Modifier.height(6.dp))
-                    }
-                    Text(
-                        stringResource(message.error.messageRes()),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    if (message.errorDetail.isNotBlank()) {
-                        Text(
-                            message.errorDetail,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            // Long-press selects the text of either side, to copy it; on the
+            // green bubble the highlight is light, or it would not show.
+            val selection = if (mine) {
+                TextSelectionColors(
+                    handleColor = MaterialTheme.colorScheme.primary,
+                    backgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.35f),
+                )
+            } else {
+                LocalTextSelectionColors.current
+            }
+            CompositionLocalProvider(LocalTextSelectionColors provides selection) {
+                SelectionContainer { MessageContent(message, pending, mine) }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MessageContent(message: ChatMessage, pending: Boolean, mine: Boolean) {
+    when {
+        message.error != null -> Column {
+            // An answer that stopped early keeps what arrived, with the reason under it.
+            if (message.text.isNotBlank()) {
+                Text(simpleMarkdown(message.text), style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(6.dp))
+            }
+            Text(
+                stringResource(message.error.messageRes()),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+            if (message.errorDetail.isNotBlank()) {
+                Text(
+                    message.errorDetail,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        message.text.isEmpty() && pending -> Text(
+            stringResource(R.string.coach_thinking),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        mine -> Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (message.previews.isNotEmpty()) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    message.previews.forEachIndexed { index, preview ->
+                        Image(
+                            preview,
+                            contentDescription = stringResource(R.string.coach_photo_sent, index + 1),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(96.dp).clip(RoundedCornerShape(10.dp)),
                         )
                     }
                 }
-                message.text.isEmpty() && pending -> Text(
-                    stringResource(R.string.coach_thinking),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                mine -> Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    if (message.previews.isNotEmpty()) {
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            message.previews.forEachIndexed { index, preview ->
-                                Image(
-                                    preview,
-                                    contentDescription = stringResource(R.string.coach_photo_sent, index + 1),
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.size(96.dp).clip(RoundedCornerShape(10.dp)),
-                                )
-                            }
-                        }
-                    }
-                    if (message.text.isNotEmpty()) {
-                        Text(message.text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                }
-                else -> Text(simpleMarkdown(message.text), style = MaterialTheme.typography.bodyMedium)
+            }
+            if (message.text.isNotEmpty()) {
+                Text(message.text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary)
             }
         }
+        else -> Text(simpleMarkdown(message.text), style = MaterialTheme.typography.bodyMedium)
     }
 }
 
