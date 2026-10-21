@@ -1856,12 +1856,18 @@ every language (§6). CSV column names stay Spanish (the web's file format). The
 `./gradlew :core:test :app:testDebugUnitTest` (JVM, Room via Robolectric); what each test
 covers: §11.1–11.4. No Compose UI tests yet: screens are checked on a device.
 
-### 14.7 Not done yet (candidates for a next version)
+### 14.7 Releases
 
 - **Release build:** `./gradlew :app:assembleRelease` → one APK per ABI in
   `app/build/outputs/apk/release/` (arm64 ~15 MB), R8-shrunk. Signed with `keystore.properties`
   (storeFile, storePassword, keyAlias, keyPassword; never committed) when present, else with the
   debug key (fine for local test builds only).
+  **R8 and Retrofit:** a suspend call's response type lives only in the method's generic
+  signature, so R8 removed `SettingsResponse` (never read) and `updateSettings` failed in
+  release builds only («Unable to create converter for class java.lang.Object»): the profile
+  never uploaded and each sync stopped there. `proguard-rules.pro` keeps every `@Serializable`
+  class of `data`; `ReleaseRulesTest` checks every response type is one of them. Debug builds
+  and unit tests don't shrink, so check a release APK on a phone after touching the API.
 - **Releases (two channels, two keys):** a `v*` tag runs `.github/workflows/release.yml`: tests,
   build, signs with the release key from the repository secrets, refuses an APK whose
   certificate is not `releaseCertSha256`, and publishes `blackwater-macros.apk` (+ `.sha256`) as a
@@ -1870,15 +1876,13 @@ covers: §11.1–11.4. No Compose UI tests yet: screens are checked on a device.
   (`website/`, deployed by `website.yml`, screenshots and fingerprint copied in at deploy) links
   there. F-Droid builds the same tag and signs with its own key: the two can't update each
   other, so switching means reinstalling (said on the website). Steps: docs/RELEASING.md.
-  **R8 and Retrofit:** a suspend call's response type lives only in the method's generic
-  signature, so R8 removed `SettingsResponse` (never read) and `updateSettings` failed in
-  release builds only («Unable to create converter for class java.lang.Object»): the profile
-  never uploaded and each sync stopped there. `proguard-rules.pro` keeps every `@Serializable`
-  class of `data`; `ReleaseRulesTest` checks every response type is one of them. Debug builds
-  and unit tests don't shrink, so check a release APK on a phone after touching the API.
-- **Release & F-Droid:** planned step by step in [FDROID-PLAN.md](./FDROID-PLAN.md)
-  (repository, licence, catalog from the repository, metadata). Bump
-  `versionCode`/`versionName` for every release.
+- **F-Droid:** the recipe is `docs/fdroid/com.blackwatermacros.app.yml` (reference copy; the
+  live one is in fdroiddata, merge request !53565, and F-Droid's bot adds each new tag to it).
+  History and decisions: [FDROID-PLAN.md](./FDROID-PLAN.md). Steps for every release:
+  [RELEASING.md](./RELEASING.md).
+
+### 14.8 Not done yet (candidates for a next version)
+
 - **Incremental sync:** every sync pulls the full lists — fine at personal scale; a
   `?since=` delta endpoint with server tombstones would be needed for large histories.
 - **Compose UI tests** for the main flows.

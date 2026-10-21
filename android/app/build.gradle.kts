@@ -120,7 +120,7 @@ android {
 }
 
 // Room writes each database version's schema here (committed): the migration tests build the
-// old versions from these files (docs/TECHNICAL.md §14.7).
+// old versions from these files (docs/TECHNICAL.md §14.2).
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }

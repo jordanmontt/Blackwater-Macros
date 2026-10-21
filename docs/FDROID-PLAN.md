@@ -12,7 +12,7 @@ is risky · ✅ = decided.
 
 | # | Part | State |
 |---|------|-------|
-| A | F-Droid release (repo public, catalog from the repo, metadata, merge request) | ◐ v1.0.1 released (signed APK on GitHub + website); the owner opens the merge request |
+| A | F-Droid release (repo public, catalog from the repo, metadata, merge request) | ◐ v1.0.1 released (signed APK on GitHub + website); merge request [!53565](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53565) in review |
 | B | Premium accounts (paid sign-up on the web) | ☐ later |
 | C | End-to-end encryption for accounts ⚠️ | ☐ later, before B goes live |
 
@@ -26,6 +26,9 @@ Legend: ☐ todo · ◐ in progress · ☑ done.
   moved to `app.`), new version notice for the website's APK only (never F-Droid's, NewPipe's
   way), copyable coach messages, CI fixed (it had never run: `hashFiles` in a job `if`). The
   recipe points to `v1.0.1`; published tags are never moved again.
+- 2026-10-21 — Merge request fdroid/fdroiddata!53565 opened from the fork
+  `jordanmontt/fdroiddata` (branch `com.blackwatermacros.app`); its pipeline passed on the fork,
+  `fdroid build` included, after adopting the formatting of F-Droid's newer `rewritemeta`.
 - 2026-10-02 — F-Droid release prepared (Part A): `dev` branch for work (CI + web deploy),
   `main` for releases; catalog moved to `android/catalog/` and read from GitHub;
   `AccountInterceptor` (nothing but the login reaches our server without an account) and
