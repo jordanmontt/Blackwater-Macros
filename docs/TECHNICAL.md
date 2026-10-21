@@ -83,6 +83,8 @@ drizzle.config.ts           # drizzle-kit config; loads .env.local itself (§10)
 android/                    # Native Android app — two Gradle modules (see §14)
   core/                     # :core — pure JVM module, Kotlin port of lib/core + mirror tests
   app/                      # :app — Android module: UI (Compose) + data/networking layer
+website/                    # The app's site on GitHub Pages: plain HTML/CSS + latest.js (§14.7 «Releases»)
+.github/workflows/          # ci.yml (tests), release.yml (signed APK on a tag), website.yml (Pages)
 ```
 
 **Dependency rule:** `app/api → composition → services → repositories → client`.
@@ -1496,6 +1498,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; they open on the welcome page, also from «Ver tutorial» with an account (which neither syncs nor skips ahead); ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
+| `data/update/UpdateCheckerTest.kt` | New version notice: versions compare by number, GitHub asked at most once a day and never by another key's build (F-Droid) or with the switch off, «Not now» hides only that version, errors stay silent |
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period, each logged day's own target in the band and the average |
 | `data/local/MigrationTest.kt` | Updating the app keeps the phone's data: a version 1 database built from `app/schemas/…/1.json` opens with today's code through `MIGRATIONS` (the profile gets an empty history) |
 | `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
@@ -1574,7 +1577,7 @@ Gotchas:
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in the five `i18n/*.json`; proxy already protects it. Android: screen + route in `MainActivity`, texts as in «New UI text» |
 | New UI text | add it to the five `src/i18n/*.json` (a missing key fails the build; `i18n.test.ts` checks `{placeholders}`). Android: map it in `android/app/strings-from-web.json` (`"key": "path"`, or `["path", "n:d"]` with arguments) and use `stringResource`; Android-only texts and plurals go in the five `res/values*/strings.xml` (`TranslationsTest`) |
 | Change the logo | edit `scripts/logo/render.html`, run `scripts/logo/render-icons.sh` (writes every Android and web icon) |
-| Release the Android app | see §14.7 (signing + F-Droid metadata are not set up yet) |
+| Release the Android app | docs/RELEASING.md (tag → signed GitHub Release + website; F-Droid builds the tag) |
 | Real migrations | switch from `db:push` to `db:generate` + `db:migrate` (both scripted already) once schema changes risk data loss |
 
 ---
@@ -1607,6 +1610,14 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
   `ApiService` call) refuses any request but `POST /api/auth/login` while there is no token
   (`NoAccountException`, before the network; `OfflineSyncTest`). `NetworkHostsTest` lists
   every host the app's code knows; the README's privacy table mirrors it.
+- **New version notice (website APK only).** `data/update/UpdateChecker.kt`: if the APK is
+  signed with the release certificate (`releaseCertSha256` in `android/gradle.properties` →
+  `BuildConfig.RELEASE_CERT_SHA256`, compared with the installed signature), the app reads the
+  latest GitHub release at most once a day on open; a newer version shows a card under the
+  date in Comidas (Download opens the website, «Not now» hides that version) and Ajustes shows
+  «Check for updates» (on by default). F-Droid signs with its own key, so its build never asks
+  GitHub and shows neither (NewPipe's way; `UpdateCheckerTest`). To try it with a debug build:
+  `-PreleaseCertSha256=<debug cert>` and write `latest` into the `updates` prefs.
 - **Offline.** A save is on disk before the UI returns; with an account the row is
   flagged `pending` and uploaded by the next sync (app start/resume, 2 s after any
   edit, when the network comes back, or «Sincronizar»).
@@ -1719,6 +1730,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     CsvBackup.kt             # CSV export/import in the web export's exact format
     sync/SyncEngine.kt       # push + pull, typed SyncOutcome/SyncProblem, never throws
     sync/SyncScheduler.kt    # SyncScheduler interface + WorkManager implementation + SyncWorker
+    update/UpdateChecker.kt  # «A new version is available» for the website APK only (§14.1)
     ApiService.kt, ApiClient.kt, WireModels.kt, JsonConfig.kt (profileBody: explicit nulls),
     AccountInterceptor.kt (Bearer token; nothing but login without an account),
     ResponseErrorMapper.kt (admin error messages)
@@ -1734,6 +1746,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a per-point target band;
                                                 #   TrendChart.kt also holds what both share: drawDateLabels, drawSelection, LegendDot)
     SettingsScreen/ViewModel, SettingsComponents.kt  # Ajustes (account, templates, data, theme, language)
+    UpdateNotice.kt                         # the new version card (Comidas) and «Check for updates» (Ajustes)
     ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
     LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen
     SyncIndicator.kt                        # cloud in the Comidas header (logged in only)
@@ -1815,9 +1828,9 @@ every language (§6). CSV column names stay Spanish (the web's file format). The
 
 ### 14.5 Configuration
 
-- **Base URL:** `BuildConfig.API_BASE_URL`, default `https://blackwater-macros.jordanmontt.fr/`,
+- **Base URL:** `BuildConfig.API_BASE_URL`, default `https://app.blackwater-macros.jordanmontt.fr/`,
   override with `-Papp.baseUrl=<url>`. Only used after logging in.
-- **Version:** `versionCode 1` / `versionName "0.1.0"` in `app/build.gradle.kts`.
+- **Version:** `versionCode` / `versionName` in `app/build.gradle.kts` (the tag is `v<versionName>`).
 - **Toolchain:** `gradle/libs.versions.toml` (AGP 9.4.1 with its built-in Kotlin support — no
   separate `org.jetbrains.kotlin.android` plugin —, Kotlin 2.4.20, Compose BOM, Room,
   WorkManager, AppCompat, Retrofit/OkHttp, kotlinx-serialization). `compileSdk/targetSdk`
@@ -1840,7 +1853,15 @@ covers: §11.1–11.4. No Compose UI tests yet: screens are checked on a device.
 - **Release build:** `./gradlew :app:assembleRelease` → one APK per ABI in
   `app/build/outputs/apk/release/` (arm64 ~15 MB), R8-shrunk. Signed with `keystore.properties`
   (storeFile, storePassword, keyAlias, keyPassword; never committed) when present, else with the
-  debug key (fine for sharing test builds, not for a store).
+  debug key (fine for local test builds only).
+- **Releases (two channels, two keys):** a `v*` tag runs `.github/workflows/release.yml`: tests,
+  build, signs with the release key from the repository secrets, refuses an APK whose
+  certificate is not `releaseCertSha256`, and publishes `blackwater-macros.apk` (+ `.sha256`) as a
+  GitHub Release with the en-US changelog. The name never changes, so
+  `releases/latest/download/blackwater-macros.apk` is always the newest; the website
+  (`website/`, deployed by `website.yml`, screenshots and fingerprint copied in at deploy) links
+  there. F-Droid builds the same tag and signs with its own key: the two can't update each
+  other, so switching means reinstalling (said on the website). Steps: docs/RELEASING.md.
   **R8 and Retrofit:** a suspend call's response type lives only in the method's generic
   signature, so R8 removed `SettingsResponse` (never read) and `updateSettings` failed in
   release builds only («Unable to create converter for class java.lang.Object»): the profile
@@ -1848,8 +1869,8 @@ covers: §11.1–11.4. No Compose UI tests yet: screens are checked on a device.
   class of `data`; `ReleaseRulesTest` checks every response type is one of them. Debug builds
   and unit tests don't shrink, so check a release APK on a phone after touching the API.
 - **Release & F-Droid:** planned step by step in [FDROID-PLAN.md](./FDROID-PLAN.md)
-  (repository, licence, catalog from the repository, metadata, signing). Builds shared so far
-  are signed with the debug key. Bump `versionCode`/`versionName` for every release.
+  (repository, licence, catalog from the repository, metadata). Bump
+  `versionCode`/`versionName` for every release.
 - **Incremental sync:** every sync pulls the full lists — fine at personal scale; a
   `?since=` delta endpoint with server tombstones would be needed for large histories.
 - **Compose UI tests** for the main flows.

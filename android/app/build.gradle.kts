@@ -17,13 +17,13 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         // One step per release; the git tag is v<versionName> (docs/RELEASING.md).
-        versionCode = 2
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Base URL for the deployed backend (override via -Papp.baseUrl=…). Defaults to production.
-        val baseUrl = (project.findProperty("app.baseUrl") as String?) ?: "https://blackwater-macros.jordanmontt.fr/"
+        val baseUrl = (project.findProperty("app.baseUrl") as String?) ?: "https://app.blackwater-macros.jordanmontt.fr/"
         buildConfigField("String", "API_BASE_URL", "\"$baseUrl\"")
         // The phone-model catalog, read from the released branch of the public repository
         // (docs/RELEASING.md «Publishing a phone model»), never from the Blackwater server.
@@ -32,6 +32,13 @@ android {
             "MODEL_CATALOG_URL",
             "\"https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/android/catalog/local-models.json\"",
         )
+        // «A new version is available» (data/update/UpdateChecker.kt): only an APK signed with the
+        // certificate in gradle.properties checks, the one from GitHub and the website; F-Droid
+        // signs with its own key. Override with -PreleaseCertSha256=… to try it with the debug key.
+        val releaseCert = (project.findProperty("releaseCertSha256") as String?).orEmpty()
+        buildConfigField("String", "RELEASE_CERT_SHA256", "\"$releaseCert\"")
+        buildConfigField("String", "LATEST_RELEASE_URL", "\"https://api.github.com/repos/jordanmontt/Blackwater-Macros/releases/latest\"")
+        buildConfigField("String", "WEBSITE_URL", "\"https://blackwater-macros.jordanmontt.fr/\"")
     }
 
     signingConfigs {

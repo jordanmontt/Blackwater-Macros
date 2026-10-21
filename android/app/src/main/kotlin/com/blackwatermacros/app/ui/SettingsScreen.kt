@@ -191,6 +191,7 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.source_code_hint) + " · v" + BuildConfig.VERSION_NAME,
                 onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, SOURCE_CODE_URL.toUri())) } },
             )
+            UpdateCheckCard()
             LinkCard(
                 icon = Icons.Filled.Favorite,
                 title = stringResource(R.string.donate),

@@ -163,6 +163,7 @@ fun HoyScreen(
                 onNext = viewModel::nextDay,
                 onToday = viewModel::goToday,
             )
+            UpdateNotice()
 
             when (state) {
                 HoyUiState.Loading -> Box(

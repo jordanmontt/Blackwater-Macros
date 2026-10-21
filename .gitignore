@@ -60,3 +60,7 @@ public/wasm/
 /android/keystore.properties
 *.jks
 *.keystore
+
+# Website: screenshots and icon are copied in by .github/workflows/website.yml
+/website/screenshots/
+/website/icon.png

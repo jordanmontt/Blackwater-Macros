@@ -1,0 +1,228 @@
+/* Blackwater Macros website. The app's forest greens, led by the dark side:
+   spruce and bog for the hero, a cool lichen page, the ember only on Download. */
+
+:root {
+  --spruce: #1f3326;
+  --bog: #14221a;
+  --fog: #b9c6b8;
+  --page: #eef0e8;
+  --ink: #1d2620;
+  --muted: #56604f;
+  --rule: #cdd3c6;
+  --ember: #b2561f;
+  --ember-hover: #9a4818;
+  --link: #2f4a37;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #18241c;
+    --ink: #dfe6dc;
+    --muted: #a3ae9f;
+    --rule: #2e3e33;
+    --link: #a9c9ae;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --page: #18241c;
+  --ink: #dfe6dc;
+  --muted: #a3ae9f;
+  --rule: #2e3e33;
+  --link: #a9c9ae;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 400 1.0625rem/1.6 Karla, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+
+a { color: var(--link); text-underline-offset: 0.18em; }
+
+:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; border-radius: 2px; }
+
+h1, h2, .brand {
+  font-family: Cinzel, Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* --- Hero: the forest at night, the treeline fading into the page --- */
+
+.hero {
+  position: relative;
+  color: #e6ebe2;
+  background:
+    radial-gradient(120% 70% at 75% 10%, rgba(185, 198, 184, 0.12), transparent 60%),
+    linear-gradient(180deg, var(--bog) 0%, var(--spruce) 100%);
+  padding: 2.5rem 1rem 0;
+  /* The phone's lower half sinks behind the trees. */
+  overflow: hidden;
+}
+
+.hero-inner {
+  max-width: 64rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: 1fr;
+  align-items: end;
+}
+
+@media (min-width: 52rem) {
+  .hero { padding-top: 4rem; }
+  .hero-inner { grid-template-columns: 1.15fr 0.85fr; }
+}
+
+.hero-text { padding-bottom: 2rem; }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0 0 2.5rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--fog);
+}
+
+.brand img { width: 3.5rem; height: 3.5rem; }
+
+h1 {
+  font-size: clamp(2.1rem, 5.2vw, 3.4rem);
+  line-height: 1.12;
+  margin: 0 0 1.25rem;
+  max-width: 16ch;
+  color: #f1f4ee;
+}
+
+.lede {
+  max-width: 34rem;
+  margin: 0 0 2rem;
+  font-size: 1.15rem;
+  color: #c9d3c6;
+}
+
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem; }
+
+.download {
+  display: inline-block;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+  background: var(--ember);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.download:hover { background: var(--ember-hover); }
+
+.secondary { color: #dbe4d8; padding: 0.6rem 0; }
+
+.release { margin: 1.25rem 0 0; font-size: 0.95rem; color: #9fae9c; }
+
+.hero-phone {
+  margin: 0 auto;
+  width: min(15rem, 48vw);
+  position: relative;
+  z-index: 1;
+  /* The phone stands on the treeline: its lower edge disappears into the forest. */
+  margin-bottom: -9rem;
+}
+
+.hero-phone img {
+  border-radius: 1.6rem;
+  border: 6px solid #0d1611;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+}
+
+.treeline {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: clamp(4rem, 9vw, 7rem);
+  margin-top: -2.5rem;
+  /* Dark pines against the lighter sky, like the album cover; the ground is the footer's bog. */
+  fill: var(--bog);
+}
+
+.ground { height: 0.75rem; background: var(--bog); }
+
+/* --- Content --- */
+
+main { max-width: 64rem; margin: 0 auto; padding: 2rem 1rem 3rem; }
+
+.shots ul {
+  list-style: none;
+  margin: 0 -1rem;
+  padding: 1rem 1rem 1.5rem;
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.shots li { flex: 0 0 11.5rem; scroll-snap-align: start; }
+
+.shots img { border-radius: 1rem; border: 1px solid var(--rule); }
+
+.shots p { margin: 0.6rem 0 0; font-size: 0.92rem; color: var(--muted); line-height: 1.4; }
+
+.block { max-width: 44rem; padding-top: 3rem; }
+
+h2 { font-size: 1.6rem; margin: 0 0 1rem; }
+
+.intro { font-size: 1.15rem; margin: 0 0 1.75rem; }
+
+.features { margin: 0; }
+
+.features dt { font-weight: 600; margin-top: 1.25rem; }
+
+.features dd { margin: 0.2rem 0 0; color: var(--muted); }
+
+table { width: 100%; border-collapse: collapse; margin: 0 0 1.5rem; font-size: 0.98rem; }
+
+th, td { text-align: left; padding: 0.6rem 0.75rem 0.6rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+
+th { font-weight: 600; }
+
+td:last-child { white-space: nowrap; }
+
+details { border-bottom: 1px solid var(--rule); }
+
+summary {
+  cursor: pointer;
+  padding: 0.9rem 0;
+  font-weight: 600;
+  list-style-position: outside;
+}
+
+details p { margin: 0 0 1rem; color: var(--muted); }
+
+.fingerprint { font-size: 0.85rem; overflow-wrap: anywhere; color: var(--ink); }
+
+footer {
+  background: var(--bog);
+  color: #b6c2b3;
+  padding: 2.5rem 1rem;
+  font-size: 0.95rem;
+}
+
+footer p { max-width: 64rem; margin: 0 auto 0.5rem; }
+
+footer a { color: #dbe4d8; margin-right: 1.25rem; display: inline-block; padding: 0.55rem 0; }
+
+@media (max-width: 30rem) {
+  td:last-child { white-space: normal; }
+}

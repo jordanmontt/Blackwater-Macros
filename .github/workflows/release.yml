@@ -1,0 +1,92 @@
+name: Release
+
+# A tag vX.Y.Z builds the APK, signs it with the release key (repository secrets) and publishes
+# it as a GitHub Release. The website's Download button always points to the latest one
+# (docs/RELEASING.md). F-Droid builds the same tag on its own and signs with its key.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build again (its APK is replaced)
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+
+jobs:
+  apk:
+    name: Signed APK
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: ./.github/actions/android-setup
+
+      - name: Tag matches versionName
+        run: |
+          version=$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' app/build.gradle.kts)
+          [ "$TAG" = "v$version" ] || { echo "::error::Tag $TAG but versionName is $version"; exit 1; }
+          code=$(sed -n 's/^ *versionCode = \([0-9]*\)/\1/p' app/build.gradle.kts)
+          echo "VERSION_CODE=$code" >> "$GITHUB_ENV"
+
+      - name: Expected certificate
+        run: |
+          cert=$(sed -n 's/^releaseCertSha256=//p' gradle.properties | tr -d ': ' | tr 'A-F' 'a-f')
+          [ ${#cert} -eq 64 ] || { echo "::error::releaseCertSha256 in android/gradle.properties is not set"; exit 1; }
+          echo "EXPECTED_CERT=$cert" >> "$GITHUB_ENV"
+
+      - name: Tests
+        run: ./gradlew :core:test :app:testDebugUnitTest :app:lintDebug
+
+      - name: Build and sign
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          [ -n "$KEYSTORE_BASE64" ] || { echo "::error::The RELEASE_* secrets are missing"; exit 1; }
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/release.jks"
+            echo "storePassword=$STORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > keystore.properties
+          ./gradlew :app:assembleRelease -PreleaseAbi=arm64-v8a
+          rm keystore.properties "$RUNNER_TEMP/release.jks"
+
+      - name: Signed with the release key
+        run: |
+          apk=app/build/outputs/apk/release/app-arm64-v8a-release.apk
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          actual=$("$apksigner" verify --print-certs "$apk" | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)
+          [ "$actual" = "$EXPECTED_CERT" ] || { echo "::error::APK signed with $actual, expected $EXPECTED_CERT"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/out"
+          cp "$apk" "$RUNNER_TEMP/out/blackwater-macros.apk"
+          (cd "$RUNNER_TEMP/out" && sha256sum blackwater-macros.apk > blackwater-macros.apk.sha256)
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes=fastlane/metadata/android/en-US/changelogs/$VERSION_CODE.txt
+          [ -f "$notes" ] || { echo "::error::$notes is missing"; exit 1; }
+          files=("$RUNNER_TEMP/out/blackwater-macros.apk" "$RUNNER_TEMP/out/blackwater-macros.apk.sha256")
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --clobber
+          else
+            gh release create "$TAG" "${files[@]}" --title "${TAG#v}" --notes-file "$notes" --verify-tag
+          fi

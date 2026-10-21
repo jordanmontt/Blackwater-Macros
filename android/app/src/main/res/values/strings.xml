@@ -346,4 +346,9 @@
         <item quantity="one">%d model available with your key.</item>
         <item quantity="other">%d models available with your key.</item>
     </plurals>
+    <!-- «A new version is available» (website APK only, data/update/UpdateChecker.kt) -->
+    <string name="update_available">Version %1$s is available.</string>
+    <string name="update_download">Download</string>
+    <string name="update_check_title">Check for updates</string>
+    <string name="update_check_hint">Once a day, the app asks GitHub for the latest version. Nothing about you is sent.</string>
 </resources>

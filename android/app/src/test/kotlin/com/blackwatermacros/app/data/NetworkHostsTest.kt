@@ -21,11 +21,13 @@ class NetworkHostsTest {
         "api.openai.com" to "OpenAI, only with your own key",
         "api.anthropic.com" to "Anthropic, only with your own key",
         "openrouter.ai" to "OpenRouter, only with your own key",
-        "blackwater-macros.jordanmontt.fr" to "account server, only after logging in (AccountInterceptor)",
+        "app.blackwater-macros.jordanmontt.fr" to "account server, only after logging in (AccountInterceptor)",
+        "api.github.com" to "latest version, once a day, only in the APK from the website (UpdateChecker)",
         // Not contacted by the app:
         "aistudio.google.com" to "link opened in the browser to get a free Gemini key",
         "github.com" to "source link and the Open Food Facts User-Agent text",
         "ko-fi.com" to "donation link opened in the browser (Settings)",
+        "blackwater-macros.jordanmontt.fr" to "the website, opened in the browser to download a new version",
         "example.com" to "placeholder text in a field",
     )
 

@@ -5,7 +5,7 @@
 <p align="center"><b>A simple, private calorie and macro tracker for Android, with targets based on fully transparent science.</b><br>
 Private. No tracking. No ads. Free software.</p>
 
-<p align="center"><i>Coming soon to F-Droid.</i></p>
+<p align="center"><a href="https://blackwater-macros.jordanmontt.fr/"><b>Download the APK</b></a> from the website. <i>Coming soon to F-Droid.</i></p>
 
 <p align="center">
   <img src="android/fastlane/metadata/android/en-US/images/phoneScreenshots/1_meals.png" width="19%" alt="Meals of the day with calorie and protein targets">
@@ -98,6 +98,7 @@ every number on screen can be checked by hand.
   | You open Settings → AI (list of phone models) | GitHub (this repository) |
   | You download a phone AI model | Hugging Face |
   | You use AI with your own key | the provider you chose (Google, OpenAI, Anthropic, OpenRouter, your server) |
+  | Once a day, only in the APK from the website (not F-Droid's), to check for a new version; can be turned off in Settings | GitHub |
 
   A test (`NetworkHostsTest`) fails if the code ever learns another address.
 - **No ads, no analytics, no trackers, no Google services.**

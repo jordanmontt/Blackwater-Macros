@@ -30,6 +30,9 @@ import com.blackwatermacros.app.data.local.LocalDatabase
 import com.blackwatermacros.app.data.sync.SyncEngine
 import com.blackwatermacros.app.data.sync.SyncScheduler
 import com.blackwatermacros.app.data.sync.WorkManagerSyncScheduler
+import com.blackwatermacros.app.data.update.UpdateChecker
+import com.blackwatermacros.app.data.update.githubLatestVersion
+import com.blackwatermacros.app.data.update.signedWith
 
 /**
  * App-wide singletons, built once in [BlackwaterApp.onCreate]. A plain service
@@ -75,15 +78,20 @@ object AppGraph {
     /** Notices when Android killed the app for memory while the phone's model ran. */
     lateinit var modelRunGuard: ModelRunGuard
         private set
+    /** «A new version is available», for the APK from the website only (not F-Droid's). */
+    lateinit var updates: UpdateChecker
+        private set
 
     /**
      * Each time the app opens, the cloud model list is refreshed in the background (at
      * most once a day, only with a key: it goes to the provider the user chose). The
      * phone-model catalog is not: it is read from the public repository only when the user
-     * opens Ajustes → IA. Without an account the app never contacts the Blackwater server.
+     * opens Ajustes → IA. The website's APK asks GitHub for the latest version once a day
+     * ([UpdateChecker]). Without an account the app never contacts the Blackwater server.
      */
     fun refreshOnOpen() {
         backgroundScope.launch { runCatching { modelLists.refresh(aiSettings.current.config) } }
+        backgroundScope.launch { updates.checkIfDue() }
     }
 
     fun init(context: Context) {
@@ -114,6 +122,12 @@ object AppGraph {
         modelRunGuard = ModelRunGuard(context)
         localEngine = LocalEngine(context, modelRunGuard)
         mealEstimator = MealEstimator(ai, aiSettings, localEngine)
+        updates = UpdateChecker(
+            prefs = context.getSharedPreferences(UpdateChecker.PREFS_NAME, Context.MODE_PRIVATE),
+            currentVersion = BuildConfig.VERSION_NAME,
+            ownBuild = signedWith(context, BuildConfig.RELEASE_CERT_SHA256),
+            fetchLatestVersion = githubLatestVersion(BuildConfig.LATEST_RELEASE_URL),
+        )
     }
 
     private fun profileScope(context: Context, id: String, baseUrl: String, apiWithToken: (String) -> ApiService): ProfileScope {

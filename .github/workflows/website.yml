@@ -1,0 +1,51 @@
+name: Website
+
+# website/ on GitHub Pages at https://blackwater-macros.jordanmontt.fr/ (Settings → Pages: Source =
+# GitHub Actions, custom domain set there; the web app is on app.…). The screenshots and the
+# icon come from the app's store images, and the certificate fingerprint from gradle.properties,
+# so nothing is copied by hand. The download link needs no rebuild: it always points to the
+# latest release.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - website/**
+      - android/fastlane/metadata/android/en-US/images/**
+      - android/gradle.properties
+      - .github/workflows/website.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble
+        run: |
+          mkdir -p _site/screenshots
+          cp website/*.html website/*.css website/*.js _site/
+          cp android/fastlane/metadata/android/en-US/images/phoneScreenshots/*.png _site/screenshots/
+          cp public/icon-192x192.png _site/icon.png
+          cert=$(sed -n 's/^releaseCertSha256=//p' android/gradle.properties | tr -d ': ' | tr 'a-f' 'A-F')
+          if [ ${#cert} -eq 64 ]; then
+            pretty=$(echo "$cert" | sed 's/../&:/g; s/:$//')
+            sed -i "s|Published with the first signed release.|$pretty|" _site/index.html
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

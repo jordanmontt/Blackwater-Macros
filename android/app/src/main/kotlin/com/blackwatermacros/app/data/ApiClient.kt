@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Builds the Retrofit `ApiService`. `baseUrl` is the deployment **origin root**
- * (e.g. `https://blackwater-macros.jordanmontt.fr/`); every `ApiService` endpoint
+ * (e.g. `https://app.blackwater-macros.jordanmontt.fr/`); every `ApiService` endpoint
  * carries its own absolute `/api/...` path.
  */
 object ApiClient {
