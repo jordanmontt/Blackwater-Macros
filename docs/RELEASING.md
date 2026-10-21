@@ -52,8 +52,12 @@ The two are signed with different keys, so an app from one can't update an app f
   green (or export the CSV in Settings), uninstall, install from the website, log in again.
 
 - [ ] **Vercel** → Settings → Git → Production Branch = `dev` (so pushes to `dev` deploy the web).
-- [ ] **Merge request to F-Droid**, after `v1.0.1` is released (`v1.0.0` passed `fdroid lint`,
-      the scanner and `fdroid build`; the recipe already points to `v1.0.1`):
+- [ ] **Merge request to F-Droid.** Ready: the fork https://gitlab.com/jordanmontt/fdroiddata,
+      branch `com.blackwatermacros.app`, holds the recipe and its pipeline passes (including
+      `fdroid build`). Open the merge request into `fdroid/fdroiddata:master` with the title
+      «New app: Blackwater Macros» and the text of [fdroid/merge-request.md](./fdroid/merge-request.md).
+      For a later change to the recipe, edit it in that branch too (CI runs `fdroid rewritemeta`:
+      use its formatting). The original steps, for reference:
   1. Create an account on gitlab.com and fork https://gitlab.com/fdroid/fdroiddata.
   2. Add `metadata/com.blackwatermacros.app.yml`: copy `docs/fdroid/com.blackwatermacros.app.yml`
      as is (it is already in F-Droid's format).
