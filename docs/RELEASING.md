@@ -16,24 +16,24 @@ The two are signed with different keys, so an app from one can't update an app f
 
 ## Still to do (once)
 
-- [ ] **Release key.** On your Mac, outside the repository:
+- [x] **Release key.** On your Mac, outside the repository:
   ```bash
   keytool -genkeypair -v -keystore ~/blackwater-release.jks -alias blackwater -keyalg RSA -keysize 4096 -validity 10000
   ```
   Choose a strong password and keep it in your password manager. **Back up the `.jks` file
   in two places** (e.g. an encrypted USB stick and your password manager): if it is lost, no
   update can ever be installed over the website's APK again.
-- [ ] **Its fingerprint in the repository:** `keytool -list -v -keystore ~/blackwater-release.jks
+- [x] **Its fingerprint in the repository:** `keytool -list -v -keystore ~/blackwater-release.jks
   -alias blackwater` → copy the `SHA256:` line into `android/gradle.properties` as
   `releaseCertSha256=` (it is public; it lets the app know it is the website's build, and the
   workflow refuses an APK signed with another key).
-- [ ] **GitHub secrets** (repository → Settings → Secrets and variables → Actions):
+- [x] **GitHub secrets** (repository → Settings → Secrets and variables → Actions):
   `RELEASE_KEYSTORE_BASE64` (output of `base64 -i ~/blackwater-release.jks`),
   `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` (`blackwater`), `RELEASE_KEY_PASSWORD` (the
   same password unless you chose another).
 - [ ] **Local signing** (optional, to build signed APKs on the Mac): `android/keystore.properties`
   with `storeFile`, `storePassword`, `keyAlias`, `keyPassword` (gitignored).
-- [ ] **Domains** (in this order, so the app never loses its server). The website is
+- [x] **Domains** (in this order, so the app never loses its server). The website is
   `blackwater-macros.jordanmontt.fr`, the web app and the API are
   `app.blackwater-macros.jordanmontt.fr` (the Android app's server address since 1.0.1):
   1. **Vercel** → project → Settings → Domains → add `app.blackwater-macros.jordanmontt.fr`, and
@@ -46,7 +46,7 @@ The two are signed with different keys, so an app from one can't update an app f
   3. **OVH DNS:** change the `blackwater-macros` record to `CNAME jordanmontt.github.io.` (no A
      records left for it), then remove
      `blackwater-macros.jordanmontt.fr` from the Vercel project. When the certificate is ready,
-     tick «Enforce HTTPS» in Pages. Old links to the web app (`/login`, `/progreso`…) are sent to
+     tick «Enforce HTTPS» in Pages (still to check). Old links to the web app (`/login`, `/progreso`…) are sent to
      `app.` by `website/404.html`; web users log in once more.
 - [ ] **Phones with the old test builds** (signed with the Mac's debug key): check that sync is
   green (or export the CSV in Settings), uninstall, install from the website, log in again.

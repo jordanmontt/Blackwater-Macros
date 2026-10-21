@@ -12,7 +12,7 @@ is risky · ✅ = decided.
 
 | # | Part | State |
 |---|------|-------|
-| A | F-Droid release (repo public, catalog from the repo, metadata, merge request) | ◐ ready; the owner tags v1.0.0 and opens the merge request |
+| A | F-Droid release (repo public, catalog from the repo, metadata, merge request) | ◐ v1.0.1 released (signed APK on GitHub + website); the owner opens the merge request |
 | B | Premium accounts (paid sign-up on the web) | ☐ later |
 | C | End-to-end encryption for accounts ⚠️ | ☐ later, before B goes live |
 
@@ -20,6 +20,12 @@ Legend: ☐ todo · ◐ in progress · ☑ done.
 
 ## Log
 
+- 2026-10-21 — v1.0.1, the first signed release: release key (owner), `release.yml` (a tag
+  builds, signs, checks the certificate and publishes `blackwater-macros.apk` on GitHub),
+  the app's website on GitHub Pages at `blackwater-macros.jordanmontt.fr` (the web app and API
+  moved to `app.`), new version notice for the website's APK only (never F-Droid's, NewPipe's
+  way), copyable coach messages, CI fixed (it had never run: `hashFiles` in a job `if`). The
+  recipe points to `v1.0.1`; published tags are never moved again.
 - 2026-10-02 — F-Droid release prepared (Part A): `dev` branch for work (CI + web deploy),
   `main` for releases; catalog moved to `android/catalog/` and read from GitHub;
   `AccountInterceptor` (nothing but the login reaches our server without an account) and
@@ -78,6 +84,10 @@ special handling for LiteRT-LM's native libraries. Checked 2026-09-28 in
 - [x] Anti-feature `NonFreeNet` and the recipe draft: `docs/fdroid/com.blackwatermacros.app.yml`.
 - [x] Process: [RELEASING.md](./RELEASING.md) (what's left, every release, occasional tasks).
 - [x] Release `v1.0.0` tagged; the recipe passes `fdroid lint`, the scanner and `fdroid build`.
+- [x] Two channels (NewPipe's model): F-Droid builds and signs with its key; GitHub and the
+      website ship the APK signed with ours, which alone checks for new versions. One
+      repository for server, web and Android (the TS ⇄ Kotlin core mirror needs it).
+- [x] Release `v1.0.1` signed and published by `release.yml`; the recipe points to it.
 
 ### Left (owner)
 

@@ -102,6 +102,8 @@ docs/             TECHNICAL, METHODOLOGY, RELEASING, DEVELOPMENT, FDROID-PLAN, f
 ## Deploying the web
 
 Vercel (Hobby plan) imports the GitHub repository with `DATABASE_URL` set; its production
-branch is `dev`. Apply the schema to the production database with
+branch is `dev`, served at https://app.blackwater-macros.jordanmontt.fr/. The app's website
+(`website/`) is a separate GitHub Pages site at https://blackwater-macros.jordanmontt.fr/,
+deployed by `.github/workflows/website.yml` on pushes to `main` (TECHNICAL.md §12). Apply the schema to the production database with
 `DATABASE_URL=… npm run db:push` and create the first user with `create-user` (+ `set-admin`).
 Environment variables only take effect after a redeploy.

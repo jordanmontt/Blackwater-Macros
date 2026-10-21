@@ -1546,12 +1546,20 @@ Web behavior tests describe user requirements; when one exists on both platforms
 ## 12. Deployment topology
 
 ```
-Browser ── HTTPS ── Vercel (Hobby)
-                    ├─ static pages + proxy.ts (edge)
-                    ├─ serverless route handlers ── pooled connection ─┐
-                    └─ env var DATABASE_URL (Production)               ▼
-                                                    Neon Postgres (single project)
+app.blackwater-macros.jordanmontt.fr ── HTTPS ── Vercel (Hobby)       web app + API
+  (browsers, Android after login)                ├─ static pages + proxy.ts (edge)
+                                                 ├─ serverless route handlers ── pooled ─┐
+                                                 └─ env var DATABASE_URL (Production)    ▼
+                                                                    Neon Postgres (single project)
+blackwater-macros.jordanmontt.fr ── HTTPS ── GitHub Pages             the app's website (website/)
+github.com/…/releases/latest ────────────── GitHub Releases          the signed APK (release.yml)
 ```
+
+**Domains:** DNS at OVH (zone `jordanmontt.fr`): `app.blackwater-macros` → `CNAME` to the
+target Vercel gives, `blackwater-macros` → `CNAME jordanmontt.github.io.`. The web app lived on
+`blackwater-macros.jordanmontt.fr` until 1.0.1; `website/404.html` forwards old links to `app.`.
+The Android app's server address (`API_BASE_URL`) is built into every APK, so it must never
+change again without keeping the old one working.
 
 Vercel deploys the **`dev`** branch (Project → Settings → Git → Production Branch). Current
 setup intentionally shares **one Neon database between local dev and production** — simplest mental model, and `create-user` run locally takes
