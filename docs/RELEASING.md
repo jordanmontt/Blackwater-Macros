@@ -37,12 +37,14 @@ The two are signed with different keys, so an app from one can't update an app f
   `blackwater-macros.jordanmontt.fr`, the web app and the API are
   `app.blackwater-macros.jordanmontt.fr` (the Android app's server address since 1.0.1):
   1. **Vercel** → project → Settings → Domains → add `app.blackwater-macros.jordanmontt.fr`, and
-     create the DNS record Vercel shows (a `CNAME` for `app.blackwater-macros`). Wait until
+     create the record Vercel shows in the OVH DNS zone of `jordanmontt.fr` (Web Cloud → Domain
+     names → DNS zone: `CNAME`, subdomain `app.blackwater-macros`, target with a final dot). Wait until
      https://app.blackwater-macros.jordanmontt.fr/ opens the web app.
   2. **GitHub Pages:** repository → Settings → Pages → Source = **GitHub Actions**, Custom domain
      = `blackwater-macros.jordanmontt.fr`. (Optional but recommended: verify `jordanmontt.fr` in
      your GitHub account → Settings → Pages, so nobody else can claim it.)
-  3. **DNS:** change the `blackwater-macros` record to `CNAME jordanmontt.github.io`, then remove
+  3. **OVH DNS:** change the `blackwater-macros` record to `CNAME jordanmontt.github.io.` (no A
+     records left for it), then remove
      `blackwater-macros.jordanmontt.fr` from the Vercel project. When the certificate is ready,
      tick «Enforce HTTPS» in Pages. Old links to the web app (`/login`, `/progreso`…) are sent to
      `app.` by `website/404.html`; web users log in once more.
@@ -51,8 +53,7 @@ The two are signed with different keys, so an app from one can't update an app f
 
 - [ ] **Vercel** → Settings → Git → Production Branch = `dev` (so pushes to `dev` deploy the web).
 - [ ] **Merge request to F-Droid**, after `v1.0.1` is released (`v1.0.0` passed `fdroid lint`,
-      the scanner and `fdroid build`; update the recipe's `Builds` entry to 1.0.1, versionCode 3
-      and the tag's commit first):
+      the scanner and `fdroid build`; the recipe already points to `v1.0.1`):
   1. Create an account on gitlab.com and fork https://gitlab.com/fdroid/fdroiddata.
   2. Add `metadata/com.blackwatermacros.app.yml`: copy `docs/fdroid/com.blackwatermacros.app.yml`
      as is (it is already in F-Droid's format).
