@@ -34,7 +34,7 @@ Chompass is the closest app on F-Droid and inspired the photo logging. Blackwate
 - **Dependencies**: LiteRT-LM (Apache-2.0) for on-device models comes from Google's Maven repository. No Google Play Services, Firebase or analytics. `dependenciesInfo` is disabled.
 - **Reproducible builds**: not enabled. The APK on GitHub is signed with my own key, and only an APK signed with that key checks GitHub (once a day) for new versions. F-Droid's build is signed with your key, so it never runs that check and F-Droid stays in charge of its updates. I'm fine with F-Droid signing with its key.
 - **ABI**: only `arm64-v8a` is built (`-PreleaseAbi=arm64-v8a`), which covers the phones the on-device AI runs on. The APK is about 15 MB.
-- The full pipeline passes on my fork, including `fdroid build` and `check apk`: https://gitlab.com/jordanmontt/fdroiddata/-/pipelines/2970401880
+- The full pipeline passes on my fork, including `fdroid build` and `check apk`: https://gitlab.com/jordanmontt/fdroiddata/-/pipelines/2976725446
 
 ## Checklist
 

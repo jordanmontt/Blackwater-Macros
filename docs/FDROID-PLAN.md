@@ -25,6 +25,8 @@ Legend: ☐ todo · ◐ in progress · ☑ done.
   moved from `android/fastlane/` to `fastlane/`. A tag can't be moved, so the recipe points to
   the new `v1.0.2`. Also: a long-press (Android) or the copy button (web) copies a whole coach
   message, instead of selecting text.
+  The recipe on the fork points to `v1.0.2`; pipeline 2976725446 is green and the report now
+  lists the store listing in all five languages.
 - 2026-10-21 — v1.0.1, the first signed release: release key (owner), `release.yml` (a tag
   builds, signs, checks the certificate and publishes `blackwater-macros.apk` on GitHub),
   the app's website on GitHub Pages at `blackwater-macros.jordanmontt.fr` (the web app and API
