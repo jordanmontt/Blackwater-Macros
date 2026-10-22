@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="android/fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Blackwater Macros" width="720">
+  <img src="fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Blackwater Macros" width="720">
 </p>
 
 <p align="center"><b>A simple, private calorie and macro tracker for Android, with targets based on fully transparent science.</b><br>
@@ -8,11 +8,11 @@ Private. No tracking. No ads. Free software.</p>
 <p align="center"><a href="https://blackwater-macros.jordanmontt.fr/"><b>Download the APK</b></a> from the website. <i>Coming soon to F-Droid.</i></p>
 
 <p align="center">
-  <img src="android/fastlane/metadata/android/en-US/images/phoneScreenshots/1_meals.png" width="19%" alt="Meals of the day with calorie and protein targets">
-  <img src="android/fastlane/metadata/android/en-US/images/phoneScreenshots/2_add_food.png" width="19%" alt="Add food: photo or text, search, barcode">
-  <img src="android/fastlane/metadata/android/en-US/images/phoneScreenshots/5_progress.png" width="19%" alt="Progress: weight trend and daily calories">
-  <img src="android/fastlane/metadata/android/en-US/images/phoneScreenshots/6_coach.png" width="19%" alt="Coach">
-  <img src="android/fastlane/metadata/android/en-US/images/phoneScreenshots/7_profile.png" width="19%" alt="Profile and recommendations">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_meals.png" width="19%" alt="Meals of the day with calorie and protein targets">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_add_food.png" width="19%" alt="Add food: photo or text, search, barcode">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5_progress.png" width="19%" alt="Progress: weight trend and daily calories">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6_coach.png" width="19%" alt="Coach">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7_profile.png" width="19%" alt="Profile and recommendations">
 </p>
 
 ## What it does

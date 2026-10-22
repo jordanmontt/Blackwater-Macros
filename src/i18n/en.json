@@ -487,7 +487,10 @@
     "noData": "No access to your data (Settings → AI).",
     "notConfigured": "Set up AI to use the coach. A free Google key is enough.",
     "configure": "Set up AI",
-    "memoryOnly": "The conversation is not saved: it is gone when you close the page."
+    "memoryOnly": "The conversation is not saved: it is gone when you close the page.",
+    "copy": "Copy message",
+    "copied": "Message copied",
+    "copyFailed": "The browser didn't allow copying. Select the text instead."
   },
   "onboarding": {
     "skip": "Skip",

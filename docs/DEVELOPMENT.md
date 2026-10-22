@@ -87,7 +87,7 @@ The full gate before pushing is in [TECHNICAL.md §11](./TECHNICAL.md#11-testing
 ```
 android/          Android app: :core (pure Kotlin port of src/lib/core) and :app (UI + data)
   catalog/        Phone AI model catalog read by the apps from GitHub (main)
-  fastlane/       F-Droid store listing (texts, screenshots) in 5 languages
+fastlane/         F-Droid store listing (texts, screenshots) in 5 languages, at the root where F-Droid reads it
 src/
   app/            Pages and API routes (App Router)
   components/     UI components

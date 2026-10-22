@@ -12,7 +12,7 @@ is risky · ✅ = decided.
 
 | # | Part | State |
 |---|------|-------|
-| A | F-Droid release (repo public, catalog from the repo, metadata, merge request) | ◐ v1.0.1 released (signed APK on GitHub + website); merge request [!53565](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53565) in review |
+| A | F-Droid release (repo public, catalog from the repo, metadata, merge request) | ◐ v1.0.2 released (signed APK on GitHub + website); merge request [!53565](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53565) in review |
 | B | Premium accounts (paid sign-up on the web) | ☐ later |
 | C | End-to-end encryption for accounts ⚠️ | ☐ later, before B goes live |
 
@@ -20,6 +20,11 @@ Legend: ☐ todo · ◐ in progress · ☑ done.
 
 ## Log
 
+- 2026-10-22 — v1.0.2 for the merge request: the review's issuebot reported «Fastlane/Triple-T
+  is not found», because F-Droid reads the store listing only at the repository root; it
+  moved from `android/fastlane/` to `fastlane/`. A tag can't be moved, so the recipe points to
+  the new `v1.0.2`. Also: a long-press (Android) or the copy button (web) copies a whole coach
+  message, instead of selecting text.
 - 2026-10-21 — v1.0.1, the first signed release: release key (owner), `release.yml` (a tag
   builds, signs, checks the certificate and publishes `blackwater-macros.apk` on GitHub),
   the app's website on GitHub Pages at `blackwater-macros.jordanmontt.fr` (the web app and API
@@ -82,7 +87,7 @@ special handling for LiteRT-LM's native libraries. Checked 2026-09-28 in
       no non-free classes in the APK (checked the dex and the signing block). Only binary in the
       repo: the Gradle wrapper, so the recipe needs no `scandelete`. Android needs
       `src/i18n/*.json` (shared texts), so the web stays in the same repository.
-- [x] Store listing: `android/fastlane/metadata/android/` in 5 languages (descriptions,
+- [x] Store listing: `fastlane/metadata/android/` in 5 languages (descriptions,
       changelog 2, screenshots en/es, feature graphic, icon).
 - [x] Anti-feature `NonFreeNet` and the recipe draft: `docs/fdroid/com.blackwatermacros.app.yml`.
 - [x] Process: [RELEASING.md](./RELEASING.md) (what's left, every release, occasional tasks).

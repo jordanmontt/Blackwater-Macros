@@ -12,7 +12,7 @@ Blackwater Macros is a simple, private calorie and macro tracker. It tracks what
 
 It is local-first: it opens straight on your meals, with no sign-up, and everything is stored on the phone. AI is optional and uses either the user's own key for the provider they choose or a model downloaded to the phone.
 
-<img src="https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/android/fastlane/metadata/android/en-US/images/phoneScreenshots/1_meals.png" width="180"> <img src="https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/android/fastlane/metadata/android/en-US/images/phoneScreenshots/2_add_food.png" width="180"> <img src="https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/android/fastlane/metadata/android/en-US/images/phoneScreenshots/5_progress.png" width="180"> <img src="https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/android/fastlane/metadata/android/en-US/images/phoneScreenshots/7_profile.png" width="180">
+<img src="https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/fastlane/metadata/android/en-US/images/phoneScreenshots/1_meals.png" width="180"> <img src="https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/fastlane/metadata/android/en-US/images/phoneScreenshots/2_add_food.png" width="180"> <img src="https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/fastlane/metadata/android/en-US/images/phoneScreenshots/5_progress.png" width="180"> <img src="https://raw.githubusercontent.com/jordanmontt/Blackwater-Macros/main/fastlane/metadata/android/en-US/images/phoneScreenshots/7_profile.png" width="180">
 
 ### Please elaborate why you wrote this app. Please highlight the unique functions it provides over other similar apps in F-Droid.
 
@@ -42,7 +42,7 @@ Chompass is the closest app on F-Droid and inspired the photo logging. Blackwate
 
 * [x] The app complies with the [inclusion criteria](https://f-droid.org/docs/Inclusion_Policy).
 * [x] The original app author has been notified (and does not oppose the inclusion). I am the author.
-* [x] The upstream app source code repo contains the app metadata in a [Fastlane](https://gitlab.com/snippets/1895688) folder structure (`android/fastlane/metadata/android/`, five locales including `en-US`, with images, icon and changelogs).
+* [x] The upstream app source code repo contains the app metadata in a [Fastlane](https://gitlab.com/snippets/1895688) folder structure (`fastlane/metadata/android/`, five locales including `en-US`, with images, icon and changelogs).
 
 ### Docs
 

@@ -487,7 +487,10 @@
     "noData": "Senza accesso ai tuoi dati (Impostazioni → IA).",
     "notConfigured": "Configura l'IA per usare il coach. Basta una chiave Google gratuita.",
     "configure": "Configura l'IA",
-    "memoryOnly": "La conversazione non viene salvata: sparisce quando chiudi la pagina."
+    "memoryOnly": "La conversazione non viene salvata: sparisce quando chiudi la pagina.",
+    "copy": "Copia il messaggio",
+    "copied": "Messaggio copiato",
+    "copyFailed": "Il browser non ha permesso di copiare. Seleziona il testo."
   },
   "onboarding": {
     "skip": "Salta",

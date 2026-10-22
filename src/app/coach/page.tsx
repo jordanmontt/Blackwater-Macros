@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowUpIcon, ImagePlusIcon, MessageSquarePlusIcon, SparklesIcon, SquareIcon, XIcon } from "lucide-react";
+import { ArrowUpIcon, CopyIcon, ImagePlusIcon, MessageSquarePlusIcon, SparklesIcon, SquareIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -217,8 +217,11 @@ export default function CoachPage() {
 
 function MessageBubble({ message, pending }: { message: ChatMessage; pending: boolean }) {
   const mine = message.role === "user";
+  // Copies the whole message, as in messaging apps: the text as shown (the coach's without the
+  // ** of bold). Nothing to copy while it is still arriving, or for photos alone.
+  const copyable = pending ? "" : mine ? message.text.trim() : plainText(message.text);
   return (
-    <li className={cn("flex", mine ? "justify-end" : "justify-start")}>
+    <li className={cn("group flex items-end gap-1", mine ? "flex-row-reverse" : "")}>
       <div
         className={cn(
           "max-w-[85%] rounded-2xl px-3.5 py-2 text-sm",
@@ -258,8 +261,35 @@ function MessageBubble({ message, pending }: { message: ChatMessage; pending: bo
           <SimpleMarkdown text={message.text} />
         )}
       </div>
+      {copyable ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t.coach.copy}
+          title={t.coach.copy}
+          // Shown on hover with a mouse; always there on a touch screen.
+          className="text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
+          onClick={() =>
+            navigator.clipboard.writeText(copyable).then(
+              () => toast.success(t.coach.copied),
+              () => toast.error(t.coach.copyFailed),
+            )
+          }
+        >
+          <CopyIcon />
+        </Button>
+      ) : null}
     </li>
   );
+}
+
+/** The text of a message as it reads on screen: no # headings, no ** around bold. */
+function plainText(text: string): string {
+  return text
+    .trim()
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1");
 }
 
 /** Enough Markdown for chat answers: paragraphs, «- » / «1. » lists and **bold**. */

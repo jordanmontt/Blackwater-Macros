@@ -1,10 +1,15 @@
 package com.blackwatermacros.app.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.os.Build
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,9 +34,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.LocalTextSelectionColors
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AddComment
@@ -55,7 +57,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,8 +67,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -316,10 +319,30 @@ fun CoachScreen(
 private fun MessageBubble(message: ChatMessage, pending: Boolean) {
     val mine = message.role == AiRole.USER
     val shape = RoundedCornerShape(18.dp)
+    val context = LocalContext.current
+    val haptics = LocalHapticFeedback.current
+    // Long-press copies the whole message, as in messaging apps.
+    val copyable = copyText(message, pending)
+    val copiedText = stringResource(R.string.coach_copied)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start) {
         Box(
             Modifier
                 .widthIn(max = 320.dp)
+                .clip(shape)
+                .combinedClickable(
+                    enabled = copyable.isNotBlank(),
+                    onClick = {},
+                    onLongClickLabel = stringResource(R.string.coach_copy),
+                    onLongClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        context.getSystemService(ClipboardManager::class.java)
+                            .setPrimaryClip(ClipData.newPlainText(copiedText, copyable))
+                        // Android 13+ confirms a copy itself.
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                            Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                )
                 .then(
                     if (mine) {
                         Modifier.background(MaterialTheme.colorScheme.primary, shape)
@@ -331,19 +354,7 @@ private fun MessageBubble(message: ChatMessage, pending: Boolean) {
                 )
                 .padding(horizontal = 14.dp, vertical = 9.dp),
         ) {
-            // Long-press selects the text of either side, to copy it; on the
-            // green bubble the highlight is light, or it would not show.
-            val selection = if (mine) {
-                TextSelectionColors(
-                    handleColor = MaterialTheme.colorScheme.primary,
-                    backgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.35f),
-                )
-            } else {
-                LocalTextSelectionColors.current
-            }
-            CompositionLocalProvider(LocalTextSelectionColors provides selection) {
-                SelectionContainer { MessageContent(message, pending, mine) }
-            }
+            MessageContent(message, pending, mine)
         }
     }
 }
@@ -395,6 +406,16 @@ private fun MessageContent(message: ChatMessage, pending: Boolean, mine: Boolean
         }
         else -> Text(simpleMarkdown(message.text), style = MaterialTheme.typography.bodyMedium)
     }
+}
+
+/**
+ * What a long-press copies: the text as shown (the coach's without the ** of bold); empty,
+ * so nothing to copy, while it is still arriving or for photos alone.
+ */
+internal fun copyText(message: ChatMessage, pending: Boolean): String = when {
+    pending -> ""
+    message.role == AiRole.USER -> message.text.trim()
+    else -> simpleMarkdown(message.text).text
 }
 
 /** Enough Markdown for chat answers (web `SimpleMarkdown`): «- » lists as bullets, **bold**, no # headings. */

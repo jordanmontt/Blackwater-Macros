@@ -13,6 +13,7 @@ import { formatTemplate, t } from "@/i18n";
  *  - las preguntas de ejemplo se envían con un toque; la respuesta llega por trozos,
  *  - cada pregunta lleva un resumen de tus datos (perfil, comidas, peso) si
  *    «El coach puede ver mis datos» está activado, y ninguno si no,
+ *  - un mensaje se copia entero con un toque (como en las apps de mensajería),
  *  - la conversación sigue (historial en memoria) hasta «Nueva conversación»,
  *  - los errores se explican y no se reenvían como historial,
  *  - se le pueden mandar fotos (con o sin texto); viajan solo al proveedor y,
@@ -126,6 +127,22 @@ describe("Coach", () => {
     expect(system).toContain("USER DATA");
     expect(system).toContain("Desayuno");
     expect(body.contents).toEqual([{ role: "user", parts: [{ text: t.coach.examples[0] }] }]);
+  });
+
+  it("copia un mensaje entero: la respuesta sin los ** del negrita, tu pregunta tal cual", async () => {
+    configure();
+    fetchMock.mockResolvedValueOnce(sse(["Con tu tendencia, ", "**61,4 kg** en 30 días."]));
+    const user = userEvent.setup();
+    render(<CoachPage />);
+
+    await user.click(screen.getByRole("button", { name: t.coach.examples[0] }));
+    await screen.findByText("61,4 kg");
+    const [question, answer] = screen.getAllByRole("button", { name: t.coach.copy });
+
+    await user.click(answer);
+    expect(await navigator.clipboard.readText()).toBe("Con tu tendencia, 61,4 kg en 30 días.");
+    await user.click(question);
+    expect(await navigator.clipboard.readText()).toBe(t.coach.examples[0]);
   });
 
   it("recuerda la conversación hasta «Nueva conversación»", async () => {

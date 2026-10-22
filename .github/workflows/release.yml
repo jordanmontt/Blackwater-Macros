@@ -82,7 +82,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes=fastlane/metadata/android/en-US/changelogs/$VERSION_CODE.txt
+          notes=../fastlane/metadata/android/en-US/changelogs/$VERSION_CODE.txt
           [ -f "$notes" ] || { echo "::error::$notes is missing"; exit 1; }
           files=("$RUNNER_TEMP/out/blackwater-macros.apk" "$RUNNER_TEMP/out/blackwater-macros.apk.sha256")
           if gh release view "$TAG" >/dev/null 2>&1; then

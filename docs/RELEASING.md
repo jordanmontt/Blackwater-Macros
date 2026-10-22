@@ -50,6 +50,13 @@ The two are signed with different keys, so an app from one can't update an app f
      `app.` by `website/404.html`; web users log in once more.
 - [ ] **Phones with the old test builds** (signed with the Mac's debug key): check that sync is
   green (or export the CSV in Settings), uninstall, install from the website, log in again.
+  1.0.0 still syncs with the old address (now the website), so its changes wait on the phone
+  and uninstalling would lose them. First install a newer build over it, which keeps
+  everything: on this Mac `cd android && ./gradlew :app:assembleRelease -PreleaseAbi=arm64-v8a`
+  (without `keystore.properties` it is signed with the same debug key), then
+  `adb install -r app/build/outputs/apk/release/app-arm64-v8a-release.apk`. Open each account
+  until it shows synced; then switch to the website APK as above. (Girlfriend's phone: done
+  2026-10-21, the build stays installed for now.)
 
 - [ ] **Vercel** → Settings → Git → Production Branch = `dev` (so pushes to `dev` deploy the web).
 - [x] **Merge request to F-Droid:** [fdroid/fdroiddata!53565](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53565)
@@ -76,7 +83,7 @@ Example for a release `1.2.0`; use your own numbers.
    `versionName`: the last number +1 for fixes (`1.1.0` → `1.1.1`), the middle one for
    features (`1.1.0` → `1.2.0`).
 3. **What's new**: one file per language, `changelogs/<versionCode>.txt` in
-   `android/fastlane/metadata/android/{en-US,es-ES,fr-FR,it-IT,de-DE}/` (≤ 500 characters
+   `fastlane/metadata/android/{en-US,es-ES,fr-FR,it-IT,de-DE}/` (≤ 500 characters
    each). The en-US one is also the text of the GitHub Release.
 4. **Commit** on `dev` and push. Wait until CI is green (repository → Actions).
 5. **Publish** (the tag is `v` + `versionName`):
@@ -91,9 +98,14 @@ Example for a release `1.2.0`; use your own numbers.
    `blackwater-macros.apk`. The website's Download button and the in-app notice (within a day)
    point to it by themselves.
 
-F-Droid needs nothing from you (once the app is merged there): its bot sees the new tag, adds
-it to the recipe in fdroiddata and publishes the build within a few days (status:
-https://monitor.f-droid.org). The Release workflow stops if the tag doesn't match
+Once the app is merged on F-Droid, F-Droid needs nothing from you: its bot sees the new tag,
+adds it to the recipe in fdroiddata and publishes the build within a few days (status:
+https://monitor.f-droid.org). **While the merge request is still open**, the bot doesn't run:
+after the tag, change the `Builds` entry (`versionName`, `versionCode`, `commit` = the full hash
+from `git rev-parse v1.2.0`) and `CurrentVersion`/`CurrentVersionCode` in the fork's
+`metadata/com.blackwatermacros.app.yml` (branch `com.blackwatermacros.app`) and in
+`docs/fdroid/com.blackwatermacros.app.yml`. Only the newest version stays in the recipe. The
+merge request's pipeline runs again; wait for it to be green. The Release workflow stops if the tag doesn't match
 `versionName` or the en-US changelog for that `versionCode` is missing. A `versionCode` that
 isn't higher than the last one is not caught by the workflow, but phones refuse it as an
 update and F-Droid ignores it, so always raise it.
@@ -111,9 +123,12 @@ workflow).
   Settings → AI opens; no app release needed.
 - **New screenshots:** `scripts/screenshots.sh` (emulator + demo data). **Banner:** edit
   `scripts/store/feature-graphic-<lang>.svg`, then `npm i --no-save @resvg/resvg-js` and
-  `node scripts/store/render-svg.mjs <svg> android/fastlane/metadata/android/<locale>/images/featureGraphic.png`.
+  `node scripts/store/render-svg.mjs <svg> fastlane/metadata/android/<locale>/images/featureGraphic.png`.
+- **Store listing** (`fastlane/metadata/android/`) stays at the root of the repository: F-Droid
+  reads it only there, from the commit it builds. In
+  `android/` it found nothing («Fastlane/Triple-T is not found») and the page would be empty.
 - **New features:** update the README, `full_description.txt` and the website. The README is
-  the source (English, full); `android/fastlane/metadata/android/<locale>/full_description.txt`
+  the source (English, full); `fastlane/metadata/android/<locale>/full_description.txt`
   is its short version in the five languages (same facts and order, simple HTML only, ≤ 4000
   characters each); `website/index.html` has the main ones (English). The website redeploys
   when `website/` changes on `main`, and takes the screenshots from the en-US store images.

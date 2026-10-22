@@ -487,7 +487,10 @@
     "noData": "Ohne Zugriff auf deine Daten (Einstellungen → KI).",
     "notConfigured": "Richte die KI ein, um den Coach zu nutzen. Ein kostenloser Google-Schlüssel genügt.",
     "configure": "KI einrichten",
-    "memoryOnly": "Das Gespräch wird nicht gespeichert: Es verschwindet, wenn du die Seite schließt."
+    "memoryOnly": "Das Gespräch wird nicht gespeichert: Es verschwindet, wenn du die Seite schließt.",
+    "copy": "Nachricht kopieren",
+    "copied": "Nachricht kopiert",
+    "copyFailed": "Der Browser hat das Kopieren nicht erlaubt. Markiere den Text."
   },
   "onboarding": {
     "skip": "Überspringen",

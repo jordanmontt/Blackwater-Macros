@@ -266,6 +266,16 @@ class CoachTest {
         assertThat(text.text.substring(text.spanStyles[0].start, text.spanStyles[0].end)).isEqualTo("Desayuno")
     }
 
+    @Test
+    fun `a long-press copies the whole message as shown`() {
+        val answer = ChatMessage(1, AiRole.ASSISTANT, "Con tu tendencia, **61,4 kg** en 30 días.")
+        assertThat(copyText(answer, pending = false)).isEqualTo("Con tu tendencia, 61,4 kg en 30 días.")
+        // The user's own words are copied as typed; nothing while an answer is still arriving.
+        assertThat(copyText(ChatMessage(2, AiRole.USER, " ¿Y **esto**? "), pending = false)).isEqualTo("¿Y **esto**?")
+        assertThat(copyText(answer, pending = true)).isEmpty()
+        assertThat(copyText(ChatMessage(3, AiRole.USER, ""), pending = false)).isEmpty()
+    }
+
     private object PlainCipher : SecretCipher {
         override fun encrypt(plain: String) = plain.reversed()
         override fun decrypt(encoded: String) = encoded.reversed()

@@ -12,7 +12,7 @@ AuthorName: jordanmontt
 SourceCode: https://github.com/jordanmontt/Blackwater-Macros
 IssueTracker: https://github.com/jordanmontt/Blackwater-Macros/issues
 Changelog: 
-  https://github.com/jordanmontt/Blackwater-Macros/tree/HEAD/android/fastlane/metadata/android/en-US/changelogs
+  https://github.com/jordanmontt/Blackwater-Macros/tree/HEAD/fastlane/metadata/android/en-US/changelogs
 Donate: https://ko-fi.com/jordanmontt
 
 AutoName: Blackwater Macros

@@ -223,6 +223,8 @@
   "coach_send": "coach.send",
   "coach_stop": "coach.stop",
   "coach_thinking": "coach.thinking",
+  "coach_copy": "coach.copy",
+  "coach_copied": "coach.copied",
   "coach_engine": ["coach.engine", "provider:s"],
   "ai_short_openai": "ai.providerShort.openai",
   "ai_short_openrouter": "ai.providers.openrouter",

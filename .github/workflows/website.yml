@@ -11,7 +11,7 @@ on:
     branches: [main]
     paths:
       - website/**
-      - android/fastlane/metadata/android/en-US/images/**
+      - fastlane/metadata/android/en-US/images/**
       - android/gradle.properties
       - .github/workflows/website.yml
   workflow_dispatch:
@@ -37,7 +37,7 @@ jobs:
         run: |
           mkdir -p _site/screenshots
           cp website/*.html website/*.css website/*.js _site/
-          cp android/fastlane/metadata/android/en-US/images/phoneScreenshots/*.png _site/screenshots/
+          cp fastlane/metadata/android/en-US/images/phoneScreenshots/*.png _site/screenshots/
           cp public/icon-192x192.png _site/icon.png
           cert=$(sed -n 's/^releaseCertSha256=//p' android/gradle.properties | tr -d ': ' | tr 'a-f' 'A-F')
           if [ ${#cert} -eq 64 ]; then

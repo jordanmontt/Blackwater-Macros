@@ -10,7 +10,7 @@
 # Boots the emulator if none is running, installs a debug build, loads the web
 # demo dataset (scripts/demo-csv.ts) through the debug-only DemoSeedReceiver,
 # then walks the screens and saves them into
-# android/fastlane/metadata/android/<locale>/images/phoneScreenshots/.
+# fastlane/metadata/android/<locale>/images/phoneScreenshots/.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -113,7 +113,7 @@ shot() { # dir name
 back() { "$ADB" shell input keyevent KEYCODE_BACK; sleep 1.5; }
 
 run() { # lang locale-folder
-  local lang=$1 out="$ROOT/android/fastlane/metadata/android/$2/images/phoneScreenshots"
+  local lang=$1 out="$ROOT/fastlane/metadata/android/$2/images/phoneScreenshots"
   echo "Screenshots in $lang → ${out#"$ROOT"/}"
   rm -rf "$out" && mkdir -p "$out"
 

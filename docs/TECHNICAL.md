@@ -1252,6 +1252,10 @@ app language, no medical claims.
   again with the history, newest 5 in total; a photo without words asks
   `coach.photoPrompt`. Cloud providers and Android models that read images (Gemma); the
   web's browser model and Qwen are text-only, so the photo button explains that instead.
+  **Copying** a message takes all of it, as in messaging apps (no text selection): a long-press
+  on Android (`copyText`; Android 13+ confirms the copy itself, older versions get a toast), a
+  copy button on the web, shown on hover with a mouse and always on a touch screen. The
+  coach's answer is copied as it reads (no `**`), the user's words as typed.
 - **On-device AI** (Android only, D5/D6): a model from the `LocalModels` catalog (Gemma 4 E2B
   default, Gemma 4 E4B, Qwen3 1.7B text-only; Apache-2.0, SHA-256 pinned; one on the phone at
   a time) run by LiteRT-LM (`data/ai/local/`). Downloaded
@@ -1495,7 +1499,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ai/MealEstimatorTest.kt` | «Foto o texto»: photos + description → one JSON request (mirrors `add-food-photo.test.tsx`); unreadable answers; the language told to the model; photo downscale; the camera FileProvider only reaches the temporary folder |
 | `data/ai/local/LocalModelTest.kt` | On-device model: resumable download, SHA-256 check, device support and the low-RAM warning, engine routing, model outside backups, what counts as an out-of-memory kill |
 | `data/ai/local/LocalModelCatalogTest.kt` | The site's model catalog: valid entries become models, wrong ones are skipped (non-Hugging Face URL, bad checksum, path tricks, newer app), merge with the built-in list, `hidden`; the committed file matches the built-in models |
-| `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
+| `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», copying a whole message, failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; they open on the welcome page, also from «Ver tutorial» with an account (which neither syncs nor skips ahead); ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
 | `data/update/UpdateCheckerTest.kt` | New version notice: versions compare by number, GitHub asked at most once a day and never by another key's build (F-Droid) or with the switch off, «Not now» hides only that version, errors stay silent |

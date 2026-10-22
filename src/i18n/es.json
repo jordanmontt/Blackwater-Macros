@@ -487,7 +487,10 @@
     "noData": "Sin acceso a tus datos (Ajustes → IA).",
     "notConfigured": "Configura la IA para usar el coach. Con una clave gratis de Google basta.",
     "configure": "Configurar la IA",
-    "memoryOnly": "La conversación no se guarda: se borra al cerrar la página."
+    "memoryOnly": "La conversación no se guarda: se borra al cerrar la página.",
+    "copy": "Copiar mensaje",
+    "copied": "Mensaje copiado",
+    "copyFailed": "El navegador no permitió copiar. Selecciona el texto."
   },
   "onboarding": {
     "skip": "Saltar",
