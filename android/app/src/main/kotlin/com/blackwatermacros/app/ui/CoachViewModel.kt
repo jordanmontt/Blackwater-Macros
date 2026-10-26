@@ -81,6 +81,12 @@ const val LOCAL_ANSWER_TOKENS = 1536
 /** Rough token count for budgeting (about 3 characters per token). */
 internal fun approxTokens(text: String): Int = text.length / 3
 
+/** What a photo costs Gemma's image encoder, in tokens. */
+internal const val PHOTO_TOKENS = 260
+
+/** The question's share of the phone model's window: its words and photos. */
+internal fun localQuestionTokens(question: AiMessage): Int = approxTokens(question.text) + question.images.size * PHOTO_TOKENS
+
 /**
  * The phone's model reads prompt, history and answer in one window: the oldest
  * turns are dropped until [fixedTokens] (system prompt + question) plus the history
@@ -178,6 +184,8 @@ class CoachViewModel(
         val scaled = PhotoCodec.read(context, uri, deleteAfter) ?: return
         if (_photos.value.size < MAX_PHOTOS) {
             _photos.value = _photos.value + MealPhoto(nextPhotoId++, scaled.image, scaled.preview.asImageBitmap())
+            // The phone's model reads photos with its image encoder: loaded now, not on send.
+            prepareLocal()
         }
     }
 
@@ -212,15 +220,12 @@ class CoachViewModel(
         job = viewModelScope.launch {
             try {
                 val current = settings.current
-                val context = if (current.coachSeesData) buildCoachContext(loadCoachInput()) else null
-                val system = buildCoachSystemPrompt(language(), context)
+                val system = coachSystemPrompt()
                 val question = AiMessage(AiRole.USER, asked.modelText, asked.images)
                 val answer = if (current.coachEngine == AiEngineChoice.DEVICE && local != null) {
                     if (asked.images.isNotEmpty() && !local.supportsImages()) throw AiException(AiFailure.NO_VISION)
-                    // A photo costs ~260 tokens for Gemma's image encoder.
-                    val fixed = approxTokens(system) + approxTokens(question.text) + question.images.size * 260
-                    val fitted = fitHistoryToBudget(history, fixed, LocalEngine.MAX_TOKENS - LOCAL_ANSWER_TOKENS)
-                    local.stream(system, fitted + question)
+                    val questionTokens = localQuestionTokens(question)
+                    local.stream(system, fitLocalHistory(system, history, questionTokens) + question, questionTokens + LOCAL_ANSWER_TOKENS)
                 } else {
                     client.stream(
                         current.config,
@@ -252,11 +257,43 @@ class CoachViewModel(
     fun reset() {
         job?.cancel()
         job = null
-        // A new conversation starts from scratch: the phone's model gives its memory back.
-        local?.releaseWhenIdle()
         _photos.value = emptyList()
         _state.value = ChatState()
+        // The phone's model starts the new conversation now, while the next question is typed.
+        if (engine.value == AiEngineChoice.DEVICE) prepareLocal() else local?.releaseWhenIdle()
     }
+
+    /**
+     * The Coach tab is on screen ([visible]) or not. With the phone's model it is loaded
+     * while the tab is open (the ~20 s load happens while the user types) and freed a
+     * minute after the tab is left.
+     */
+    fun onScreen(visible: Boolean) {
+        val local = local ?: return
+        local.hold(visible && engine.value == AiEngineChoice.DEVICE)
+        if (visible) prepareLocal()
+    }
+
+    /** Loads the phone's model and opens the conversation the next question will use. */
+    private fun prepareLocal() {
+        val local = local ?: return
+        if (engine.value != AiEngineChoice.DEVICE || _state.value.streaming) return
+        viewModelScope.launch {
+            val photos = _photos.value.size
+            val system = runCatching { coachSystemPrompt() }.getOrNull() ?: return@launch
+            val history = historyForModel(_state.value.messages, photos)
+            local.prepare(system, fitLocalHistory(system, history, photos * PHOTO_TOKENS), vision = photos > 0 && local.supportsImages())
+        }
+    }
+
+    private suspend fun coachSystemPrompt(): String {
+        val context = if (settings.current.coachSeesData) buildCoachContext(loadCoachInput()) else null
+        return buildCoachSystemPrompt(language(), context)
+    }
+
+    /** The phone's model reads prompt, earlier turns and answer in one window. */
+    private fun fitLocalHistory(system: String, history: List<AiMessage>, questionTokens: Int): List<AiMessage> =
+        fitHistoryToBudget(history, approxTokens(system) + questionTokens, LocalEngine.MAX_TOKENS - LOCAL_ANSWER_TOKENS)
 
     /** Same data as the Comidas card and Progreso: profile, targets, 4 weeks of meals, weigh-ins. */
     private suspend fun loadCoachInput(today: String = todayKey()): CoachInput {

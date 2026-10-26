@@ -20,6 +20,7 @@
     "logout": "Esci"
   },
   "demo": {
+    "mode": "Modalità demo",
     "title": "Esplora i dati demo",
     "description": "Entra senza creare un account ed esplora tutti i dati di esempio: pasti, peso, statistiche e modelli. Puoi aggiungere, modificare ed eliminare ciò che vuoi; tutto resta solo in questo browser e si azzera quando chiudi la scheda.",
     "enter": "Esplora i dati demo",
@@ -80,6 +81,8 @@
     "totalOnlyBadge": "Totale manuale"
   },
   "addFood": {
+    "templatesHint": "Tieni premuto un modello per modificarlo o eliminarlo.",
+    "templateOptions": "Modifica o elimina",
     "title": "Aggiungi cibo",
     "search": "Cerca",
     "searchHint": "Alimenti e prodotti",
@@ -336,6 +339,10 @@
   },
   "ajustes": {
     "title": "Impostazioni",
+    "groupAccount": "Account",
+    "groupPersonal": "Personale",
+    "groupApp": "App",
+    "groupAbout": "Informazioni",
     "appearance": "Aspetto",
     "language": "Lingua",
     "languageSystem": "Sistema",
@@ -370,11 +377,9 @@
     "goalMaintain": "Mantenimento",
     "goalSurplus": "Massa",
     "proteinRecLabel": "Proteine raccomandate",
-    "session": "Sessione",
     "loggedInAs": "Accesso come",
     "administration": "Amministrazione",
-    "administrationDescription": "Gestisci gli utenti dell'app.",
-    "openAdmin": "Amministrazione"
+    "administrationDescription": "Gestisci gli utenti dell'app."
   },
   "ai": {
     "title": "Intelligenza artificiale",
@@ -565,7 +570,6 @@
   "perfil": {
     "title": "Profilo",
     "description": "Il tuo obiettivo, i tuoi dati corporei e le raccomandazioni di calorie e proteine.",
-    "open": "Apri il profilo",
     "backToSettings": "Torna alle Impostazioni",
     "errorBirthYear": "L'anno deve essere tra 1920 e 2010",
     "errorHeight": "L'altezza deve essere tra 100 e 250 cm",
@@ -659,7 +663,7 @@
   },
   "about": {
     "sourceCode": "Codice sorgente",
-    "sourceCodeHint": "Blackwater Macros è software libero (AGPL-3.0). Il codice è su GitHub.",
+    "sourceCodeHint": "Blackwater Macros è software libero (AGPL-3.0)",
     "website": "Sito web",
     "websiteHint": "Cos'è l'app, come installarla su Android e le domande frequenti."
   }

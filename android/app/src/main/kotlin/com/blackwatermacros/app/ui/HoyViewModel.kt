@@ -9,6 +9,7 @@ import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.MealRequest
 import com.blackwatermacros.app.data.TemplateDTO
+import com.blackwatermacros.app.data.TemplateRequest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -107,8 +108,18 @@ class HoyViewModel(
         viewModelScope.launch { onSaved(repository.saveTemplate(null, meal.toFormValue().toCopyTemplateRequest())) }
     }
 
+    /** A template edited from «Añadir comida» (hold it), as in Ajustes. */
+    fun saveTemplate(id: String, request: TemplateRequest) {
+        viewModelScope.launch { repository.saveTemplate(id, request) }
+    }
+
     fun deleteTemplate(id: String) {
         viewModelScope.launch { repository.deleteTemplate(id) }
+    }
+
+    /** Undo of a template deleted from «Añadir comida». */
+    fun restoreTemplate(template: TemplateDTO) {
+        viewModelScope.launch { repository.restoreTemplate(template) }
     }
 
     /** Undo of [addMeals]. */

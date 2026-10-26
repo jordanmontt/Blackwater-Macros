@@ -20,6 +20,7 @@
     "logout": "Log out"
   },
   "demo": {
+    "mode": "Demo mode",
     "title": "Explore demo data",
     "description": "Get in without an account and explore all the sample data: meals, weight, statistics and templates. You can add, edit and delete anything; it is all kept only in this browser and reset when you close the tab.",
     "enter": "Explore demo data",
@@ -80,6 +81,8 @@
     "totalOnlyBadge": "Manual total"
   },
   "addFood": {
+    "templatesHint": "Press and hold a template to edit or delete it.",
+    "templateOptions": "Edit or delete",
     "title": "Add food",
     "search": "Search",
     "searchHint": "Foods and products",
@@ -336,6 +339,10 @@
   },
   "ajustes": {
     "title": "Settings",
+    "groupAccount": "Account",
+    "groupPersonal": "Personal",
+    "groupApp": "App",
+    "groupAbout": "About",
     "appearance": "Appearance",
     "language": "Language",
     "languageSystem": "System",
@@ -370,11 +377,9 @@
     "goalMaintain": "Maintain",
     "goalSurplus": "Bulk",
     "proteinRecLabel": "Recommended protein",
-    "session": "Session",
     "loggedInAs": "Logged in as",
     "administration": "Administration",
-    "administrationDescription": "Manage the app's users.",
-    "openAdmin": "Administration"
+    "administrationDescription": "Manage the app's users."
   },
   "ai": {
     "title": "Artificial intelligence",
@@ -565,7 +570,6 @@
   "perfil": {
     "title": "Profile",
     "description": "Your goal, your body data and the calorie and protein recommendations.",
-    "open": "Open profile",
     "backToSettings": "Back to Settings",
     "errorBirthYear": "The year must be between 1920 and 2010",
     "errorHeight": "The height must be between 100 and 250 cm",
@@ -659,7 +663,7 @@
   },
   "about": {
     "sourceCode": "Source code",
-    "sourceCodeHint": "Blackwater Macros is free software (AGPL-3.0). Its code is on GitHub.",
+    "sourceCodeHint": "Blackwater Macros is free software (AGPL-3.0)",
     "website": "Website",
     "websiteHint": "What the app is, how to install it on Android, and common questions."
   }

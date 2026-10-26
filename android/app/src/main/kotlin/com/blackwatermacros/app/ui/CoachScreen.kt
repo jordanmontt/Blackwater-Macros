@@ -79,6 +79,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.R
@@ -117,6 +118,12 @@ fun CoachScreen(
     var draft by rememberSaveable { mutableStateOf("") }
     val listState = rememberLazyListState()
     val lastLength = state.messages.lastOrNull()?.text?.length ?: 0
+
+    // With the phone's model: loaded while this tab is open, so the first answer does not wait for it.
+    LifecycleResumeEffect(engine) {
+        viewModel.onScreen(true)
+        onPauseOrDispose { viewModel.onScreen(false) }
+    }
 
     LaunchedEffect(state.messages.size, lastLength) {
         if (state.messages.isNotEmpty()) listState.scrollToItem(state.messages.size - 1, Int.MAX_VALUE / 2)
@@ -322,7 +329,7 @@ private fun MessageBubble(message: ChatMessage, pending: Boolean) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
     // Long-press copies the whole message, as in messaging apps.
-    val copyable = copyText(message, pending)
+    val copyable = copyText(message)
     val copiedText = stringResource(R.string.coach_copied)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start) {
         Box(
@@ -409,11 +416,10 @@ private fun MessageContent(message: ChatMessage, pending: Boolean, mine: Boolean
 }
 
 /**
- * What a long-press copies: the text as shown (the coach's without the ** of bold); empty,
- * so nothing to copy, while it is still arriving or for photos alone.
+ * What a long-press copies: the text as shown (the coach's without the ** of bold); while
+ * it is still arriving, what has arrived so far. Empty, so nothing to copy, for photos alone.
  */
-internal fun copyText(message: ChatMessage, pending: Boolean): String = when {
-    pending -> ""
+internal fun copyText(message: ChatMessage): String = when {
     message.role == AiRole.USER -> message.text.trim()
     else -> simpleMarkdown(message.text).text
 }

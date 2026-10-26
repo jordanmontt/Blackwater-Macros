@@ -269,11 +269,12 @@ class CoachTest {
     @Test
     fun `a long-press copies the whole message as shown`() {
         val answer = ChatMessage(1, AiRole.ASSISTANT, "Con tu tendencia, **61,4 kg** en 30 días.")
-        assertThat(copyText(answer, pending = false)).isEqualTo("Con tu tendencia, 61,4 kg en 30 días.")
-        // The user's own words are copied as typed; nothing while an answer is still arriving.
-        assertThat(copyText(ChatMessage(2, AiRole.USER, " ¿Y **esto**? "), pending = false)).isEqualTo("¿Y **esto**?")
-        assertThat(copyText(answer, pending = true)).isEmpty()
-        assertThat(copyText(ChatMessage(3, AiRole.USER, ""), pending = false)).isEmpty()
+        assertThat(copyText(answer)).isEqualTo("Con tu tendencia, 61,4 kg en 30 días.")
+        // The user's own words are copied as typed; nothing for photos alone.
+        assertThat(copyText(ChatMessage(2, AiRole.USER, " ¿Y **esto**? "))).isEqualTo("¿Y **esto**?")
+        assertThat(copyText(ChatMessage(3, AiRole.USER, ""))).isEmpty()
+        // An answer still being written (slow on the phone's model): what has arrived so far.
+        assertThat(copyText(ChatMessage(4, AiRole.ASSISTANT, "Con tu **tend"))).isEqualTo("Con tu tend")
     }
 
     private object PlainCipher : SecretCipher {

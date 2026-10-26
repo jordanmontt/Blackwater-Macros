@@ -17,7 +17,7 @@ import java.io.File
  * Debug builds only (`src/debug`, never in a release): loads the demo data for
  * the store screenshots. `scripts/screenshots.sh` copies `meals.csv` and
  * `weights.csv` (from `scripts/demo-csv.ts`) into `files/seed/` and sends
- * `adb shell am broadcast -n com.blackwatermacros.app/.DemoSeedReceiver`.
+ * `adb shell am broadcast -n com.blackwatermacros.app.debug/com.blackwatermacros.app.DemoSeedReceiver`.
  * It also sets the demo person's profile, skips the first steps and stores a
  * placeholder AI key so the AI screens show their normal state (no request is
  * made unless something is sent).

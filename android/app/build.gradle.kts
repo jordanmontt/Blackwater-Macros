@@ -56,14 +56,18 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Installs next to the real app (signed with another key), with its own data, so a
+            // change can be tried on the phone in use. Launcher name: src/debug.
+            applicationIdSuffix = ".debug"
+        }
         release {
             // R8: removes unused code and resources (the debug APK is ~3× bigger).
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // Without a release key, sign with the local debug key so the APK can be shared and
-            // installed for testing (it also updates a debug install). Store/F-Droid builds use
-            // their own keys.
+            // installed for testing. Store/F-Droid builds use their own keys.
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }

@@ -32,7 +32,8 @@ import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.CloudUpload
@@ -144,9 +145,9 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState()),
         ) {
-            AppearanceCard(theme = theme, onThemeChange = viewModel::setTheme)
-            LanguageCard()
-            AccountCard(
+            val context = LocalContext.current
+            fun open(url: String) = runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+            AccountGroup(
                 state = account,
                 loggingOut = logoutPrompt == LogoutPrompt.Checking,
                 onLogin = onOpenLogin,
@@ -154,71 +155,100 @@ fun SettingsScreen(
                 onSyncNow = viewModel::syncNow,
                 onLogout = viewModel::requestLogout,
             )
-            LinkCard(
-                icon = Icons.Filled.Person,
-                title = stringResource(R.string.profile_title),
-                subtitle = stringResource(R.string.profile_link_subtitle),
-                onClick = onOpenProfile,
-            )
-            LinkCard(
-                icon = Icons.Filled.AutoAwesome,
-                title = stringResource(R.string.ai_title),
-                subtitle = stringResource(R.string.ai_link_subtitle),
-                onClick = onOpenAi,
-            )
-            TemplatesCard(
-                templates = templates,
-                onCreate = {
-                    editingTemplate = null
-                    templateFormOpen = true
-                },
-                onEdit = { template ->
-                    editingTemplate = template
-                    templateFormOpen = true
-                },
-                onDelete = { deletingTemplate = it },
-            )
-            DataCard(viewModel = viewModel, message = dataMessage)
-            LinkCard(
-                icon = Icons.Filled.Info,
-                title = stringResource(R.string.methodology),
-                subtitle = stringResource(R.string.methodology_subtitle),
-                onClick = onOpenMetodologia,
-            )
-            val context = LocalContext.current
-            LinkCard(
-                icon = Icons.Filled.Code,
-                title = stringResource(R.string.source_code),
-                subtitle = stringResource(R.string.source_code_hint) + " · v" + BuildConfig.VERSION_NAME,
-                onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, SOURCE_CODE_URL.toUri())) } },
-            )
-            UpdateCheckCard()
-            LinkCard(
-                icon = Icons.Filled.Favorite,
-                title = stringResource(R.string.donate),
-                subtitle = stringResource(R.string.donate_hint),
-                onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, DONATE_URL.toUri())) } },
-            )
-            LinkCard(
-                icon = Icons.Filled.PlayCircle,
-                title = stringResource(R.string.onboarding_replay),
-                subtitle = stringResource(R.string.onboarding_replay_hint),
-                onClick = onOpenTutorial,
-            )
-            if (account.account?.isAdmin == true) {
-                LinkCard(
-                    icon = Icons.Filled.Shield,
-                    title = stringResource(R.string.admin_title),
-                    subtitle = stringResource(R.string.admin_subtitle),
-                    onClick = onOpenAdmin,
+            SettingsGroup(stringResource(R.string.settings_group_personal)) {
+                SettingsRow(
+                    icon = Icons.Filled.Person,
+                    title = stringResource(R.string.profile_title),
+                    subtitle = stringResource(R.string.profile_link_subtitle),
+                    onClick = onOpenProfile,
+                    trailing = { RowArrow() },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.AutoAwesome,
+                    title = stringResource(R.string.ai_title),
+                    subtitle = stringResource(R.string.ai_link_subtitle),
+                    onClick = onOpenAi,
+                    trailing = { RowArrow() },
+                )
+                TemplatesRows(
+                    templates = templates,
+                    onCreate = {
+                        editingTemplate = null
+                        templateFormOpen = true
+                    },
+                    onEdit = { template ->
+                        editingTemplate = template
+                        templateFormOpen = true
+                    },
+                    onDelete = { deletingTemplate = it },
                 )
             }
-            LinkCard(
-                icon = Icons.Filled.Public,
-                title = stringResource(R.string.website),
-                subtitle = stringResource(R.string.website_hint),
-                onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, BuildConfig.WEBSITE_URL.toUri())) } },
-            )
+            DataGroup(viewModel = viewModel, message = dataMessage)
+            SettingsGroup(stringResource(R.string.settings_group_app)) {
+                SettingsRow(
+                    icon = Icons.Filled.Palette,
+                    title = stringResource(R.string.appearance_title),
+                    below = {
+                        SegmentedChoice(
+                            options = listOf(
+                                ThemeMode.SYSTEM to stringResource(R.string.theme_system),
+                                ThemeMode.LIGHT to stringResource(R.string.theme_light),
+                                ThemeMode.DARK to stringResource(R.string.theme_dark),
+                            ),
+                            selected = theme,
+                            onSelect = viewModel::setTheme,
+                        )
+                    },
+                )
+                LanguageRow()
+                UpdateCheckRow()
+                SettingsRow(
+                    icon = Icons.Filled.PlayCircle,
+                    title = stringResource(R.string.onboarding_replay),
+                    subtitle = stringResource(R.string.onboarding_replay_hint),
+                    onClick = onOpenTutorial,
+                    trailing = { RowArrow() },
+                )
+            }
+            SettingsGroup(stringResource(R.string.settings_group_about)) {
+                SettingsRow(
+                    icon = Icons.Filled.Info,
+                    title = stringResource(R.string.methodology),
+                    subtitle = stringResource(R.string.methodology_subtitle),
+                    onClick = onOpenMetodologia,
+                    trailing = { RowArrow() },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.Public,
+                    title = stringResource(R.string.website),
+                    subtitle = stringResource(R.string.website_hint),
+                    onClick = { open(BuildConfig.WEBSITE_URL) },
+                    trailing = { RowArrow() },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.Code,
+                    title = stringResource(R.string.source_code),
+                    subtitle = stringResource(R.string.source_code_hint) + " v" + BuildConfig.VERSION_NAME,
+                    onClick = { open(SOURCE_CODE_URL) },
+                    trailing = { RowArrow() },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.Favorite,
+                    title = stringResource(R.string.donate),
+                    subtitle = stringResource(R.string.donate_hint),
+                    onClick = { open(DONATE_URL) },
+                    trailing = { RowArrow() },
+                )
+                if (account.account?.isAdmin == true) {
+                    SettingsRow(
+                        icon = Icons.Filled.Shield,
+                        title = stringResource(R.string.admin_title),
+                        subtitle = stringResource(R.string.admin_subtitle),
+                        onClick = onOpenAdmin,
+                        trailing = { RowArrow() },
+                    )
+                }
+            }
             Spacer(Modifier.height(24.dp))
         }
     }
@@ -281,9 +311,8 @@ fun SettingsScreen(
 
 // --- Account ---
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AccountCard(
+private fun AccountGroup(
     state: AccountUiState,
     loggingOut: Boolean,
     onLogin: () -> Unit,
@@ -294,19 +323,19 @@ private fun AccountCard(
     val account = state.account
     var switching by rememberSaveable { mutableStateOf(false) }
     if (switching) AccountSwitcherSheet(onDismiss = { switching = false })
-    SettingsCard(stringResource(R.string.account_title)) {
+    SettingsGroup(stringResource(R.string.settings_group_account)) {
         if (account == null) {
-            CardDescription(stringResource(R.string.account_local_description))
-            Spacer(Modifier.height(12.dp))
-            OutlinedButton(onClick = onLogin) {
-                ButtonIcon(Icons.AutoMirrored.Filled.Login, MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.account_login))
-            }
-            return@SettingsCard
+            SettingsRow(
+                icon = Icons.AutoMirrored.Filled.Login,
+                title = stringResource(R.string.account_login),
+                subtitle = stringResource(R.string.account_local_description),
+                onClick = onLogin,
+                color = MaterialTheme.colorScheme.primary,
+                trailing = { RowArrow() },
+            )
+            return@SettingsGroup
         }
 
-        Text(stringResource(R.string.account_connected_as, account.username), style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.height(4.dp))
         // Same rule as the header cloud: a failed run only matters while changes are waiting,
         // and only a refused change is red (the rest is retried on its own).
         val problem = state.problem?.takeIf { state.pendingChanges > 0 }
@@ -320,62 +349,52 @@ private fun AccountCard(
             account.lastSyncAt != null -> stringResource(R.string.sync_done, syncTimePhrase(account.lastSyncAt)) to false
             else -> stringResource(R.string.sync_never) to false
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (state.syncing) {
-                CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+        SettingsRow(
+            icon = when {
+                isProblem -> Icons.Filled.CloudOff
+                state.pendingChanges > 0 -> Icons.Filled.CloudUpload
+                else -> Icons.Filled.CloudDone
+            },
+            title = stringResource(R.string.account_connected_as, account.username),
+            subtitle = status,
+            subtitleColor = if (isProblem) MaterialTheme.colorScheme.error else Color.Unspecified,
+            trailing = if (state.syncing) {
+                { CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) }
             } else {
-                Icon(
-                    when {
-                        isProblem -> Icons.Filled.CloudOff
-                        state.pendingChanges > 0 -> Icons.Filled.CloudUpload
-                        else -> Icons.Filled.CloudDone
-                    },
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = when {
-                        isProblem -> MaterialTheme.colorScheme.error
-                        state.pendingChanges > 0 -> MaterialTheme.colorScheme.onSurfaceVariant
-                        else -> MaterialTheme.colorScheme.primary
-                    },
-                )
-            }
-            Spacer(Modifier.width(8.dp))
-            Text(
-                status,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (isProblem) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                null
+            },
+        )
+        if (account.sessionExpired) {
+            SettingsRow(
+                icon = Icons.AutoMirrored.Filled.Login,
+                title = stringResource(R.string.account_login),
+                onClick = onLogin,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        } else {
+            SettingsRow(
+                icon = Icons.Filled.Sync,
+                title = stringResource(R.string.sync_now),
+                onClick = onSyncNow,
+                enabled = !state.syncing,
             )
         }
-        Spacer(Modifier.height(12.dp))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (account.sessionExpired) {
-                OutlinedButton(onClick = onLogin) { Text(stringResource(R.string.account_login)) }
-            } else {
-                OutlinedButton(onClick = onSyncNow, enabled = !state.syncing) {
-                    ButtonIcon(Icons.Filled.Sync)
-                    Text(stringResource(R.string.sync_now), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            // Several accounts on one phone (Android only): switch, or add one.
-            if (state.otherAccounts > 0) {
-                OutlinedButton(onClick = { switching = true }) {
-                    ButtonIcon(Icons.Filled.SwitchAccount)
-                    Text(stringResource(R.string.account_switch), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                OutlinedButton(onClick = onAddAccount) {
-                    ButtonIcon(Icons.Filled.PersonAdd)
-                    Text(stringResource(R.string.account_add), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            OutlinedButton(onClick = onLogout, enabled = !loggingOut) {
-                ButtonIcon(Icons.AutoMirrored.Filled.Logout)
-                Text(
-                    stringResource(if (loggingOut) R.string.logging_out else R.string.logout),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+        // Several accounts on one phone (Android only): switch, or add one.
+        if (state.otherAccounts > 0) {
+            SettingsRow(
+                icon = Icons.Filled.SwitchAccount,
+                title = stringResource(R.string.account_switch),
+                onClick = { switching = true },
+            )
+        } else {
+            SettingsRow(icon = Icons.Filled.PersonAdd, title = stringResource(R.string.account_add), onClick = onAddAccount)
         }
+        SettingsRow(
+            icon = Icons.AutoMirrored.Filled.Logout,
+            title = stringResource(if (loggingOut) R.string.logging_out else R.string.logout),
+            onClick = onLogout,
+            enabled = !loggingOut,
+        )
     }
 }
 
@@ -407,7 +426,7 @@ private fun ButtonIcon(icon: ImageVector, tint: Color = MaterialTheme.colorSchem
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TemplatesCard(
+private fun TemplatesRows(
     templates: List<TemplateDTO>,
     onCreate: () -> Unit,
     onEdit: (TemplateDTO) -> Unit,
@@ -415,76 +434,68 @@ private fun TemplatesCard(
 ) {
     // Collapsed by default: with many templates the list would take the whole page.
     var expanded by rememberSaveable { mutableStateOf(false) }
-    AppCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                Modifier.fillMaxWidth().clickable { expanded = !expanded },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.templates_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    CardDescription(pluralStringResource(R.plurals.templates_count, templates.size, templates.size))
-                }
-                Icon(
-                    if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            if (!expanded) return@Column
-            Spacer(Modifier.height(12.dp))
-            OutlinedButton(onClick = onCreate) {
-                ButtonIcon(Icons.Filled.Add, MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.template_new), style = MaterialTheme.typography.labelMedium)
-            }
-            Spacer(Modifier.height(12.dp))
+    SettingsRow(
+        icon = Icons.Filled.Bookmarks,
+        title = stringResource(R.string.templates_title),
+        subtitle = pluralStringResource(R.plurals.templates_count, templates.size, templates.size),
+        onClick = { expanded = !expanded },
+        trailing = {
+            Icon(
+                if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+    )
+    if (!expanded) return
+    Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
+        OutlinedButton(onClick = onCreate) {
+            ButtonIcon(Icons.Filled.Add, MaterialTheme.colorScheme.primary)
+            Text(stringResource(R.string.template_new), style = MaterialTheme.typography.labelMedium)
+        }
+        Spacer(Modifier.height(12.dp))
 
-            if (templates.isEmpty()) {
-                CardDescription(stringResource(R.string.templates_empty))
-            }
-            templates.forEachIndexed { i, template ->
-                if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 4.dp))
-                Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(template.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, maxLines = 1)
-                            Spacer(Modifier.height(2.dp))
-                            CardDescription(
-                                if (template.entryMode == WireEntryMode.TOTAL_ONLY) {
-                                    stringResource(R.string.meal_manual_total)
-                                } else {
-                                    pluralStringResource(R.plurals.ingredient_count, template.ingredients.size, template.ingredients.size)
-                                },
-                            )
-                        }
-                        IconButton(onClick = { onEdit(template) }) {
-                            Icon(
-                                Icons.Filled.Edit,
-                                stringResource(R.string.action_edit),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
-                        IconButton(onClick = { onDelete(template) }) {
-                            Icon(
-                                Icons.Filled.Delete,
-                                stringResource(R.string.action_delete),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
+        if (templates.isEmpty()) {
+            CardDescription(stringResource(R.string.templates_empty))
+        }
+        templates.forEachIndexed { i, template ->
+            if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 4.dp))
+            Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(template.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, maxLines = 1)
+                        Spacer(Modifier.height(2.dp))
+                        CardDescription(
+                            if (template.entryMode == WireEntryMode.TOTAL_ONLY) {
+                                stringResource(R.string.meal_manual_total)
+                            } else {
+                                pluralStringResource(R.plurals.ingredient_count, template.ingredients.size, template.ingredients.size)
+                            },
+                        )
                     }
-                    Spacer(Modifier.height(6.dp))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        NutritionBadge("${formatNumber(template.resolvedCalories)} kcal", secondary = true)
-                        NutritionBadge("${formatNumber(template.resolvedProtein)} g · ${stringResource(R.string.macro_protein)}")
-                        NutritionBadge("${formatNumber(template.resolvedCarbs)} g · ${stringResource(R.string.macro_carbs)}")
-                        NutritionBadge("${formatNumber(template.resolvedFat)} g · ${stringResource(R.string.macro_fat)}")
+                    IconButton(onClick = { onEdit(template) }) {
+                        Icon(
+                            Icons.Filled.Edit,
+                            stringResource(R.string.action_edit),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp),
+                        )
                     }
+                    IconButton(onClick = { onDelete(template) }) {
+                        Icon(
+                            Icons.Filled.Delete,
+                            stringResource(R.string.action_delete),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    NutritionBadge("${formatNumber(template.resolvedCalories)} kcal", secondary = true)
+                    NutritionBadge("${formatNumber(template.resolvedProtein)} g · ${stringResource(R.string.macro_protein)}")
+                    NutritionBadge("${formatNumber(template.resolvedCarbs)} g · ${stringResource(R.string.macro_carbs)}")
+                    NutritionBadge("${formatNumber(template.resolvedFat)} g · ${stringResource(R.string.macro_fat)}")
                 }
             }
         }
@@ -508,9 +519,8 @@ private fun NutritionBadge(text: String, secondary: Boolean = false) {
 
 // --- Data (CSV) ---
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DataCard(viewModel: SettingsViewModel, message: DataMessage?) {
+private fun DataGroup(viewModel: SettingsViewModel, message: DataMessage?) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -534,34 +544,23 @@ private fun DataCard(viewModel: SettingsViewModel, message: DataMessage?) {
     val mealsFile = stringResource(R.string.data_meals_file_name, todayKey())
     val weightsFile = stringResource(R.string.data_weights_file_name, todayKey())
 
-    SettingsCard(stringResource(R.string.data_title)) {
-        CardDescription(stringResource(R.string.data_description))
-        Spacer(Modifier.height(12.dp))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            OutlinedButton(onClick = { exportMeals.launch(mealsFile) }) {
-                ButtonIcon(Icons.Filled.Download)
-                Text(stringResource(R.string.data_export_meals), style = MaterialTheme.typography.labelMedium)
-            }
-            OutlinedButton(onClick = { exportWeights.launch(weightsFile) }) {
-                ButtonIcon(Icons.Filled.Download)
-                Text(stringResource(R.string.data_export_weights), style = MaterialTheme.typography.labelMedium)
-            }
-            OutlinedButton(
-                onClick = { import.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) },
-            ) {
-                ButtonIcon(Icons.Filled.Upload)
-                Text(stringResource(R.string.data_import), style = MaterialTheme.typography.labelMedium)
-            }
-        }
-        Spacer(Modifier.height(4.dp))
-        TextButton(onClick = viewModel::requestDeleteData) {
-            ButtonIcon(Icons.Filled.DeleteForever, MaterialTheme.colorScheme.error)
-            Text(stringResource(R.string.data_delete_button), color = MaterialTheme.colorScheme.error)
-        }
+    SettingsGroup(stringResource(R.string.data_title), footer = stringResource(R.string.data_description)) {
+        SettingsRow(Icons.Filled.Download, stringResource(R.string.data_export_meals), onClick = { exportMeals.launch(mealsFile) })
+        SettingsRow(Icons.Filled.Download, stringResource(R.string.data_export_weights), onClick = { exportWeights.launch(weightsFile) })
+        SettingsRow(
+            Icons.Filled.Upload,
+            stringResource(R.string.data_import),
+            onClick = { import.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) },
+        )
+        SettingsRow(
+            Icons.Filled.DeleteForever,
+            stringResource(R.string.data_delete_button),
+            onClick = viewModel::requestDeleteData,
+            color = MaterialTheme.colorScheme.error,
+        )
         message?.let {
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val isError = it is DataMessage.Failed || it is DataMessage.UnknownFile
+            val isError = it is DataMessage.Failed || it is DataMessage.UnknownFile
+            Row(Modifier.padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     dataMessageText(it),
                     style = MaterialTheme.typography.bodySmall,
@@ -601,54 +600,20 @@ private suspend fun readText(context: Context, uri: Uri): String = withContext(D
     context.contentResolver.openInputStream(uri)!!.bufferedReader(Charsets.UTF_8).use { it.readText() }
 }
 
-// --- Appearance & links ---
+// --- Language ---
 
 @Composable
-private fun AppearanceCard(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit) {
-    SettingsCard(stringResource(R.string.appearance_title)) {
-        SegmentedChoice(
-            options = listOf(
-                ThemeMode.SYSTEM to stringResource(R.string.theme_system),
-                ThemeMode.LIGHT to stringResource(R.string.theme_light),
-                ThemeMode.DARK to stringResource(R.string.theme_dark),
-            ),
-            selected = theme,
-            onSelect = onThemeChange,
-        )
-    }
-}
-
-@Composable
-private fun LinkCard(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
-    AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clickable(onClick = onClick),
-    ) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                CardDescription(subtitle)
-            }
-            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
-
-@Composable
-private fun LanguageCard() {
+private fun LanguageRow() {
     val chosen = remember { chosenAppLanguage() }
     var open by remember { mutableStateOf(false) }
     val systemLabel = stringResource(R.string.language_system)
     val currentLabel = AppLanguages.firstOrNull { it.first == chosen }?.second ?: systemLabel
-    LinkCard(
+    SettingsRow(
         icon = Icons.Filled.Language,
         title = stringResource(R.string.language_title),
         subtitle = currentLabel,
         onClick = { open = true },
+        trailing = { RowArrow() },
     )
     if (open) {
         AlertDialog(

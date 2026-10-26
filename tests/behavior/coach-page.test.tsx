@@ -14,6 +14,7 @@ import { formatTemplate, t } from "@/i18n";
  *  - cada pregunta lleva un resumen de tus datos (perfil, comidas, peso) si
  *    «El coach puede ver mis datos» está activado, y ninguno si no,
  *  - un mensaje se copia entero con un toque (como en las apps de mensajería),
+ *    también una respuesta que aún se está escribiendo (lo que ha llegado),
  *  - la conversación sigue (historial en memoria) hasta «Nueva conversación»,
  *  - los errores se explican y no se reenvían como historial,
  *  - se le pueden mandar fotos (con o sin texto); viajan solo al proveedor y,
@@ -143,6 +144,32 @@ describe("Coach", () => {
     expect(await navigator.clipboard.readText()).toBe("Con tu tendencia, 61,4 kg en 30 días.");
     await user.click(question);
     expect(await navigator.clipboard.readText()).toBe(t.coach.examples[0]);
+  });
+
+  it("copia lo que ha llegado de una respuesta que aún se está escribiendo", async () => {
+    configure();
+    const encoder = new TextEncoder();
+    const piece = { candidates: [{ content: { parts: [{ text: "Con tu **tendencia**, " }] } }] };
+    // The stream stays open: the answer is still being written.
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(piece)}\n\n`));
+          },
+        }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<CoachPage />);
+
+    await user.click(screen.getByRole("button", { name: t.coach.examples[0] }));
+    await screen.findByText("tendencia");
+    expect(screen.getByRole("button", { name: t.coach.stop })).toBeInTheDocument();
+    const [, answer] = screen.getAllByRole("button", { name: t.coach.copy });
+    await user.click(answer);
+    expect(await navigator.clipboard.readText()).toBe("Con tu tendencia,");
+    await user.click(screen.getByRole("button", { name: t.coach.stop }));
   });
 
   it("recuerda la conversación hasta «Nueva conversación»", async () => {

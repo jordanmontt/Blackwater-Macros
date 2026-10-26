@@ -3,25 +3,36 @@
 import { SOURCE_CODE_URL, WEBSITE_URL } from "@/lib/links";
 import { useRef, useState } from "react";
 import { formatNumber } from "@/i18n/format";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ChevronDownIcon, DownloadIcon, GlobeIcon, Loader2Icon, UploadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, SparklesIcon, Trash2Icon, UserIcon } from "lucide-react";
+import {
+  BookmarkIcon,
+  ChevronDownIcon,
+  CircleUserRoundIcon,
+  CodeIcon,
+  DownloadIcon,
+  GlobeIcon,
+  InfoIcon,
+  Loader2Icon,
+  LogOutIcon,
+  PaletteIcon,
+  PencilIcon,
+  PlayCircleIcon,
+  PlusIcon,
+  ShieldIcon,
+  SparklesIcon,
+  Trash2Icon,
+  UploadIcon,
+  UserIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { TemplateForm } from "@/components/meals/template-form";
 import { parseBackupCsv } from "@/lib/csv-import";
-import { LanguageCard } from "@/components/settings/language-card";
+import { LanguageRow } from "@/components/settings/language-row";
+import { SettingsGroup, SettingsRow } from "@/components/settings/settings-list";
 import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { exitDemoMode } from "@/lib/demo-store";
 import { useDemoMode } from "@/lib/use-demo-mode";
@@ -127,101 +138,38 @@ export default function AjustesPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 md:pt-6">
+    <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pt-4 pb-6 md:pt-6">
       <header className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">{t.ajustes.title}</h1>
         </div>
       </header>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.ajustes.appearance}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-1 rounded-lg border p-1">
-            {themeOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={mounted && theme === option.value}
-                onClick={() => setTheme(option.value)}
-                className={cn(
-                  "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
-                  mounted && theme === option.value && "bg-primary text-primary-foreground",
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <SettingsGroup title={t.ajustes.groupAccount}>
+        <SettingsRow icon={CircleUserRoundIcon} title={demoMode ? t.demo.mode : `${t.ajustes.loggedInAs} ${username || "…"}`} />
+        <SettingsRow icon={LogOutIcon} title={t.auth.logout} onClick={() => void handleLogout()} />
+      </SettingsGroup>
 
-      <LanguageCard />
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.ajustes.session}</CardTitle>
-          <CardDescription>
-            {demoMode ? t.demo.banner : `${t.ajustes.loggedInAs} ${username || "…"}`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Separator className="mb-3" />
-          <Button variant="outline" onClick={() => void handleLogout()}>
-            <LogOutIcon /> {t.auth.logout}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.perfil.title}</CardTitle>
-          <CardDescription>{t.perfil.description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/ajustes/perfil" />}
-          >
-            <UserIcon /> {t.perfil.open}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.ai.title}</CardTitle>
-          <CardDescription>{t.ai.linkSubtitle}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" nativeButton={false} render={<Link href="/ajustes/ia" />}>
-            <SparklesIcon /> {t.ai.open}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          {/* Collapsed by default: with many templates the list would take the whole page. */}
-          <button
-            type="button"
-            aria-expanded={templatesOpen}
-            onClick={() => setTemplatesOpen((open) => !open)}
-            className="flex w-full items-center justify-between gap-2 text-left"
-          >
-            <span>
-              <CardTitle className="text-base">{t.hoy.templates}</CardTitle>
-              <CardDescription>{templates.length === 1
-                  ? t.ajustes.templatesCountOne
-                  : formatTemplate(t.ajustes.templatesCount, { n: templates.length })}</CardDescription>
-            </span>
-            <ChevronDownIcon className={cn("size-4 text-muted-foreground transition-transform", templatesOpen && "rotate-180")} />
-          </button>
-        </CardHeader>
-        <CardContent hidden={!templatesOpen} className="space-y-3">
+      <SettingsGroup title={t.ajustes.groupPersonal}>
+        <SettingsRow icon={UserIcon} title={t.perfil.title} description={t.perfil.description} href="/ajustes/perfil" />
+        <SettingsRow icon={SparklesIcon} title={t.ai.title} description={t.ai.linkSubtitle} href="/ajustes/ia" />
+        {/* Collapsed by default: with many templates the list would take the whole page. */}
+        <SettingsRow
+          icon={BookmarkIcon}
+          title={t.hoy.templates}
+          description={
+            templates.length === 1 ? t.ajustes.templatesCountOne : formatTemplate(t.ajustes.templatesCount, { n: templates.length })
+          }
+          expanded={templatesOpen}
+          onClick={() => setTemplatesOpen((open) => !open)}
+          trailing={
+            <ChevronDownIcon
+              aria-hidden
+              className={cn("size-4 shrink-0 text-muted-foreground transition-transform", templatesOpen && "rotate-180")}
+            />
+          }
+        />
+        <div hidden={!templatesOpen} className="space-y-3 px-4 pt-1 pb-3">
           <Button
             variant="outline"
             size="sm"
@@ -287,8 +235,8 @@ export default function AjustesPage() {
               ))}
             </ul>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </SettingsGroup>
 
       <TemplateForm
         open={templateDialogOpen}
@@ -304,123 +252,73 @@ export default function AjustesPage() {
         }}
       />
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.ajustes.exportSection}</CardTitle>
-          <CardDescription>{t.ajustes.exportHint}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            disabled={demoMode}
-            nativeButton={false}
-            render={<a href="/api/export/meals" download />}
-          >
-            <DownloadIcon /> {t.ajustes.exportMeals}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={demoMode}
-            nativeButton={false}
-            render={<a href="/api/export/weights" download />}
-          >
-            <DownloadIcon /> {t.ajustes.exportWeights}
-          </Button>
-          <Button variant="outline" disabled={demoMode || importing} onClick={() => importInput.current?.click()}>
-            {importing ? <Loader2Icon className="animate-spin" /> : <UploadIcon />}
-            {importing ? t.ajustes.importing : t.ajustes.importCsv}
-          </Button>
-          <input
-            ref={importInput}
-            type="file"
-            accept=".csv,text/csv"
-            hidden
-            data-testid="import-csv-input"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = "";
-              if (file) void handleImport(file);
-            }}
-          />
-        </CardContent>
-        {demoMode ? (
-          <CardContent className="pt-0">
-            <p className="text-xs text-muted-foreground">{t.ajustes.exportDemoDisabled}</p>
-          </CardContent>
+      <SettingsGroup
+        title={t.ajustes.exportSection}
+        footer={
+          <>
+            <p>{t.ajustes.exportHint}</p>
+            {demoMode ? <p>{t.ajustes.exportDemoDisabled}</p> : null}
+          </>
+        }
+      >
+        <SettingsRow icon={DownloadIcon} title={t.ajustes.exportMeals} href="/api/export/meals" download disabled={demoMode} />
+        <SettingsRow icon={DownloadIcon} title={t.ajustes.exportWeights} href="/api/export/weights" download disabled={demoMode} />
+        <SettingsRow
+          icon={importing ? Loader2Icon : UploadIcon}
+          iconClassName={importing ? "animate-spin" : undefined}
+          title={importing ? t.ajustes.importing : t.ajustes.importCsv}
+          disabled={demoMode || importing}
+          onClick={() => importInput.current?.click()}
+        />
+        <input
+          ref={importInput}
+          type="file"
+          accept=".csv,text/csv"
+          hidden
+          data-testid="import-csv-input"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = "";
+            if (file) void handleImport(file);
+          }}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup title={t.ajustes.groupApp}>
+        <SettingsRow
+          icon={PaletteIcon}
+          title={t.ajustes.appearance}
+          below={
+            <div className="grid grid-cols-3 gap-1 rounded-lg border p-1">
+              {themeOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={mounted && theme === option.value}
+                  onClick={() => setTheme(option.value)}
+                  className={cn(
+                    "rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent",
+                    mounted && theme === option.value && "bg-primary text-primary-foreground",
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          }
+        />
+        <LanguageRow />
+        <SettingsRow icon={PlayCircleIcon} title={t.onboarding.replay} description={t.onboarding.replayHint} href="/bienvenida" />
+      </SettingsGroup>
+
+      <SettingsGroup title={t.ajustes.groupAbout}>
+        <SettingsRow icon={InfoIcon} title={t.metodologia.title} description={t.ajustes.methodologyLink} href="/metodologia" />
+        <SettingsRow icon={GlobeIcon} title={t.about.website} description={t.about.websiteHint} href={WEBSITE_URL} external />
+        <SettingsRow icon={CodeIcon} title={t.about.sourceCode} description={t.about.sourceCodeHint} href={SOURCE_CODE_URL} external />
+        {isAdmin && !demoMode ? (
+          <SettingsRow icon={ShieldIcon} title={t.ajustes.administration} description={t.ajustes.administrationDescription} href="/admin" />
         ) : null}
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.metodologia.title}</CardTitle>
-          <CardDescription>{t.ajustes.methodologyLink}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/metodologia" />}
-          >
-            <InfoIcon /> {t.metodologia.title}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.about.sourceCode}</CardTitle>
-          <CardDescription>{t.about.sourceCodeHint}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" nativeButton={false} render={<a href={SOURCE_CODE_URL} target="_blank" rel="noreferrer" />}>
-            {t.about.sourceCode}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.onboarding.replay}</CardTitle>
-          <CardDescription>{t.onboarding.replayHint}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" nativeButton={false} render={<Link href="/bienvenida" />}>
-            <PlayCircleIcon /> {t.onboarding.replay}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {isAdmin && !demoMode ? (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ShieldIcon className="size-4" /> {t.ajustes.administration}
-            </CardTitle>
-            <CardDescription>{t.ajustes.administrationDescription}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/admin" />}
-            >
-              <ShieldIcon /> {t.ajustes.openAdmin}
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t.about.website}</CardTitle>
-          <CardDescription>{t.about.websiteHint}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" nativeButton={false} render={<a href={WEBSITE_URL} target="_blank" rel="noreferrer" />}>
-            <GlobeIcon /> {t.about.website}
-          </Button>
-        </CardContent>
-      </Card>
+      </SettingsGroup>
 
       <ConfirmDialog
         open={deletingTemplate !== null}

@@ -121,7 +121,7 @@ workflow).
   «Adding a phone model»), run `npm test`, then `git checkout main && git cherry-pick <commit> &&
   git push origin main && git checkout dev && git merge main`. Phones see it next time
   Settings → AI opens; no app release needed.
-- **New screenshots:** `scripts/screenshots.sh` (emulator + demo data). **Banner:** edit
+- **New screenshots:** `scripts/screenshots.sh` (emulator + demo data; it waits for each screen to settle, and with a phone plugged in too, run it with `ANDROID_SERIAL=emulator-5554`). **Banner:** edit
   `scripts/store/feature-graphic-<lang>.svg`, then `npm i --no-save @resvg/resvg-js` and
   `node scripts/store/render-svg.mjs <svg> fastlane/metadata/android/<locale>/images/featureGraphic.png`.
 - **Store listing** (`fastlane/metadata/android/`) stays at the root of the repository: F-Droid

@@ -61,6 +61,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.data.MealDTO
+import com.blackwatermacros.app.data.TemplateDTO
 import com.blackwatermacros.app.data.WireEntryMode
 import com.blackwatermacros.app.data.WireIngredient
 import kotlin.math.roundToLong
@@ -112,6 +113,10 @@ fun HoyScreen(
     val undoLabel = stringResource(R.string.action_undo)
 
     var deletingMeal by remember { mutableStateOf<MealDTO?>(null) }
+    // A template held in «Añadir comida»: edited or deleted here, as in Ajustes.
+    var editingTemplate by remember { mutableStateOf<TemplateDTO?>(null) }
+    var deletingTemplate by remember { mutableStateOf<TemplateDTO?>(null) }
+    val templateDeletedMessage = stringResource(R.string.template_deleted)
 
     /** Asked first (the dialog below), then deleted; the snackbar offers Undo. */
     fun deleteMeal(meal: MealDTO) {
@@ -219,6 +224,32 @@ fun HoyScreen(
         }
     }
 
+    deletingTemplate?.let { template ->
+        ConfirmDialog(
+            title = stringResource(R.string.template_delete_title),
+            text = stringResource(R.string.template_delete_body),
+            confirmLabel = stringResource(R.string.action_delete),
+            onConfirm = {
+                deletingTemplate = null
+                viewModel.deleteTemplate(template.id)
+                scope.offerUndo(snackbarHostState, templateDeletedMessage, undoLabel) { viewModel.restoreTemplate(template) }
+            },
+            onCancel = { deletingTemplate = null },
+        )
+    }
+
+    editingTemplate?.let { template ->
+        MealFormSheet(
+            heading = stringResource(R.string.template_edit),
+            initial = template.toFormValue(),
+            onDismiss = { editingTemplate = null },
+            onSubmit = { value ->
+                viewModel.saveTemplate(template.id, value.toTemplateRequest())
+                editingTemplate = null
+            },
+        )
+    }
+
     deletingMeal?.let { meal ->
         ConfirmDialog(
             title = stringResource(R.string.meal_delete_title),
@@ -245,6 +276,8 @@ fun HoyScreen(
                 formOpen = true
             },
             onAdd = ::addMeals,
+            onEditTemplate = { editingTemplate = it },
+            onDeleteTemplate = { deletingTemplate = it },
             onFoodPicked = { ingredient ->
                 if (pickOnly) {
                     appendRequest = System.nanoTime() to listOf(ingredient)

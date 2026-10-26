@@ -35,6 +35,8 @@
   "tab_settings": "nav.ajustes",
   "add_food_copy": "addFood.copy",
   "add_food_templates": "hoy.templates",
+  "add_food_templates_hint": "addFood.templatesHint",
+  "add_food_template_options": "addFood.templateOptions",
   "add_food_copy_button": ["addFood.copyButton", "n:d"],
   "discard_title": "addFood.discardTitle",
   "discard": "addFood.discard",
@@ -302,5 +304,9 @@
   "source_code": "about.sourceCode",
   "source_code_hint": "about.sourceCodeHint",
   "website": "about.website",
+  "settings_group_account": "ajustes.groupAccount",
+  "settings_group_personal": "ajustes.groupPersonal",
+  "settings_group_app": "ajustes.groupApp",
+  "settings_group_about": "ajustes.groupAbout",
   "website_hint": "about.websiteHint"
 }

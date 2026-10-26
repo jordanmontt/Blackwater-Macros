@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LanguagesIcon } from "lucide-react";
+import { SettingsRow } from "@/components/settings/settings-list";
 import { NativeSelect } from "@/components/ui/native-select";
 import { t } from "@/i18n";
 import { useMounted } from "@/lib/use-mounted";
@@ -12,8 +13,8 @@ function storedChoice(): string {
   return match && isAppLanguage(match[1]) ? match[1] : SYSTEM_LANGUAGE;
 }
 
-/** «Idioma» (Android `LanguageCard`): saved in a cookie so the server renders the right language. */
-export function LanguageCard() {
+/** «Idioma» (Android `LanguageRow`): saved in a cookie so the server renders the right language. */
+export function LanguageRow() {
   // Read after hydration: the server does not know the cookie's value here.
   const mounted = useMounted();
   const choice = mounted ? storedChoice() : SYSTEM_LANGUAGE;
@@ -25,15 +26,12 @@ export function LanguageCard() {
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">
-          <label htmlFor="app-language">{t.ajustes.language}</label>
-        </CardTitle>
-        <CardDescription>{t.ajustes.languageHint}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <NativeSelect id="app-language" value={choice} onChange={(event) => choose(event.target.value)}>
+    <SettingsRow
+      icon={LanguagesIcon}
+      title={<label htmlFor="app-language">{t.ajustes.language}</label>}
+      description={t.ajustes.languageHint}
+      below={
+        <NativeSelect id="app-language" className="max-w-56" value={choice} onChange={(event) => choose(event.target.value)}>
           <option value={SYSTEM_LANGUAGE}>{t.ajustes.languageSystem}</option>
           {LANGUAGES.map((language) => (
             <option key={language} value={language}>
@@ -41,7 +39,7 @@ export function LanguageCard() {
             </option>
           ))}
         </NativeSelect>
-      </CardContent>
-    </Card>
+      }
+    />
   );
 }

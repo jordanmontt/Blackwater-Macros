@@ -1,5 +1,13 @@
 package com.blackwatermacros.app.ui
 
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +38,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -103,7 +110,8 @@ internal fun addFoodHasUnsavedInput(
  * Buscar and Código de barras pick a food and its portion and hand it over
  * ([onFoodPicked]) for the review form; Escribir a mano opens that form empty;
  * Copiar de otro día and the templates add meals directly (the caller offers
- * Undo). [pickOnly]: opened from the review form to add one more food, so only
+ * Undo); holding a template offers to edit or delete it ([onEditTemplate],
+ * [onDeleteTemplate], after the sheet closes). [pickOnly]: opened from the review form to add one more food, so only
  * Buscar and Código are offered. Swipe down or tap outside closes it; once
  * something was entered (an AI description, photos, a search…) it asks first
  * ([GuardedBottomSheet]).
@@ -122,6 +130,8 @@ fun AddFoodSheet(
     /** The AI estimated a meal; the notice goes above the review form. */
     onEstimate: (estimate: MealEstimate, notice: String) -> Unit = { _, _ -> },
     onOpenAiSettings: () -> Unit = {},
+    onEditTemplate: (TemplateDTO) -> Unit = {},
+    onDeleteTemplate: (TemplateDTO) -> Unit = {},
     pickOnly: Boolean = false,
     foods: AddFoodViewModel = viewModel(),
     photo: PhotoEstimateViewModel = viewModel(),
@@ -241,15 +251,29 @@ fun AddFoodSheet(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    Text(
+                        stringResource(R.string.add_food_templates_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     Spacer(Modifier.height(8.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         templates.forEach { template ->
-                            OutlinedButton(onClick = {
-                                onDismiss()
-                                onAdd(listOf(template.toFormValue()), templateAppliedMessage.format(template.name))
-                            }, shape = RoundedCornerShape(50)) {
-                                Text(template.name, style = MaterialTheme.typography.labelMedium)
-                            }
+                            TemplateChip(
+                                name = template.name,
+                                onApply = {
+                                    onDismiss()
+                                    onAdd(listOf(template.toFormValue()), templateAppliedMessage.format(template.name))
+                                },
+                                onEdit = {
+                                    onDismiss()
+                                    onEditTemplate(template)
+                                },
+                                onDelete = {
+                                    onDismiss()
+                                    onDeleteTemplate(template)
+                                },
+                            )
                         }
                     }
                 }
@@ -472,5 +496,51 @@ private fun CopyFromDay(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Text(stringResource(R.string.add_food_copy_button, selected.size))
+    }
+}
+
+/** A template in «Añadir comida»: a tap adds it to the day; holding it offers Edit and Delete. */
+@Composable
+private fun TemplateChip(name: String, onApply: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    val haptics = LocalHapticFeedback.current
+    val shape = RoundedCornerShape(50)
+    Box {
+        Box(
+            Modifier
+                .heightIn(min = 40.dp)
+                .clip(shape)
+                .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+                .combinedClickable(
+                    onClick = onApply,
+                    onLongClickLabel = stringResource(R.string.add_food_template_options),
+                    onLongClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        menu = true
+                    },
+                )
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(name, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+        }
+        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_edit)) },
+                leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                onClick = {
+                    menu = false
+                    onEdit()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_delete)) },
+                leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null) },
+                onClick = {
+                    menu = false
+                    onDelete()
+                },
+            )
+        }
     }
 }

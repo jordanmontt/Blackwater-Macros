@@ -17,6 +17,8 @@ import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
  *  - borrar una comida pregunta antes y luego ofrece «Deshacer», que la devuelve
  *    a su sitio,
  *  - una comida se guarda como plantilla con un toque, con «Deshacer»,
+ *  - una plantilla de «Añadir comida» se edita o se borra manteniéndola pulsada
+ *    (o con clic derecho), sin ir a Ajustes; borrarla pregunta y ofrece «Deshacer»,
  *  - el formulario se cierra al arrastrarlo/pulsar fuera, pero si hay cambios
  *    pregunta antes de descartarlos.
  */
@@ -44,6 +46,7 @@ vi.mock("@/lib/api", () => ({
     restoreMeal: vi.fn(async () => undefined),
     createTemplate: vi.fn(async () => template({ name: "Desayuno" })),
     deleteTemplate: vi.fn(async () => ({ ok: true as const })),
+    restoreTemplate: vi.fn(async () => undefined),
     listWeights: vi.fn(async () => []),
     session: vi.fn(async () => ({
       username: "demo",
@@ -60,7 +63,7 @@ vi.mock("@/lib/api", () => ({
     })),
   } satisfies Pick<
     typeof import("@/lib/api").api,
-    "listMeals" | "listTemplates" | "createMeal" | "reorderMeals" | "deleteMeal" | "restoreMeal" | "createTemplate" | "deleteTemplate" | "listWeights" | "session"
+    "listMeals" | "listTemplates" | "createMeal" | "reorderMeals" | "deleteMeal" | "restoreMeal" | "createTemplate" | "deleteTemplate" | "restoreTemplate" | "listWeights" | "session"
   >,
   errorText: (error: unknown) => (error instanceof Error ? error.message : "error"),
   UNDO_TOAST_MS: 10_000,
@@ -228,6 +231,46 @@ describe("pantalla Hoy", () => {
     expect(message).toBe(t.meal.savedAsTemplate);
     (options as { action: { onClick: () => void } }).action.onClick();
     await vi.waitFor(() => expect(vi.mocked(api.deleteTemplate)).toHaveBeenCalledWith("tpl-Desayuno"));
+  });
+
+  it("mantener pulsada una plantilla (o clic derecho) permite editarla sin ir a Ajustes", async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.listTemplates).mockResolvedValue([template({ name: "Desayuno salvaje" })]);
+    render(<HoyPage />);
+
+    const sheet = await openAddSheet(user);
+    expect(within(sheet).getByText(t.addFood.templatesHint)).toBeInTheDocument();
+    await user.pointer({ keys: "[MouseRight]", target: await within(sheet).findByRole("button", { name: "Desayuno salvaje" }) });
+    await user.click(await screen.findByRole("menuitem", { name: t.meal.edit }));
+
+    await waitForDialogToClose(t.addFood.title);
+    const form = await screen.findByRole("dialog", { name: t.ajustes.editTemplate });
+    expect(within(form).getByDisplayValue("Desayuno salvaje")).toBeInTheDocument();
+    expect(vi.mocked(api.createMeal)).not.toHaveBeenCalled();
+  });
+
+  it("borrar una plantilla desde «Añadir comida» pregunta antes y «Deshacer» la devuelve", async () => {
+    const user = userEvent.setup();
+    const held = template({ name: "Desayuno salvaje" });
+    vi.mocked(api.listTemplates).mockResolvedValue([held]);
+    render(<HoyPage />);
+
+    const sheet = await openAddSheet(user);
+    await user.pointer({ keys: "[MouseRight]", target: await within(sheet).findByRole("button", { name: "Desayuno salvaje" }) });
+    await user.click(await screen.findByRole("menuitem", { name: t.meal.delete }));
+
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText(t.ajustes.deleteTemplateTitle)).toBeInTheDocument();
+    expect(vi.mocked(api.deleteTemplate)).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole("button", { name: t.meal.delete }));
+    await vi.waitFor(() => expect(vi.mocked(api.deleteTemplate)).toHaveBeenCalledWith("tpl-Desayuno salvaje"));
+
+    await vi.waitFor(() => expect(toastMock.success).toHaveBeenCalled());
+    const [message, options] = toastMock.success.mock.calls.at(-1)!;
+    expect(message).toBe(t.ajustes.templateDeleted);
+    (options as { action: { onClick: () => void } }).action.onClick();
+    await vi.waitFor(() => expect(vi.mocked(api.restoreTemplate)).toHaveBeenCalledWith(held));
+    expect(vi.mocked(api.createMeal)).not.toHaveBeenCalled();
   });
 
   it("«Escribir a mano» abre el formulario vacío", async () => {

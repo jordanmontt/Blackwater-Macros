@@ -7,6 +7,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { TemplateForm } from "@/components/meals/template-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AddFoodSheet } from "@/components/meals/add-food-sheet";
@@ -28,13 +29,16 @@ import { useCachedResource } from "@/lib/use-cached-resource";
 import { todayKey } from "@/lib/core/dates";
 import { estimateToIngredients, type MealEstimate } from "@/lib/core/ai-schema";
 import type { IngredientInput, MealDTO, MealTemplateDTO } from "@/lib/core/types";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 
 export default function HoyPage() {
   const [selectedDay, setSelectedDay] = useState<string>(() => todayKey());
   const [formOpen, setFormOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<MealDTO | null>(null);
   const [deletingMeal, setDeletingMeal] = useState<MealDTO | null>(null);
+  // A template held in «Añadir comida»: edited or deleted here, as in Ajustes.
+  const [editingTemplate, setEditingTemplate] = useState<MealTemplateDTO | null>(null);
+  const [deletingTemplate, setDeletingTemplate] = useState<MealTemplateDTO | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   // Search / barcode: a new pre-filled meal, or one more food for the open form.
   const [reviewDraft, setReviewDraft] = useState<NutritionDraft | null>(null);
@@ -165,12 +169,41 @@ export default function HoyPage() {
   async function handleSaveAsTemplate(meal: MealDTO) {
     try {
       const template = await api.createTemplate({ name: meal.title, ...mealContent(meal) });
+      void templatesRes.trigger().catch(() => undefined);
       toast.success(t.meal.savedAsTemplate, {
         duration: UNDO_TOAST_MS,
         action: {
           label: t.common.undo,
           onClick: () => {
-            api.deleteTemplate(template.id).catch((error) => toast.error(errorText(error)));
+            api
+              .deleteTemplate(template.id)
+              .then(() => templatesRes.trigger())
+              .catch((error) => toast.error(errorText(error)));
+          },
+        },
+      });
+    } catch (error) {
+      toast.error(errorText(error));
+    }
+  }
+
+  /** Asked first (the dialog), then deleted with an Undo, as in Ajustes. */
+  async function handleDeleteTemplate() {
+    if (!deletingTemplate) return;
+    const template = deletingTemplate;
+    try {
+      await api.deleteTemplate(template.id);
+      setDeletingTemplate(null);
+      await templatesRes.trigger();
+      toast.success(t.ajustes.templateDeleted, {
+        duration: UNDO_TOAST_MS,
+        action: {
+          label: t.common.undo,
+          onClick: () => {
+            api
+              .restoreTemplate(template)
+              .then(() => templatesRes.trigger())
+              .catch((error) => toast.error(errorText(error)));
           },
         },
       });
@@ -301,6 +334,8 @@ export default function HoyPage() {
         onAdded={() => refreshMeals(selectedDay)}
         onFoodPicked={handleFoodPicked}
         onEstimate={handleEstimate}
+        onEditTemplate={setEditingTemplate}
+        onDeleteTemplate={setDeletingTemplate}
         pickOnly={pickOnly}
       />
 
@@ -335,6 +370,28 @@ export default function HoyPage() {
         confirmLabel={t.meal.delete}
         onCancel={() => setDeletingMeal(null)}
         onConfirm={() => void handleDeleteConfirmed()}
+      />
+
+      <TemplateForm
+        open={editingTemplate !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingTemplate(null);
+        }}
+        template={editingTemplate}
+        onSaved={() => {
+          void templatesRes.trigger().catch(() => undefined);
+          setEditingTemplate(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={deletingTemplate !== null}
+        title={t.ajustes.deleteTemplateTitle}
+        description={formatTemplate(t.ajustes.deleteTemplateBody, { name: deletingTemplate?.name ?? "" })}
+        cancelLabel={t.meal.cancel}
+        confirmLabel={t.meal.delete}
+        onCancel={() => setDeletingTemplate(null)}
+        onConfirm={() => void handleDeleteTemplate()}
       />
 
       <Button

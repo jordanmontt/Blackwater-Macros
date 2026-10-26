@@ -218,8 +218,8 @@ export default function CoachPage() {
 function MessageBubble({ message, pending }: { message: ChatMessage; pending: boolean }) {
   const mine = message.role === "user";
   // Copies the whole message, as in messaging apps: the text as shown (the coach's without the
-  // ** of bold). Nothing to copy while it is still arriving, or for photos alone.
-  const copyable = pending ? "" : mine ? message.text.trim() : plainText(message.text);
+  // ** of bold); while it is still arriving, what has arrived so far. Nothing for photos alone.
+  const copyable = mine ? message.text.trim() : plainText(message.text);
   return (
     <li className={cn("group flex items-end gap-1", mine ? "flex-row-reverse" : "")}>
       <div

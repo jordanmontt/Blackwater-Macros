@@ -64,7 +64,7 @@
     <string name="error_weight_range">Gib ein Gewicht zwischen 20 und 400 kg ein.</string>
     <string name="error_body_fat_range">Der Körperfettanteil muss zwischen 3 und 60 % liegen.</string>
     <string name="account_title">Konto</string>
-    <string name="account_local_description">Deine Daten werden nur auf diesem Telefon gespeichert und an keinen Server gesendet. Wenn du ein Konto hast (auf Einladung), melde dich an, um sie zwischen deinen Geräten zu synchronisieren.</string>
+    <string name="account_local_description">Deine Daten bleiben auf diesem Telefon. Melde dich an, um sie zwischen deinen Geräten zu synchronisieren.</string>
     <string name="account_connected_as">Angemeldet als %1$s</string>
     <string name="sync_session_expired">Deine Sitzung ist abgelaufen. Melde dich erneut an, um weiter zu synchronisieren.</string>
     <string name="sync_in_progress">Synchronisiere…</string>

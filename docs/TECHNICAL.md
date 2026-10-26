@@ -790,9 +790,9 @@ expired and keeps local data. Statistics are computed on the phone, so `/api/sta
 
 | Page | File | Highlights |
 |---|---|---|
-| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars; a past day shows the targets it had, §8.1.1), meal list (each card: edit, «Guardar como plantilla» — saved at once under the meal's title via `mealContent`, with an Undo toast that deletes it — and delete), delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
+| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars; a past day shows the targets it had, §8.1.1), meal list (each card: edit, «Guardar como plantilla» — saved at once under the meal's title via `mealContent`, with an Undo toast that deletes it — and delete), delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast. Holding a template (or a right click: Base UI `ContextMenu`; Android `TemplateChip`, a long-press `DropdownMenu`) offers Editar and Borrar without going to Ajustes: the sheet closes, then the page shows `TemplateForm` or the delete confirm with an Undo (`restoreTemplate`), as Ajustes does |
 | Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band (it steps where a day's target changed, §8.1.1); «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets = mean of the logged days' own targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), links to Perfil and to IA, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout, and last a link to the website (`WEBSITE_URL`, `lib/links.ts`) |
+| Ajustes | `app/ajustes/page.tsx` | A grouped list, the same as Android: a short heading per group and one card of rows (`components/settings/settings-list.tsx`: `SettingsGroup`, `SettingsRow` — icon, title, a line under it, an arrow or a control), every setting on the page and one tap away. **Cuenta** (who is logged in, logout), **Personal** (Perfil, IA, templates: collapsed, with the manager and the new-template dialog), **Tus datos** (CSV export + import, the hint under the card), **Aplicación** (theme, the only place to switch it; language, `language-row.tsx`; the tutorial), **Acerca de** (Metodología, the website `WEBSITE_URL` from `lib/links.ts`, source code, «Administración» for admins) |
 | IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
@@ -1255,7 +1255,8 @@ app language, no medical claims.
   **Copying** a message takes all of it, as in messaging apps (no text selection): a long-press
   on Android (`copyText`; Android 13+ confirms the copy itself, older versions get a toast), a
   copy button on the web, shown on hover with a mouse and always on a touch screen. The
-  coach's answer is copied as it reads (no `**`), the user's words as typed.
+  coach's answer is copied as it reads (no `**`), the user's words as typed. An answer still
+  being written can be copied too (what has arrived so far): the phone's model can take a while.
 - **On-device AI** (Android only, D5/D6): a model from the `LocalModels` catalog (Gemma 4 E2B
   default, Gemma 4 E4B, Qwen3 1.7B text-only; Apache-2.0, SHA-256 pinned; one on the phone at
   a time) run by LiteRT-LM (`data/ai/local/`). Downloaded
@@ -1265,9 +1266,17 @@ app language, no medical claims.
   time, **on the CPU only** (a Mali GPU keeps a second copy of the weights: Gemma 4 E4B was
   killed for memory on an 8 GB phone). The CPU engine keeps a working copy of the weights in
   `cacheDir` (`<model>…xnnpack_cache`, deleted with the model); the image encoder loads only
-  for a request with photos. A loaded model holds ~4 GB, so it is **released** 60 s after
-  the last request, on «Nueva conversación» and when the app goes to the background
-  (`MainActivity.onStop`, also when the camera opens); reloading takes ~20 s. Needs
+  for a request with photos. Loading takes ~20 s, so the coach **prepares** it
+  (`LocalEngine.prepare`) while the user types: when the Coach tab opens (`onScreen`), on
+  «Nueva conversación», and with the image encoder when a photo is added. The coach's
+  conversation is **kept between questions**: a follow-up reads only the new question, not
+  the system prompt and every earlier turn again. It is kept only while it holds exactly
+  what the next question needs (`canContinueChat`: same system prompt, so a meal logged
+  since starts afresh; the same earlier turns; room in the window by its `getTokenCount`);
+  a stopped or failed answer, a meal estimate (one conversation at a time) and a reload
+  drop it. A loaded model holds ~4 GB: it stays loaded while the Coach tab is on screen
+  (`hold`), is **released** 60 s after the tab is left or the last request, and at once when
+  the app goes to the background (`MainActivity.onStop`, also when the camera opens). Needs
   Kotlin ≥ 2.4 (the library's metadata).
 - **Catalog of phone models:** `android/catalog/local-models.json`, read from the **`main`**
   branch on GitHub (`BuildConfig.MODEL_CATALOG_URL`, raw.githubusercontent.com), never from
@@ -1497,9 +1506,10 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; a stream cut by the token limit, by an error inside the stream or by the connection fails after the text that arrived, even when the screen reads slowly; keys encrypted per provider; AI prefs excluded from backups |
 | `data/ai/ModelListStoreTest.kt` | The model dropdown's list: reused for a day, asked again when old, forced or for another key; survives a restart; never stores the key |
 | `data/ai/MealEstimatorTest.kt` | «Foto o texto»: photos + description → one JSON request (mirrors `add-food-photo.test.tsx`); unreadable answers; the language told to the model; photo downscale; the camera FileProvider only reaches the temporary folder |
+| `data/ai/local/LocalEngineTest.kt` | On-device model: when the coach's kept conversation takes the next question (same system prompt and turns, room in the window) and when a new one starts |
 | `data/ai/local/LocalModelTest.kt` | On-device model: resumable download, SHA-256 check, device support and the low-RAM warning, engine routing, model outside backups, what counts as an out-of-memory kill |
 | `data/ai/local/LocalModelCatalogTest.kt` | The site's model catalog: valid entries become models, wrong ones are skipped (non-Hugging Face URL, bad checksum, path tricks, newer app), merge with the built-in list, `hidden`; the committed file matches the built-in models |
-| `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», copying a whole message, failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
+| `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», copying a whole message (also one still being written), failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; they open on the welcome page, also from «Ver tutorial» with an account (which neither syncs nor skips ahead); ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
 | `data/update/UpdateCheckerTest.kt` | New version notice: versions compare by number, GitHub asked at most once a day and never by another key's build (F-Droid) or with the switch off, «Not now» hides only that version, errors stay silent |
@@ -1648,9 +1658,14 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
 - **Delete all data** (Ajustes → Tus datos) wipes the phone only, after confirmation.
   Without an account that is permanent; with one, the server is untouched and the next
   sync downloads the account again (unsynced changes are lost — the dialog says how many).
-- **Settings split:** Ajustes keeps Cuenta, Plantillas, Tus datos, Apariencia,
-  Metodología and Admin, then the website link (`BuildConfig.WEBSITE_URL`) at the very bottom; goal, body data and recommendations live in a pushed
-  **Perfil** page (`ProfileScreen`), like the web's `/ajustes/perfil`.
+- **Settings:** the web's grouped list (`SettingsGroup` / `SettingsRow` in
+  `SettingsComponents.kt`, rows are Material `ListItem`s): **Cuenta** (sync status, sync
+  now, switch or add an account, logout; logged out, one «Iniciar sesión» row), **Personal**
+  (Perfil, IA, templates), **Tus datos** (export, import, delete all), **Aplicación** (theme,
+  language, «Check for updates» in own-key builds, tutorial), **Acerca de** (Metodología,
+  website `BuildConfig.WEBSITE_URL`, source code, donate, Admin). Every row has an icon and
+  is one tap away. Goal, body data and recommendations live in a pushed **Perfil** page
+  (`ProfileScreen`), like the web's `/ajustes/perfil`.
 - **Comidas header** shows a small cloud when logged in (synced / N pending / syncing /
   needs attention); tapping it opens Ajustes. **Red («needs attention») only when a
   change won't reach the server on its own:** an expired session, or a pending change the
@@ -1750,7 +1765,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     HoyScreen/ViewModel, MealCard           # Comidas: day navigator, totals, recommendations,
                                             #   reorderable meals, save a meal as a template
                                             #   (`toCopyTemplateRequest`), undo delete/add/save
-    AddFoodSheet.kt                         # «Añadir comida»: search, barcode, manual, copy, templates
+    AddFoodSheet.kt                         # «Añadir comida»: search, barcode, manual, copy, templates (hold: edit/delete)
     foods/AddFoodViewModel.kt, FoodViews.kt # search (generic + Open Food Facts), portion, CameraX + zxing-cpp scanner
     MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue, toCopyRequest) +
                                             #   validation, in a GuardedBottomSheet (asks before losing edits)
@@ -1758,7 +1773,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     ProgressScreen/ViewModel, WeightFormDialog  # Progreso: local stats + weigh-ins (validation = server limits)
     chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a per-point target band;
                                                 #   TrendChart.kt also holds what both share: drawDateLabels, drawSelection, LegendDot)
-    SettingsScreen/ViewModel, SettingsComponents.kt  # Ajustes (account, templates, data, theme, language)
+    SettingsScreen/ViewModel, SettingsComponents.kt  # Ajustes: grouped rows (SettingsGroup, SettingsRow)
     UpdateNotice.kt                         # the new version card (Comidas) and «Check for updates» (Ajustes)
     ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
     LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen
@@ -1867,6 +1882,10 @@ covers: §11.1–11.4. No Compose UI tests yet: screens are checked on a device.
   `app/build/outputs/apk/release/` (arm64 ~15 MB), R8-shrunk. Signed with `keystore.properties`
   (storeFile, storePassword, keyAlias, keyPassword; never committed) when present, else with the
   debug key (fine for local test builds only).
+- **Debug build:** `applicationIdSuffix = ".debug"` (`com.blackwatermacros.app.debug`, the
+  launcher name «Blackwater Macros (debug)» from `src/debug`): it installs next to the real app
+  with its own data. Classes keep the `com.blackwatermacros.app` package, so an `adb` component
+  is `com.blackwatermacros.app.debug/com.blackwatermacros.app.MainActivity`.
   **R8 and Retrofit:** a suspend call's response type lives only in the method's generic
   signature, so R8 removed `SettingsResponse` (never read) and `updateSettings` failed in
   release builds only («Unable to create converter for class java.lang.Object»): the profile

@@ -2,7 +2,6 @@ package com.blackwatermacros.app.ui
 
 import android.content.Intent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -22,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -77,17 +75,15 @@ internal fun UpdateNotice() {
 
 /** Ajustes: the «Check for updates» switch, only in the website's APK (F-Droid updates its own). */
 @Composable
-internal fun UpdateCheckCard() {
+internal fun UpdateCheckRow() {
     val updates = AppGraph.updates
     if (!updates.ownBuild) return
     val enabled by updates.enabled.collectAsStateWithLifecycle()
-    SettingsCard(null) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.update_check_title), style = MaterialTheme.typography.bodyMedium)
-                CardDescription(stringResource(R.string.update_check_hint))
-            }
-            Switch(checked = enabled, onCheckedChange = updates::setEnabled)
-        }
-    }
+    SettingsRow(
+        icon = Icons.Filled.SystemUpdate,
+        title = stringResource(R.string.update_check_title),
+        subtitle = stringResource(R.string.update_check_hint),
+        onClick = { updates.setEnabled(!enabled) },
+        trailing = { Switch(checked = enabled, onCheckedChange = updates::setEnabled) },
+    )
 }

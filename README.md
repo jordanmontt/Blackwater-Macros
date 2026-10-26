@@ -25,7 +25,7 @@ recipe library.
 - **Log a meal in seconds.** Search a built-in database of everyday foods (works offline) or
   millions of products on Open Food Facts, scan a barcode, type it by hand (ingredient by
   ingredient or just the total), or take a photo and let AI estimate it. Copy meals from
-  another day or save your usual ones as templates (also straight from a logged meal). Deleting asks first, and can be undone.
+  another day or save your usual ones as templates (also straight from a logged meal; hold one to edit or delete it). Deleting asks first, and can be undone.
 - **Know your targets.** A calorie range and a protein range for your goal (lose fat,
   maintain, build muscle), with progress bars for the day.
 - **See your progress.** A weight trend that smooths out daily water swings, your weekly

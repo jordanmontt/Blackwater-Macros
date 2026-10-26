@@ -20,6 +20,7 @@
     "logout": "Abmelden"
   },
   "demo": {
+    "mode": "Demo-Modus",
     "title": "Demodaten ansehen",
     "description": "Ohne Konto hineinschauen und alle Beispieldaten erkunden: Mahlzeiten, Gewicht, Statistiken und Vorlagen. Du kannst alles hinzufügen, bearbeiten und löschen; alles bleibt nur in diesem Browser und wird beim Schließen des Tabs zurückgesetzt.",
     "enter": "Demodaten ansehen",
@@ -80,6 +81,8 @@
     "totalOnlyBadge": "Manueller Gesamtwert"
   },
   "addFood": {
+    "templatesHint": "Halte eine Vorlage gedrückt, um sie zu bearbeiten oder zu löschen.",
+    "templateOptions": "Bearbeiten oder löschen",
     "title": "Essen hinzufügen",
     "search": "Suchen",
     "searchHint": "Lebensmittel und Produkte",
@@ -336,6 +339,10 @@
   },
   "ajustes": {
     "title": "Einstellungen",
+    "groupAccount": "Konto",
+    "groupPersonal": "Persönlich",
+    "groupApp": "App",
+    "groupAbout": "Über",
     "appearance": "Darstellung",
     "language": "Sprache",
     "languageSystem": "System",
@@ -370,11 +377,9 @@
     "goalMaintain": "Halten",
     "goalSurplus": "Aufbau",
     "proteinRecLabel": "Empfohlenes Protein",
-    "session": "Sitzung",
     "loggedInAs": "Angemeldet als",
     "administration": "Verwaltung",
-    "administrationDescription": "Verwalte die Benutzer der App.",
-    "openAdmin": "Verwaltung"
+    "administrationDescription": "Verwalte die Benutzer der App."
   },
   "ai": {
     "title": "Künstliche Intelligenz",
@@ -565,7 +570,6 @@
   "perfil": {
     "title": "Profil",
     "description": "Dein Ziel, deine Körperdaten und die Kalorien- und Proteinempfehlungen.",
-    "open": "Profil öffnen",
     "backToSettings": "Zurück zu den Einstellungen",
     "errorBirthYear": "Das Jahr muss zwischen 1920 und 2010 liegen",
     "errorHeight": "Die Größe muss zwischen 100 und 250 cm liegen",
@@ -659,7 +663,7 @@
   },
   "about": {
     "sourceCode": "Quellcode",
-    "sourceCodeHint": "Blackwater Macros ist freie Software (AGPL-3.0). Der Code liegt auf GitHub.",
+    "sourceCodeHint": "Blackwater Macros ist freie Software (AGPL-3.0)",
     "website": "Website",
     "websiteHint": "Was die App ist, wie man sie auf Android installiert, und häufige Fragen."
   }

@@ -65,7 +65,7 @@
     <string name="error_weight_range">Enter a weight between 20 and 400 kg.</string>
     <string name="error_body_fat_range">Body fat must be between 3 and 60 %.</string>
     <string name="account_title">Account</string>
-    <string name="account_local_description">Your data is stored only on this phone and is never sent to any server. If you have an account (by invitation), log in to sync it between your devices.</string>
+    <string name="account_local_description">Your data stays on this phone. Log in to sync it between your devices.</string>
     <string name="account_connected_as">Connected as %1$s</string>
     <string name="sync_session_expired">Your session has expired. Log in again to keep syncing.</string>
     <string name="sync_in_progress">Syncing…</string>

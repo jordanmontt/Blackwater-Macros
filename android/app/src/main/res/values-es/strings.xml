@@ -64,7 +64,7 @@
     <string name="error_weight_range">Introduce un peso entre 20 y 400 kg.</string>
     <string name="error_body_fat_range">La grasa corporal debe estar entre 3 y 60 %.</string>
     <string name="account_title">Cuenta</string>
-    <string name="account_local_description">Tus datos se guardan solo en este teléfono y no se envían a ningún servidor. Si tienes una cuenta (por invitación), inicia sesión para sincronizarlos entre tus dispositivos.</string>
+    <string name="account_local_description">Tus datos se quedan en este teléfono. Inicia sesión para sincronizarlos entre tus dispositivos.</string>
     <string name="account_connected_as">Conectado como %1$s</string>
     <string name="sync_session_expired">La sesión ha caducado. Vuelve a iniciar sesión para seguir sincronizando.</string>
     <string name="sync_in_progress">Sincronizando…</string>

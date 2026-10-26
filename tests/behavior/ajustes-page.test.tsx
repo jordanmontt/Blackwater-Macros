@@ -9,6 +9,8 @@ import { emptyCalorieProfile, templateDto } from "../helpers/repos";
 
 /**
  * Requisitos visibles en la pantalla "Ajustes":
+ *  - todo está en la página, en grupos (Cuenta, Personal, Tus datos, Aplicación,
+ *    Acerca de) de filas con icono, a un toque (como en Android),
  *  - cambia el tema (claro / oscuro / sistema),
  *  - enlaza a "Perfil" (objetivo y datos corporales viven allí),
  *  - exportar comidas y peso apunta a la API (CSV); importar un CSV lo lee y lo envía,
@@ -141,6 +143,21 @@ describe("pantalla Ajustes", () => {
     expect(vi.mocked(api.listTemplates)).toHaveBeenCalledTimes(1);
   });
 
+  it("agrupa los ajustes, como en Android", async () => {
+    render(<AjustesPage />);
+    await screen.findByText("Sesión iniciada como ana");
+    const groups = screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
+    expect(groups).toEqual([
+      t.ajustes.groupAccount,
+      t.ajustes.groupPersonal,
+      t.ajustes.exportSection,
+      t.ajustes.groupApp,
+      t.ajustes.groupAbout,
+    ]);
+    const about = screen.getByRole("region", { name: t.ajustes.groupAbout });
+    expect(within(about).getByRole("link", { name: new RegExp(`^${t.metodologia.title}`) })).toHaveAttribute("href", "/metodologia");
+  });
+
   it("cambia el tema al pulsar 'Oscuro'", async () => {
     const user = userEvent.setup();
     render(<AjustesPage />);
@@ -150,14 +167,14 @@ describe("pantalla Ajustes", () => {
 
   it("enlaza a la página de perfil (objetivo y datos corporales)", async () => {
     render(<AjustesPage />);
-    const link = await screen.findByRole("button", { name: t.perfil.open });
+    const link = await screen.findByRole("link", { name: new RegExp(`^${t.perfil.title}`) });
     expect(link).toHaveAttribute("href", "/ajustes/perfil");
     expect(screen.queryByText(t.ajustes.goalSection)).not.toBeInTheDocument();
   });
 
   it("la IA se configura en su propia página, como en Android", async () => {
     render(<AjustesPage />);
-    const link = (await screen.findByText(t.ai.open)).closest("a");
+    const link = await screen.findByRole("link", { name: new RegExp(`^${t.ai.title}`) });
     expect(link).toHaveAttribute("href", "/ajustes/ia");
     expect(screen.getByText(t.ai.linkSubtitle)).toBeInTheDocument();
     expect(screen.queryByLabelText(t.ai.apiKey)).toBeNull();
@@ -297,7 +314,7 @@ describe("pantalla Ajustes", () => {
     });
     render(<AjustesPage />);
 
-    const link = await screen.findByRole("button", { name: t.ajustes.openAdmin });
+    const link = await screen.findByRole("link", { name: new RegExp(`^${t.ajustes.administration}`) });
     expect(link).toHaveAttribute("href", "/admin");
     expect(screen.getAllByText(t.ajustes.administration).length).toBeGreaterThan(0);
   });

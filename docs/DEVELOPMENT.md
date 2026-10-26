@@ -46,8 +46,11 @@ cd android
 - **No Node needed:** the shared texts are read from `../src/i18n/*.json` by Gradle itself.
 - **Backend URL:** `BuildConfig.API_BASE_URL` (production by default; only used after logging
   in). Another one: `./gradlew :app:installDebug -Papp.baseUrl=http://10.0.2.2:3000/`.
-- **Emulator:** `./gradlew :app:installDebug` then
-  `adb shell am start -n com.blackwatermacros.app/.MainActivity`. Demo data for a debug build:
+- **Emulator or phone:** `./gradlew :app:installDebug` then
+  `adb shell am start -n com.blackwatermacros.app.debug/com.blackwatermacros.app.MainActivity`.
+  Debug builds are `com.blackwatermacros.app.debug`, «Blackwater Macros (debug)» in the
+  launcher: they install next to the real app (which is signed with another key) and have their
+  own data, so trying a change on your own phone never touches the app you use. Demo data for a debug build:
   see `scripts/screenshots.sh` (it loads the web demo dataset through a debug-only receiver).
 
 ## Web

@@ -64,7 +64,7 @@
     <string name="error_weight_range">Saisissez un poids entre 20 et 400 kg.</string>
     <string name="error_body_fat_range">La masse grasse doit être comprise entre 3 et 60 %.</string>
     <string name="account_title">Compte</string>
-    <string name="account_local_description">Vos données sont enregistrées uniquement sur ce téléphone et ne sont envoyées à aucun serveur. Si vous avez un compte (sur invitation), connectez-vous pour les synchroniser entre vos appareils.</string>
+    <string name="account_local_description">Vos données restent sur ce téléphone. Connectez-vous pour les synchroniser entre vos appareils.</string>
     <string name="account_connected_as">Connecté en tant que %1$s</string>
     <string name="sync_session_expired">Votre session a expiré. Reconnectez-vous pour continuer la synchronisation.</string>
     <string name="sync_in_progress">Synchronisation…</string>

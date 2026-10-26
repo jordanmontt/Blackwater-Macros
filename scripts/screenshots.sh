@@ -16,7 +16,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SDK="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 ADB="$SDK/platform-tools/adb"
-PKG=com.blackwatermacros.app
+# Debug builds have their own application id; classes keep the app's package.
+PKG=com.blackwatermacros.app.debug
+CLS=com.blackwatermacros.app
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -84,11 +86,26 @@ else:
 PY
 }
 
-# Taps the first element whose text or content description is exactly $1.
+# The screen as text (uiautomator), to find elements and to see when it stops changing.
+screen() { "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; "$ADB" shell cat /sdcard/ui.xml; }
+
+# Waits until two readings in a row are the same: a slow emulator may still be opening a page.
+settle() {
+  local before after
+  before="$(screen)"
+  for _ in $(seq 1 15); do
+    sleep 1
+    after="$(screen)"
+    [ "$after" = "$before" ] && return
+    before="$after"
+  done
+}
+
+# Taps the first element whose text or content description is exactly $1 (waits for it to appear).
 tap() {
-  "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null
-  local xy
-  xy="$("$ADB" shell cat /sdcard/ui.xml | python3 -c '
+  local xy="" try
+  for try in $(seq 1 15); do
+    xy="$(screen | python3 -c '
 import re, sys, html
 target = sys.argv[1]
 for m in re.finditer(r"<node [^>]*>", sys.stdin.read()):
@@ -99,18 +116,21 @@ for m in re.finditer(r"<node [^>]*>", sys.stdin.read()):
         print((x1 + x2) // 2, (y1 + y2) // 2)
         break
 ' "$1")"
+    [ -n "$xy" ] && break
+    sleep 1
+  done
   [ -n "$xy" ] || { echo "Not on screen: «$1»" >&2; exit 1; }
   "$ADB" shell input tap $xy
-  sleep 2
+  settle
 }
 
 shot() { # dir name
-  sleep 1
+  settle
   "$ADB" exec-out screencap -p >"$1/$2.png"
   echo "  $2"
 }
 
-back() { "$ADB" shell input keyevent KEYCODE_BACK; sleep 1.5; }
+back() { "$ADB" shell input keyevent KEYCODE_BACK; settle; }
 
 run() { # lang locale-folder
   local lang=$1 out="$ROOT/fastlane/metadata/android/$2/images/phoneScreenshots"
@@ -122,9 +142,9 @@ run() { # lang locale-folder
   (cd "$ROOT" && npx tsx scripts/demo-csv.ts "$WORK/seed-$lang" "$lang" >/dev/null)
   "$ADB" push "$WORK/seed-$lang/meals.csv" "$WORK/seed-$lang/weights.csv" /data/local/tmp/ >/dev/null
   "$ADB" shell "run-as $PKG mkdir -p files/seed && run-as $PKG cp /data/local/tmp/meals.csv /data/local/tmp/weights.csv files/seed/"
-  "$ADB" shell am broadcast -n "$PKG/.DemoSeedReceiver" >/dev/null
+  "$ADB" shell am broadcast -n "$PKG/$CLS.DemoSeedReceiver" >/dev/null
   sleep 3
-  "$ADB" shell am start -W -n "$PKG/.MainActivity" >/dev/null
+  "$ADB" shell am start -W -n "$PKG/$CLS.MainActivity" >/dev/null
   sleep 4
 
   shot "$out" 1_meals
@@ -137,6 +157,7 @@ run() { # lang locale-folder
   tap "$(label "$lang" nav.coach)";              shot "$out" 6_coach
   tap "$(label "$lang" nav.ajustes)"
   tap "$(label "$lang" perfil.title)";           shot "$out" 7_profile
+  back;                                          shot "$out" 8_settings
 }
 
 langs=("${@:-en es}")

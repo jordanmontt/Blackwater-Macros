@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The launcher name of debug builds, installed next to the real app (applicationIdSuffix). -->
+    <string name="debug_app_label" translatable="false">Blackwater Macros (debug)</string>
+</resources>

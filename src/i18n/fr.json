@@ -20,6 +20,7 @@
     "logout": "Se déconnecter"
   },
   "demo": {
+    "mode": "Mode démo",
     "title": "Explorer les données de démo",
     "description": "Entrez sans créer de compte et explorez toutes les données d'exemple : repas, poids, statistiques et modèles. Vous pouvez ajouter, modifier et supprimer ce que vous voulez ; tout reste uniquement dans ce navigateur et s'efface à la fermeture de l'onglet.",
     "enter": "Explorer les données de démo",
@@ -80,6 +81,8 @@
     "totalOnlyBadge": "Total manuel"
   },
   "addFood": {
+    "templatesHint": "Maintenez un modèle appuyé pour le modifier ou le supprimer.",
+    "templateOptions": "Modifier ou supprimer",
     "title": "Ajouter un repas",
     "search": "Rechercher",
     "searchHint": "Aliments et produits",
@@ -336,6 +339,10 @@
   },
   "ajustes": {
     "title": "Réglages",
+    "groupAccount": "Compte",
+    "groupPersonal": "Personnel",
+    "groupApp": "Application",
+    "groupAbout": "À propos",
     "appearance": "Apparence",
     "language": "Langue",
     "languageSystem": "Système",
@@ -370,11 +377,9 @@
     "goalMaintain": "Maintien",
     "goalSurplus": "Prise de masse",
     "proteinRecLabel": "Protéines recommandées",
-    "session": "Session",
     "loggedInAs": "Connecté en tant que",
     "administration": "Administration",
-    "administrationDescription": "Gérez les utilisateurs de l'app.",
-    "openAdmin": "Administration"
+    "administrationDescription": "Gérez les utilisateurs de l'app."
   },
   "ai": {
     "title": "Intelligence artificielle",
@@ -565,7 +570,6 @@
   "perfil": {
     "title": "Profil",
     "description": "Votre objectif, vos données corporelles et les recommandations de calories et de protéines.",
-    "open": "Ouvrir le profil",
     "backToSettings": "Retour aux Réglages",
     "errorBirthYear": "L'année doit être comprise entre 1920 et 2010",
     "errorHeight": "La taille doit être comprise entre 100 et 250 cm",
@@ -659,7 +663,7 @@
   },
   "about": {
     "sourceCode": "Code source",
-    "sourceCodeHint": "Blackwater Macros est un logiciel libre (AGPL-3.0). Son code est sur GitHub.",
+    "sourceCodeHint": "Blackwater Macros est un logiciel libre (AGPL-3.0)",
     "website": "Site web",
     "websiteHint": "Ce qu'est l'application, comment l'installer sur Android et les questions fréquentes."
   }
