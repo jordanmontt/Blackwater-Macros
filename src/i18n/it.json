@@ -74,6 +74,8 @@
     "deleteConfirmTitle": "Eliminare il pasto?",
     "deleteConfirmBody": "Questo pasto e i suoi ingredienti verranno eliminati.",
     "deleted": "Pasto eliminato",
+    "saveAsTemplate": "Salva come modello",
+    "savedAsTemplate": "Salvato come modello",
     "perIngredientSummary": "{n} ingredienti",
     "totalOnlyBadge": "Totale manuale"
   },
@@ -657,6 +659,8 @@
   },
   "about": {
     "sourceCode": "Codice sorgente",
-    "sourceCodeHint": "Blackwater Macros è software libero (AGPL-3.0). Il codice è su GitHub."
+    "sourceCodeHint": "Blackwater Macros è software libero (AGPL-3.0). Il codice è su GitHub.",
+    "website": "Sito web",
+    "websiteHint": "Cos'è l'app, come installarla su Android e le domande frequenti."
   }
 }

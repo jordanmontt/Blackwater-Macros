@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
@@ -43,6 +44,7 @@ fun MealCard(
     meal: MealDTO,
     scope: ReorderableCollectionItemScope,
     onEdit: () -> Unit,
+    onSaveAsTemplate: () -> Unit,
     onDelete: () -> Unit,
 ) {
     AppCard(
@@ -86,6 +88,14 @@ fun MealCard(
                         Icon(
                             Icons.Filled.Edit,
                             contentDescription = stringResource(R.string.action_edit),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    IconButton(onClick = onSaveAsTemplate) {
+                        Icon(
+                            Icons.Filled.BookmarkAdd,
+                            contentDescription = stringResource(R.string.meal_save_as_template),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp),
                         )

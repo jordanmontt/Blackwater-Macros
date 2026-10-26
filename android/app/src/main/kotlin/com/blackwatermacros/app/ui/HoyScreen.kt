@@ -108,6 +108,7 @@ fun HoyScreen(
     }
 
     val mealDeletedMessage = stringResource(R.string.meal_deleted)
+    val savedAsTemplateMessage = stringResource(R.string.meal_saved_as_template)
     val undoLabel = stringResource(R.string.action_undo)
 
     var deletingMeal by remember { mutableStateOf<MealDTO?>(null) }
@@ -116,6 +117,13 @@ fun HoyScreen(
     fun deleteMeal(meal: MealDTO) {
         viewModel.deleteMeal(meal.id)
         scope.offerUndo(snackbarHostState, mealDeletedMessage, undoLabel) { viewModel.restoreMeal(meal) }
+    }
+
+    /** Saved right away under the meal's title (as the template form does); the snackbar offers Undo. */
+    fun saveAsTemplate(meal: MealDTO) {
+        viewModel.saveAsTemplate(meal) { id ->
+            scope.offerUndo(snackbarHostState, savedAsTemplateMessage, undoLabel) { viewModel.deleteTemplate(id) }
+        }
     }
 
     /** Adds meals right away; the snackbar offers Undo. */
@@ -195,6 +203,7 @@ fun HoyScreen(
                                 editingMeal = meal
                                 formOpen = true
                             },
+                            onSaveAsTemplate = ::saveAsTemplate,
                             onDelete = { deletingMeal = it },
                             onOpenProfile = onOpenProfile,
                             onOpenWeight = onOpenWeight,
@@ -306,6 +315,7 @@ private fun MealList(
     meals: List<MealDTO>,
     totals: Totals,
     onEdit: (MealDTO) -> Unit,
+    onSaveAsTemplate: (MealDTO) -> Unit,
     onDelete: (MealDTO) -> Unit,
     onOpenProfile: () -> Unit,
     onOpenWeight: () -> Unit,
@@ -342,6 +352,7 @@ private fun MealList(
                         meal = meal,
                         scope = this,
                         onEdit = { onEdit(meal) },
+                        onSaveAsTemplate = { onSaveAsTemplate(meal) },
                         onDelete = { onDelete(meal) },
                     )
                 }

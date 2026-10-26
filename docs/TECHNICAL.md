@@ -790,9 +790,9 @@ expired and keeps local data. Statistics are computed on the phone, so `/api/sta
 
 | Page | File | Highlights |
 |---|---|---|
-| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars; a past day shows the targets it had, §8.1.1), meal list, delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
+| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars; a past day shows the targets it had, §8.1.1), meal list (each card: edit, «Guardar como plantilla» — saved at once under the meal's title via `mealContent`, with an Undo toast that deletes it — and delete), delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast |
 | Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band (it steps where a day's target changed, §8.1.1); «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets = mean of the logged days' own targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), links to Perfil and to IA, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout |
+| Ajustes | `app/ajustes/page.tsx` | Theme selector (only place with theme switching), language selector (`components/settings/language-card.tsx`), links to Perfil and to IA, Metodología link, «Tus datos» (CSV export + import), template manager (incl. new-template dialog), «Administración» card for admins, session/logout, and last a link to the website (`WEBSITE_URL`, `lib/links.ts`) |
 | IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
@@ -1506,7 +1506,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period, each logged day's own target in the band and the average |
 | `data/local/MigrationTest.kt` | Updating the app keeps the phone's data: a version 1 database built from `app/schemas/…/1.json` opens with today's code through `MIGRATIONS` (the profile gets an empty history) |
 | `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
-| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, a past day's targets (its profile and weight), measured expenditure, the profile check and the formula inputs behind its «¿Por qué?», sync indicator states (red only for an expired session or a refused change), numbers edited with a decimal comma, when «Añadir comida» asks before closing |
+| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, a past day's targets (its profile and weight), measured expenditure, the profile check and the formula inputs behind its «¿Por qué?», sync indicator states (red only for an expired session or a refused change), numbers edited with a decimal comma, when «Añadir comida» asks before closing, a meal saved as a template (its content, totals only for «Solo total») |
 | `ui/TranslationsTest.kt` | Every language has every Android-only string and plural with the same placeholders (shared texts: `i18n.test.ts` + the build) |
 | `data/NiceTicksTest.kt` | Chart axis ticks |
 
@@ -1649,7 +1649,7 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
   Without an account that is permanent; with one, the server is untouched and the next
   sync downloads the account again (unsynced changes are lost — the dialog says how many).
 - **Settings split:** Ajustes keeps Cuenta, Plantillas, Tus datos, Apariencia,
-  Metodología and Admin; goal, body data and recommendations live in a pushed
+  Metodología and Admin, then the website link (`BuildConfig.WEBSITE_URL`) at the very bottom; goal, body data and recommendations live in a pushed
   **Perfil** page (`ProfileScreen`), like the web's `/ajustes/perfil`.
 - **Comidas header** shows a small cloud when logged in (synced / N pending / syncing /
   needs attention); tapping it opens Ajustes. **Red («needs attention») only when a
@@ -1748,7 +1748,8 @@ app/src/main/kotlin/com/blackwatermacros/app/
     ResponseErrorMapper.kt (admin error messages)
   ui/
     HoyScreen/ViewModel, MealCard           # Comidas: day navigator, totals, recommendations,
-                                            #   reorderable meals, undo delete/add
+                                            #   reorderable meals, save a meal as a template
+                                            #   (`toCopyTemplateRequest`), undo delete/add/save
     AddFoodSheet.kt                         # «Añadir comida»: search, barcode, manual, copy, templates
     foods/AddFoodViewModel.kt, FoodViews.kt # search (generic + Open Food Facts), portion, CameraX + zxing-cpp scanner
     MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue, toCopyRequest) +
@@ -1878,7 +1879,10 @@ covers: §11.1–11.4. No Compose UI tests yet: screens are checked on a device.
   GitHub Release with the en-US changelog. The name never changes, so
   `releases/latest/download/blackwater-macros.apk` is always the newest; the website
   (`website/`, deployed by `website.yml`, screenshots and fingerprint copied in at deploy) links
-  there. F-Droid builds the same tag and signs with its own key: the two can't update each
+  there. For search engines and link previews the page has a descriptive `<title>`, Open Graph
+  tags (the image is `social.png`, the store's `featureGraphic.png` copied in at deploy; absolute
+  URLs, as WhatsApp needs), schema.org `SoftwareApplication` JSON-LD, `robots.txt` and
+  `sitemap.xml`; `404.html` is `noindex`. F-Droid builds the same tag and signs with its own key: the two can't update each
   other, so switching means reinstalling (said on the website). Steps: docs/RELEASING.md.
 - **F-Droid:** the recipe is `docs/fdroid/com.blackwatermacros.app.yml` (reference copy; the
   live one is in fdroiddata, merge request !53565, and F-Droid's bot adds each new tag to it).

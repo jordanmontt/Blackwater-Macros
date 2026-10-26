@@ -23,6 +23,7 @@ import {
 import { NutritionRecommendationsCard } from "@/components/nutrition-recommendations";
 import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { writeCache } from "@/lib/client-cache";
+import { mealContent } from "@/lib/meal-payload";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { todayKey } from "@/lib/core/dates";
 import { estimateToIngredients, type MealEstimate } from "@/lib/core/ai-schema";
@@ -160,6 +161,24 @@ export default function HoyPage() {
     }
   }
 
+  /** Saved right away under the meal's title (as the template form does); the toast offers Undo. */
+  async function handleSaveAsTemplate(meal: MealDTO) {
+    try {
+      const template = await api.createTemplate({ name: meal.title, ...mealContent(meal) });
+      toast.success(t.meal.savedAsTemplate, {
+        duration: UNDO_TOAST_MS,
+        action: {
+          label: t.common.undo,
+          onClick: () => {
+            api.deleteTemplate(template.id).catch((error) => toast.error(errorText(error)));
+          },
+        },
+      });
+    } catch (error) {
+      toast.error(errorText(error));
+    }
+  }
+
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id || !meals) return;
@@ -264,6 +283,7 @@ export default function HoyPage() {
                     setEditingMeal(target);
                     setFormOpen(true);
                   }}
+                  onSaveAsTemplate={(target) => void handleSaveAsTemplate(target)}
                   onDelete={(target) => setDeletingMeal(target)}
                 />
               ))}

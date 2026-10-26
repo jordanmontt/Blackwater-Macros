@@ -1,12 +1,12 @@
 "use client";
 
-import { SOURCE_CODE_URL } from "@/lib/links";
+import { SOURCE_CODE_URL, WEBSITE_URL } from "@/lib/links";
 import { useRef, useState } from "react";
 import { formatNumber } from "@/i18n/format";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ChevronDownIcon, DownloadIcon, Loader2Icon, UploadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, SparklesIcon, Trash2Icon, UserIcon } from "lucide-react";
+import { ChevronDownIcon, DownloadIcon, GlobeIcon, Loader2Icon, UploadIcon, InfoIcon, LogOutIcon, PencilIcon, PlayCircleIcon, PlusIcon, ShieldIcon, SparklesIcon, Trash2Icon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -410,6 +410,17 @@ export default function AjustesPage() {
         </Card>
       ) : null}
 
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t.about.website}</CardTitle>
+          <CardDescription>{t.about.websiteHint}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" nativeButton={false} render={<a href={WEBSITE_URL} target="_blank" rel="noreferrer" />}>
+            <GlobeIcon /> {t.about.website}
+          </Button>
+        </CardContent>
+      </Card>
 
       <ConfirmDialog
         open={deletingTemplate !== null}

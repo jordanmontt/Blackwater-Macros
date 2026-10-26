@@ -100,9 +100,12 @@ class AppRepository(
     fun templates(): Flow<List<TemplateDTO>> =
         db.templates().observeAll().map { rows -> rows.map { it.toDto() } }
 
-    suspend fun saveTemplate(id: String?, request: TemplateRequest) {
-        db.templates().upsert(request.toEntity(id ?: newId(), nowIso()))
+    /** Creates ([id] null) or replaces a template; returns its id. */
+    suspend fun saveTemplate(id: String?, request: TemplateRequest): String {
+        val templateId = id ?: newId()
+        db.templates().upsert(request.toEntity(templateId, nowIso()))
         changed()
+        return templateId
     }
 
     suspend fun deleteTemplate(id: String) {

@@ -74,6 +74,8 @@
     "deleteConfirmTitle": "Delete meal?",
     "deleteConfirmBody": "This meal and its ingredients will be deleted.",
     "deleted": "Meal deleted",
+    "saveAsTemplate": "Save as template",
+    "savedAsTemplate": "Saved as template",
     "perIngredientSummary": "{n} ingredients",
     "totalOnlyBadge": "Manual total"
   },
@@ -657,6 +659,8 @@
   },
   "about": {
     "sourceCode": "Source code",
-    "sourceCodeHint": "Blackwater Macros is free software (AGPL-3.0). Its code is on GitHub."
+    "sourceCodeHint": "Blackwater Macros is free software (AGPL-3.0). Its code is on GitHub.",
+    "website": "Website",
+    "websiteHint": "What the app is, how to install it on Android, and common questions."
   }
 }

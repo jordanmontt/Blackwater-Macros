@@ -102,6 +102,15 @@ class HoyViewModel(
         }
     }
 
+    /** Saves [meal] as a new template and reports its id so the user can undo. */
+    fun saveAsTemplate(meal: MealDTO, onSaved: (String) -> Unit = {}) {
+        viewModelScope.launch { onSaved(repository.saveTemplate(null, meal.toFormValue().toCopyTemplateRequest())) }
+    }
+
+    fun deleteTemplate(id: String) {
+        viewModelScope.launch { repository.deleteTemplate(id) }
+    }
+
     /** Undo of [addMeals]. */
     fun deleteMeals(ids: List<String>) {
         viewModelScope.launch { ids.forEach { repository.deleteMeal(it) } }

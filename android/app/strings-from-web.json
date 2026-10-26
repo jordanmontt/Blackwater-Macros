@@ -60,6 +60,8 @@
   "food_take_photo": "addFood.takePhoto",
   "food_scan_again": "addFood.scanAgain",
   "meal_deleted": "meal.deleted",
+  "meal_save_as_template": "meal.saveAsTemplate",
+  "meal_saved_as_template": "meal.savedAsTemplate",
   "today": "common.today",
   "day_previous": "common.previousDay",
   "day_next": "common.nextDay",
@@ -298,5 +300,7 @@
   "ai_model_list_error": ["ai.modelListError", "message:s"],
   "ai_model_list_needs_key": "ai.modelListNeedsKey",
   "source_code": "about.sourceCode",
-  "source_code_hint": "about.sourceCodeHint"
+  "source_code_hint": "about.sourceCodeHint",
+  "website": "about.website",
+  "website_hint": "about.websiteHint"
 }

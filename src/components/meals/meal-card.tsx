@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { formatNumber } from "@/i18n/format";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { BookmarkPlusIcon, GripVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,10 +14,11 @@ import { t } from "@/i18n";
 interface MealCardProps {
   meal: MealDTO;
   onEdit: (meal: MealDTO) => void;
+  onSaveAsTemplate: (meal: MealDTO) => void;
   onDelete: (meal: MealDTO) => void;
 }
 
-export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
+export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardProps) {
   const {
     attributes,
     listeners,
@@ -74,6 +75,16 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
               onClick={() => onEdit(meal)}
             >
               <PencilIcon className="size-4 text-muted-foreground" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t.meal.saveAsTemplate}
+              title={t.meal.saveAsTemplate}
+              className="size-7"
+              onClick={() => onSaveAsTemplate(meal)}
+            >
+              <BookmarkPlusIcon className="size-4 text-muted-foreground" />
             </Button>
             <Button
               variant="ghost"

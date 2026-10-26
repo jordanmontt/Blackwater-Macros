@@ -74,6 +74,8 @@
     "deleteConfirmTitle": "Supprimer le repas ?",
     "deleteConfirmBody": "Ce repas et ses ingrédients seront supprimés.",
     "deleted": "Repas supprimé",
+    "saveAsTemplate": "Enregistrer comme modèle",
+    "savedAsTemplate": "Enregistré comme modèle",
     "perIngredientSummary": "{n} ingrédients",
     "totalOnlyBadge": "Total manuel"
   },
@@ -657,6 +659,8 @@
   },
   "about": {
     "sourceCode": "Code source",
-    "sourceCodeHint": "Blackwater Macros est un logiciel libre (AGPL-3.0). Son code est sur GitHub."
+    "sourceCodeHint": "Blackwater Macros est un logiciel libre (AGPL-3.0). Son code est sur GitHub.",
+    "website": "Site web",
+    "websiteHint": "Ce qu'est l'application, comment l'installer sur Android et les questions fréquentes."
   }
 }

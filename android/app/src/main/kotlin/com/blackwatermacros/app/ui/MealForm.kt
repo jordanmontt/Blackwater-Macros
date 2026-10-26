@@ -100,6 +100,17 @@ data class MealFormValue(
         totalCarbs = totalCarbs,
         totalFat = totalFat,
     )
+
+    /** A new template with this content (a logged meal saved as one), named after its title; totals as in [toCopyRequest]. */
+    fun toCopyTemplateRequest(): TemplateRequest {
+        val totalOnly = entryMode == WireEntryMode.TOTAL_ONLY
+        return toTemplateRequest().copy(
+            totalCalories = totalCalories.takeIf { totalOnly },
+            totalProtein = totalProtein.takeIf { totalOnly },
+            totalCarbs = totalCarbs.takeIf { totalOnly },
+            totalFat = totalFat.takeIf { totalOnly },
+        )
+    }
 }
 
 fun MealDTO.toFormValue() =

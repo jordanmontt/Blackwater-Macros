@@ -220,6 +220,24 @@ class ValidationTest {
     }
 
     @Test
+    fun `a meal saved as a template keeps its content, named after its title`() {
+        val meal = MealFormValue(
+            "Tortilla", "con sal", WireEntryMode.PER_INGREDIENT,
+            listOf(com.blackwatermacros.app.data.WireIngredient("Huevos", "3", 210.0, 18.0, 1.0, 15.0)),
+            999.0, 999.0, 999.0, 999.0,
+        )
+        val template = meal.toCopyTemplateRequest()
+        assertThat(template.name).isEqualTo("Tortilla")
+        assertThat(template.title).isEqualTo("Tortilla")
+        assertThat(template.notes).isEqualTo("con sal")
+        assertThat(template.ingredients).isEqualTo(meal.ingredients)
+        assertThat(template.totalCalories).isNull()
+
+        val totalOnly = meal.copy(entryMode = WireEntryMode.TOTAL_ONLY, ingredients = emptyList())
+        assertThat(totalOnly.toCopyTemplateRequest().totalCalories).isEqualTo(999.0)
+    }
+
+    @Test
     fun `the header cloud reflects the sync state and hides without an account`() {
         val account = com.blackwatermacros.app.data.Account("ana", "t", isAdmin = false)
         assertThat(syncIndicatorState(null, 3, false, null)).isEqualTo(SyncIndicatorState.Hidden)

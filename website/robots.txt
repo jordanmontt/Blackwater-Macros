@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://blackwater-macros.jordanmontt.fr/sitemap.xml

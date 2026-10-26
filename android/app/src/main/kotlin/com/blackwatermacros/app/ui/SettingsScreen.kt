@@ -49,6 +49,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.SwitchAccount
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Upload
@@ -212,6 +213,12 @@ fun SettingsScreen(
                     onClick = onOpenAdmin,
                 )
             }
+            LinkCard(
+                icon = Icons.Filled.Public,
+                title = stringResource(R.string.website),
+                subtitle = stringResource(R.string.website_hint),
+                onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, BuildConfig.WEBSITE_URL.toUri())) } },
+            )
             Spacer(Modifier.height(24.dp))
         }
     }

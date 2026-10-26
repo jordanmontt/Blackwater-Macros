@@ -16,6 +16,7 @@ import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
  *    aplicar una plantilla (sin poder dispararla dos veces sin querer),
  *  - borrar una comida pregunta antes y luego ofrece «Deshacer», que la devuelve
  *    a su sitio,
+ *  - una comida se guarda como plantilla con un toque, con «Deshacer»,
  *  - el formulario se cierra al arrastrarlo/pulsar fuera, pero si hay cambios
  *    pregunta antes de descartarlos.
  */
@@ -41,6 +42,8 @@ vi.mock("@/lib/api", () => ({
     reorderMeals: vi.fn(async () => ({ ok: true as const })),
     deleteMeal: vi.fn(async () => ({ ok: true as const })),
     restoreMeal: vi.fn(async () => undefined),
+    createTemplate: vi.fn(async () => template({ name: "Desayuno" })),
+    deleteTemplate: vi.fn(async () => ({ ok: true as const })),
     listWeights: vi.fn(async () => []),
     session: vi.fn(async () => ({
       username: "demo",
@@ -57,7 +60,7 @@ vi.mock("@/lib/api", () => ({
     })),
   } satisfies Pick<
     typeof import("@/lib/api").api,
-    "listMeals" | "listTemplates" | "createMeal" | "reorderMeals" | "deleteMeal" | "restoreMeal" | "listWeights" | "session"
+    "listMeals" | "listTemplates" | "createMeal" | "reorderMeals" | "deleteMeal" | "restoreMeal" | "createTemplate" | "deleteTemplate" | "listWeights" | "session"
   >,
   errorText: (error: unknown) => (error instanceof Error ? error.message : "error"),
   UNDO_TOAST_MS: 10_000,
@@ -200,6 +203,31 @@ describe("pantalla Hoy", () => {
         ["meal-Desayuno", "meal-Comida"],
       ),
     );
+  });
+
+  it("guarda una comida como plantilla con su título y su contenido; «Deshacer» la borra", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await screen.findByText("Desayuno");
+
+    await user.click(screen.getAllByRole("button", { name: t.meal.saveAsTemplate })[0]);
+    expect(vi.mocked(api.createTemplate)).toHaveBeenCalledWith({
+      name: "Desayuno",
+      title: "Desayuno",
+      notes: null,
+      entryMode: "per_ingredient",
+      ingredients: [{ name: "ingrediente", calories: 475, protein: 32.4 }],
+      totalCalories: null,
+      totalProtein: null,
+      totalCarbs: null,
+      totalFat: null,
+    });
+
+    await vi.waitFor(() => expect(toastMock.success).toHaveBeenCalled());
+    const [message, options] = toastMock.success.mock.calls.at(-1)!;
+    expect(message).toBe(t.meal.savedAsTemplate);
+    (options as { action: { onClick: () => void } }).action.onClick();
+    await vi.waitFor(() => expect(vi.mocked(api.deleteTemplate)).toHaveBeenCalledWith("tpl-Desayuno"));
   });
 
   it("«Escribir a mano» abre el formulario vacío", async () => {
