@@ -1,0 +1,3 @@
+• Speichere eine erfasste Mahlzeit mit einem Tipp als Vorlage. Halte eine Vorlage in «Essen hinzufügen» gedrückt, um sie zu bearbeiten oder zu löschen.
+• Übersichtlichere Einstellungen: gruppiert, jede Option mit einem Tipp erreichbar.
+• Coach mit dem Modell auf dem Telefon: Antworten beginnen schneller, und du kannst eine Antwort kopieren, während sie noch geschrieben wird.

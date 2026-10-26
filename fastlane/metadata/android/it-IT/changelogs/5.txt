@@ -1,0 +1,3 @@
+• Salva un pasto registrato come modello con un tocco. Tieni premuto un modello in «Aggiungi cibo» per modificarlo o eliminarlo.
+• Impostazioni più chiare: raggruppate, ogni opzione a un tocco.
+• Coach con il modello del telefono: le risposte iniziano prima, e puoi copiare una risposta mentre viene ancora scritta.

@@ -1,0 +1,3 @@
+• Guarda una comida registrada como plantilla con un toque. Mantén pulsada una plantilla en «Añadir comida» para editarla o borrarla.
+• Ajustes más claros: agrupados, con cada opción a un toque.
+• Coach con el modelo del teléfono: las respuestas empiezan antes, y puedes copiar una respuesta mientras aún se escribe.
