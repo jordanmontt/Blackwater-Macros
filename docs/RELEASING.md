@@ -59,6 +59,20 @@ The two are signed with different keys, so an app from one can't update an app f
   2026-10-21, the build stays installed for now.)
 
 - [ ] **Vercel** → Settings → Git → Production Branch = `dev` (so pushes to `dev` deploy the web).
+- [ ] **Google and Bing** (so the website shows up in searches). The website already has
+  `robots.txt` and `sitemap.xml`; nothing to change in the repository.
+  1. **Google:** https://search.google.com/search-console → Add property → **Domain** →
+     `blackwater-macros.jordanmontt.fr`. Google shows a `TXT` record (`google-site-verification=…`):
+     add it in the OVH DNS zone of `jordanmontt.fr` (Web Cloud → Domain names → DNS zone → Add an
+     entry → `TXT`, subdomain `blackwater-macros`, value as shown). Wait a few minutes, click
+     **Verify** (DNS can take up to a day; retry later if it fails).
+  2. In that property: **Sitemaps** → submit `https://blackwater-macros.jordanmontt.fr/sitemap.xml`.
+     Then **URL inspection** → `https://blackwater-macros.jordanmontt.fr/` → **Request indexing**.
+  3. **Bing:** https://www.bing.com/webmasters → sign in → **Import from Google Search Console**
+     (it takes the site and the sitemap, no second verification). Bing also feeds DuckDuckGo
+     and Ecosia.
+  4. A few days later, check **Pages** (Google) and **Site Explorer** (Bing) show the page as
+     indexed. Leave the TXT record in place: removing it un-verifies the site.
 - [x] **Merge request to F-Droid:** [fdroid/fdroiddata!53565](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53565)
       (from the fork https://gitlab.com/jordanmontt/fdroiddata, branch `com.blackwatermacros.app`;
       text in [fdroid/merge-request.md](./fdroid/merge-request.md)). GitLab emails you when a
