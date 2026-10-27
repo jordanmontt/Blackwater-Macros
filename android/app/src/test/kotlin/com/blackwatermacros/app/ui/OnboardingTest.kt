@@ -1,6 +1,7 @@
 package com.blackwatermacros.app.ui
 
 import android.content.Context
+import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.blackwatermacros.app.core.CalorieProfile
@@ -18,7 +19,9 @@ import com.blackwatermacros.app.data.local.LocalDatabase
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.resetMain
@@ -46,6 +49,7 @@ class OnboardingTest {
     private lateinit var repository: AppRepository
     private lateinit var account: AccountStore
     private lateinit var preferences: AppPreferences
+    private val viewModels = mutableListOf<OnboardingViewModel>()
 
     @Before
     fun setUp() {
@@ -59,10 +63,17 @@ class OnboardingTest {
 
     @After
     fun tearDown() {
-        db.close()
+        // A view model's work (the prefill in init, afterLogin, saveData) runs on Main and is never
+        // cleared here: it must end before the database closes and Main is reset, or it resumes
+        // on Main while resetMain() runs ("Dispatchers.Main is used concurrently with setting it").
+        runBlocking { viewModels.forEach { it.viewModelScope.coroutineContext.job.cancelAndJoin() } }
+        if (::db.isInitialized) db.close()
         Dispatchers.resetMain()
         main.close()
     }
+
+    private fun onboarding(firstSync: suspend () -> Unit = {}) =
+        OnboardingViewModel(repository, preferences, account, firstSync).also { viewModels += it }
 
     @Test
     fun `only a fresh install without an account sees the first steps`() {
@@ -104,7 +115,7 @@ class OnboardingTest {
 
     @Test
     fun `«Tus datos» saves the profile and the weight, then goes to the AI step`() = runBlocking {
-        val viewModel = OnboardingViewModel(repository, preferences, account)
+        val viewModel = onboarding()
         assertThat(viewModel.step.value).isEqualTo(OnboardingStep.WELCOME)
         viewModel.goTo(OnboardingStep.DATA)
         withTimeout(5_000) { viewModel.form.first { it.gymDays == "0" } }
@@ -123,7 +134,7 @@ class OnboardingTest {
     fun `after logging in, an account that has the data skips «Tus datos»`() = runBlocking {
         val profile = CalorieProfile(Gender.FEMALE, 1992, 165.0, 2, 45, 40, Goal.CUT)
         // The first sync brings the account's profile and weigh-ins down (here: straight into the database).
-        val viewModel = OnboardingViewModel(repository, preferences, account, firstSync = {
+        val viewModel = onboarding(firstSync = {
             repository.saveProfile(profile)
             repository.saveWeight(null, WeightRequest("2026-06-15T08:00:00.000Z", 62.0))
         })
@@ -137,7 +148,7 @@ class OnboardingTest {
 
     @Test
     fun `after logging in, an account without the data asks for it`() = runBlocking {
-        val viewModel = OnboardingViewModel(repository, preferences, account, firstSync = {})
+        val viewModel = onboarding()
         account.save(Account("ana", "token", isAdmin = false))
         viewModel.afterLogin()
 
@@ -149,7 +160,7 @@ class OnboardingTest {
     fun `«Ver tutorial» with an account also starts on the welcome, and stays there until «Empezar»`() = runBlocking {
         account.save(Account("ana", "token", isAdmin = false))
         var synced = false
-        val viewModel = OnboardingViewModel(repository, preferences, account, firstSync = { synced = true })
+        val viewModel = onboarding(firstSync = { synced = true })
 
         assertThat(viewModel.startedLoggedIn).isTrue()
         assertThat(viewModel.step.value).isEqualTo(OnboardingStep.WELCOME)
