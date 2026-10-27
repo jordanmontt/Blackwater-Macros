@@ -13,7 +13,8 @@ import { emptyCalorieProfile, templateDto } from "../helpers/repos";
  *    Acerca de) de filas con icono, a un toque (como en Android),
  *  - cambia el tema (claro / oscuro / sistema),
  *  - enlaza a "Perfil" (objetivo y datos corporales viven allí),
- *  - exportar comidas y peso apunta a la API (CSV); importar un CSV lo lee y lo envía,
+ *  - exportar descarga un solo archivo con todo (/api/export); en la web no se importa
+ *    (la importación es de Android sin cuenta),
  *  - crea, edita y borra plantillas (el formulario es "@/components/meals/template-form"),
  *    en una sección plegada por defecto (con muchas plantillas la lista sería enorme),
  *  - cierra la sesión de forma explícita.
@@ -61,8 +62,6 @@ vi.mock("@/lib/api", () => ({
     createTemplate: vi.fn(),
     updateTemplate: vi.fn(),
     logout: vi.fn(async () => ({ ok: true as const })),
-    importMeals: vi.fn(async () => ({ added: 0, skipped: 0 })),
-    importWeights: vi.fn(async () => ({ added: 1, skipped: 1 })),
     restoreTemplate: vi.fn(async () => undefined),
   } satisfies Pick<
     typeof import("@/lib/api").api,
@@ -74,8 +73,6 @@ vi.mock("@/lib/api", () => ({
     | "createTemplate"
     | "updateTemplate"
     | "logout"
-    | "importMeals"
-    | "importWeights"
     | "restoreTemplate"
   >,
   errorText: (error: unknown) => (error instanceof Error ? error.message : "error"),
@@ -180,41 +177,14 @@ describe("pantalla Ajustes", () => {
     expect(screen.queryByLabelText(t.ai.apiKey)).toBeNull();
   });
 
-  it("los botones de exportación apuntan a la API en CSV", async () => {
+  it("exportar descarga un solo archivo con todo, con la fecha del navegador; no hay importación", async () => {
     render(<AjustesPage />);
 
-    const mealsLink = (await screen.findByText(t.ajustes.exportMeals)).closest("a");
-    expect(mealsLink).toHaveAttribute("href", "/api/export/meals");
-    expect(mealsLink).toHaveAttribute("download");
-
-    const weightsLink = screen.getByText(t.ajustes.exportWeights).closest("a");
-    expect(weightsLink).toHaveAttribute("href", "/api/export/weights");
-  });
-
-  it("importar un CSV de peso lo lee, lo envía y resume el resultado", async () => {
-    const user = userEvent.setup();
-    render(<AjustesPage />);
-    await screen.findByText(t.ajustes.importCsv);
-
-    const csv = "fecha_hora,peso_kg,grasa_corporal_pct,nota\n2026-03-01T07:30:00Z,80.2,,\n2026-03-02T07:30:00Z,79.9,,\n2026-03-03T07:30:00Z,900,,\n";
-    await user.upload(screen.getByTestId("import-csv-input"), new File([csv], "peso.csv", { type: "text/csv" }));
-
-    await vi.waitFor(() => expect(toastMock.success).toHaveBeenCalled());
-    expect(vi.mocked(api.importWeights)).toHaveBeenCalledWith([
-      { measuredAt: "2026-03-01T07:30:00.000Z", weightKg: 80.2, bodyFatPct: null, note: null },
-      { measuredAt: "2026-03-02T07:30:00.000Z", weightKg: 79.9, bodyFatPct: null, note: null },
-    ]);
-    expect(toastMock.success).toHaveBeenCalledWith("1 pesajes importados · 1 ya estaban · 1 filas no válidas");
-  });
-
-  it("un CSV que no es de la app no envía nada", async () => {
-    const user = userEvent.setup();
-    render(<AjustesPage />);
-    await screen.findByText(t.ajustes.importCsv);
-    await user.upload(screen.getByTestId("import-csv-input"), new File(["nombre,apellido\nAna,Pérez"], "otro.csv"));
-    await vi.waitFor(() => expect(toastMock.error).toHaveBeenCalledWith(t.ajustes.importUnknown));
-    expect(vi.mocked(api.importWeights)).not.toHaveBeenCalled();
-    expect(vi.mocked(api.importMeals)).not.toHaveBeenCalled();
+    const link = (await screen.findByText(t.ajustes.exportData)).closest("a");
+    expect(link).toHaveAttribute("href", expect.stringMatching(/^\/api\/export\?day=\d{4}-\d{2}-\d{2}$/));
+    expect(link).toHaveAttribute("download");
+    expect(screen.getByText(t.ajustes.exportHint)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /import/i })).toBeNull();
   });
 
   it("las plantillas empiezan plegadas y se despliegan al tocar el título", async () => {

@@ -79,7 +79,7 @@ Node ≥ 20.19 (22 LTS recommended; on Node ≥ 25 run the tests with
 | `npm run core:sync-check` | Fails if a core test changed on one side (TS or Kotlin) only |
 | `npm run db:push` | Push the Drizzle schema to the database |
 | `npm run create-user -- u p` · `npm run set-admin -- u` | Create / reset a user, make an admin |
-| `npx tsx scripts/demo-csv.ts <dir> [es\|en]` | Demo dataset as the app's CSV backup |
+| `npx tsx scripts/demo-backup.ts <dir> [es\|en]` | Demo dataset as the app's export file (`<dir>/backup.json`) |
 | `scripts/screenshots.sh` | Store screenshots on an emulator (docs/RELEASING.md) |
 | `scripts/logo/render-icons.sh` | Regenerate every icon from the vector logo |
 

@@ -7,6 +7,11 @@
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/NutritionTest.kt"
     },
     {
+      "source": "src/lib/core/backup.ts",
+      "ts": "tests/unit/backup.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/BackupTest.kt"
+    },
+    {
       "source": "src/lib/core/protein.ts",
       "ts": "tests/unit/protein.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/ProteinTest.kt"
@@ -35,11 +40,6 @@
       "source": "src/lib/core/stats-builder.ts",
       "ts": "tests/unit/stats-builder.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/StatsBuilderTest.kt"
-    },
-    {
-      "source": "src/lib/core/csv.ts",
-      "ts": "tests/unit/auth-and-csv.test.ts",
-      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/CsvTest.kt"
     },
     {
       "source": "src/lib/core/foods.ts",

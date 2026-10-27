@@ -38,7 +38,7 @@ src/
     api/                    # Route handlers; every folder = one endpoint family
       auth/login|logout|session/
       admin/users/
-      meals/[id]/ templates/[id]/ weights/[id]/ stats/ settings/ export/[kind]/ import/[kind]/
+      meals/[id]/ templates/[id]/ weights/[id]/ stats/ settings/ export/
   proxy.ts                  # Edge gate: redirects to /login without session cookie
   server/                   # Backend-only code (never imported by client)
     db/schema.ts            # Drizzle tables + MealIngredient JSONB type + calorie_goal enum
@@ -68,7 +68,6 @@ src/
     api.ts demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
     meal-payload.ts         # A meal's/template's content as sent and stored (mealContent, storedMealContent)
     local-json-store.ts     # A JSON value in localStorage as a useSyncExternalStore store (AI settings, model lists)
-    csv-import.ts           # Reads the export's CSV (and Android's) back: parse, validate, import keys
   i18n/<lang>.json          # ALL user-facing copy, es (the reference) en fr it de; Android reads them too (§6 i18n)
   i18n/<lang>.ts            # Typed wrappers: every language has the shape of es (tests/unit/i18n.test.ts)
   i18n/languages.ts format.ts   # Language list + cookie/Accept-Language choice; locale-aware dates, the one number format
@@ -160,14 +159,14 @@ Both rules live in one place, `lib/meal-payload.ts`: `mealContent` (the content 
 meal-level totals only for `total_only`) and `storedMealContent` (plus the resolved totals),
 used by the meals and templates services, the demo store and the client (copy, undo). The
 shared types are `MealContent` and `ResolvedTotals` (`lib/core/types.ts`); the DTOs, the
-repositories' write data, the CSV import and the form payload extend them, and the server
+repositories' write data and the form payload extend them, and the server
 schemas share `mealContentShape` (`validation.ts`). Android: `Mappers.kt` `toEntity`.
 
 The MealForm defaults **new** meals to `per_ingredient` ("Por ingrediente"); editing keeps
 the stored mode. The DB column default (`per_ingredient`) is never relied upon —
 the service always writes an explicit value.
 
-**Why persisted `resolved_*` columns:** stats and CSV export become trivial
+**Why persisted `resolved_*` columns:** stats and the export file become trivial
 `SUM(...)` queries over one column instead of re-parsing JSONB on every request.
 
 ### MealIngredient (JSONB)
@@ -238,7 +237,7 @@ Two reasons:
 | `weights-service` | CRUD over weights (timestamps kept exact, UTC); DTOs include `bodyFatPct` |
 | `settings-service` | calorie profile CRUD and its history (read via session endpoint, updated via `PUT /api/settings`; no history sent = kept) |
 | `stats-service` | builds the whole `StatsSummary` DTO including body fat series (see §7) |
-| `export-service` | CSV builders using `lib/core/csv.ts` (RFC-escaped, UTF-8 BOM for Excel) |
+| `export-service` | `buildUserBackup`: the user's export file with `lib/core/backup.ts` (§5.11) |
 
 Services receive their repos via a `deps` argument — production wiring lives only
 in `composition.ts`:
@@ -342,8 +341,7 @@ All bodies JSON unless noted. Errors: `{ "error": string }`.
 | GET/POST `/api/weights`, PATCH/PUT/DELETE `/api/weights/:id` | ✓ | Weight entries (`WeightInput`: ISO timestamp + optional `bodyFatPct`; PUT = idempotent upsert) |
 | PUT `/api/settings` | ✓ | Update calorie profile (`CalorieProfile`) → `{calorieProfile}` |
 | GET `/api/stats?range=7d\|30d\|90d\|all&today=YYYY-MM-DD` | ✓ | Full `StatsSummary` DTO (weights, body fat, nutrition) |
-| GET `/api/export/meals.csv` · `/api/export/weights.csv` | ✓ | CSV download (BOM, es-friendly; weights includes `grasa_corporal_pct`) |
-| POST `/api/import/meals` · `/api/import/weights` | ✓ | `{meals: MealInput[]}` / `{weights: WeightInput[]}` (≤ 20 000) → `{added, skipped}`. The browser parses the CSV (`lib/csv-import.ts`); the server adds what is new and skips duplicates (same keys as Android's `CsvBackup`), so importing twice is harmless |
+| GET `/api/export?day=YYYY-MM-DD` | ✓ | The export file (JSON, §5.11), named `blackwater-macros-<day>.json` |
 
 Zod schemas (`src/server/validation.ts`): `mealInputSchema`, `templateInputSchema`,
 `weightInputSchema` (includes optional `bodyFatPct`), `calorieProfileInputSchema`
@@ -739,29 +737,66 @@ Success `200` returns the updated settings object: `{ calorieProfile, profileHis
 
 ### 5.11 Export and import
 
-#### Export CSV
-
-`GET /api/export/meals` — downloads `comidas.csv` (UTF-8 BOM, RFC-4180).
-`GET /api/export/weights` — downloads `peso.csv`.
-
-Auth required. Returns a `text/csv` attachment.
-
-#### Import (web)
-
-`POST /api/import/meals` — body `{ "meals": MealInput[] }` (at most 20 000).
-`POST /api/import/weights` — body `{ "weights": WeightInput[] }` (at most 20 000).
-
-Auth required. The browser reads the exported CSV itself (`src/lib/csv-import.ts`) and
-sends the rows as JSON. The server adds what is new and skips what already exists
-(meals: same day, title, mode, ingredients, kcal and protein; weights: same instant and
-kilos), so importing a file twice changes nothing. Success `200`:
+**One file with everything, readable without the app.** Export writes the user's profile,
+earlier profiles (so past days keep their targets), weigh-ins, meals and templates as one
+indented JSON file with plain English names (`lib/core/backup.ts` `buildBackup`, mirrored by
+Kotlin `core/Backup.kt`, which writes byte for byte the same text: `BackupTest`). Not in it:
+the account, AI keys and models, theme, language.
 
 ```json
-{ "added": 12, "skipped": 3 }
+{
+  "app": "Blackwater Macros",
+  "format": 1,
+  "exportedAt": "2026-10-26T21:00:00.000Z",
+  "profile": { "sex": "male", "birthYear": 1990, "heightCm": 178, "gymDaysPerWeek": 3,
+               "gymMinutesPerSession": 60, "walkingMinutesPerDay": 30, "goal": "bulk" },
+  "pastProfiles": [ { "until": "2026-10-14", "sex": "male", …, "goal": null } ],
+  "weighIns": [ { "time": "2026-10-26T07:15:00.000Z", "kg": 80.2, "bodyFatPct": 18, "note": null } ],
+  "meals": [ { "date": "2026-10-26", "title": "Breakfast", "notes": null, "mode": "foods",
+               "foods": [ { "name": "Oats", "amount": "80 g", "kcal": 300, "protein": 10.5, "carbs": 54, "fat": 6 } ],
+               "total": { "kcal": 300, "protein": 10.5, "carbs": 54, "fat": 6 } } ],
+  "templates": [ { "name": "Shake", "title": "Protein shake", …same as a meal without "date" } ]
+}
 ```
 
-`400` on an invalid body, `404` for another kind. Android imports locally
-(`CsvBackup`) and syncs as usual; it does not use this endpoint.
+- **Names** are English for every language (a file format; values too: `sex` male/female,
+  `goal` cut/maintain/bulk). `mode` is `foods` (the total is the sum of the foods; on import it
+  is recomputed) or `total` (the total was typed; carbs and fat may be null). A food lists only
+  the values it has. Meals are in day order (date, then their order in the day), weigh-ins
+  oldest first.
+- **`format`** is 1. A change that an older app couldn't read raises it; an app refuses a file
+  with a higher number («update the app»).
+
+#### Export
+
+- **Web:** Ajustes → Tus datos → «Exportar mis datos» links to `GET /api/export?day=<browser
+  date>` (auth required; `withUserId`), which builds the file on the server
+  (`export-service` `buildUserBackup`) and returns it as an `application/json` attachment named
+  `blackwater-macros-<day>.json` (`day` only names the file; without a valid one, the server's
+  UTC date). Disabled in demo mode.
+- **Android:** the same row writes `repository.backupData()` through `buildBackup` to a file
+  the user picks (`CreateDocument("application/json")`), with or without an account.
+
+#### Import (Android, only without an account)
+
+The import **replaces** the phone's meals, weigh-ins, templates and profile with the file's
+(move to a new phone, restore after reinstalling). It never reaches the server:
+
+- **With an account** the data is the server's and the phone is its copy: imported rows would
+  upload, or the next sync would undo the import. So the row is disabled with «Tus datos están
+  en tu cuenta…», and `AppRepository.replaceAll` refuses to run when logged in. The web has no
+  import (a browser always has an account).
+- **Reading** (`data/BackupImport.kt`): all or nothing. Not JSON or not this app's file →
+  «not an export»; a higher `format` → «update the app»; any value the server would refuse
+  (the limits of `src/server/validation.ts`, text trimmed as the server stores it) → «damaged
+  or edited by hand (meals › 13 › foods › 1 › kcal)». Nothing changes in any of these cases.
+- **Confirmation:** «¿Sustituir todos tus datos?» with what the file holds («412 comidas, 96
+  pesajes y 5 plantillas, del 2 nov 2025 al 26 oct 2026») and «No se puede deshacer».
+- **Saving** (`replaceAll`, one Room transaction): every meal, template and weigh-in row is
+  deleted, the file's are inserted with new ids (meals numbered in file order within each day),
+  and the profile and its history are the file's.
+- **Logging in later** asks, as for any local data, whether to upload it to the account or
+  discard it.
 
 ---
 
@@ -792,7 +827,7 @@ expired and keeps local data. Statistics are computed on the phone, so `/api/sta
 |---|---|---|
 | Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars; a past day shows the targets it had, §8.1.1), meal list (each card: edit, «Guardar como plantilla» — saved at once under the meal's title via `mealContent`, with an Undo toast that deletes it — and delete), delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast. Holding a template (or a right click: Base UI `ContextMenu`; Android `TemplateChip`, a long-press `DropdownMenu`) offers Editar and Borrar without going to Ajustes: the sheet closes, then the page shows `TemplateForm` or the delete confirm with an Undo (`restoreTemplate`), as Ajustes does |
 | Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band (it steps where a day's target changed, §8.1.1); «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets = mean of the logged days' own targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | A grouped list, the same as Android: a short heading per group and one card of rows (`components/settings/settings-list.tsx`: `SettingsGroup`, `SettingsRow` — icon, title, a line under it, an arrow or a control), every setting on the page and one tap away. **Cuenta** (who is logged in, logout), **Personal** (Perfil, IA, templates: collapsed, with the manager and the new-template dialog), **Tus datos** (CSV export + import, the hint under the card), **Aplicación** (theme, the only place to switch it; language, `language-row.tsx`; the tutorial), **Acerca de** (Metodología, the website `WEBSITE_URL` from `lib/links.ts`, source code, «Administración» for admins) |
+| Ajustes | `app/ajustes/page.tsx` | A grouped list, the same as Android: a short heading per group and one card of rows (`components/settings/settings-list.tsx`: `SettingsGroup`, `SettingsRow` — icon, title, a line under it, an arrow or a control), every setting on the page and one tap away. **Cuenta** (who is logged in, logout), **Personal** (Perfil, IA, templates: collapsed, with the manager and the new-template dialog), **Tus datos** («Exportar mis datos», one file, §5.11; no import on the web), **Aplicación** (theme, the only place to switch it; language, `language-row.tsx`; the tutorial), **Acerca de** (Metodología, the website `WEBSITE_URL` from `lib/links.ts`, source code, «Administración» for admins) |
 | IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector with one line on what the goal does (§8.2.1), calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
@@ -836,8 +871,8 @@ delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
 - **Exit:** a persistent `DemoBanner` (rendered in `layout.tsx` on every app
   page) shows «Estás en modo demo…» with a **«Iniciar sesión»** button that calls
   `exitDemoMode()` (clears the cookie + storage) and returns to `/login`. The
-  Ajustes page also exposes the exit action and disables CSV export and import in demo
-  mode (those buttons target server endpoints that require a real session).
+  Ajustes page also exposes the exit action and disables the export in demo mode (it
+  targets a server endpoint that requires a real session).
 - **Stats:** `api.stats()` in demo computes the `StatsSummary` via the shared
   `lib/core/stats-builder.ts` (see §7) — the exact same code the server service uses.
 
@@ -882,7 +917,7 @@ thousands from five digits up** — «1,6 g», «2000 kcal», «12 345 kcal».
   `formatDecimal(value, 6, grouping = false)` («8,5», never grouped, so it parses back).
   Parsing accepts either separator (`.replace(",", ".")` on the web, `parseDecimal` on
   Android).
-- **Not affected:** the JSON wire format and CSV (`.`, IEEE 754), the text sent to AI
+- **Not affected:** the JSON wire format and the export file (`.`, IEEE 754), the text sent to AI
   models (`plainNumber` — an exact-text contract), and the free-text
   quantity field, which holds strings like «30-40 g». The web profile's height/age fields
   are native `type="number"` inputs (whole numbers in practice).
@@ -928,7 +963,8 @@ renders nothing on the server and the app after mount, so there is no hydration 
 **Also per language:** server errors (`t.serverErrors[code]`, §5.3), dates
 (`i18n/format.ts`, `LOCALE_TAGS`; numbers are the same in every language, see above), food
 search and barcode names (`currentLanguage()` → Open Food Facts `lc`), and the language the
-AI answers in (`aiLanguage()`). Stays Spanish on purpose: CSV column names (a file format).
+AI answers in (`aiLanguage()`). The export file's names are English in every language (a
+file format, §5.11).
 
 ---
 
@@ -1030,7 +1066,7 @@ the magnitudes: [METHODOLOGY.md](./METHODOLOGY.md) §1.4.
 - **Sync:** the history travels with the profile (same last-write-wins): `SyncEngine` sends it
   in `PUT /api/settings`; the download replaces it when the local profile isn't pending, and a
   server without the field (`profileHistory` null) leaves the phone's alone.
-- **CSV:** not exported (the CSV holds meals and weigh-ins only).
+- **Export file:** the history is in it as `pastProfiles` (§5.11), and an import restores it.
 
 ### 8.2 Protein (`protein.ts`)
 
@@ -1440,7 +1476,7 @@ Three projects, one run (`npm test`):
 
 | Project | Environment | Scope |
 |---|---|---|
-| `unit` | node | Pure-function edge cases (`stats`, `dates`, password vectors, CSV escaping) |
+| `unit` | node | Pure-function edge cases (`stats`, `dates`, password vectors, the export file text) |
 | `behavior` | node | Black-box requirements written in Spanish, exercising **services** through injected in-memory fakes — no HTTP, no DB |
 | `behavior-ui` | happy-dom | Renders actual pages and components (`today-page`, `progreso-page`, `ajustes-page`, `perfil-page`, `recommendations-card`, `day-navigator`, …) with mocked `@/lib/api` |
 
@@ -1497,7 +1533,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `dates.test.ts` | date keys, `parseLocalDateTime`, `datetime-local` values | `DatesTest.kt` |
 | `stats.test.ts` | moving average, weekly rate, series | `StatsTest.kt` |
 | `stats-builder.test.ts` | `buildStatsFromData` | `StatsBuilderTest.kt` |
-| `auth-and-csv.test.ts` (CSV part) | `toCsv` | `CsvTest.kt` |
+| `backup.test.ts` | `buildBackup` (the exact file text), `backupFileName` | `BackupTest.kt` |
 
 **The rule:** changing a core algorithm means changing the TS implementation, its TS test, the
 Kotlin implementation and its Kotlin test **together**. Enforced by `npm run core:sync-check`
@@ -1521,13 +1557,13 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 
 | Test | What it proves |
 | ---- | -------------- |
-| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; the profile history (past days keep their targets) syncs both ways, and a server without it leaves the phone's alone; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); CSV import de-duplication; an HTML/captive-portal answer fails the sync without losing data; the header cloud stays green when only the download fails, grey (not red) when the server saved a change but the answer was lost or answered «try again later», and red while the server refuses a change |
+| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; the profile history (past days keep their targets) syncs both ways, and a server without it leaves the phone's alone; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); the import replaces the phone's data and sends nothing, is refused with an account, and is uploaded only on a later login with «upload»; an HTML/captive-portal answer fails the sync without losing data; the header cloud stays green when only the download fails, grey (not red) when the server saved a change but the answer was lost or answered «try again later», and red while the server refuses a change |
 | `data/MultiAccountTest.kt` | Several accounts on one phone (Android only), with real Room + Retrofit and a two-user `FakeServer`: a single-account install keeps its files; no «Añadir cuenta» without an account; a new account starts empty and downloads only its own data; switching shows each account's meals; no duplicates; wrong password/offline adds nothing; accounts and the active one survive a restart; expired sessions show in the switcher; background sync uploads every account's changes to the right account; logging out of one removes only its data, of the last one goes back to local mode |
 | `ui/AddAccountLoginTest.kt` | The login screen in «Añadir cuenta» mode: connects without the local-data question; wrong password / no network / empty fields read like a normal login |
 | `data/ReleaseRulesTest.kt` | Every `ApiService` response type is a `@Serializable` class of `data`, and `proguard-rules.pro` keeps them all (R8 removed an unread response and broke the profile sync in release builds, §14.7) |
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls (also each period of `profileHistory`; no history = key left out), admin; status codes and error envelopes |
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.json`) |
-| `data/CsvBackupTest.kt` | CSV round trip; reads a web export; skips rows the server would reject; unknown files |
+| `data/BackupImportTest.kt` | Reads the web's export file; not an export, a newer format, and one wrong value (with where it is) refuse the whole file; text trimmed as the server stores it |
 | `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, why a code missed, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
 | `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; a stream cut by the token limit, by an error inside the stream or by the connection fails after the text that arrived, even when the screen reads slowly; keys encrypted per provider; AI prefs excluded from backups |
 | `data/ai/ModelListStoreTest.kt` | The model dropdown's list: reused for a day, asked again when old, forced or for another key; survives a restart; never stores the key |
@@ -1557,7 +1593,7 @@ Web behavior tests describe user requirements; when one exists on both platforms
 | `meal-management`, `nutrition-entry`, `weights-service` | `OfflineSyncTest` + `ValidationTest` |
 | `routes-*` (wire contract) | `ApiContractTest` + `FakeServer` |
 | `api-client` (error codes in the app language) | `ResponseErrorMapperTest` |
-| `csv-export`, `routes-import` | `CsvBackupTest` |
+| `routes-export` | `:core` `BackupTest` + `BackupImportTest` |
 | `stats-overview`, `unit/stats-builder` | `:core` `StatsBuilderTest` |
 | `progreso-page` | `ProgressLogicTest` |
 | `recommendations-card`, `perfil-page` | `ValidationTest` (`recommend`) |
@@ -1687,7 +1723,7 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
 - **Settings:** the web's grouped list (`SettingsGroup` / `SettingsRow` in
   `SettingsComponents.kt`, rows are Material `ListItem`s): **Cuenta** (sync status, sync
   now, switch or add an account, logout; logged out, one «Iniciar sesión» row), **Personal**
-  (Perfil, IA, templates), **Tus datos** (export, import, delete all), **Aplicación** (theme,
+  (Perfil, IA, templates), **Tus datos** (export; import only without an account, §5.11; delete all), **Aplicación** (theme,
   language, «Check for updates» in own-key builds, tutorial), **Acerca de** (Metodología,
   website `BuildConfig.WEBSITE_URL`, source code, donate, Admin). Every row has an icon and
   is one tap away. Goal, body data and recommendations live in a pushed **Perfil** page
@@ -1775,12 +1811,12 @@ app/src/main/kotlin/com/blackwatermacros/app/
   data/
     local/LocalDatabase.kt   # Room entities (pending/deleted flags) + DAOs + MIGRATIONS (version 2)
     local/Mappers.kt         # DTO ⇄ entity, totals via :core resolveMealTotals, nowIso() edit stamp
-    AppRepository.kt         # the only data API the screens use (Flows + writes + undo + CSV import)
+    AppRepository.kt         # the only data API the screens use (Flows + writes + undo + export data + replaceAll)
     AccountStore.kt          # persisted account (token, username, isAdmin, sessionExpired, lastSyncAt)
     AccountProfiles.kt       # several accounts on one phone (Android only): one database + session each, the active one
     AccountController.kt     # verify → connect (upload/discard) → logout / deleteLocalData (wipe)
     AppPreferences.kt        # theme (Sistema/Claro/Oscuro)
-    CsvBackup.kt             # CSV export/import in the web export's exact format
+    BackupImport.kt          # reads the export file back for the import (all or nothing, server limits)
     sync/SyncEngine.kt       # push + pull, typed SyncOutcome/SyncProblem, never throws
     sync/SyncScheduler.kt    # SyncScheduler interface + WorkManager implementation + SyncWorker
     update/UpdateChecker.kt  # «A new version is available» for the website APK only (§14.1)
@@ -1817,7 +1853,7 @@ and German. Texts shared with the web are generated from `src/i18n/<lang>.json` 
 app follows the phone language; Ajustes → Idioma changes it (`setAppLanguage` in
 `ui/Format.kt`, AppCompat per-app locales; Android 13+ also in system settings via
 `generateLocaleConfig`). Dates are formatted in the app language, numbers in the one format of
-every language (§6). CSV column names stay Spanish (the web's file format). The app label is
+every language (§6). The export file's names are English (a file format, §5.11). The app label is
 «Blackwater Macros».
 
 ### 14.4 Look & feel (kept in sync with the web)

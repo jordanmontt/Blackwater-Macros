@@ -34,7 +34,7 @@
 <ul>
 <li>Vos données restent sur votre téléphone. Sans compte, elles ne quittent jamais l’appareil : l’app ne contacte jamais notre serveur. Elle ne se connecte que quand vous le demandez : recherche d’aliments et codes-barres (Open Food Facts), le fournisseur d’IA choisi (seulement ce que vous lui envoyez), et les modèles d’IA pour le téléphone (GitHub, Hugging Face).</li>
 <li>Pas de publicité, pas d’analytique, pas de traqueurs. Logiciel libre (AGPL-3.0).</li>
-<li>Exportez et importez vos données en CSV à tout moment.</li>
+<li>Exportez toutes vos données dans un fichier lisible.</li>
 </ul>
 
 <p><b>Un compte, si vous le souhaitez</b></p>

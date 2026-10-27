@@ -189,7 +189,7 @@
   "templates_title": "hoy.templates",
   "template_delete_title": "ajustes.deleteTemplateTitle",
   "data_title": "ajustes.exportSection",
-  "data_import": "ajustes.importCsv",
+  "data_export": "ajustes.exportData",
   "login_password": "auth.password",
   "password_show": "auth.showPassword",
   "password_hide": "auth.hidePassword",

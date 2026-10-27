@@ -115,13 +115,8 @@
     <string name="admin_subtitle">Gérer les utilisateurs de l\'application.</string>
     <string name="templates_empty">Vous n\'avez encore aucun modèle enregistré.</string>
     <string name="template_delete_body">Ce modèle sera supprimé.</string>
-    <string name="data_description">Exportez ou importez vos repas et votre poids en CSV. Pratique comme sauvegarde ou pour changer de téléphone.</string>
-    <string name="data_export_meals">Exporter les repas</string>
-    <string name="data_export_weights">Exporter le poids</string>
-    <string name="data_meals_file_name">blackwater-repas-%1$s.csv</string>
-    <string name="data_weights_file_name">blackwater-poids-%1$s.csv</string>
+    <string name="data_description">Exporter enregistre vos repas, pesées, modèles et profil dans un fichier lisible avec n\'importe quel éditeur de texte.</string>
     <string name="data_exported">Fichier enregistré.</string>
-    <string name="data_unknown_file">Ce fichier n\'est pas un CSV de repas ou de poids Blackwater.</string>
     <string name="data_failed">Impossible de lire ou d\'écrire le fichier.</string>
     <string name="login_description">Synchronisez vos repas et votre poids entre vos appareils. Pour l\'instant, les comptes sont sur invitation.</string>
     <!-- Several accounts on one phone (Android only). -->
@@ -179,7 +174,7 @@
     <string name="meth_measured_after" formatted="false">Aujourd\'hui ne compte pas, car vous êtes encore en train de le saisir. Les jours sans repas sont exclus : les compter à 0 kcal ferait croire que vous dépensez beaucoup moins. Malgré tout, votre poids reflète aussi ce que vous avez mangé ces jours-là, c\'est pourquoi il faut au moins 21 jours saisis sur 28 (3 sur 4).\n\nUne pesée peut varier de ±0,5–1 kg d\'un jour à l\'autre à cause de l\'eau, du sel ou du glycogène, et un demi-kilo d\'erreur sur la tendance de 4 semaines représente plus de 100 kcal/jour. C\'est pourquoi l\'app calcule la marge d\'erreur statistique de la pente. σ est la dispersion de vos pesées autour de la droite de tendance, jamais moins de 0,5 kg, pour que quelques pesées alignées par hasard ne paraissent pas précises. Σ(xᵢ − x̄)² augmente avec le nombre de pesées et leur étalement. Si vous vous pesez plusieurs fois le même jour, ce jour compte une fois, par sa moyenne : deux pesées du même jour ne sont pas deux mesures indépendantes de la tendance. La dépense mesurée n\'est affichée, avec son ± à 95 %, que si la marge est de ±300 kcal/jour ou moins et qu\'il y a au moins 4 jours de pesée couvrant 14 jours ou plus. En pratique : avec une pesée par semaine, on n\'y arrive jamais ; environ 3 fois par semaine, oui ; chaque jour, la marge descend à environ ±180 kcal.\n\nElle ne remplace pas votre objectif : la plage recommandée vient toujours de la formule, pour qu\'elle ne varie pas avec le bruit de la balance. Utilisez-la comme contrôle : si elle diffère de la DEJ estimée pendant plusieurs semaines, c\'est la meilleure référence de votre dépense réelle. Sa précision dépend d\'une saisie exacte des repas (si vous en oubliez, la dépense paraîtra plus basse), et au début d\'un régime ou lors d\'un changement, les variations d\'eau et de glycogène peuvent la fausser les premières semaines. Les 7700 kcal/kg sont aussi une approximation : la valeur réelle dépend de la part de graisse et de tissu maigre dans ce qui est gagné ou perdu (Hall 2008).</string>
     <string name="data_delete_button">Supprimer toutes les données de ce téléphone</string>
     <string name="data_delete_title">Supprimer toutes les données ?</string>
-    <string name="data_delete_body_local">Tous les repas, pesées, modèles et votre profil seront définitivement supprimés de ce téléphone. Exportez d\'abord un CSV si vous voulez une sauvegarde.</string>
+    <string name="data_delete_body_local">Tous les repas, pesées, modèles et votre profil seront définitivement supprimés de ce téléphone. Exportez d\'abord vos données si vous voulez une sauvegarde.</string>
     <string name="data_delete_body_account">Seule la copie de ce téléphone est supprimée. Les données de votre compte sur le serveur ne sont pas touchées et seront de nouveau téléchargées à la prochaine synchronisation.</string>
     <string name="data_delete_confirm">Supprimer</string>
     <string name="data_deleted">Données supprimées de ce téléphone.</string>
@@ -201,26 +196,6 @@
         <item quantity="one">Vous avez %d modification non synchronisée. Elle sera perdue si vous vous déconnectez maintenant.</item>
         <item quantity="many">Vous avez %d modifications non synchronisées. Elles seront perdues si vous vous déconnectez maintenant.</item>
         <item quantity="other">Vous avez %d modifications non synchronisées. Elles seront perdues si vous vous déconnectez maintenant.</item>
-    </plurals>
-    <plurals name="data_imported_meals">
-        <item quantity="one">%d repas importé</item>
-        <item quantity="many">%d repas importés</item>
-        <item quantity="other">%d repas importés</item>
-    </plurals>
-    <plurals name="data_imported_weights">
-        <item quantity="one">%d pesée importée</item>
-        <item quantity="many">%d pesées importées</item>
-        <item quantity="other">%d pesées importées</item>
-    </plurals>
-    <plurals name="data_import_skipped">
-        <item quantity="one">%d existait déjà</item>
-        <item quantity="many">%d existaient déjà</item>
-        <item quantity="other">%d existaient déjà</item>
-    </plurals>
-    <plurals name="data_import_invalid">
-        <item quantity="one">%d ligne illisible</item>
-        <item quantity="many">%d lignes illisibles</item>
-        <item quantity="other">%d lignes illisibles</item>
     </plurals>
     <plurals name="local_meals">
         <item quantity="one">%d repas</item>
@@ -362,4 +337,31 @@
     <string name="update_download">Télécharger</string>
     <string name="update_check_title">Rechercher des mises à jour</string>
     <string name="update_check_hint">Une fois par jour. Rien sur vous n\'est envoyé.</string>
+    <string name="data_import">Importer des données</string>
+    <string name="data_import_hint_local">Remplace les données de ce téléphone par celles d\'un fichier.</string>
+    <string name="data_import_hint_account">Vos données sont dans votre compte et déjà sauvegardées. L\'import sert à utiliser l\'app sans compte.</string>
+    <string name="data_imported">Données importées.</string>
+    <string name="data_import_not_backup">Ce fichier n\'est pas un export de Blackwater Macros.</string>
+    <string name="data_import_newer">Ce fichier vient d\'une version plus récente de l\'app. Mettez l\'app à jour pour l\'importer.</string>
+    <string name="data_import_damaged">Ce fichier est endommagé ou a été modifié à la main (%1$s). Rien n\'a été changé.</string>
+    <string name="data_import_title">Remplacer toutes vos données ?</string>
+    <string name="data_import_body">Vos repas, pesées, modèles et profil seront remplacés par ceux de ce fichier (%1$s). Impossible d\'annuler.</string>
+    <string name="data_import_confirm">Remplacer</string>
+    <string name="data_import_counts">%1$s, %2$s et %3$s</string>
+    <string name="data_import_span">%1$s, du %2$s au %3$s</string>
+    <plurals name="data_import_meals">
+        <item quantity="one">%d repas</item>
+        <item quantity="many">%d repas</item>
+        <item quantity="other">%d repas</item>
+    </plurals>
+    <plurals name="data_import_weigh_ins">
+        <item quantity="one">%d pesée</item>
+        <item quantity="many">%d pesées</item>
+        <item quantity="other">%d pesées</item>
+    </plurals>
+    <plurals name="data_import_templates">
+        <item quantity="one">%d modèle</item>
+        <item quantity="many">%d modèles</item>
+        <item quantity="other">%d modèles</item>
+    </plurals>
 </resources>

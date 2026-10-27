@@ -115,13 +115,8 @@
     <string name="admin_subtitle">Gestiona los usuarios de la aplicación.</string>
     <string name="templates_empty">Aún no tienes plantillas guardadas.</string>
     <string name="template_delete_body">Se borrará esta plantilla.</string>
-    <string name="data_description">Exporta o importa tus comidas y tu peso en CSV. Útil como copia de seguridad o para cambiar de teléfono.</string>
-    <string name="data_export_meals">Exportar comidas</string>
-    <string name="data_export_weights">Exportar peso</string>
-    <string name="data_meals_file_name">blackwater-comidas-%1$s.csv</string>
-    <string name="data_weights_file_name">blackwater-peso-%1$s.csv</string>
+    <string name="data_description">Exportar guarda tus comidas, pesajes, plantillas y perfil en un archivo que puedes leer con cualquier editor de texto.</string>
     <string name="data_exported">Archivo guardado.</string>
-    <string name="data_unknown_file">Este archivo no es un CSV de comidas o de peso de Blackwater.</string>
     <string name="data_failed">No se pudo leer o escribir el archivo.</string>
     <string name="login_description">Sincroniza tus comidas y tu peso entre tus dispositivos. Por ahora las cuentas son por invitación.</string>
     <!-- Several accounts on one phone (Android only). -->
@@ -179,7 +174,7 @@
     <string name="meth_measured_after" formatted="false">Hoy no cuenta, porque aún lo estás registrando. Los días sin comidas se excluyen: contarlos como 0 kcal haría parecer que gastas mucho menos. Aun así, tu peso refleja también lo que comiste esos días, así que se exigen al menos 21 días registrados de 28 (3 de cada 4).\n\nUn pesaje puede variar ±0,5–1 kg de un día a otro por agua, sal o glucógeno, y medio kilo de error en la tendencia de 4 semanas son más de 100 kcal/día. Por eso la app calcula el margen de error estadístico de la pendiente. σ es la dispersión de tus pesajes alrededor de la línea de tendencia, nunca menos de 0,5 kg, para que unos pocos pesajes alineados por casualidad no parezcan precisos. Σ(xᵢ − x̄)² crece con el número de pesajes y con lo repartidos que estén. Si te pesas varias veces el mismo día cuenta la media de ese día: dos pesajes del mismo día no son dos medidas independientes de la tendencia. El gasto medido solo se muestra, con su ± al 95 %, cuando el margen es de ±300 kcal/día o menos y hay al menos 4 días de pesaje que abarcan 14 días o más. En la práctica: pesándote una vez a la semana no se alcanza; unas 3 veces por semana, sí; a diario, el margen baja a unas ±180 kcal.\n\nNo sustituye a tu objetivo: el rango recomendado sigue saliendo de la fórmula, para que no oscile con el ruido de la báscula. Úsalo como contraste: si durante varias semanas difiere del TDEE estimado, es la mejor referencia de tu gasto real. Su precisión depende de registrar las comidas con exactitud (si te quedas corto al registrar, el gasto parecerá más bajo), y al empezar o cambiar de dieta los cambios de agua y glucógeno pueden distorsionarlo las primeras semanas. Los 7700 kcal/kg también son una aproximación: el valor real depende de cuánto de lo que se gana o se pierde es grasa y cuánto tejido magro (Hall 2008).</string>
     <string name="data_delete_button">Borrar todos los datos de este teléfono</string>
     <string name="data_delete_title">¿Borrar todos los datos?</string>
-    <string name="data_delete_body_local">Se borrarán para siempre de este teléfono todas las comidas, pesos, plantillas y tu perfil. Exporta un CSV antes si quieres una copia de seguridad.</string>
+    <string name="data_delete_body_local">Se borrarán para siempre de este teléfono todas las comidas, pesos, plantillas y tu perfil. Exporta tus datos antes si quieres una copia de seguridad.</string>
     <string name="data_delete_body_account">Solo se borra la copia de este teléfono. Los datos de tu cuenta en el servidor no se tocan y se volverán a descargar en la próxima sincronización.</string>
     <string name="data_delete_confirm">Borrar</string>
     <string name="data_deleted">Datos borrados de este teléfono.</string>
@@ -201,26 +196,6 @@
         <item quantity="one">Tienes %d cambio sin sincronizar. Si cierras sesión ahora se perderá.</item>
         <item quantity="many">Tienes %d cambios sin sincronizar. Si cierras sesión ahora se perderán.</item>
         <item quantity="other">Tienes %d cambios sin sincronizar. Si cierras sesión ahora se perderán.</item>
-    </plurals>
-    <plurals name="data_imported_meals">
-        <item quantity="one">%d comida importada</item>
-        <item quantity="many">%d comidas importadas</item>
-        <item quantity="other">%d comidas importadas</item>
-    </plurals>
-    <plurals name="data_imported_weights">
-        <item quantity="one">%d registro de peso importado</item>
-        <item quantity="many">%d registros de peso importados</item>
-        <item quantity="other">%d registros de peso importados</item>
-    </plurals>
-    <plurals name="data_import_skipped">
-        <item quantity="one">%d ya existía</item>
-        <item quantity="many">%d ya existían</item>
-        <item quantity="other">%d ya existían</item>
-    </plurals>
-    <plurals name="data_import_invalid">
-        <item quantity="one">%d fila no se pudo leer</item>
-        <item quantity="many">%d filas no se pudieron leer</item>
-        <item quantity="other">%d filas no se pudieron leer</item>
     </plurals>
     <plurals name="local_meals">
         <item quantity="one">%d comida</item>
@@ -362,4 +337,31 @@
     <string name="update_download">Descargar</string>
     <string name="update_check_title">Buscar actualizaciones</string>
     <string name="update_check_hint">Una vez al día. No se envía nada sobre ti.</string>
+    <string name="data_import">Importar datos</string>
+    <string name="data_import_hint_local">Sustituye los datos de este teléfono por los de un archivo.</string>
+    <string name="data_import_hint_account">Tus datos están en tu cuenta y ya tienen copia. Importar es para usar la app sin cuenta.</string>
+    <string name="data_imported">Datos importados.</string>
+    <string name="data_import_not_backup">Este archivo no es una exportación de Blackwater Macros.</string>
+    <string name="data_import_newer">Este archivo viene de una versión más nueva de la app. Actualiza la app para importarlo.</string>
+    <string name="data_import_damaged">Este archivo está dañado o se editó a mano (%1$s). No se ha cambiado nada.</string>
+    <string name="data_import_title">¿Sustituir todos tus datos?</string>
+    <string name="data_import_body">Tus comidas, pesajes, plantillas y perfil se sustituirán por los de este archivo (%1$s). No se puede deshacer.</string>
+    <string name="data_import_confirm">Sustituir</string>
+    <string name="data_import_counts">%1$s, %2$s y %3$s</string>
+    <string name="data_import_span">%1$s, del %2$s al %3$s</string>
+    <plurals name="data_import_meals">
+        <item quantity="one">%d comida</item>
+        <item quantity="many">%d comidas</item>
+        <item quantity="other">%d comidas</item>
+    </plurals>
+    <plurals name="data_import_weigh_ins">
+        <item quantity="one">%d pesaje</item>
+        <item quantity="many">%d pesajes</item>
+        <item quantity="other">%d pesajes</item>
+    </plurals>
+    <plurals name="data_import_templates">
+        <item quantity="one">%d plantilla</item>
+        <item quantity="many">%d plantillas</item>
+        <item quantity="other">%d plantillas</item>
+    </plurals>
 </resources>

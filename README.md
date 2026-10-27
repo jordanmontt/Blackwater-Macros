@@ -32,8 +32,9 @@ recipe library.
   rate, body fat, daily calories against your target and your macro averages.
 - **Ask the coach.** A chat that knows your numbers: «What should I have for dinner?»,
   «What will I weigh in 30 days?» (optional AI, see below).
-- **Your data is yours.** Everything stays on your phone; export or import it as CSV at any
-  time.
+- **Your data is yours.** Everything stays on your phone. Export it any time as one file you
+  can read in any text editor; without an account, the app imports it back (a new phone, a
+  reinstall).
 - **In your language:** English, Spanish, French, Italian and German.
 
 ## How the numbers are calculated

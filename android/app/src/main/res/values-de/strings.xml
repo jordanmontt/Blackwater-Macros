@@ -115,13 +115,8 @@
     <string name="admin_subtitle">Benutzer der App verwalten.</string>
     <string name="templates_empty">Du hast noch keine gespeicherten Vorlagen.</string>
     <string name="template_delete_body">Diese Vorlage wird gelöscht.</string>
-    <string name="data_description">Exportiere oder importiere Mahlzeiten und Gewicht als CSV. Praktisch als Sicherung oder für ein neues Telefon.</string>
-    <string name="data_export_meals">Mahlzeiten exportieren</string>
-    <string name="data_export_weights">Gewicht exportieren</string>
-    <string name="data_meals_file_name">blackwater-mahlzeiten-%1$s.csv</string>
-    <string name="data_weights_file_name">blackwater-gewicht-%1$s.csv</string>
+    <string name="data_description">Der Export speichert deine Mahlzeiten, Wägungen, Vorlagen und dein Profil in einer Datei, die du mit jedem Texteditor lesen kannst.</string>
     <string name="data_exported">Datei gespeichert.</string>
-    <string name="data_unknown_file">Diese Datei ist keine Blackwater-CSV mit Mahlzeiten oder Gewicht.</string>
     <string name="data_failed">Die Datei konnte nicht gelesen oder geschrieben werden.</string>
     <string name="login_description">Synchronisiere Mahlzeiten und Gewicht zwischen deinen Geräten. Konten gibt es vorerst nur auf Einladung.</string>
     <!-- Several accounts on one phone (Android only). -->
@@ -179,7 +174,7 @@
     <string name="meth_measured_after" formatted="false">Heute zählt nicht, weil du ihn noch erfasst. Tage ohne Mahlzeiten werden weggelassen: Würden sie als 0 kcal zählen, sähe dein Verbrauch viel niedriger aus. Trotzdem spiegelt dein Gewicht auch wider, was du an diesen Tagen gegessen hast, deshalb sind mindestens 21 erfasste Tage von 28 nötig (3 von 4).\n\nEine Wägung kann von einem Tag zum nächsten durch Wasser, Salz oder Glykogen um ±0,5–1 kg schwanken, und ein halbes Kilo Fehler im 4-Wochen-Trend sind über 100 kcal/Tag. Deshalb berechnet die App die statistische Fehlerspanne der Steigung. σ ist die Streuung deiner Wägungen um die Trendlinie, nie weniger als 0,5 kg, damit wenige Wägungen, die zufällig auf einer Linie liegen, nicht präzise wirken. Σ(xᵢ − x̄)² wächst mit der Zahl der Wägungen und damit, wie verteilt sie sind. Wiegst du dich mehrmals am selben Tag, zählt dieser Tag einmal, mit seinem Mittelwert: Zwei Wiegungen am selben Tag sind keine zwei unabhängigen Messungen des Trends. Der gemessene Verbrauch wird nur angezeigt, mit seinem ± bei 95 %, wenn die Spanne ±300 kcal/Tag oder weniger beträgt und es mindestens 4 Wiegetage über 14 oder mehr Tage gibt. In der Praxis: Wer sich einmal pro Woche wiegt, kommt nie dahin; etwa dreimal pro Woche reicht; bei täglichem Wiegen sinkt die Spanne auf etwa ±180 kcal.\n\nEr ersetzt dein Ziel nicht: Der empfohlene Bereich kommt weiter aus der Formel, damit er nicht mit dem Rauschen der Waage schwankt. Nutze ihn als Gegenprobe: Weicht er über mehrere Wochen vom geschätzten TDEE ab, ist er die beste Referenz für deinen tatsächlichen Verbrauch. Seine Genauigkeit hängt davon ab, dass du Mahlzeiten genau erfasst (erfasst du zu wenig, wirkt der Verbrauch niedriger), und zu Beginn oder bei einem Wechsel der Ernährung können Wasser- und Glykogenschwankungen ihn in den ersten Wochen verzerren. Auch die 7700 kcal/kg sind eine Näherung: Der tatsächliche Wert hängt davon ab, wie viel des Zu- oder Abgenommenen Fett und wie viel fettfreies Gewebe ist (Hall 2008).</string>
     <string name="data_delete_button">Alle Daten von diesem Telefon löschen</string>
     <string name="data_delete_title">Alle Daten löschen?</string>
-    <string name="data_delete_body_local">Alle Mahlzeiten, Gewichtseinträge, Vorlagen und dein Profil werden endgültig von diesem Telefon gelöscht. Exportiere vorher eine CSV, wenn du eine Sicherung möchtest.</string>
+    <string name="data_delete_body_local">Alle Mahlzeiten, Gewichtseinträge, Vorlagen und dein Profil werden endgültig von diesem Telefon gelöscht. Exportiere vorher deine Daten, wenn du eine Sicherung möchtest.</string>
     <string name="data_delete_body_account">Nur die Kopie auf diesem Telefon wird gelöscht. Die Daten deines Kontos auf dem Server bleiben erhalten und werden bei der nächsten Synchronisierung erneut heruntergeladen.</string>
     <string name="data_delete_confirm">Löschen</string>
     <string name="data_deleted">Daten von diesem Telefon gelöscht.</string>
@@ -198,22 +193,6 @@
     <plurals name="logout_unsynced">
         <item quantity="one">Du hast %d nicht synchronisierte Änderung. Sie geht verloren, wenn du dich jetzt abmeldest.</item>
         <item quantity="other">Du hast %d nicht synchronisierte Änderungen. Sie gehen verloren, wenn du dich jetzt abmeldest.</item>
-    </plurals>
-    <plurals name="data_imported_meals">
-        <item quantity="one">%d Mahlzeit importiert</item>
-        <item quantity="other">%d Mahlzeiten importiert</item>
-    </plurals>
-    <plurals name="data_imported_weights">
-        <item quantity="one">%d Gewichtseintrag importiert</item>
-        <item quantity="other">%d Gewichtseinträge importiert</item>
-    </plurals>
-    <plurals name="data_import_skipped">
-        <item quantity="one">%d war schon vorhanden</item>
-        <item quantity="other">%d waren schon vorhanden</item>
-    </plurals>
-    <plurals name="data_import_invalid">
-        <item quantity="one">%d Zeile unlesbar</item>
-        <item quantity="other">%d Zeilen unlesbar</item>
     </plurals>
     <plurals name="local_meals">
         <item quantity="one">%d Mahlzeit</item>
@@ -349,4 +328,28 @@
     <string name="update_download">Herunterladen</string>
     <string name="update_check_title">Nach Updates suchen</string>
     <string name="update_check_hint">Einmal am Tag. Über dich wird nichts gesendet.</string>
+    <string name="data_import">Daten importieren</string>
+    <string name="data_import_hint_local">Ersetzt die Daten auf diesem Telefon durch die einer Datei.</string>
+    <string name="data_import_hint_account">Deine Daten sind in deinem Konto und bereits gesichert. Der Import ist für die Nutzung ohne Konto.</string>
+    <string name="data_imported">Daten importiert.</string>
+    <string name="data_import_not_backup">Diese Datei ist kein Export von Blackwater Macros.</string>
+    <string name="data_import_newer">Diese Datei stammt aus einer neueren Version der App. Aktualisiere die App, um sie zu importieren.</string>
+    <string name="data_import_damaged">Diese Datei ist beschädigt oder wurde von Hand bearbeitet (%1$s). Es wurde nichts geändert.</string>
+    <string name="data_import_title">Alle deine Daten ersetzen?</string>
+    <string name="data_import_body">Deine Mahlzeiten, Wägungen, Vorlagen und dein Profil werden durch die aus dieser Datei ersetzt (%1$s). Das lässt sich nicht rückgängig machen.</string>
+    <string name="data_import_confirm">Ersetzen</string>
+    <string name="data_import_counts">%1$s, %2$s und %3$s</string>
+    <string name="data_import_span">%1$s, vom %2$s bis %3$s</string>
+    <plurals name="data_import_meals">
+        <item quantity="one">%d Mahlzeit</item>
+        <item quantity="other">%d Mahlzeiten</item>
+    </plurals>
+    <plurals name="data_import_weigh_ins">
+        <item quantity="one">%d Wägung</item>
+        <item quantity="other">%d Wägungen</item>
+    </plurals>
+    <plurals name="data_import_templates">
+        <item quantity="one">%d Vorlage</item>
+        <item quantity="other">%d Vorlagen</item>
+    </plurals>
 </resources>

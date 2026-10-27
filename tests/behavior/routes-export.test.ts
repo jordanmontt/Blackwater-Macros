@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { createMemoryWorld, authenticateWith, mealRow, weightRow } from "../helpers/repos";
+import { createMemoryWorld, authenticateWith, mealRow, templateRow, weightRow } from "../helpers/repos";
 import type { MemoryWorld } from "../helpers/repos";
 
 const holder = vi.hoisted(() => ({
@@ -25,7 +25,7 @@ vi.mock("next/headers", () => ({
   }),
 }));
 
-import { GET as getExport } from "@/app/api/export/[kind]/route";
+import { GET as getExport } from "@/app/api/export/route";
 
 holder.world = createMemoryWorld();
 
@@ -36,23 +36,33 @@ function authenticate(): void {
   authenticateWith(holder.authCookie, world!, USER);
 }
 
-function routeParams(kind: string): { params: Promise<{ kind: string }> } {
-  return { params: Promise.resolve({ kind }) };
-}
-
-describe("ruta de exportación CSV", () => {
+/**
+ * Requisito: el usuario descarga todos sus datos en un solo archivo legible
+ * (JSON con nombres en inglés, core/backup.ts): perfil, perfiles anteriores,
+ * pesajes, comidas y plantillas.
+ */
+describe("ruta de exportación", () => {
   beforeEach(() => {
     world?.reset();
     holder.authCookie.value = "";
   });
 
   it("devuelve 401 sin sesión", async () => {
-    const res = await getExport(new Request("http://test/api/export/meals"), routeParams("meals"));
+    const res = await getExport(new Request("http://test/api/export"));
     expect(res.status).toBe(401);
   });
 
-  it("exporta las comidas como CSV adjunto", async () => {
+  it("descarga un solo archivo con todo, nombrado con el día del navegador", async () => {
     authenticate();
+    world!.data.settings.set(USER, {
+      gender: "female",
+      birthYear: 1995,
+      heightCm: 165,
+      gymDaysPerWeek: 2,
+      gymSessionMinutes: 60,
+      walkingMinutesPerDay: 20,
+      calorieGoal: "surplus",
+    });
     world!.data.meals.set(
       "m-1",
       mealRow({
@@ -67,113 +77,44 @@ describe("ruta de exportación CSV", () => {
         resolvedFat: 3,
       }),
     );
-
-    const res = await getExport(new Request("http://test/api/export/meals"), routeParams("meals"));
-    expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toBe("text/csv; charset=utf-8");
-    expect(res.headers.get("content-disposition")).toBe(`attachment; filename="comidas.csv"`);
-
-    const text = await res.text();
-    expect(text).toContain("fecha,comida");
-    expect(text).toContain("2026-06-15,Desayuno");
-    expect(text).toContain("Avena");
-  });
-
-  it("exporta los pesajes como CSV adjunto", async () => {
-    authenticate();
     world!.data.weights.set(
       "w-1",
-      weightRow({
-        id: "w-1",
-        userId: USER,
-        measuredAt: new Date("2026-06-15T08:00:00Z"),
-        weightKg: 77.4,
-        bodyFatPct: 18.5,
-      }),
+      weightRow({ id: "w-1", userId: USER, measuredAt: new Date("2026-06-15T08:00:00Z"), weightKg: 77.4, bodyFatPct: 18.5 }),
     );
+    world!.data.templates.set("t-1", templateRow({ id: "t-1", userId: USER, name: "Batido" }));
 
-    const res = await getExport(new Request("http://test/api/export/weights"), routeParams("weights"));
+    const res = await getExport(new Request("http://test/api/export?day=2026-06-16"));
     expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toBe("text/csv; charset=utf-8");
-    expect(res.headers.get("content-disposition")).toBe(`attachment; filename="peso.csv"`);
+    expect(res.headers.get("content-type")).toBe("application/json; charset=utf-8");
+    expect(res.headers.get("content-disposition")).toBe(`attachment; filename="blackwater-macros-2026-06-16.json"`);
 
     const text = await res.text();
-    expect(text).toContain("fecha_hora,peso_kg,grasa_corporal_pct,nota");
-    expect(text).toContain("77.4");
-    expect(text).toContain("18.5");
+    expect(text).toContain('\n  "app": "Blackwater Macros",\n'); // indented, readable
+    const file = JSON.parse(text);
+    expect(file.format).toBe(1);
+    expect(file.profile).toMatchObject({ sex: "female", goal: "bulk", gymMinutesPerSession: 60 });
+    expect(file.weighIns).toEqual([{ time: "2026-06-15T08:00:00.000Z", kg: 77.4, bodyFatPct: 18.5, note: null }]);
+    expect(file.meals).toHaveLength(1);
+    expect(file.meals[0]).toMatchObject({
+      date: "2026-06-15",
+      title: "Desayuno",
+      mode: "foods",
+      foods: [{ name: "Avena", amount: "50g", kcal: 150, protein: 5, carbs: 27, fat: 3 }],
+      total: { kcal: 150, protein: 5, carbs: 27, fat: 3 },
+    });
+    expect(file.templates.map((template: { name: string }) => template.name)).toEqual(["Batido"]);
   });
 
-  it("exporta celdas vacías (no ceros) para los valores que faltan", async () => {
+  it("solo exporta los datos de quien lo pide", async () => {
     authenticate();
-    world!.data.meals.set(
-      "m-1",
-      mealRow({
-        id: "m-1",
-        userId: USER,
-        logDate: "2026-06-15",
-        title: "Avena sola",
-        ingredients: [{ name: "Avena" }],
-      }),
-    );
-    world!.data.weights.set(
-      "w-1",
-      weightRow({
-        id: "w-1",
-        userId: USER,
-        measuredAt: new Date("2026-06-15T08:00:00Z"),
-        weightKg: 77.4,
-        bodyFatPct: null,
-        note: null,
-      }),
-    );
-
-    const mealsRes = await getExport(
-      new Request("http://test/api/export/meals"),
-      routeParams("meals"),
-    );
-    const mealsText = await mealsRes.text();
-    // sin macros (ingrediente con solo nombre) → celdas vacías, no ceros
-    const expectedMealRow = [
-      "2026-06-15",
-      "Avena sola",
-      "per_ingredient",
-      null,
-      "Avena",
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-    ]
-      .map((value) => (value === null ? "" : String(value)))
-      .join(",");
-    expect(mealsText).toContain(expectedMealRow);
-
-    const weightsRes = await getExport(
-      new Request("http://test/api/export/weights"),
-      routeParams("weights"),
-    );
-    const weightsText = await weightsRes.text();
-    // peso sin grasa corporal ni nota → últimas columnas vacías
-    const expectedWeightRow = [
-      "2026-06-15T08:00:00.000Z",
-      77.4,
-      null,
-      null,
-    ]
-      .map((value) => (value === null ? "" : String(value)))
-      .join(",");
-    expect(weightsText).toContain(expectedWeightRow);
+    world!.data.meals.set("m-2", mealRow({ id: "m-2", userId: "otra", title: "Ajena" }));
+    const file = JSON.parse(await (await getExport(new Request("http://test/api/export"))).text());
+    expect(file.meals).toEqual([]);
   });
 
-  it("devuelve 404 si el tipo de exportación no existe", async () => {
+  it("sin día válido, el nombre lleva la fecha del servidor", async () => {
     authenticate();
-    const res = await getExport(new Request("http://test/api/export/raro"), routeParams("raro"));
-    expect(res.status).toBe(404);
-    expect(await res.json()).toMatchObject({ code: "not_found" });
+    const res = await getExport(new Request("http://test/api/export?day=mañana"));
+    expect(res.headers.get("content-disposition")).toMatch(/^attachment; filename="blackwater-macros-\d{4}-\d{2}-\d{2}\.json"$/);
   });
 });

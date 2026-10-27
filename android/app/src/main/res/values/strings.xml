@@ -116,13 +116,8 @@
     <string name="admin_subtitle">Manage the app\'s users.</string>
     <string name="templates_empty">You don\'t have any saved templates yet.</string>
     <string name="template_delete_body">This template will be deleted.</string>
-    <string name="data_description">Export or import your meals and weight as CSV. Useful as a backup or to move to another phone.</string>
-    <string name="data_export_meals">Export meals</string>
-    <string name="data_export_weights">Export weight</string>
-    <string name="data_meals_file_name">blackwater-meals-%1$s.csv</string>
-    <string name="data_weights_file_name">blackwater-weight-%1$s.csv</string>
+    <string name="data_description">Export saves your meals, weigh-ins, templates and profile in one file you can read in any text editor.</string>
     <string name="data_exported">File saved.</string>
-    <string name="data_unknown_file">This isn\'t a Blackwater meals or weight CSV.</string>
     <string name="data_failed">The file couldn\'t be read or written.</string>
     <string name="login_description">Sync your meals and weight between your devices. Accounts are by invitation for now.</string>
     <!-- Several accounts on one phone (Android only). -->
@@ -180,7 +175,7 @@
     <string name="meth_measured_after" formatted="false">Today does not count, because you are still logging it. Days without meals are left out: counting them as 0 kcal would make you look like you burn far less. Even so, your weight also reflects what you ate on those days, so at least 21 logged days out of 28 are required (3 out of every 4).\n\nA weigh-in can vary ±0.5–1 kg from one day to the next because of water, salt or glycogen, and half a kilo of error in a 4-week trend is more than 100 kcal/day. That is why the app calculates the statistical margin of error of the slope. σ is the scatter of your weigh-ins around the trend line, never less than 0.5 kg, so that a few weigh-ins that happen to line up do not look precise. Σ(xᵢ − x̄)² grows with the number of weigh-ins and how spread out they are. If you weigh yourself several times on one day, that day counts once, as the mean: two weigh-ins on the same day are not two independent measurements of the trend. The measured expenditure is only shown, with its 95% ±, when the margin is ±300 kcal/day or less and there are at least 4 weigh-in days spanning 14 days or more. In practice: weighing yourself once a week never gets there; about 3 times a week does; daily, the margin drops to about ±180 kcal.\n\nIt does not replace your goal: the recommended range still comes from the formula, so that it does not swing with scale noise. Use it as a cross-check: if it differs from the estimated TDEE for several weeks, it is the best reference for your real expenditure. Its accuracy depends on logging meals accurately (if you under-log, expenditure will look lower), and when you start or change a diet, shifts in water and glycogen can distort it for the first weeks. The 7700 kcal/kg is also an approximation: the real value depends on how much of what is gained or lost is fat and how much lean tissue (Hall 2008).</string>
     <string name="data_delete_button">Delete all data from this phone</string>
     <string name="data_delete_title">Delete all data?</string>
-    <string name="data_delete_body_local">All meals, weights, templates and your profile will be permanently deleted from this phone. Export a CSV first if you want a backup.</string>
+    <string name="data_delete_body_local">All meals, weights, templates and your profile will be permanently deleted from this phone. Export your data first if you want a backup.</string>
     <string name="data_delete_body_account">Only this phone\'s copy is deleted. Your account data on the server is not affected and will be downloaded again on the next sync.</string>
     <string name="data_delete_confirm">Delete</string>
     <string name="data_deleted">Data deleted from this phone.</string>
@@ -199,22 +194,6 @@
     <plurals name="logout_unsynced">
         <item quantity="one">You have %d unsynced change. It will be lost if you log out now.</item>
         <item quantity="other">You have %d unsynced changes. They will be lost if you log out now.</item>
-    </plurals>
-    <plurals name="data_imported_meals">
-        <item quantity="one">%d meal imported</item>
-        <item quantity="other">%d meals imported</item>
-    </plurals>
-    <plurals name="data_imported_weights">
-        <item quantity="one">%d weight entry imported</item>
-        <item quantity="other">%d weight entries imported</item>
-    </plurals>
-    <plurals name="data_import_skipped">
-        <item quantity="one">%d already existed</item>
-        <item quantity="other">%d already existed</item>
-    </plurals>
-    <plurals name="data_import_invalid">
-        <item quantity="one">%d row couldn\'t be read</item>
-        <item quantity="other">%d rows couldn\'t be read</item>
     </plurals>
     <plurals name="local_meals">
         <item quantity="one">%d meal</item>
@@ -350,4 +329,28 @@
     <string name="update_download">Download</string>
     <string name="update_check_title">Check for updates</string>
     <string name="update_check_hint">Once a day. Nothing about you is sent.</string>
+    <string name="data_import">Import data</string>
+    <string name="data_import_hint_local">Replaces this phone\'s data with a file\'s.</string>
+    <string name="data_import_hint_account">Your data is in your account and already backed up. Import is for using the app without an account.</string>
+    <string name="data_imported">Data imported.</string>
+    <string name="data_import_not_backup">This file isn\'t a Blackwater Macros export.</string>
+    <string name="data_import_newer">This file comes from a newer version of the app. Update the app to import it.</string>
+    <string name="data_import_damaged">This file is damaged or was edited by hand (%1$s). Nothing was changed.</string>
+    <string name="data_import_title">Replace all your data?</string>
+    <string name="data_import_body">Your meals, weigh-ins, templates and profile will be replaced by the ones in this file (%1$s). This can\'t be undone.</string>
+    <string name="data_import_confirm">Replace</string>
+    <string name="data_import_counts">%1$s, %2$s and %3$s</string>
+    <string name="data_import_span">%1$s, from %2$s to %3$s</string>
+    <plurals name="data_import_meals">
+        <item quantity="one">%d meal</item>
+        <item quantity="other">%d meals</item>
+    </plurals>
+    <plurals name="data_import_weigh_ins">
+        <item quantity="one">%d weigh-in</item>
+        <item quantity="other">%d weigh-ins</item>
+    </plurals>
+    <plurals name="data_import_templates">
+        <item quantity="one">%d template</item>
+        <item quantity="other">%d templates</item>
+    </plurals>
 </resources>

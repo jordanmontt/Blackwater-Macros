@@ -1,7 +1,7 @@
 "use client";
 
 import { SOURCE_CODE_URL, WEBSITE_URL } from "@/lib/links";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { formatNumber } from "@/i18n/format";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -13,7 +13,6 @@ import {
   DownloadIcon,
   GlobeIcon,
   InfoIcon,
-  Loader2Icon,
   LogOutIcon,
   PaletteIcon,
   PencilIcon,
@@ -22,7 +21,6 @@ import {
   ShieldIcon,
   SparklesIcon,
   Trash2Icon,
-  UploadIcon,
   UserIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -30,14 +28,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { TemplateForm } from "@/components/meals/template-form";
-import { parseBackupCsv } from "@/lib/csv-import";
 import { LanguageRow } from "@/components/settings/language-row";
 import { SettingsGroup, SettingsRow } from "@/components/settings/settings-list";
-import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
+import { api, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { exitDemoMode } from "@/lib/demo-store";
 import { useDemoMode } from "@/lib/use-demo-mode";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { formatTemplate } from "@/i18n";
+import { todayKey } from "@/lib/core/dates";
 import type { MealTemplateDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/lib/use-mounted";
@@ -51,8 +49,6 @@ export default function AjustesPage() {
   const [editingTemplate, setEditingTemplate] = useState<MealTemplateDTO | null>(null);
   const [deletingTemplate, setDeletingTemplate] = useState<MealTemplateDTO | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
-  const [importing, setImporting] = useState(false);
-  const importInput = useRef<HTMLInputElement>(null);
   const mounted = useMounted();
 
   const sessionRes = useCachedResource<
@@ -86,29 +82,6 @@ export default function AjustesPage() {
       router.refresh();
     } catch {
       toast.error(t.common.errorGeneric);
-    }
-  }
-
-  async function handleImport(file: File) {
-    setImporting(true);
-    try {
-      const parsed = parseBackupCsv(await file.text());
-      if (parsed.kind === "unknown") {
-        toast.error(t.ajustes.importUnknown);
-        return;
-      }
-      const result =
-        parsed.kind === "meals" ? await api.importMeals(parsed.meals) : await api.importWeights(parsed.weights);
-      const parts = [
-        formatTemplate(parsed.kind === "meals" ? t.ajustes.importedMeals : t.ajustes.importedWeights, { n: result.added }),
-      ];
-      if (result.skipped > 0) parts.push(formatTemplate(t.ajustes.importSkipped, { n: result.skipped }));
-      if (parsed.invalidRows > 0) parts.push(formatTemplate(t.ajustes.importInvalid, { n: parsed.invalidRows }));
-      toast.success(parts.join(" · "));
-    } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : t.ajustes.importFailed);
-    } finally {
-      setImporting(false);
     }
   }
 
@@ -261,26 +234,13 @@ export default function AjustesPage() {
           </>
         }
       >
-        <SettingsRow icon={DownloadIcon} title={t.ajustes.exportMeals} href="/api/export/meals" download disabled={demoMode} />
-        <SettingsRow icon={DownloadIcon} title={t.ajustes.exportWeights} href="/api/export/weights" download disabled={demoMode} />
+        {/* One file with everything (core/backup.ts); `day` names it after the browser's date. */}
         <SettingsRow
-          icon={importing ? Loader2Icon : UploadIcon}
-          iconClassName={importing ? "animate-spin" : undefined}
-          title={importing ? t.ajustes.importing : t.ajustes.importCsv}
-          disabled={demoMode || importing}
-          onClick={() => importInput.current?.click()}
-        />
-        <input
-          ref={importInput}
-          type="file"
-          accept=".csv,text/csv"
-          hidden
-          data-testid="import-csv-input"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            event.target.value = "";
-            if (file) void handleImport(file);
-          }}
+          icon={DownloadIcon}
+          title={t.ajustes.exportData}
+          href={`/api/export?day=${todayKey()}`}
+          download
+          disabled={demoMode}
         />
       </SettingsGroup>
 

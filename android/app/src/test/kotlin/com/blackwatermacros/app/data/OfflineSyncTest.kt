@@ -7,6 +7,7 @@ import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
 import com.blackwatermacros.app.core.ProfilePeriod
+import com.blackwatermacros.app.core.buildBackup
 import com.blackwatermacros.app.data.local.LocalDatabase
 import com.blackwatermacros.app.data.local.toWire
 import com.blackwatermacros.app.data.sync.SyncEngine
@@ -368,24 +369,46 @@ class OfflineSyncTest {
         assertThat(backend.meals).hasSize(1)
     }
 
-    // --- CSV import ---
+    // --- Export file and import (local mode only) ---
 
     @Test
-    fun `importing the same CSV twice does not duplicate anything`() = runBlocking<Unit> {
+    fun `the import replaces the phone's data with the file's and reaches no server`() = runBlocking<Unit> {
+        val profile = CalorieProfile(Gender.FEMALE, 1995, 165.0, 2, 60, 20, Goal.CUT)
+        repository.saveProfile(profile)
         repository.saveMeal(null, breakfast())
-        val csv = CsvBackup.mealsCsv(repository.allMeals().first()) +
-            "2026-06-16,Cena,total_only,,,,,,,,600,40,,\r\n"
-        val meals = (CsvBackup.parse(csv) as CsvBackup.Parsed.Meals).meals
+        repository.saveWeight(null, WeightRequest("2026-06-15T06:30:00.000Z", 61.0, 28.0, null))
+        val file = buildBackup(repository.backupData(), "2026-06-16T20:00:00.000Z")
 
-        assertThat(repository.importMeals(meals)).isEqualTo(ImportResult(added = 1, skipped = 1))
-        assertThat(repository.importMeals(meals)).isEqualTo(ImportResult(added = 0, skipped = 2))
-        assertThat(repository.allMeals().first().map { it.title }).containsExactly("Desayuno", "Cena")
+        // Changed after the export: all of it goes away with the import.
+        repository.saveMeal(null, breakfast().copy(title = "Cena", logDate = "2026-06-16"))
+        repository.saveTemplate(null, TemplateRequest("Batido", "Batido", entryMode = WireEntryMode.TOTAL_ONLY, totalCalories = 300.0))
+        repository.saveProfile(profile.copy(calorieGoal = Goal.SURPLUS))
+
+        repository.replaceAll((BackupImport.parse(file) as BackupImport.Result.Ok).contents)
+
+        assertThat(repository.allMeals().first().map { it.title }).containsExactly("Desayuno")
+        assertThat(repository.weights().first().map { it.weightKg }).containsExactly(61.0)
+        assertThat(repository.templates().first()).isEmpty()
+        assertThat(repository.profile().first()).isEqualTo(profile)
+        assertThat(backend.requestCount).isEqualTo(0)
     }
 
     @Test
-    fun `data imported while logged in is uploaded`() = runBlocking<Unit> {
+    fun `with an account the import is refused, so it never reaches the server`() = runBlocking<Unit> {
+        val file = buildBackup(repository.backupData(), "2026-06-16T20:00:00.000Z")
         connect()
-        repository.importWeights(listOf(WeightRequest("2026-06-15T06:30:00.000Z", 80.4, 18.0, null)))
+        val contents = (BackupImport.parse(file) as BackupImport.Result.Ok).contents
+        assertThat(runCatching { repository.replaceAll(contents) }.isFailure).isTrue()
+    }
+
+    @Test
+    fun `an imported file is uploaded only if the user logs in and chooses to upload`() = runBlocking<Unit> {
+        repository.saveWeight(null, WeightRequest("2026-06-15T06:30:00.000Z", 80.4, 18.0, null))
+        val file = buildBackup(repository.backupData(), "2026-06-16T20:00:00.000Z")
+        repository.wipe()
+        repository.replaceAll((BackupImport.parse(file) as BackupImport.Result.Ok).contents)
+
+        accounts.connect(accounts.verify("ana", "secreta"), uploadLocalData = true)
         sync.sync()
         assertThat(backend.weights.values.single().weightKg).isEqualTo(80.4)
     }

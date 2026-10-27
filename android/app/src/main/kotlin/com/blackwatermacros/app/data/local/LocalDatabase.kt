@@ -144,6 +144,10 @@ interface MealDao {
     @Query("DELETE FROM meals WHERE id IN (:ids)")
     suspend fun purgeAll(ids: List<String>)
 
+    /** Every row, deleted or not (the import replaces the phone's data; local mode only). */
+    @Query("DELETE FROM meals")
+    suspend fun deleteEverything()
+
     @Query("SELECT COUNT(*) FROM meals WHERE deleted = 0")
     suspend fun count(): Int
 
@@ -186,6 +190,10 @@ interface TemplateDao {
     @Query("DELETE FROM templates WHERE id IN (:ids)")
     suspend fun purgeAll(ids: List<String>)
 
+    /** Every row, deleted or not (the import replaces the phone's data; local mode only). */
+    @Query("DELETE FROM templates")
+    suspend fun deleteEverything()
+
     @Query("SELECT COUNT(*) FROM templates WHERE deleted = 0")
     suspend fun count(): Int
 
@@ -227,6 +235,10 @@ interface WeightDao {
 
     @Query("DELETE FROM weights WHERE id IN (:ids)")
     suspend fun purgeAll(ids: List<String>)
+
+    /** Every row, deleted or not (the import replaces the phone's data; local mode only). */
+    @Query("DELETE FROM weights")
+    suspend fun deleteEverything()
 
     @Query("SELECT COUNT(*) FROM weights WHERE deleted = 0")
     suspend fun count(): Int

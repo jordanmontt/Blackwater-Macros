@@ -8,8 +8,10 @@ import com.blackwatermacros.app.data.AccountController
 import com.blackwatermacros.app.data.AccountStore
 import com.blackwatermacros.app.data.AppPreferences
 import com.blackwatermacros.app.data.AppRepository
-import com.blackwatermacros.app.data.CsvBackup
-import com.blackwatermacros.app.data.ImportResult
+import com.blackwatermacros.app.core.buildBackup
+import com.blackwatermacros.app.data.BackupContents
+import com.blackwatermacros.app.data.BackupImport
+import com.blackwatermacros.app.data.local.isoUtc
 import com.blackwatermacros.app.data.TemplateDTO
 import com.blackwatermacros.app.data.TemplateRequest
 import com.blackwatermacros.app.data.ThemeMode
@@ -52,13 +54,14 @@ sealed interface LogoutPrompt {
 /** Confirmation for «Delete all data» (local only, never the server). */
 data class DeleteDataPrompt(val loggedIn: Boolean, val unsyncedChanges: Int)
 
-/** Feedback after a CSV export/import or a data deletion. */
+/** Feedback after an export, an import or a data deletion. */
 sealed interface DataMessage {
     data object Exported : DataMessage
+    data object Imported : DataMessage
     data object Deleted : DataMessage
-    data class ImportedMeals(val result: ImportResult, val invalid: Int) : DataMessage
-    data class ImportedWeights(val result: ImportResult, val invalid: Int) : DataMessage
-    data object UnknownFile : DataMessage
+    data object NotBackup : DataMessage
+    data object NewerFormat : DataMessage
+    data class Invalid(val where: String) : DataMessage
     data object Failed : DataMessage
 }
 
@@ -107,6 +110,10 @@ class SettingsViewModel(
     private val _deletePrompt = MutableStateFlow<DeleteDataPrompt?>(null)
     val deletePrompt: StateFlow<DeleteDataPrompt?> = _deletePrompt.asStateFlow()
 
+    /** A file read and checked, waiting for «Replace» (it replaces the phone's data). */
+    private val _importPrompt = MutableStateFlow<BackupContents?>(null)
+    val importPrompt: StateFlow<BackupContents?> = _importPrompt.asStateFlow()
+
 
     fun setTheme(mode: ThemeMode) = preferences.setTheme(mode)
 
@@ -124,29 +131,47 @@ class SettingsViewModel(
         viewModelScope.launch { repository.restoreTemplate(template) }
     }
 
-    // --- CSV (web-compatible format) ---
+    // --- Export file (core `Backup.kt`; the same file as the web's) ---
 
-    suspend fun mealsCsv(): String = CsvBackup.mealsCsv(repository.allMeals().first())
-
-    suspend fun weightsCsv(): String = CsvBackup.weightsCsv(repository.weights().first())
+    suspend fun backupText(): String = buildBackup(repository.backupData(), isoUtc(java.time.Instant.now()))
 
     fun onExported(success: Boolean) {
         _dataMessage.value = if (success) DataMessage.Exported else DataMessage.Failed
     }
 
-    /** Imports a meals or weights CSV (detected from its header). */
-    fun importCsv(readText: suspend () -> String) {
+    /** Reads and checks a file; a valid one waits for the confirmation. Without an account only. */
+    fun readImport(readText: suspend () -> String) {
+        viewModelScope.launch {
+            val result = try {
+                withContext(Dispatchers.Default) { BackupImport.parse(readText()) }
+            } catch (e: Exception) {
+                null
+            }
+            when (result) {
+                is BackupImport.Result.Ok -> _importPrompt.value = result.contents
+                BackupImport.Result.NotBackup -> _dataMessage.value = DataMessage.NotBackup
+                BackupImport.Result.NewerFormat -> _dataMessage.value = DataMessage.NewerFormat
+                is BackupImport.Result.Invalid -> _dataMessage.value = DataMessage.Invalid(result.where)
+                null -> _dataMessage.value = DataMessage.Failed
+            }
+        }
+    }
+
+    fun confirmImport() {
+        val contents = _importPrompt.value ?: return
+        _importPrompt.value = null
         viewModelScope.launch {
             _dataMessage.value = try {
-                when (val parsed = withContext(Dispatchers.Default) { CsvBackup.parse(readText()) }) {
-                    is CsvBackup.Parsed.Meals -> DataMessage.ImportedMeals(repository.importMeals(parsed.meals), parsed.invalidRows)
-                    is CsvBackup.Parsed.Weights -> DataMessage.ImportedWeights(repository.importWeights(parsed.weights), parsed.invalidRows)
-                    CsvBackup.Parsed.Unknown -> DataMessage.UnknownFile
-                }
+                repository.replaceAll(contents)
+                DataMessage.Imported
             } catch (e: Exception) {
                 DataMessage.Failed
             }
         }
+    }
+
+    fun dismissImport() {
+        _importPrompt.value = null
     }
 
     fun dismissDataMessage() {

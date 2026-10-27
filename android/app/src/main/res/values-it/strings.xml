@@ -115,13 +115,8 @@
     <string name="admin_subtitle">Gestisci gli utenti dell\'app.</string>
     <string name="templates_empty">Non hai ancora modelli salvati.</string>
     <string name="template_delete_body">Questo modello verrà eliminato.</string>
-    <string name="data_description">Esporta o importa pasti e peso in CSV. Utile come backup o per cambiare telefono.</string>
-    <string name="data_export_meals">Esporta pasti</string>
-    <string name="data_export_weights">Esporta peso</string>
-    <string name="data_meals_file_name">blackwater-pasti-%1$s.csv</string>
-    <string name="data_weights_file_name">blackwater-peso-%1$s.csv</string>
+    <string name="data_description">Esporta salva i tuoi pasti, pesate, modelli e profilo in un file leggibile con qualsiasi editor di testo.</string>
     <string name="data_exported">File salvato.</string>
-    <string name="data_unknown_file">Questo file non è un CSV di pasti o peso di Blackwater.</string>
     <string name="data_failed">Impossibile leggere o scrivere il file.</string>
     <string name="login_description">Sincronizza pasti e peso tra i tuoi dispositivi. Per ora gli account sono solo su invito.</string>
     <!-- Several accounts on one phone (Android only). -->
@@ -179,7 +174,7 @@
     <string name="meth_measured_after" formatted="false">Oggi non conta, perché lo stai ancora registrando. I giorni senza pasti vengono esclusi: contarli come 0 kcal farebbe sembrare che consumi molto meno. Tuttavia il tuo peso riflette anche ciò che hai mangiato in quei giorni, quindi servono almeno 21 giorni registrati su 28 (3 su 4).\n\nUna pesata può variare di ±0,5–1 kg da un giorno all\'altro per acqua, sale o glicogeno, e mezzo chilo di errore nella tendenza di 4 settimane equivale a più di 100 kcal/giorno. Per questo l\'app calcola il margine di errore statistico della pendenza. σ è la dispersione delle tue pesate attorno alla linea di tendenza, mai meno di 0,5 kg, così che poche pesate allineate per caso non sembrino precise. Σ(xᵢ − x̄)² cresce con il numero di pesate e con quanto sono distribuite. Se ti pesi più volte lo stesso giorno, quel giorno conta una volta, con la media: due pesate dello stesso giorno non sono due misure indipendenti della tendenza. Il dispendio misurato viene mostrato, con il suo ± al 95 %, solo se il margine è di ±300 kcal/giorno o meno e ci sono almeno 4 giorni di pesata che coprono 14 giorni o più. In pratica: pesandoti una volta a settimana non ci arrivi mai; circa 3 volte a settimana, sì; ogni giorno, il margine scende a circa ±180 kcal.\n\nNon sostituisce il tuo obiettivo: l\'intervallo raccomandato continua a venire dalla formula, così non oscilla con il rumore della bilancia. Usalo come verifica: se per diverse settimane differisce dal TDEE stimato, è il riferimento migliore del tuo dispendio reale. La sua precisione dipende dal registrare i pasti con esattezza (se registri meno di quanto mangi, il dispendio sembrerà più basso), e quando inizi o cambi dieta le variazioni di acqua e glicogeno possono falsarlo nelle prime settimane. Anche le 7700 kcal/kg sono un\'approssimazione: il valore reale dipende da quanto di ciò che si guadagna o si perde è grasso e quanto tessuto magro (Hall 2008).</string>
     <string name="data_delete_button">Elimina tutti i dati da questo telefono</string>
     <string name="data_delete_title">Eliminare tutti i dati?</string>
-    <string name="data_delete_body_local">Tutti i pasti, i pesi, i modelli e il tuo profilo verranno eliminati definitivamente da questo telefono. Esporta prima un CSV se vuoi un backup.</string>
+    <string name="data_delete_body_local">Tutti i pasti, i pesi, i modelli e il tuo profilo verranno eliminati definitivamente da questo telefono. Esporta prima i tuoi dati se vuoi un backup.</string>
     <string name="data_delete_body_account">Viene eliminata solo la copia di questo telefono. I dati del tuo account sul server non vengono toccati e verranno scaricati di nuovo alla prossima sincronizzazione.</string>
     <string name="data_delete_confirm">Elimina</string>
     <string name="data_deleted">Dati eliminati da questo telefono.</string>
@@ -201,26 +196,6 @@
         <item quantity="one">Hai %d modifica non sincronizzata. Se esci ora andrà persa.</item>
         <item quantity="many">Hai %d modifiche non sincronizzate. Se esci ora andranno perse.</item>
         <item quantity="other">Hai %d modifiche non sincronizzate. Se esci ora andranno perse.</item>
-    </plurals>
-    <plurals name="data_imported_meals">
-        <item quantity="one">%d pasto importato</item>
-        <item quantity="many">%d pasti importati</item>
-        <item quantity="other">%d pasti importati</item>
-    </plurals>
-    <plurals name="data_imported_weights">
-        <item quantity="one">%d registrazione di peso importata</item>
-        <item quantity="many">%d registrazioni di peso importate</item>
-        <item quantity="other">%d registrazioni di peso importate</item>
-    </plurals>
-    <plurals name="data_import_skipped">
-        <item quantity="one">%d esisteva già</item>
-        <item quantity="many">%d esistevano già</item>
-        <item quantity="other">%d esistevano già</item>
-    </plurals>
-    <plurals name="data_import_invalid">
-        <item quantity="one">%d riga non leggibile</item>
-        <item quantity="many">%d righe non leggibili</item>
-        <item quantity="other">%d righe non leggibili</item>
     </plurals>
     <plurals name="local_meals">
         <item quantity="one">%d pasto</item>
@@ -362,4 +337,31 @@
     <string name="update_download">Scarica</string>
     <string name="update_check_title">Cerca aggiornamenti</string>
     <string name="update_check_hint">Una volta al giorno. Non viene inviato nulla su di te.</string>
+    <string name="data_import">Importa dati</string>
+    <string name="data_import_hint_local">Sostituisce i dati di questo telefono con quelli di un file.</string>
+    <string name="data_import_hint_account">I tuoi dati sono nel tuo account e hanno già una copia. L\'importazione serve per usare l\'app senza account.</string>
+    <string name="data_imported">Dati importati.</string>
+    <string name="data_import_not_backup">Questo file non è un\'esportazione di Blackwater Macros.</string>
+    <string name="data_import_newer">Questo file viene da una versione più recente dell\'app. Aggiorna l\'app per importarlo.</string>
+    <string name="data_import_damaged">Questo file è danneggiato o è stato modificato a mano (%1$s). Non è cambiato nulla.</string>
+    <string name="data_import_title">Sostituire tutti i tuoi dati?</string>
+    <string name="data_import_body">I tuoi pasti, pesate, modelli e profilo saranno sostituiti da quelli di questo file (%1$s). Non si può annullare.</string>
+    <string name="data_import_confirm">Sostituisci</string>
+    <string name="data_import_counts">%1$s, %2$s e %3$s</string>
+    <string name="data_import_span">%1$s, dal %2$s al %3$s</string>
+    <plurals name="data_import_meals">
+        <item quantity="one">%d pasto</item>
+        <item quantity="many">%d pasti</item>
+        <item quantity="other">%d pasti</item>
+    </plurals>
+    <plurals name="data_import_weigh_ins">
+        <item quantity="one">%d pesata</item>
+        <item quantity="many">%d pesate</item>
+        <item quantity="other">%d pesate</item>
+    </plurals>
+    <plurals name="data_import_templates">
+        <item quantity="one">%d modello</item>
+        <item quantity="many">%d modelli</item>
+        <item quantity="other">%d modelli</item>
+    </plurals>
 </resources>

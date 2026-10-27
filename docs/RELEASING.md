@@ -49,7 +49,7 @@ The two are signed with different keys, so an app from one can't update an app f
      tick «Enforce HTTPS» in Pages (still to check). Old links to the web app (`/login`, `/progreso`…) are sent to
      `app.` by `website/404.html`; web users log in once more.
 - [ ] **Phones with the old test builds** (signed with the Mac's debug key): check that sync is
-  green (or export the CSV in Settings), uninstall, install from the website, log in again.
+  green (or export your data in Settings), uninstall, install from the website, log in again.
   1.0.0 still syncs with the old address (now the website), so its changes wait on the phone
   and uninstalling would lose them. First install a newer build over it, which keeps
   everything: on this Mac `cd android && ./gradlew :app:assembleRelease -PreleaseAbi=arm64-v8a`

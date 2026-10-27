@@ -34,7 +34,7 @@
 <ul>
 <li>Deine Daten bleiben auf deinem Telefon. Ohne Anmeldung verlassen sie nie das Gerät: Die App kontaktiert nie unseren Server. Sie geht nur online, wenn du es willst: Lebensmittelsuche und Barcodes (Open Food Facts), der gewählte KI-Anbieter (nur was du ihm schickst) und KI-Modelle fürs Telefon (GitHub, Hugging Face).</li>
 <li>Keine Werbung, keine Analyse, keine Tracker. Freie Software (AGPL-3.0).</li>
-<li>Exportiere und importiere deine Daten jederzeit als CSV.</li>
+<li>Exportiere alle deine Daten in einer lesbaren Datei.</li>
 </ul>
 
 <p><b>Ein Konto, wenn du willst</b></p>

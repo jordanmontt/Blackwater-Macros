@@ -51,6 +51,9 @@ fun formatDateLong(key: String): String =
 /** "Jun 15" / "15 jun". */
 fun formatDateShort(key: String): String = pattern("dMMM").format(LocalDate.parse(key))
 
+/** "Jun 15, 2026" / "15 jun 2026". */
+fun formatDateWithYear(key: String): String = pattern("dMMMy").format(LocalDate.parse(key))
+
 /** Local wall-clock time of an ISO instant in the language's usual hour cycle: "14:05" / "2:05 PM". */
 fun formatTime(iso: String): String = pattern("jm").format(Instant.parse(iso).atZone(ZoneId.systemDefault()))
 

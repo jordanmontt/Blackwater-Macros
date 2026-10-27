@@ -8,7 +8,7 @@
 # (sdkmanager "emulator" "system-images;android-36;default;arm64-v8a"), a JDK 17–23 in
 # JAVA_HOME, Node (npx tsx) and python3. The AVD «bw-shots» is created if missing.
 # Boots the emulator if none is running, installs a debug build, loads the web
-# demo dataset (scripts/demo-csv.ts) through the debug-only DemoSeedReceiver,
+# demo dataset (scripts/demo-backup.ts) through the debug-only DemoSeedReceiver,
 # then walks the screens and saves them into
 # fastlane/metadata/android/<locale>/images/phoneScreenshots/.
 set -euo pipefail
@@ -139,9 +139,9 @@ run() { # lang locale-folder
 
   "$ADB" shell pm clear "$PKG" >/dev/null
   "$ADB" shell cmd locale set-app-locales "$PKG" --locales "$lang"
-  (cd "$ROOT" && npx tsx scripts/demo-csv.ts "$WORK/seed-$lang" "$lang" >/dev/null)
-  "$ADB" push "$WORK/seed-$lang/meals.csv" "$WORK/seed-$lang/weights.csv" /data/local/tmp/ >/dev/null
-  "$ADB" shell "run-as $PKG mkdir -p files/seed && run-as $PKG cp /data/local/tmp/meals.csv /data/local/tmp/weights.csv files/seed/"
+  (cd "$ROOT" && npx tsx scripts/demo-backup.ts "$WORK/seed-$lang" "$lang" >/dev/null)
+  "$ADB" push "$WORK/seed-$lang/backup.json" /data/local/tmp/ >/dev/null
+  "$ADB" shell "run-as $PKG mkdir -p files/seed && run-as $PKG cp /data/local/tmp/backup.json files/seed/"
   "$ADB" shell am broadcast -n "$PKG/$CLS.DemoSeedReceiver" >/dev/null
   sleep 3
   "$ADB" shell am start -W -n "$PKG/$CLS.MainActivity" >/dev/null

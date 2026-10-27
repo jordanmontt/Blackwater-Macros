@@ -1,12 +1,18 @@
 package com.blackwatermacros.app.data
 
 import androidx.room.withTransaction
+import com.blackwatermacros.app.core.BackupContent
+import com.blackwatermacros.app.core.BackupData
+import com.blackwatermacros.app.core.BackupMeal
+import com.blackwatermacros.app.core.BackupTemplate
+import com.blackwatermacros.app.core.BackupWeight
 import com.blackwatermacros.app.core.CalorieProfile
+import com.blackwatermacros.app.core.EntryMode
+import com.blackwatermacros.app.core.IngredientInput
 import com.blackwatermacros.app.core.ProfilePeriod
 import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.core.withProfileChange
 import com.blackwatermacros.app.data.local.LocalDatabase
-import com.blackwatermacros.app.data.local.MealEntity
 import com.blackwatermacros.app.data.local.history
 import com.blackwatermacros.app.data.local.nowIso
 import com.blackwatermacros.app.data.local.toCore
@@ -24,9 +30,6 @@ import java.util.UUID
 data class LocalDataSummary(val meals: Int, val weights: Int, val templates: Int) {
     val isEmpty: Boolean get() = meals == 0 && weights == 0 && templates == 0
 }
-
-/** Outcome of a CSV import; [skipped] rows already existed on the phone. */
-data class ImportResult(val added: Int, val skipped: Int)
 
 /**
  * Everything the screens read and write. Always local and instant; it never
@@ -168,44 +171,42 @@ class AppRepository(
         changed()
     }
 
-    // --- CSV import ---
+    // --- Export file ---
 
-    /** Adds the meals, skipping any identical one already stored (re-importing a file is harmless). */
-    suspend fun importMeals(meals: List<MealRequest>): ImportResult {
-        val dao = db.meals()
-        var added = 0
+    /** Everything the export file holds (`core/Backup.kt`). */
+    suspend fun backupData(): BackupData = BackupData(
+        profile = db.profile().get().toCore(),
+        profileHistory = db.profile().get().history(),
+        weights = db.weights().observeAll().first().map { BackupWeight(it.measuredAt, it.weightKg, it.bodyFatPct, it.note) },
+        meals = db.meals().observeAll().first().map { BackupMeal(it.logDate, it.toDto().backupContent()) },
+        templates = db.templates().observeAll().first().map { it.toDto().let { t -> BackupTemplate(t.name, t.backupContent()) } },
+    )
+
+    /**
+     * The import: the phone's meals, weigh-ins, templates and profile become the file's.
+     * Only without an account (the screen does not offer it otherwise): with one, the
+     * next sync would upload it all, and the import must not touch the server.
+     */
+    suspend fun replaceAll(contents: BackupContents) {
+        check(!loggedIn) { "The import is for local mode only" }
+        val now = nowIso()
         db.withTransaction {
-            val now = nowIso()
-            val known = dao.observeAll().first().map { it.importKey() }.toMutableSet()
-            for (meal in meals) {
-                val entity = meal.toEntity(newId(), sortOrder = 0, updatedAt = now)
-                if (!known.add(entity.importKey())) continue
-                dao.upsert(entity.copy(sortOrder = (dao.maxSortOrder(meal.logDate) ?: -1) + 1))
-                added++
-            }
+            db.meals().deleteEverything()
+            db.templates().deleteEverything()
+            db.weights().deleteEverything()
+            val position = mutableMapOf<String, Int>()
+            db.meals().upsertAll(
+                contents.meals.map { meal ->
+                    val sortOrder = position.getOrDefault(meal.logDate, 0)
+                    position[meal.logDate] = sortOrder + 1
+                    meal.toEntity(newId(), sortOrder, now)
+                },
+            )
+            contents.templates.forEach { db.templates().upsert(it.toEntity(newId(), now)) }
+            contents.weights.forEach { db.weights().upsert(it.toEntity(newId(), now)) }
+            db.profile().upsert(contents.profile.toEntity(pending = true, history = contents.profileHistory))
         }
-        if (added > 0) changed()
-        return ImportResult(added, meals.size - added)
     }
-
-    suspend fun importWeights(weights: List<WeightRequest>): ImportResult {
-        val dao = db.weights()
-        var added = 0
-        db.withTransaction {
-            val now = nowIso()
-            val known = dao.observeAll().first().map { it.measuredAt to it.weightKg }.toMutableSet()
-            for (weight in weights) {
-                val entity = weight.toEntity(newId(), now)
-                if (!known.add(entity.measuredAt to entity.weightKg)) continue
-                dao.upsert(entity)
-                added++
-            }
-        }
-        if (added > 0) changed()
-        return ImportResult(added, weights.size - added)
-    }
-
-    private fun MealEntity.importKey() = listOf(logDate, title, entryMode, ingredientsJson, resolvedCalories, resolvedProtein)
 
     // --- Account support ---
 
@@ -234,3 +235,38 @@ class AppRepository(
 
     private fun newId(): String = UUID.randomUUID().toString()
 }
+
+/** A meal's or template's content as the export file writes it. */
+private fun backupContent(
+    title: String,
+    notes: String?,
+    mode: WireEntryMode,
+    ingredients: List<WireIngredient>,
+    typed: List<Double?>,
+    resolved: List<Double>,
+) = BackupContent(
+    title = title,
+    notes = notes,
+    entryMode = if (mode == WireEntryMode.TOTAL_ONLY) EntryMode.TOTAL_ONLY else EntryMode.PER_INGREDIENT,
+    ingredients = ingredients.map { IngredientInput(it.name, it.quantity, it.calories, it.protein, it.carbs, it.fat) },
+    totalCalories = typed[0],
+    totalProtein = typed[1],
+    totalCarbs = typed[2],
+    totalFat = typed[3],
+    resolvedCalories = resolved[0],
+    resolvedProtein = resolved[1],
+    resolvedCarbs = resolved[2],
+    resolvedFat = resolved[3],
+)
+
+private fun MealDTO.backupContent() = backupContent(
+    title, notes, entryMode, ingredients,
+    listOf(totalCalories, totalProtein, totalCarbs, totalFat),
+    listOf(resolvedCalories, resolvedProtein, resolvedCarbs, resolvedFat),
+)
+
+private fun TemplateDTO.backupContent() = backupContent(
+    title, notes, entryMode, ingredients,
+    listOf(totalCalories, totalProtein, totalCarbs, totalFat),
+    listOf(resolvedCalories, resolvedProtein, resolvedCarbs, resolvedFat),
+)

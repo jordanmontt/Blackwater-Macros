@@ -8,7 +8,6 @@ import {
   isExpired,
   sessionExpiryFromNow,
 } from "@/server/auth/session";
-import { toCsv } from "@/lib/core/csv";
 
 describe("almacenamiento de contraseñas", () => {
   it("guarda un hash con sal, nunca la contraseña en claro", async () => {
@@ -55,23 +54,5 @@ describe("sesiones persistentes", () => {
     const now = new Date("2026-08-23T10:00:00Z");
     expect(isExpired(sessionExpiryFromNow(now), now)).toBe(false);
     expect(isExpired(new Date(now.getTime() - 1), now)).toBe(true);
-  });
-});
-
-describe("exportación CSV", () => {
-  it("escapa comas, comillas y saltos de línea en las notas", () => {
-    const csv = toCsv([
-      ["fecha", "nota"],
-      ["2026-03-01", 'comida "especial", con salto\nde línea'],
-    ]);
-    expect(csv).toContain('"comida ""especial"", con salto\n');
-    expect(csv.startsWith("\uFEFF")).toBe(true); // BOM para Excel
-  });
-
-  it("convierte números y valores nulos a celdas vacías", () => {
-    const csv = toCsv([
-      [1.5, null, undefined],
-    ]);
-    expect(csv).toContain("1.5,,");
   });
 });

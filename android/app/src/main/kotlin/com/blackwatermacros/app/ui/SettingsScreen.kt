@@ -87,7 +87,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.R
+import com.blackwatermacros.app.core.backupFileName
 import com.blackwatermacros.app.core.todayKey
+import com.blackwatermacros.app.data.BackupContents
 import com.blackwatermacros.app.data.TemplateDTO
 import com.blackwatermacros.app.data.ThemeMode
 import com.blackwatermacros.app.data.WireEntryMode
@@ -124,6 +126,7 @@ fun SettingsScreen(
     val logoutPrompt by viewModel.logoutPrompt.collectAsStateWithLifecycle()
     val dataMessage by viewModel.dataMessage.collectAsStateWithLifecycle()
     val deletePrompt by viewModel.deletePrompt.collectAsStateWithLifecycle()
+    val importPrompt by viewModel.importPrompt.collectAsStateWithLifecycle()
     var deletingTemplate by remember { mutableStateOf<TemplateDTO?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
@@ -183,7 +186,7 @@ fun SettingsScreen(
                     onDelete = { deletingTemplate = it },
                 )
             }
-            DataGroup(viewModel = viewModel, message = dataMessage)
+            DataGroup(viewModel = viewModel, message = dataMessage, loggedIn = account.account != null)
             SettingsGroup(stringResource(R.string.settings_group_app)) {
                 SettingsRow(
                     icon = Icons.Filled.Palette,
@@ -276,6 +279,16 @@ fun SettingsScreen(
             confirmLabel = stringResource(R.string.data_delete_confirm),
             onConfirm = viewModel::confirmDeleteData,
             onCancel = viewModel::dismissDeleteData,
+        )
+    }
+
+    importPrompt?.let { contents ->
+        ConfirmDialog(
+            title = stringResource(R.string.data_import_title),
+            text = stringResource(R.string.data_import_body, importSummary(contents)),
+            confirmLabel = stringResource(R.string.data_import_confirm),
+            onConfirm = viewModel::confirmImport,
+            onCancel = viewModel::dismissImport,
         )
     }
 
@@ -517,40 +530,33 @@ private fun NutritionBadge(text: String, secondary: Boolean = false) {
     )
 }
 
-// --- Data (CSV) ---
+// --- Data (the export file) ---
 
 @Composable
-private fun DataGroup(viewModel: SettingsViewModel, message: DataMessage?) {
+private fun DataGroup(viewModel: SettingsViewModel, message: DataMessage?, loggedIn: Boolean) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    fun exportTo(uri: Uri?, csv: suspend () -> String) {
-        uri ?: return
+    val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
         scope.launch {
-            val ok = runCatching { writeText(context, uri, csv()) }.isSuccess
+            val ok = runCatching { writeText(context, uri, viewModel.backupText()) }.isSuccess
             viewModel.onExported(ok)
         }
     }
-
-    val exportMeals = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
-        exportTo(uri, viewModel::mealsCsv)
-    }
-    val exportWeights = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
-        exportTo(uri, viewModel::weightsCsv)
-    }
     val import = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) viewModel.importCsv { readText(context, uri) }
+        if (uri != null) viewModel.readImport { readText(context, uri) }
     }
-    val mealsFile = stringResource(R.string.data_meals_file_name, todayKey())
-    val weightsFile = stringResource(R.string.data_weights_file_name, todayKey())
 
     SettingsGroup(stringResource(R.string.data_title), footer = stringResource(R.string.data_description)) {
-        SettingsRow(Icons.Filled.Download, stringResource(R.string.data_export_meals), onClick = { exportMeals.launch(mealsFile) })
-        SettingsRow(Icons.Filled.Download, stringResource(R.string.data_export_weights), onClick = { exportWeights.launch(weightsFile) })
+        SettingsRow(Icons.Filled.Download, stringResource(R.string.data_export), onClick = { export.launch(backupFileName(todayKey())) })
+        // With an account the data is the server's: an import would upload, so it is only offered without one.
         SettingsRow(
             Icons.Filled.Upload,
             stringResource(R.string.data_import),
-            onClick = { import.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) },
+            subtitle = stringResource(if (loggedIn) R.string.data_import_hint_account else R.string.data_import_hint_local),
+            enabled = !loggedIn,
+            onClick = { import.launch(arrayOf("application/json", "text/*", "application/octet-stream")) },
         )
         SettingsRow(
             Icons.Filled.DeleteForever,
@@ -559,7 +565,7 @@ private fun DataGroup(viewModel: SettingsViewModel, message: DataMessage?) {
             color = MaterialTheme.colorScheme.error,
         )
         message?.let {
-            val isError = it is DataMessage.Failed || it is DataMessage.UnknownFile
+            val isError = it !is DataMessage.Exported && it !is DataMessage.Imported && it !is DataMessage.Deleted
             Row(Modifier.padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     dataMessageText(it),
@@ -576,21 +582,31 @@ private fun DataGroup(viewModel: SettingsViewModel, message: DataMessage?) {
 @Composable
 private fun dataMessageText(message: DataMessage): String = when (message) {
     DataMessage.Exported -> stringResource(R.string.data_exported)
+    DataMessage.Imported -> stringResource(R.string.data_imported)
     DataMessage.Deleted -> stringResource(R.string.data_deleted)
-    DataMessage.UnknownFile -> stringResource(R.string.data_unknown_file)
+    DataMessage.NotBackup -> stringResource(R.string.data_import_not_backup)
+    DataMessage.NewerFormat -> stringResource(R.string.data_import_newer)
+    is DataMessage.Invalid -> stringResource(R.string.data_import_damaged, message.where)
     DataMessage.Failed -> stringResource(R.string.data_failed)
-    is DataMessage.ImportedMeals ->
-        importSummary(R.plurals.data_imported_meals, message.result.added, message.result.skipped, message.invalid)
-    is DataMessage.ImportedWeights ->
-        importSummary(R.plurals.data_imported_weights, message.result.added, message.result.skipped, message.invalid)
 }
 
+/** «412 meals, 96 weigh-ins and 5 templates, from 2 Nov 2025 to 26 Oct 2026». */
 @Composable
-private fun importSummary(addedRes: Int, added: Int, skipped: Int, invalid: Int): String = listOfNotNull(
-    pluralStringResource(addedRes, added, added),
-    if (skipped > 0) pluralStringResource(R.plurals.data_import_skipped, skipped, skipped) else null,
-    if (invalid > 0) pluralStringResource(R.plurals.data_import_invalid, invalid, invalid) else null,
-).joinToString(" · ")
+private fun importSummary(contents: BackupContents): String {
+    val counts = stringResource(
+        R.string.data_import_counts,
+        pluralStringResource(R.plurals.data_import_meals, contents.meals.size, contents.meals.size),
+        pluralStringResource(R.plurals.data_import_weigh_ins, contents.weights.size, contents.weights.size),
+        pluralStringResource(R.plurals.data_import_templates, contents.templates.size, contents.templates.size),
+    )
+    val first = contents.firstDay
+    val last = contents.lastDay
+    return if (first == null || last == null) {
+        counts
+    } else {
+        stringResource(R.string.data_import_span, counts, formatDateWithYear(first), formatDateWithYear(last))
+    }
+}
 
 private suspend fun writeText(context: Context, uri: Uri, text: String) = withContext(Dispatchers.IO) {
     context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(text.toByteArray(Charsets.UTF_8)) }
