@@ -1,6 +1,6 @@
 "use client";
 
-import { ActivityIcon, ArrowLeftRightIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -61,6 +61,12 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.tdeeActivity}</p>
         <p>{t.metodologia.tdeeWhyNotScale}</p>
         <p>{t.metodologia.tdeeGoals}</p>
+      </MethodologyCard>
+
+      <MethodologyCard id="recomposition" icon={<ArrowUpDownIcon />} title={t.metodologia.recompTitle}>
+        <p>{t.metodologia.recompBody}</p>
+        <p>{t.metodologia.recompCut}</p>
+        <p>{t.metodologia.recompScale}</p>
       </MethodologyCard>
 
       <MethodologyCard id="past-days" icon={<HistoryIcon />} title={t.metodologia.pastDaysTitle}>
@@ -250,6 +256,36 @@ const REFERENCES: { authors: string; title: string; source: string; details: str
     source: "J Cachexia Sarcopenia Muscle",
     details: "2022;13(2):795–810.",
     doi: "10.1002/jcsm.12922",
+  },
+  {
+    authors: "Barakat C, Pearson J, Escalante G, Campbell B, De Souza EO",
+    title: "Body recomposition: can trained individuals build muscle and lose fat at the same time?",
+    source: "Strength Cond J",
+    details: "2020;42(5):7–21.",
+    doi: "10.1519/SSC.0000000000000584",
+  },
+  {
+    authors: "Antonio J, Ellerbroek A, Silver T, et al.",
+    title:
+      "A high protein diet (3.4 g/kg/d) combined with a heavy resistance training program improves body composition in healthy trained men and women – a follow-up investigation",
+    source: "J Int Soc Sports Nutr",
+    details: "2015;12:39.",
+    doi: "10.1186/s12970-015-0100-0",
+  },
+  {
+    authors: "Murphy C, Koehler K",
+    title: "Energy deficiency impairs resistance training gains in lean mass but not strength: a meta-analysis and meta-regression",
+    source: "Scand J Med Sci Sports",
+    details: "2022;32(1):125–137.",
+    doi: "10.1111/sms.14075",
+  },
+  {
+    authors: "Garthe I, Raastad T, Refsnes PE, Koivisto A, Sundgot-Borgen J",
+    title:
+      "Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes",
+    source: "Int J Sport Nutr Exerc Metab",
+    details: "2011;21(2):97–104.",
+    doi: "10.1123/ijsnem.21.2.97",
   },
   {
     authors: "Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y",

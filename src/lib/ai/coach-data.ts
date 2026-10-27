@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { calculateCalorieRecommendation } from "@/lib/core/calories";
+import { calculateCalorieRecommendation, doesStrengthTraining } from "@/lib/core/calories";
 import { buildCoachContext, COACH_WEIGHT_DAYS, type CoachInput } from "@/lib/core/coach";
 import { addDaysToKey, toDateKey, todayKey } from "@/lib/core/dates";
 import { EXPENDITURE_WINDOW_DAYS, estimateExpenditure } from "@/lib/core/expenditure";
@@ -33,6 +33,7 @@ export async function loadCoachInput(today = todayKey()): Promise<CoachInput> {
           heightCm: profile.heightCm,
           gender: profile.gender,
           age: profile.birthYear === null ? null : year - profile.birthYear,
+          strengthTraining: doesStrengthTraining(profile),
         })
       : null;
   const expenditure = estimateExpenditure(

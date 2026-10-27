@@ -16,6 +16,15 @@ const BODY_WEIGHT_RANGES: Record<Goal, { min: number; max: number }> = {
 };
 
 /**
+ * Maintain with strength training: the surplus range. At maintenance someone
+ * who trains loses fat and gains muscle slowly, and the muscle gained from more
+ * protein keeps growing up to ~1.6 g/kg (Morton et al. 2018, upper CI 2.2;
+ * Nunes et al. 2022: under 65, the gain appeared from 1.6 g/kg). 1.4 is below
+ * that point.
+ */
+const MAINTAIN_TRAINING_RANGE = { min: 1.6, max: 2.2 };
+
+/**
  * In a deficit, when body fat is known, protein is set per kg of lean mass
  * (Helms et al. 2014, IJSNEM: 2.3–3.1 g/kg FFM). Lean mass is the better basis
  * there: fat tissue barely raises protein needs, so a body-weight factor
@@ -62,11 +71,16 @@ function isUsableBodyFat(bodyFatPct: number | null | undefined): bodyFatPct is n
   return bodyFatPct != null && bodyFatPct > 0 && bodyFatPct < 100;
 }
 
-/** Height, sex and age (years), to tell when a high BMI is likely fat (all optional). */
+/**
+ * Height, sex and age (years), to tell when a high BMI is likely fat (all
+ * optional), and whether the profile includes strength training
+ * (`doesStrengthTraining`; absent = no).
+ */
 export interface ProteinPerson {
   heightCm: number | null;
   gender: Gender | null;
   age: number | null;
+  strengthTraining?: boolean;
 }
 
 /**
@@ -99,7 +113,11 @@ export function calculateProteinRecommendation(
   const useLeanMass = goal === "cut" && isUsableBodyFat(bodyFatPct);
   const reference = useLeanMass ? null : proteinReferenceWeight(weightKg, bodyFatPct, person);
   const basisKg = useLeanMass ? weightKg * (1 - bodyFatPct / 100) : (reference ?? weightKg);
-  const factors = useLeanMass ? LEAN_MASS_CUT_RANGE : BODY_WEIGHT_RANGES[goal];
+  const factors = useLeanMass
+    ? LEAN_MASS_CUT_RANGE
+    : goal === "maintain" && person.strengthTraining
+      ? MAINTAIN_TRAINING_RANGE
+      : BODY_WEIGHT_RANGES[goal];
 
   const grams = range(basisKg * factors.min, basisKg * factors.max);
 

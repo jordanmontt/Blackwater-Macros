@@ -33,6 +33,7 @@ import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
+import com.blackwatermacros.app.core.doesStrengthTraining
 
 /**
  * "Perfil" (Ajustes → Perfil): fitness goal, body data and the calorie/protein
@@ -53,7 +54,11 @@ fun ProfileScreen(onBack: () -> Unit, onOpenMethodology: (section: String?) -> U
                     CircularProgressIndicator()
                 }
                 is ProfileUiState.Loaded -> {
-                    GoalCard(goal = loaded.profile.calorieGoal, onGoalChange = viewModel::updateCalorieGoal)
+                    GoalCard(
+                        goal = loaded.profile.calorieGoal,
+                        strengthTraining = doesStrengthTraining(loaded.profile),
+                        onGoalChange = viewModel::updateCalorieGoal,
+                    )
                     ProfileCard(
                         profile = loaded.profile,
                         onProfileChange = viewModel::updateProfile,
@@ -70,7 +75,7 @@ fun ProfileScreen(onBack: () -> Unit, onOpenMethodology: (section: String?) -> U
 // --- Goal & profile ---
 
 @Composable
-private fun GoalCard(goal: Goal?, onGoalChange: (Goal) -> Unit) {
+private fun GoalCard(goal: Goal?, strengthTraining: Boolean, onGoalChange: (Goal) -> Unit) {
     SettingsCard(stringResource(R.string.goal_title)) {
         CardDescription(stringResource(R.string.goal_description))
         Spacer(Modifier.height(12.dp))
@@ -83,7 +88,18 @@ private fun GoalCard(goal: Goal?, onGoalChange: (Goal) -> Unit) {
             selected = goal,
             onSelect = onGoalChange,
         )
+        if (goal != null) {
+            Spacer(Modifier.height(8.dp))
+            CardDescription(stringResource(goalHint(goal, strengthTraining)))
+        }
     }
+}
+
+/** What the goal does: with strength training every goal also aims at muscle (web `goalHint`). */
+private fun goalHint(goal: Goal, strengthTraining: Boolean): Int = when (goal) {
+    Goal.CUT -> if (strengthTraining) R.string.goal_hint_cut else R.string.goal_hint_cut_no_training
+    Goal.MAINTAIN -> if (strengthTraining) R.string.goal_hint_maintain else R.string.goal_hint_maintain_no_training
+    Goal.SURPLUS -> if (strengthTraining) R.string.goal_hint_surplus else R.string.goal_hint_surplus_no_training
 }
 
 @Composable

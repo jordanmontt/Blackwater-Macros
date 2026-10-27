@@ -56,6 +56,16 @@ export function getActivityMultiplier(
   );
 }
 
+/**
+ * Whether the profile includes strength training (gym days and minutes above 0).
+ * Then the app assumes the user also wants to gain muscle, whatever the goal:
+ * the goal only sets how fast fat goes and muscle comes (docs/METHODOLOGY.md
+ * §2.4). Walking alone does not build muscle, so it does not count.
+ */
+export function doesStrengthTraining(profile: Pick<CalorieProfile, "gymDaysPerWeek" | "gymSessionMinutes">): boolean {
+  return (profile.gymDaysPerWeek ?? 0) > 0 && (profile.gymSessionMinutes ?? 0) > 0;
+}
+
 const CALORIE_OFFSETS: Record<Goal, { target: number; min: number; max: number }> = {
   cut: { target: -400, min: -500, max: -300 },
   maintain: { target: 0, min: -100, max: 100 },

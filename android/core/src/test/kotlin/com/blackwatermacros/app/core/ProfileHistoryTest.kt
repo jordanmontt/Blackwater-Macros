@@ -109,6 +109,15 @@ class ProfileHistoryTest {
     }
 
     @Test
+    fun maintenanceProteinFollowsThatDaysTraining() {
+        val untrained = before.copy(gymDaysPerWeek = 0, calorieGoal = Goal.MAINTAIN)
+        val trained = untrained.copy(gymDaysPerWeek = 3)
+        val history = listOf(ProfilePeriod("2026-10-14", untrained))
+        assertThat(targetsOn(trained, history, weights, "2026-10-12").protein?.range).isEqualTo(ProteinRange(85.0, 122.0))
+        assertThat(targetsOn(trained, history, weights, "2026-10-15").protein?.range).isEqualTo(ProteinRange(97.0, 133.0))
+    }
+
+    @Test
     fun usesTheFirstWeighInBeforeThereWasAny() {
         assertThat(targetsOn(after, history, weights, "2026-09-20").calorie?.tdee).isEqualTo(1950.0)
     }

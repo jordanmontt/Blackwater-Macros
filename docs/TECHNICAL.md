@@ -794,7 +794,7 @@ expired and keeps local data. Statistics are computed on the phone, so `/api/sta
 | Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band (it steps where a day's target changed, §8.1.1); «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets = mean of the logged days' own targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | A grouped list, the same as Android: a short heading per group and one card of rows (`components/settings/settings-list.tsx`: `SettingsGroup`, `SettingsRow` — icon, title, a line under it, an arrow or a control), every setting on the page and one tap away. **Cuenta** (who is logged in, logout), **Personal** (Perfil, IA, templates: collapsed, with the manager and the new-template dialog), **Tus datos** (CSV export + import, the hint under the card), **Aplicación** (theme, the only place to switch it; language, `language-row.tsx`; the tutorial), **Acerca de** (Metodología, the website `WEBSITE_URL` from `lib/links.ts`, source code, «Administración» for admins) |
 | IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly |
-| Perfil | `app/ajustes/perfil/page.tsx` | Goal selector, calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
+| Perfil | `app/ajustes/perfil/page.tsx` | Goal selector with one line on what the goal does (§8.2.1), calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
 | Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, why past days keep their targets at `#past-days`, protein, measured expenditure, the profile check at `#check`) with the reasoning and Crossref-checked citations. Android: `MethodologyScreen.kt`, same content and reference list |
@@ -1036,7 +1036,8 @@ the magnitudes: [METHODOLOGY.md](./METHODOLOGY.md) §1.4.
 
 | Goal | g/kg | Basis | Source |
 |---|---|---|---|
-| Maintain | 1.4–2.0 | body weight | Jäger et al. 2017 (ISSN) |
+| Maintain, strength training | 1.6–2.2 | body weight | Morton et al. 2018; Nunes et al. 2022 |
+| Maintain, no strength training | 1.4–2.0 | body weight | Jäger et al. 2017 (ISSN) |
 | Surplus | 1.6–2.2 | body weight | Morton et al. 2018; Iraki et al. 2019 |
 | Cut | 1.8–2.7 | body weight | ≈ 2.3–3.1 g/kg FFM at typical body fat |
 | Cut, body fat known | 2.3–3.1 | lean mass = weight × (1 − BF%) | Helms et al. 2014 (IJSNEM); Jäger 2017 |
@@ -1046,8 +1047,29 @@ The reference weight is skipped when a logged body fat is below the one that goe
 for the sex and age (`normalBodyFatMax`, Gallagher et al. 2000 Table 4: men 20/22/25 %,
 women 33/34/36 % at 20–39/40–59/60+ years; under 20 or no birth year → the 20–39 band): then
 the high BMI is muscle. Callers pass the most recent non-null `bodyFatPct` from any weigh-in
-and `{ heightCm, gender, age }` from the profile (`age = currentYear − birthYear`, as in
-`calories.ts`).
+and `{ heightCm, gender, age, strengthTraining }` from the profile (`age = currentYear −
+birthYear`, as in `calories.ts`; `strengthTraining = doesStrengthTraining(profile)`).
+
+### 8.2.1 Strength training: muscle in every goal (`doesStrengthTraining`)
+
+Science: [METHODOLOGY.md](./METHODOLOGY.md) §2.4. `doesStrengthTraining(profile)`
+(`calories.ts` / `Calories.kt`) is true with gym days **and** minutes above 0; walking does
+not count. Then the app assumes the user also wants to gain muscle in every goal, and says
+so; it changes no calorie target.
+
+- **Protein:** maintain uses 1.6–2.2 g/kg instead of 1.4–2.0 (§8.2). `targetsOn` passes the
+  day's own profile, so a past day keeps the range its training gave.
+- **Perfil:** one line under the goal picker (web `goalHint`, Android `GoalCard`):
+  `ajustes.goalHint{Cut,Maintain,Surplus}` with training, `…NoTraining` without (Android
+  `goal_hint_*`). Not in the first-steps form, where the activity is folded away.
+- **Profile check:** a «lower» verdict adds `expenditureCheck.noticeLowerTraining` to the
+  notice and `lowerReasonTraining` to the causes (muscle stores ~1800 kcal/kg against the
+  7700 the measured expenditure assumes). Web `trains(inputs)` in `expenditure-check.tsx`,
+  Android `trains(inputs)` in `ExpenditureCheck.kt`.
+- **Coach:** `GOAL_TEXT` / `goalText(goal, training)` and, with training, the
+  `RECOMPOSITION_TEXT` line after «Activity» (§8.6).
+- **Metodología:** the «Perder grasa y ganar músculo a la vez» section (`#recomposition`,
+  `metodologia.recomp*`, Android `meth_recomp_*`), after the TDEE one.
 The result has `basis` (`bodyWeight` | `leanMass` | `referenceWeight`), `basisKg`, `range`
 (g/day), `perKg` and `target` (midpoint).
 
@@ -1101,6 +1123,8 @@ weigh-ins, span, margin).
   `components/expenditure-check.tsx`; Android `ui/ExpenditureCheck.kt`. Texts in
   `expenditureCheck.*` and `metodologia.check*` of the five JSON, mapped as `check_*` and
   `meth_check_*`.
+- **With strength training** a «lower» notice and its causes also name muscle gained while
+  losing fat (§8.2.1).
 
 ### 8.4 Where it is stored and shown
 
@@ -1185,7 +1209,9 @@ rest of the calorie profile.
 | D11 | The coach receives a compact summary of the user's data, toggle «El coach puede ver mis datos» (on by default). |
 | D12 | First steps: on a fresh Android install / first web login with an incomplete profile; «Iniciar sesión» first on Android. |
 
-**What the coach sees** (`buildCoachContext`, core, exact text tested): profile, targets, BMR,
+**What the coach sees** (`buildCoachContext`, core, exact text tested): profile (the goal
+worded by whether the user does strength training, plus a recomposition note when they do,
+§8.2.1), targets, BMR,
 TDEE, measured expenditure ± margin; today's meals and what is left to the target; the last
 14 days (logged days only) and averages; weight over 60 days (trend, rate, latest body fat); a
 30-day weight projection computed by the app (`weightProjection`), which the system prompt tells
@@ -1457,8 +1483,8 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | Web spec | Covers | Kotlin mirror (`android/core/src/test/…/core/`) |
 | -------- | ------ | ---------------- |
 | `nutrition.test.ts` | `sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2` | `NutritionTest.kt` |
-| `protein.test.ts` | `calculateProteinRecommendation`, reference weight at BMI 25 | `ProteinTest.kt` |
-| `calories.test.ts` | `calculateBMR`, activity (PAL), `calculateCalorieRecommendation` (BMR floor) | `CaloriesTest.kt` |
+| `protein.test.ts` | `calculateProteinRecommendation` (maintain with strength training), reference weight at BMI 25 | `ProteinTest.kt` |
+| `calories.test.ts` | `calculateBMR`, activity (PAL), `doesStrengthTraining`, `calculateCalorieRecommendation` (BMR floor) | `CaloriesTest.kt` |
 | `profile-history.test.ts` | `withProfileChange`, `profileOn`, `weightOn`, `bodyFatOn`, `targetsOn`, `averageTargets` | `ProfileHistoryTest.kt` |
 | `expenditure.test.ts` | `estimateExpenditure`, `measureExpenditure`, `fitWeightTrend`, `dailyMeans`, `checkExpenditure` (verdicts, confirmation, what is missing), `showsGapNotice`, `onlyWeighInsMissing`, `approximateGap` | `ExpenditureTest.kt` |
 | `foods.test.ts` | portions, Open Food Facts parsing, shop labels and why a barcode missed, `searchGenericFoods` | `FoodsTest.kt` |
@@ -1467,7 +1493,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `ai-schema.test.ts` | `parseMealEstimate`, prompts, `estimateToIngredients` | `AiSchemaTest.kt` |
 | `progress.test.ts` | `macroAverages` | `ProgressTest.kt` |
 | `numbers.test.ts` | `formatDecimal`, `normalizeDecimal` (the one number format, §6) | `NumbersTest.kt` |
-| `coach.test.ts` (+ `coach.fixture.ts`) | `weightProjection`, `buildCoachContext` (exact text), `buildCoachSystemPrompt` | `CoachTest.kt` |
+| `coach.test.ts` (+ `coach.fixture.ts`) | `weightProjection`, `buildCoachContext` (exact text; goal text with and without strength training), `buildCoachSystemPrompt` | `CoachTest.kt` |
 | `dates.test.ts` | date keys, `parseLocalDateTime`, `datetime-local` values | `DatesTest.kt` |
 | `stats.test.ts` | moving average, weekly rate, series | `StatsTest.kt` |
 | `stats-builder.test.ts` | `buildStatsFromData` | `StatsBuilderTest.kt` |

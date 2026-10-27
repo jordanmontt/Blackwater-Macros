@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatNumber } from "@/i18n/format";
 import { formatTemplate, t } from "@/i18n";
+import { doesStrengthTraining } from "@/lib/core/calories";
 import { KCAL_PER_KG, approximateGap, onlyWeighInsMissing, showsGapNotice } from "@/lib/core/expenditure";
 import type { CalorieProfile, ExpenditureCheck, Gender, MissingExpenditureData } from "@/lib/core/types";
 import { todayKey } from "@/lib/core/dates";
@@ -59,9 +60,15 @@ const ACTIVITY_HREF = "/ajustes/perfil#gym-days";
 
 type Measured = Extract<ExpenditureCheck, { status: "measured" }>;
 
-function noticeText(check: Measured): string {
+/** With strength training, a «lower» gap can partly be muscle gained (/metodologia, recomposition). */
+function trains(inputs: FormulaInputs | null): boolean {
+  return inputs !== null && doesStrengthTraining(inputs);
+}
+
+function noticeText(check: Measured, inputs: FormulaInputs | null): string {
   const template = check.verdict === "higher" ? t.expenditureCheck.noticeHigher : t.expenditureCheck.noticeLower;
-  return formatTemplate(template, { gap: formatNumber(approximateGap(check.gap)) });
+  const text = formatTemplate(template, { gap: formatNumber(approximateGap(check.gap)) });
+  return check.verdict === "lower" && trains(inputs) ? `${text} ${t.expenditureCheck.noticeLowerTraining}` : text;
 }
 
 /**
@@ -84,7 +91,7 @@ export function ExpenditureNotices({
   let text: string;
   let onDismiss: () => void;
   if (check.status === "measured" && showsGapNotice(check, notices.gapDismissal, today)) {
-    text = noticeText(check);
+    text = noticeText(check, inputs);
     const verdict = check.verdict === "higher" ? "higher" : "lower";
     onDismiss = () => notices.dismissGap({ verdict, date: today });
   } else if (onlyWeighInsMissing(check) && !notices.weighInHintDismissed) {
@@ -153,7 +160,7 @@ export function ExpenditureCheckStatus({
         max: formatNumber(check.normalMax),
       })
     : check.confirmed
-      ? noticeText(check)
+      ? noticeText(check, inputs)
       : t.expenditureCheck.statusUnconfirmed;
   return (
     <div className="flex gap-2 text-xs">
@@ -273,7 +280,13 @@ function ExpenditureCheckDetails({ check, inputs }: { check: Measured; inputs: F
     check.verdict === "higher"
       ? [t.expenditureCheck.higherReason1, t.expenditureCheck.higherReason2, t.expenditureCheck.higherReason3, t.expenditureCheck.higherReason4]
       : check.verdict === "lower"
-        ? [t.expenditureCheck.lowerReason1, t.expenditureCheck.lowerReason2, t.expenditureCheck.lowerReason3, t.expenditureCheck.lowerReason4]
+        ? [
+            t.expenditureCheck.lowerReason1,
+            t.expenditureCheck.lowerReason2,
+            t.expenditureCheck.lowerReason3,
+            t.expenditureCheck.lowerReason4,
+            ...(trains(inputs) ? [t.expenditureCheck.lowerReasonTraining] : []),
+          ]
         : [];
   const rate = estimate.weightChangePerWeek;
   const signedRate = `${rate > 0 ? "+" : ""}${formatNumber(rate, 2)}`;
@@ -284,7 +297,7 @@ function ExpenditureCheckDetails({ check, inputs }: { check: Measured; inputs: F
     <div className="space-y-4">
       <DialogHeader>
         <DialogTitle className="pr-6">{title}</DialogTitle>
-        {check.verdict !== "matches" && check.confirmed ? <DialogDescription>{noticeText(check)}</DialogDescription> : null}
+        {check.verdict !== "matches" && check.confirmed ? <DialogDescription>{noticeText(check, inputs)}</DialogDescription> : null}
       </DialogHeader>
 
       <Step title={t.expenditureCheck.profileStep}>

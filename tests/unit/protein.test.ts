@@ -11,6 +11,17 @@ describe("calculateProteinRecommendation", () => {
     expect(rec.perKg).toEqual({ min: 1.4, max: 2.0 });
   });
 
+  it("maintain with strength training: 1.6–2.2 g/kg BW, as a surplus", () => {
+    const trains = { heightCm: null, gender: null, age: null, strengthTraining: true };
+    const rec = calculateProteinRecommendation(WEIGHT, "maintain", null, trains);
+    expect(rec.basis).toBe("bodyWeight");
+    expect(rec.range).toEqual({ min: 128, max: 176 });
+    expect(rec.perKg).toEqual({ min: 1.6, max: 2.2 });
+    // The other goals already assume training.
+    expect(calculateProteinRecommendation(WEIGHT, "cut", 20, trains)).toEqual(calculateProteinRecommendation(WEIGHT, "cut", 20));
+    expect(calculateProteinRecommendation(WEIGHT, "surplus", null, trains)).toEqual(calculateProteinRecommendation(WEIGHT, "surplus"));
+  });
+
   it("surplus: 1.6–2.2 g/kg BW", () => {
     const rec = calculateProteinRecommendation(WEIGHT, "surplus");
     expect(rec.range).toEqual({ min: 128, max: 176 });

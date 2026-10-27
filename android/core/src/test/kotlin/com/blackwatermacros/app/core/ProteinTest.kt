@@ -20,6 +20,18 @@ class ProteinTest {
     }
 
     @Test
+    fun maintainWithStrengthTraining_1_6to2_2gPerKgBW() {
+        val trains = ProteinPerson(null, null, null, strengthTraining = true)
+        val rec = calculateProteinRecommendation(WEIGHT, Goal.MAINTAIN, null, trains)
+        assertThat(rec.basis).isEqualTo(ProteinBasis.BODY_WEIGHT)
+        assertProteinRange(rec.range, 128.0, 176.0)
+        assertProteinRange(rec.perKg, 1.6, 2.2)
+        // The other goals already assume training.
+        assertThat(calculateProteinRecommendation(WEIGHT, Goal.CUT, 20.0, trains)).isEqualTo(calculateProteinRecommendation(WEIGHT, Goal.CUT, 20.0))
+        assertThat(calculateProteinRecommendation(WEIGHT, Goal.SURPLUS, null, trains)).isEqualTo(calculateProteinRecommendation(WEIGHT, Goal.SURPLUS))
+    }
+
+    @Test
     fun surplus_1_6to2_2gPerKgBW() {
         val rec = calculateProteinRecommendation(WEIGHT, Goal.SURPLUS)
         assertProteinRange(rec.range, 128.0, 176.0)

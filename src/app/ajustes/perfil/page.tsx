@@ -21,7 +21,7 @@ import { proteinPerKgText } from "@/components/nutrition-recommendations";
 import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
-import { calculateCalorieRecommendation, isCalorieProfileComplete } from "@/lib/core/calories";
+import { calculateCalorieRecommendation, doesStrengthTraining, isCalorieProfileComplete } from "@/lib/core/calories";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
 import { formatTemplate, t } from "@/i18n";
 import { SubpageHeader } from "@/components/subpage-header";
@@ -31,6 +31,18 @@ const GOAL_LABELS: Record<Goal, string> = {
   maintain: t.ajustes.goalMaintain,
   surplus: t.ajustes.goalSurplus,
 };
+
+/** What the goal does: with strength training every goal also aims at muscle (/metodologia). */
+function goalHint(goal: Goal, strengthTraining: boolean): string {
+  if (strengthTraining) {
+    return { cut: t.ajustes.goalHintCut, maintain: t.ajustes.goalHintMaintain, surplus: t.ajustes.goalHintSurplus }[goal];
+  }
+  return {
+    cut: t.ajustes.goalHintCutNoTraining,
+    maintain: t.ajustes.goalHintMaintainNoTraining,
+    surplus: t.ajustes.goalHintSurplusNoTraining,
+  }[goal];
+}
 
 /**
  * "Perfil": objetivo deportivo, datos corporales y las recomendaciones de
@@ -145,6 +157,7 @@ export default function PerfilPage() {
         heightCm: calorieProfile.heightCm,
         gender: calorieProfile.gender,
         age: calorieProfile.birthYear === null ? null : new Date().getFullYear() - calorieProfile.birthYear,
+        strengthTraining: doesStrengthTraining(calorieProfile),
       })
     : null;
 
@@ -174,6 +187,11 @@ export default function PerfilPage() {
               </button>
             ))}
           </div>
+          {calorieProfile.calorieGoal ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              {goalHint(calorieProfile.calorieGoal, doesStrengthTraining(calorieProfile))}
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 

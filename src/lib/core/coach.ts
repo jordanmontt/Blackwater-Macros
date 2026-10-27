@@ -1,3 +1,4 @@
+import { doesStrengthTraining } from "./calories";
 import { addDaysToKey, daysBetweenKeys } from "./dates";
 import {
   EXPENDITURE_WINDOW_DAYS,
@@ -95,11 +96,26 @@ function num(value: number): string {
   return String(value === 0 ? 0 : value);
 }
 
+/**
+ * With strength training every goal also aims at muscle; the goal sets the pace
+ * (docs/METHODOLOGY.md §2.4). Without it, food alone does not build muscle.
+ */
 const GOAL_TEXT = {
-  cut: "cut (lose fat)",
-  maintain: "maintain weight",
-  surplus: "bulk (gain muscle)",
+  training: {
+    cut: "cut (lose fat fastest while keeping muscle; gaining some is possible, more likely for beginners, people returning to training or with more fat to lose)",
+    maintain: "maintain (lose fat and gain muscle slowly; weight may barely change)",
+    surplus: "bulk (gain muscle fastest, with a little fat)",
+  },
+  none: {
+    cut: "cut (lose fat)",
+    maintain: "maintain weight",
+    surplus: "bulk (gain weight; without strength training most of it is fat)",
+  },
 } as const;
+
+/** Said only with strength training: a flat weight in a deficit can still be progress. */
+const RECOMPOSITION_TEXT =
+  "Strength training: the user also wants to gain muscle. The scale cannot tell muscle from fat: a kg of muscle stores about 1800 kcal and the usual weight loss about 7700, so losing fat while gaining muscle can keep the weight flat in a deficit (body recomposition), and the measured expenditure then comes out somewhat low. When the weight stalls, mention this and suggest other signs: strength, waist size, photos.";
 
 function macros(calories: number, protein: number, carbs: number, fat: number): string {
   return `${num(Math.round(calories))} kcal, ${num(round1(protein))} g protein, ${num(round1(carbs))} g carbs, ${num(round1(fat))} g fat`;
@@ -143,7 +159,9 @@ export function buildCoachContext(input: CoachInput): string {
     profile.gender ?? "sex unknown",
     profile.birthYear !== null ? `${num(year - profile.birthYear)} years` : "age unknown",
     profile.heightCm !== null ? `${num(profile.heightCm)} cm` : "height unknown",
-    profile.calorieGoal !== null ? `goal: ${GOAL_TEXT[profile.calorieGoal]}` : "goal unknown",
+    profile.calorieGoal !== null
+      ? `goal: ${GOAL_TEXT[doesStrengthTraining(profile) ? "training" : "none"][profile.calorieGoal]}`
+      : "goal unknown",
   ];
   lines.push(`Profile: ${parts.join(", ")}.`);
   if (profile.gymDaysPerWeek !== null && profile.gymSessionMinutes !== null && profile.walkingMinutesPerDay !== null) {
@@ -151,6 +169,7 @@ export function buildCoachContext(input: CoachInput): string {
       `Activity: gym ${num(profile.gymDaysPerWeek)} days/week × ${num(profile.gymSessionMinutes)} min, walking ${num(profile.walkingMinutesPerDay)} min/day.`,
     );
   }
+  if (doesStrengthTraining(profile)) lines.push(RECOMPOSITION_TEXT);
 
   // Targets
   if (calorie) {

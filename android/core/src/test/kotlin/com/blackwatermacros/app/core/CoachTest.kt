@@ -61,8 +61,13 @@ class CoachTest {
         assertThat(buildCoachContext(input)).isEqualTo(
             listOf(
                 "Today: 2026-03-01",
-                "Profile: male, 36 years, 178 cm, goal: cut (lose fat).",
+                "Profile: male, 36 years, 178 cm, goal: cut (lose fat fastest while keeping muscle; gaining some is possible, " +
+                    "more likely for beginners, people returning to training or with more fat to lose).",
                 "Activity: gym 3 days/week × 60 min, walking 30 min/day.",
+                "Strength training: the user also wants to gain muscle. The scale cannot tell muscle from fat: a kg of muscle " +
+                    "stores about 1800 kcal and the usual weight loss about 7700, so losing fat while gaining muscle can keep the " +
+                    "weight flat in a deficit (body recomposition), and the measured expenditure then comes out somewhat low. " +
+                    "When the weight stalls, mention this and suggest other signs: strength, waist size, photos.",
                 "Calorie target: 2089–2289 kcal/day (BMR 1738, estimated TDEE 2589, activity factor 1.49).",
                 "Protein target: 147–198 g/day (2.3–3.1 g/kg of 64 kg lean mass).",
                 "Measured expenditure (energy balance, last 28 days): 2750 ± 177 kcal/day.",
@@ -98,6 +103,21 @@ class CoachTest {
                 "Weight: no weigh-ins logged.",
             ).joinToString("\n"),
         )
+    }
+
+    @Test
+    fun withoutStrengthTrainingTheGoalsDoNotPromiseMuscle() {
+        fun goalLine(goal: Goal, gymDays: Int) =
+            buildCoachContext(input.copy(profile = profile.copy(calorieGoal = goal, gymDaysPerWeek = gymDays)))
+                .lines().first { it.startsWith("Profile:") }
+        assertThat(goalLine(Goal.CUT, 0)).isEqualTo("Profile: male, 36 years, 178 cm, goal: cut (lose fat).")
+        assertThat(goalLine(Goal.MAINTAIN, 0)).isEqualTo("Profile: male, 36 years, 178 cm, goal: maintain weight.")
+        assertThat(goalLine(Goal.SURPLUS, 0))
+            .isEqualTo("Profile: male, 36 years, 178 cm, goal: bulk (gain weight; without strength training most of it is fat).")
+        assertThat(goalLine(Goal.MAINTAIN, 3))
+            .isEqualTo("Profile: male, 36 years, 178 cm, goal: maintain (lose fat and gain muscle slowly; weight may barely change).")
+        assertThat(goalLine(Goal.SURPLUS, 3)).isEqualTo("Profile: male, 36 years, 178 cm, goal: bulk (gain muscle fastest, with a little fat).")
+        assertThat(buildCoachContext(input.copy(profile = profile.copy(gymDaysPerWeek = 0)))).doesNotContain("Strength training:")
     }
 
     @Test

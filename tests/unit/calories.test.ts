@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateBMR,
   calculateCalorieRecommendation,
+  doesStrengthTraining,
   getActivityMultiplier,
   isCalorieProfileComplete,
 } from "../../src/lib/core/calories";
@@ -74,6 +75,15 @@ describe("isCalorieProfileComplete", () => {
       calorieGoal: null,
     };
     expect(isCalorieProfileComplete(profile)).toBe(false);
+  });
+});
+
+describe("doesStrengthTraining", () => {
+  it("solo con días y minutos de gimnasio; caminar no cuenta", () => {
+    expect(doesStrengthTraining({ gymDaysPerWeek: 3, gymSessionMinutes: 60 })).toBe(true);
+    expect(doesStrengthTraining({ gymDaysPerWeek: 0, gymSessionMinutes: 60 })).toBe(false);
+    expect(doesStrengthTraining({ gymDaysPerWeek: 3, gymSessionMinutes: 0 })).toBe(false);
+    expect(doesStrengthTraining({ gymDaysPerWeek: null, gymSessionMinutes: null })).toBe(false);
   });
 });
 

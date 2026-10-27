@@ -1,4 +1,4 @@
-import { calculateCalorieRecommendation, isCalorieProfileComplete } from "./calories";
+import { calculateCalorieRecommendation, doesStrengthTraining, isCalorieProfileComplete } from "./calories";
 import { addDaysToKey } from "./dates";
 import { calculateProteinRecommendation } from "./protein";
 import type { CalorieProfile, CalorieRecommendation, ProfilePeriod, ProteinRecommendation } from "./types";
@@ -117,6 +117,7 @@ export function targetsOn(
           heightCm: dayProfile.heightCm,
           gender: dayProfile.gender,
           age: dayProfile.birthYear === null ? null : year - dayProfile.birthYear,
+          strengthTraining: doesStrengthTraining(dayProfile),
         });
   return { calorie, protein };
 }

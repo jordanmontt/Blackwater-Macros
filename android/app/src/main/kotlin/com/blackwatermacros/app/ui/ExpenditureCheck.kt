@@ -93,11 +93,22 @@ internal fun formulaInputs(profile: CalorieProfile, weightKg: Double?, year: Int
     )
 }
 
+/** With strength training, a «lower» gap can partly be muscle gained (web `trains`). */
+private fun trains(inputs: FormulaInputs?): Boolean =
+    inputs != null && inputs.gymDaysPerWeek > 0 && inputs.gymSessionMinutes > 0
+
 @Composable
-private fun noticeText(check: ExpenditureCheck.Measured): String = stringResource(
-    if (check.verdict == ExpenditureVerdict.HIGHER) R.string.check_notice_higher else R.string.check_notice_lower,
-    formatNumber(approximateGap(check.gap)),
-)
+private fun noticeText(check: ExpenditureCheck.Measured, inputs: FormulaInputs?): String {
+    val text = stringResource(
+        if (check.verdict == ExpenditureVerdict.HIGHER) R.string.check_notice_higher else R.string.check_notice_lower,
+        formatNumber(approximateGap(check.gap)),
+    )
+    return if (check.verdict == ExpenditureVerdict.LOWER && trains(inputs)) {
+        "$text ${stringResource(R.string.check_notice_lower_training)}"
+    } else {
+        text
+    }
+}
 
 /**
  * Comidas, inside the calorie recommendation: the gap once it is confirmed, or
@@ -122,7 +133,7 @@ internal fun ExpenditureNotices(
     val onDismiss: () -> Unit
     when {
         measured != null && showsGapNotice(measured, dismissal, today) -> {
-            text = noticeText(measured)
+            text = noticeText(measured, inputs)
             onDismiss = { onDismissGap(ExpenditureNoticeDismissal(measured.verdict, today)) }
         }
         onlyWeighInsMissing(check) && !weighInHintDismissed -> {
@@ -200,7 +211,7 @@ internal fun ExpenditureCheckStatus(check: ExpenditureCheck?, inputs: FormulaInp
             val gap = check.verdict != ExpenditureVerdict.MATCHES
             val text = when {
                 !gap -> stringResource(R.string.check_status_matches, formatNumber(check.normalMin), formatNumber(check.normalMax))
-                check.confirmed -> noticeText(check)
+                check.confirmed -> noticeText(check, inputs)
                 else -> stringResource(R.string.check_status_unconfirmed)
             }
             Row(Modifier.fillMaxWidth()) {
@@ -336,7 +347,7 @@ private fun CheckDetails(
                 },
             ),
         )
-        if (gap && check.confirmed) CardDescription(noticeText(check))
+        if (gap && check.confirmed) CardDescription(noticeText(check, inputs))
     }
 
     Step(stringResource(R.string.check_profile_step)) {
@@ -385,7 +396,8 @@ private fun CheckDetails(
 
     val reasons = when (check.verdict) {
         ExpenditureVerdict.HIGHER -> listOf(R.string.check_higher_reason_1, R.string.check_higher_reason_2, R.string.check_higher_reason_3, R.string.check_higher_reason_4)
-        ExpenditureVerdict.LOWER -> listOf(R.string.check_lower_reason_1, R.string.check_lower_reason_2, R.string.check_lower_reason_3, R.string.check_lower_reason_4)
+        ExpenditureVerdict.LOWER -> listOf(R.string.check_lower_reason_1, R.string.check_lower_reason_2, R.string.check_lower_reason_3, R.string.check_lower_reason_4) +
+            if (trains(inputs)) listOf(R.string.check_lower_reason_training) else emptyList()
         ExpenditureVerdict.MATCHES -> emptyList()
     }
     if (reasons.isNotEmpty()) {

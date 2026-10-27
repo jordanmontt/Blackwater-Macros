@@ -4,7 +4,8 @@ package com.blackwatermacros.app.core
  * Mirrors `src/lib/core/protein.ts`. Evidence-based protein intake ranges (g/kg/day).
  * Rounding via `mathRound` reproduces JS `Math.round`.
  *
- * Maintain: ISSN position stand (Jäger et al. 2017), 1.4–2.0 g/kg BW.
+ * Maintain: ISSN position stand (Jäger et al. 2017), 1.4–2.0 g/kg BW; with strength
+ *           training the surplus range (Morton et al. 2018; Nunes et al. 2022).
  * Surplus:  Morton et al. 2018 and Iraki et al. 2019, 1.6–2.2 g/kg BW.
  * Cut:      Jäger et al. 2017 and Helms et al. 2014 (IJSNEM), 1.8–2.7 g/kg BW,
  *           or 2.3–3.1 g/kg of lean mass when body fat is known.
@@ -15,6 +16,9 @@ private val BODY_WEIGHT_RANGES: Map<Goal, Pair<Double, Double>> = mapOf(
     Goal.SURPLUS to (1.6 to 2.2),
     Goal.CUT to (1.8 to 2.7),
 )
+
+/** Maintain with strength training: muscle is gained slowly there (web `MAINTAIN_TRAINING_RANGE`). */
+private val MAINTAIN_TRAINING_RANGE = 1.6 to 2.2
 
 private val LEAN_MASS_CUT_RANGE = 2.3 to 3.1
 
@@ -51,8 +55,16 @@ fun normalBodyFatMax(gender: Gender, age: Int?): Double {
 private fun isUsableBodyFat(bodyFatPct: Double?): Boolean =
     bodyFatPct != null && bodyFatPct > 0 && bodyFatPct < 100
 
-/** Height, sex and age (years), to tell when a high BMI is likely fat (all optional). */
-data class ProteinPerson(val heightCm: Double?, val gender: Gender?, val age: Int?)
+/**
+ * Height, sex and age (years), to tell when a high BMI is likely fat (all optional), and
+ * whether the profile includes strength training ([doesStrengthTraining]).
+ */
+data class ProteinPerson(
+    val heightCm: Double?,
+    val gender: Gender?,
+    val age: Int?,
+    val strengthTraining: Boolean = false,
+)
 
 /**
  * The weight at BMI 25 when the BMI is above it and the extra weight is likely
@@ -78,7 +90,11 @@ fun calculateProteinRecommendation(
     val useLeanMass = goal == Goal.CUT && isUsableBodyFat(bodyFatPct)
     val reference = if (useLeanMass) null else proteinReferenceWeight(weightKg, bodyFatPct, person)
     val basisKg = if (useLeanMass) weightKg * (1 - bodyFatPct!! / 100) else reference ?: weightKg
-    val (min, max) = if (useLeanMass) LEAN_MASS_CUT_RANGE else BODY_WEIGHT_RANGES.getValue(goal)
+    val (min, max) = when {
+        useLeanMass -> LEAN_MASS_CUT_RANGE
+        goal == Goal.MAINTAIN && person.strengthTraining -> MAINTAIN_TRAINING_RANGE
+        else -> BODY_WEIGHT_RANGES.getValue(goal)
+    }
 
     val grams = range(basisKg * min, basisKg * max)
 

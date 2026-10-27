@@ -10,6 +10,7 @@ import { emptyCalorieProfile } from "../helpers/repos";
 /**
  * Requisitos visibles en la pantalla "Perfil" (Ajustes → Perfil):
  *  - elegir un objetivo guarda el perfil calórico con un breve debounce,
+ *  - bajo el objetivo dice qué hace: con gimnasio, también ganar músculo,
  *  - no guarda mientras haya errores de validación,
  *  - con peso y perfil completos muestra las recomendaciones, el factor de
  *    actividad y, sin 4 semanas de datos, qué falta exactamente para comparar
@@ -65,6 +66,21 @@ describe("pantalla Perfil", () => {
         expect.objectContaining({ calorieProfile: expect.objectContaining({ calorieGoal: "maintain" }) }),
       ),
     );
+  });
+
+  it("explica el objetivo: con gimnasio cuenta con ganar músculo, sin él no", async () => {
+    const { unmount } = render(<PerfilPage />);
+    expect(await screen.findByText(t.ajustes.goalHintMaintainNoTraining)).toBeInTheDocument();
+    unmount();
+
+    clearCache();
+    vi.mocked(api.session).mockResolvedValueOnce({
+      username: "ana",
+      isAdmin: false,
+      calorieProfile: profile({ calorieGoal: "maintain", gymDaysPerWeek: 3, gymSessionMinutes: 60 }),
+    });
+    render(<PerfilPage />);
+    expect(await screen.findByText(t.ajustes.goalHintMaintain)).toBeInTheDocument();
   });
 
   it("dice que los cambios cuentan desde hoy y enlaza a la explicación", async () => {

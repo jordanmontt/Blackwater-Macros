@@ -75,7 +75,12 @@ fun targetsOn(
             weight.weightKg,
             goal,
             bodyFatOn(weights, day),
-            ProteinPerson(dayProfile.heightCm, dayProfile.gender, dayProfile.birthYear?.let { year - it }),
+            ProteinPerson(
+                dayProfile.heightCm,
+                dayProfile.gender,
+                dayProfile.birthYear?.let { year - it },
+                strengthTraining = doesStrengthTraining(dayProfile),
+            ),
         )
     }
     return DayTargets(calorie, protein)

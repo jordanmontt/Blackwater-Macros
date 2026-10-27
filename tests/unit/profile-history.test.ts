@@ -127,6 +127,14 @@ describe("targetsOn", () => {
     });
   });
 
+  it("maintenance protein follows that day's training: 1.4–2.0 g/kg without gym, 1.6–2.2 with it", () => {
+    const untrained = { ...BEFORE, gymDaysPerWeek: 0, calorieGoal: "maintain" as const };
+    const trained = { ...untrained, gymDaysPerWeek: 3 };
+    const history: ProfilePeriod[] = [{ ...untrained, until: "2026-10-14" }];
+    expect(targetsOn(trained, history, WEIGHTS, "2026-10-12").protein?.range).toEqual({ min: 85, max: 122 });
+    expect(targetsOn(trained, history, WEIGHTS, "2026-10-15").protein?.range).toEqual({ min: 97, max: 133 });
+  });
+
   it("uses the first weigh-in before there was any", () => {
     expect(targetsOn(AFTER, HISTORY, WEIGHTS, "2026-09-20").calorie?.tdee).toBe(1950);
   });

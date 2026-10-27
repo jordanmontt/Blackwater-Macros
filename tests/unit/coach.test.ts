@@ -38,8 +38,9 @@ describe("buildCoachContext", () => {
     expect(buildCoachContext(COACH_INPUT)).toBe(
       [
         "Today: 2026-03-01",
-        "Profile: male, 36 years, 178 cm, goal: cut (lose fat).",
+        "Profile: male, 36 years, 178 cm, goal: cut (lose fat fastest while keeping muscle; gaining some is possible, more likely for beginners, people returning to training or with more fat to lose).",
         "Activity: gym 3 days/week × 60 min, walking 30 min/day.",
+        "Strength training: the user also wants to gain muscle. The scale cannot tell muscle from fat: a kg of muscle stores about 1800 kcal and the usual weight loss about 7700, so losing fat while gaining muscle can keep the weight flat in a deficit (body recomposition), and the measured expenditure then comes out somewhat low. When the weight stalls, mention this and suggest other signs: strength, waist size, photos.",
         "Calorie target: 2089–2289 kcal/day (BMR 1738, estimated TDEE 2589, activity factor 1.49).",
         "Protein target: 147–198 g/day (2.3–3.1 g/kg of 64 kg lean mass).",
         "Measured expenditure (energy balance, last 28 days): 2750 ± 177 kcal/day.",
@@ -84,6 +85,24 @@ describe("buildCoachContext", () => {
         "Weight: no weigh-ins logged.",
       ].join("\n"),
     );
+  });
+
+  it("without strength training, the goals do not promise muscle and the recomposition note is left out", () => {
+    const goalLine = (calorieGoal: "cut" | "maintain" | "surplus", gymDaysPerWeek: number) =>
+      buildCoachContext({ ...COACH_INPUT, profile: { ...COACH_INPUT.profile, calorieGoal, gymDaysPerWeek } })
+        .split("\n")
+        .find((line) => line.startsWith("Profile:"));
+    expect(goalLine("cut", 0)).toBe("Profile: male, 36 years, 178 cm, goal: cut (lose fat).");
+    expect(goalLine("maintain", 0)).toBe("Profile: male, 36 years, 178 cm, goal: maintain weight.");
+    expect(goalLine("surplus", 0)).toBe(
+      "Profile: male, 36 years, 178 cm, goal: bulk (gain weight; without strength training most of it is fat).",
+    );
+    expect(goalLine("maintain", 3)).toBe(
+      "Profile: male, 36 years, 178 cm, goal: maintain (lose fat and gain muscle slowly; weight may barely change).",
+    );
+    expect(goalLine("surplus", 3)).toBe("Profile: male, 36 years, 178 cm, goal: bulk (gain muscle fastest, with a little fat).");
+    const untrained = { ...COACH_INPUT, profile: { ...COACH_INPUT.profile, gymDaysPerWeek: 0 } };
+    expect(buildCoachContext(untrained)).not.toContain("Strength training:");
   });
 
   it("says when today is within or over the target range", () => {

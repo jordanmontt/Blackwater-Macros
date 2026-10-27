@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.layout.Spacer
@@ -101,7 +102,16 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                 formula = listOf("β = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)²", stringResource(R.string.meth_rate_formula)),
             )
             MethodCard(Icons.Filled.Restaurant, R.string.meth_daily_title, R.string.meth_daily_body)
-            MethodCard(Icons.Filled.FitnessCenter, R.string.meth_protein_title, R.string.meth_protein_body)
+            MethodCard(
+                Icons.Filled.FitnessCenter,
+                R.string.meth_protein_title,
+                R.string.meth_protein_rec_body,
+                afterTexts = listOf(
+                    stringResource(R.string.meth_protein_rec_ranges),
+                    stringResource(R.string.meth_protein_rec_ffm),
+                    stringResource(R.string.meth_protein_rec_reference),
+                ),
+            )
             MethodCard(
                 Icons.Filled.LocalFireDepartment,
                 R.string.meth_tdee_title,
@@ -114,6 +124,15 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_tdee_total),
                 ),
                 afterRes = R.string.meth_tdee_after,
+            )
+            MethodCard(
+                Icons.Filled.SwapVert,
+                R.string.meth_recomp_title,
+                R.string.meth_recomp_body,
+                afterTexts = listOf(
+                    stringResource(R.string.meth_recomp_cut),
+                    stringResource(R.string.meth_recomp_scale),
+                ),
             )
             MethodCard(
                 Icons.Filled.History,
@@ -264,6 +283,10 @@ private fun ReferencesCard() {
                 "Helms ER, Zinn C, Rowlands DS, Brown SR. A systematic review of dietary protein during caloric restriction in resistance trained lean athletes: a case for higher intakes. Int J Sport Nutr Exerc Metab. 2014;24(2):127–138. doi:10.1123/ijsnem.2013-0054",
                 "Kokura Y, Ueshima J, Saino Y, Maeda K. Enhanced protein intake on maintaining muscle mass, strength, and physical function in adults with overweight/obesity: a systematic review and meta-analysis. Clin Nutr ESPEN. 2024;63:417–426. doi:10.1016/j.clnesp.2024.06.030",
                 "Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. J Cachexia Sarcopenia Muscle. 2022;13(2):795–810. doi:10.1002/jcsm.12922",
+                "Barakat C, Pearson J, Escalante G, Campbell B, De Souza EO. Body recomposition: can trained individuals build muscle and lose fat at the same time? Strength Cond J. 2020;42(5):7–21. doi:10.1519/SSC.0000000000000584",
+                "Antonio J, Ellerbroek A, Silver T, et al. A high protein diet (3.4 g/kg/d) combined with a heavy resistance training program improves body composition in healthy trained men and women – a follow-up investigation. J Int Soc Sports Nutr. 2015;12:39. doi:10.1186/s12970-015-0100-0",
+                "Murphy C, Koehler K. Energy deficiency impairs resistance training gains in lean mass but not strength: a meta-analysis and meta-regression. Scand J Med Sci Sports. 2022;32(1):125–137. doi:10.1111/sms.14075",
+                "Garthe I, Raastad T, Refsnes PE, Koivisto A, Sundgot-Borgen J. Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes. Int J Sport Nutr Exerc Metab. 2011;21(2):97–104. doi:10.1123/ijsnem.21.2.97",
                 "Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y. Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. Am J Clin Nutr. 2000;72(3):694–701. doi:10.1093/ajcn/72.3.694",
                 "McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). JPEN J Parenter Enteral Nutr. 2016;40(2):159–211. doi:10.1177/0148607115621863",
                 "Byrne NM, Hills AP, Hunter GR, Weinsier RL, Schutz Y. Metabolic equivalent: one size does not fit all. J Appl Physiol. 2005;99(3):1112–1119. doi:10.1152/japplphysiol.00023.2004",

@@ -78,11 +78,28 @@ private fun num(value: Double): String = plainNumber(value)
 
 private fun num(value: Int): String = value.toString()
 
-private fun goalText(goal: Goal): String = when (goal) {
-    Goal.CUT -> "cut (lose fat)"
-    Goal.MAINTAIN -> "maintain weight"
-    Goal.SURPLUS -> "bulk (gain muscle)"
+/** With strength training every goal also aims at muscle (web `GOAL_TEXT`). */
+private fun goalText(goal: Goal, training: Boolean): String = if (training) {
+    when (goal) {
+        Goal.CUT -> "cut (lose fat fastest while keeping muscle; gaining some is possible, more likely for beginners, " +
+            "people returning to training or with more fat to lose)"
+        Goal.MAINTAIN -> "maintain (lose fat and gain muscle slowly; weight may barely change)"
+        Goal.SURPLUS -> "bulk (gain muscle fastest, with a little fat)"
+    }
+} else {
+    when (goal) {
+        Goal.CUT -> "cut (lose fat)"
+        Goal.MAINTAIN -> "maintain weight"
+        Goal.SURPLUS -> "bulk (gain weight; without strength training most of it is fat)"
+    }
 }
+
+/** Said only with strength training: a flat weight in a deficit can still be progress (web `RECOMPOSITION_TEXT`). */
+private const val RECOMPOSITION_TEXT =
+    "Strength training: the user also wants to gain muscle. The scale cannot tell muscle from fat: a kg of muscle " +
+        "stores about 1800 kcal and the usual weight loss about 7700, so losing fat while gaining muscle can keep the " +
+        "weight flat in a deficit (body recomposition), and the measured expenditure then comes out somewhat low. " +
+        "When the weight stalls, mention this and suggest other signs: strength, waist size, photos."
 
 private fun macros(calories: Double, protein: Double, carbs: Double, fat: Double): String =
     "${num(mathRound(calories))} kcal, ${num(round1(protein))} g protein, ${num(round1(carbs))} g carbs, ${num(round1(fat))} g fat"
@@ -131,13 +148,14 @@ fun buildCoachContext(input: CoachInput): String {
         profile.gender?.let { if (it == Gender.MALE) "male" else "female" } ?: "sex unknown",
         profile.birthYear?.let { "${num(year - it)} years" } ?: "age unknown",
         profile.heightCm?.let { "${num(it)} cm" } ?: "height unknown",
-        profile.calorieGoal?.let { "goal: ${goalText(it)}" } ?: "goal unknown",
+        profile.calorieGoal?.let { "goal: ${goalText(it, doesStrengthTraining(profile))}" } ?: "goal unknown",
     )
     lines += "Profile: ${parts.joinToString(", ")}."
     if (profile.gymDaysPerWeek != null && profile.gymSessionMinutes != null && profile.walkingMinutesPerDay != null) {
         lines += "Activity: gym ${num(profile.gymDaysPerWeek)} days/week × ${num(profile.gymSessionMinutes)} min, " +
             "walking ${num(profile.walkingMinutesPerDay)} min/day."
     }
+    if (doesStrengthTraining(profile)) lines += RECOMPOSITION_TEXT
 
     // Targets
     lines += if (calorie != null) {

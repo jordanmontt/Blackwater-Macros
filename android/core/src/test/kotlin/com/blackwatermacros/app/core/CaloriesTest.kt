@@ -78,6 +78,17 @@ class CaloriesTest {
         ).isFalse()
     }
 
+    // --- doesStrengthTraining ---
+
+    @Test
+    fun doesStrengthTraining_onlyWithGymDaysAndMinutes() {
+        fun profile(days: Int?, minutes: Int?) = CalorieProfile(Gender.MALE, 1990, 178.0, days, minutes, 30, Goal.CUT)
+        assertThat(doesStrengthTraining(profile(3, 60))).isTrue()
+        assertThat(doesStrengthTraining(profile(0, 60))).isFalse()
+        assertThat(doesStrengthTraining(profile(3, 0))).isFalse()
+        assertThat(doesStrengthTraining(profile(null, null))).isFalse()
+    }
+
     // --- calculateCalorieRecommendation ---
 
     private val CURRENT_YEAR = 2026

@@ -42,7 +42,8 @@ need individual guidance.
 | Activity factor (PAL) | Factorial method from gym and walking minutes | FAO/WHO/UNU 2004; Compendium 2024 |
 | Calorie target | TDEE − 400 / ± 100 / + 300 kcal, never below BMR | Hall 2008; Helms 2014 (JISSN); Iraki 2019 |
 | Past days | Each day keeps the profile and weigh-in it had; changes count from today | FAO/WHO/UNU 2004 (PAL as habitual average) |
-| Protein | g/kg by goal; lean mass when cutting with body fat; weight at BMI 25 above BMI 25 | Jäger 2017; Morton 2018; Helms 2014 (IJSNEM); McClave 2016; Kokura 2024; Gallagher 2000 |
+| Protein | g/kg by goal (maintain 1.6–2.2 with strength training); lean mass when cutting with body fat; weight at BMI 25 above BMI 25 | Jäger 2017; Morton 2018; Nunes 2022; Helms 2014 (IJSNEM); McClave 2016; Kokura 2024; Gallagher 2000 |
+| Strength training | With gym days, every goal also aims at muscle; a flat weight in a deficit can be fat lost and muscle gained | Barakat 2020; Murphy & Koehler 2022; Garthe 2011; Hall 2008 |
 | Measured expenditure | Energy balance over 28 days, least-squares weight slope, 95 % margin | Hall 2008; Montgomery 2021 |
 | Profile check | Measured 95 % range entirely outside profile ± 10 %, on two weekly windows | Frankenfield 2005; Schoeller 1995; Lichtman 1992 |
 | Weight trend | 7-day moving average | Zheng 2015; Walker 2005 |
@@ -210,10 +211,18 @@ The number shown is the midpoint of a range, in grams per day:
 
 | Goal | g/kg | Basis | Source and reasoning |
 |---|---|---|---|
-| Maintain | 1.4–2.0 | body weight | ISSN position stand for people who exercise (Jäger et al. 2017). Well above the 0.8 g/kg RDA, which is a minimum for sedentary people, not an optimum for people who train. |
+| Maintain, strength training (gym days > 0) | 1.6–2.2 | body weight | The surplus range. At maintenance someone who lifts loses fat and gains muscle slowly (§2.4), and the muscle gained from more protein keeps growing up to ~1.6 g/kg (Morton et al. 2018). In Nunes et al. (2022, 74 RCTs) extra protein added lean mass in adults under 65 doing resistance exercise when the total reached ≥ 1.6 g/kg. 1.4 is below that point. |
+| Maintain, no strength training | 1.4–2.0 | body weight | ISSN position stand for people who exercise (Jäger et al. 2017). Well above the 0.8 g/kg RDA, which is a minimum for sedentary people, not an optimum for people who train. |
 | Surplus | 1.6–2.2 | body weight | Meta-analysis of 49 RCTs (Morton et al. 2018): the benefit to muscle gain plateaus at ~1.6 g/kg, with the upper 95 % confidence limit at 2.2. Iraki et al. (2019) recommend exactly 1.6–2.2 for a surplus. |
 | Cut, no body fat logged | 1.8–2.7 | body weight | In a deficit more protein is needed to keep muscle. This is the per-body-weight equivalent of 2.3–3.1 g/kg of lean mass at typical body fat: 2.3 × 0.78 ≈ 1.8 (22 % fat) and 3.1 × 0.87 ≈ 2.7 (13 % fat). |
 | Cut, body fat logged | 2.3–3.1 | lean mass = weight × (1 − fat %) | Helms, Zinn et al. (2014, IJSNEM), a systematic review in lean, resistance-trained people in a deficit; adopted by Jäger et al. (2017). |
+
+**Why not higher for recomposition.** Barakat et al. (2020), a narrative review of
+recomposition in trained people, suggest 2.6–3.5 g/kg of lean mass, from small studies.
+In one of them, trained people eating 3.4 g/kg lost more fat than at 2.3 g/kg but gained
+no more lean mass (Antonio et al. 2015). The meta-analyses above put the plateau for
+muscle at ~1.6 g/kg with an upper limit near 2.2, so the app stays at 1.6–2.2 outside a
+cut. The cut's 2.3–3.1 g/kg of lean mass is already close to Barakat's range.
 
 **Why lean mass only when cutting.** Each range is applied on the basis it was derived
 for. The deficit studies express protein per kg of lean mass. The maintenance and surplus
@@ -286,6 +295,55 @@ predicted body fat at BMI 25):
   young men with 20–25 % body fat and a BMI above 25 kept their full weight as the
   protein basis. The result was a higher range than the method intends: not harmful, but
   not what the method says.
+
+### 2.4 Strength training: muscle in every goal (`doesStrengthTraining`)
+
+**Rule.** With gym days and minutes above 0, the app assumes the user also wants to gain
+muscle, whatever the goal. The goal only sets the pace: how fast fat goes, how fast
+muscle comes and how much fat is accepted. Without strength training, food alone does
+not build muscle, so with 0 gym days the app does not assume it. Walking does not count.
+
+| Goal | With strength training | Without |
+|---|---|---|
+| Cut | Lose fat fastest while keeping muscle; gaining some is possible, more likely for beginners, people coming back after a break or with more fat to lose | Lose fat |
+| Maintain | Lose fat and gain muscle slowly; the weight may barely change | Keep the weight |
+| Surplus | Gain muscle fastest, with a little fat | Gain weight; without strength training most of it is fat |
+
+**The evidence.**
+- *Recomposition is real* with resistance training and enough protein, in untrained and
+  trained people (Barakat et al. 2020), most easily in beginners, people returning to
+  training and people with more fat.
+- *A deficit slows muscle gain, more the larger it is.* In Murphy & Koehler (2022), lean
+  mass gains were smaller in a deficit than at maintenance (strength gains were not), and
+  in their meta-regression a deficit of ~500 kcal/day prevented them. The 500 figure has
+  been questioned, so it is a guide, not a line.
+- *A slow cut leaves room for gains even in trained people.* Elite athletes who lifted 4×
+  a week gained 2.1 % lean mass while losing 0.7 % of body weight a week, and none at
+  1.4 % a week (Garthe et al. 2011). The app's cut (−400 kcal, ≈ 0.5 %/week at 73 kg, §1.3)
+  is slower than that.
+- *Not for everyone.* For lean people who have trained for years, keeping muscle is the
+  realistic result of a cut: physique competitors near contest leanness mostly do not show
+  recomposition (Barakat et al. 2020). Gains in a cut are small, often about a kilo over
+  several weeks, close to the error of bioimpedance and even DXA.
+
+**What it means for the scale.** Weight is fat plus lean tissue, and the two store very
+different energy: about 1800 kcal per kg of lean tissue against about 7700 for the usual
+weight loss, mostly fat (Hall 2008: 7.6 vs 39.5 MJ per kg of lean and fat tissue).
+Losing 0.2 kg of fat and gaining 0.2 kg of muscle a week leaves the weight flat while the
+real deficit is (0.2 × 7700 − 0.2 × 1800) / 7 ≈ 170 kcal/day. So:
+- a flat weight in a deficit is not always a stall;
+- the measured expenditure (§3), which counts every kilo at 7700 kcal, comes out somewhat
+  low in that case.
+
+**Where the app says it.** Only with strength training:
+- Perfil, under the goal: the descriptions in the table above.
+- The profile check (§3.1): a «you burn less» notice adds «part of it can be muscle you're
+  gaining», and the reasons list adds this cause with the example.
+- The coach: the goal text and a note that a flat weight in a deficit can be
+  recomposition, so it suggests strength, waist size or photos besides the scale.
+
+**What it does not do.** It changes no calorie target, and it does not try to split the
+weight into fat and muscle: body fat is optional and most people do not log it.
 
 ---
 
@@ -490,28 +548,42 @@ margin(x) = 1.96 × σ × √(1/n + (x − x̄)² / Sxx)        (σ floored at 0
   - *Kept, with the reasoning above:* z instead of t for the margin, raw entries for the
     Progreso trend and rate, and fixed kcal offsets.
 
+- **2026-10-26, strength training in every goal (§2.4).**
+  - *Changed:* maintenance protein with strength training 1.4–2.0 → 1.6–2.2 g/kg (Morton
+    2018; Nunes 2022). Goal descriptions, the coach's goal text and the «you burn less»
+    notice now say that with strength training muscle can come in every goal, and that
+    the scale cannot tell muscle from fat.
+  - *Checked, not adopted:* 2.6–3.5 g/kg of lean mass for recomposition (Barakat 2020),
+    see §2.1.
+  - *Kept:* the calorie offsets; the cut's pace and protein already match the evidence on
+    gaining muscle in a deficit (Murphy & Koehler 2022; Garthe 2011).
+
 ## 9. References
 
-1. Byrne NM, Hills AP, Hunter GR, Weinsier RL, Schutz Y. Metabolic equivalent: one size does not fit all. *J Appl Physiol*. 2005;99(3):1112–1119. doi:10.1152/japplphysiol.00023.2004
-2. FAO/WHO/UNU. Human energy requirements: report of a joint FAO/WHO/UNU expert consultation. *FAO Food and Nutrition Technical Report Series 1*. Rome: FAO; 2004.
-3. Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. *J Am Diet Assoc*. 2005;105(5):775–789. doi:10.1016/j.jada.2005.02.005
-4. Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y. Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. *Am J Clin Nutr*. 2000;72(3):694–701. doi:10.1093/ajcn/72.3.694
-5. Hall KD. What is the required energy deficit per unit weight loss? *Int J Obes*. 2008;32(3):573–576. doi:10.1038/sj.ijo.0803720
-6. Helms ER, Aragon AA, Fitschen PJ. Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation. *J Int Soc Sports Nutr*. 2014;11:20. doi:10.1186/1550-2783-11-20
-7. Helms ER, Zinn C, Rowlands DS, Brown SR. A systematic review of dietary protein during caloric restriction in resistance trained lean athletes: a case for higher intakes. *Int J Sport Nutr Exerc Metab*. 2014;24(2):127–138. doi:10.1123/ijsnem.2013-0054
-8. Herrmann SD, Willis EA, Ainsworth BE, et al. 2024 Adult Compendium of Physical Activities: a third update of the energy costs of human activities. *J Sport Health Sci*. 2024;13(1):6–12. doi:10.1016/j.jshs.2023.10.010
-9. Iraki J, Fitschen P, Espinar S, Helms E. Nutrition recommendations for bodybuilders in the off-season: a narrative review. *Sports*. 2019;7(7):154. doi:10.3390/sports7070154
-10. Jäger R, Kerksick CM, Campbell BI, et al. International Society of Sports Nutrition Position Stand: protein and exercise. *J Int Soc Sports Nutr*. 2017;14:20. doi:10.1186/s12970-017-0177-8
-11. Kokura Y, Ueshima J, Saino Y, Maeda K. Enhanced protein intake on maintaining muscle mass, strength, and physical function in adults with overweight/obesity: a systematic review and meta-analysis. *Clin Nutr ESPEN*. 2024;63:417–426. doi:10.1016/j.clnesp.2024.06.030
-12. Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. *Am J Clin Nutr*. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S
-13. Lichtman SW, Pisarska K, Berman ER, et al. Discrepancy between self-reported and actual caloric intake and exercise in obese subjects. *N Engl J Med*. 1992;327(27):1893–1898. doi:10.1056/NEJM199212313272701
-14. McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). *JPEN J Parenter Enteral Nutr*. 2016;40(2):159–211. doi:10.1177/0148607115621863
-15. Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. *Am J Clin Nutr*. 1990;51(2):241–247. doi:10.1093/ajcn/51.2.241
-16. Montgomery DC, Peck EA, Vining GG. *Introduction to Linear Regression Analysis*. 6th ed. Wiley; 2021.
-17. Morton RW, Murphy KT, McKellar SR, et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults. *Br J Sports Med*. 2018;52(6):376–384. doi:10.1136/bjsports-2017-097608
-18. Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. *J Cachexia Sarcopenia Muscle*. 2022;13(2):795–810. doi:10.1002/jcsm.12922
-19. Prince SA, Adamo KB, Hamel ME, Hardt J, Connor Gorber S, Tremblay M. A comparison of direct versus self-report measures for assessing physical activity in adults: a systematic review. *Int J Behav Nutr Phys Act*. 2008;5:56. doi:10.1186/1479-5868-5-56
-20. Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. *Int J Obes*. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184
-21. Schoeller DA. Limitations in the assessment of dietary energy intake by self-report. *Metabolism*. 1995;44(2 Suppl 2):18–22. doi:10.1016/0026-0495(95)90204-X
-22. Walker J. *The Hacker's Diet: how to lose weight and hair through stress and poor nutrition*. fourmilab.ch; 2005.
-23. Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE. Self-weighing in weight management: a systematic literature review. *Obesity*. 2015;23(2):256–265. doi:10.1002/oby.20946
+1. Antonio J, Ellerbroek A, Silver T, et al. A high protein diet (3.4 g/kg/d) combined with a heavy resistance training program improves body composition in healthy trained men and women – a follow-up investigation. *J Int Soc Sports Nutr*. 2015;12:39. doi:10.1186/s12970-015-0100-0
+2. Barakat C, Pearson J, Escalante G, Campbell B, De Souza EO. Body recomposition: can trained individuals build muscle and lose fat at the same time? *Strength Cond J*. 2020;42(5):7–21. doi:10.1519/SSC.0000000000000584
+3. Byrne NM, Hills AP, Hunter GR, Weinsier RL, Schutz Y. Metabolic equivalent: one size does not fit all. *J Appl Physiol*. 2005;99(3):1112–1119. doi:10.1152/japplphysiol.00023.2004
+4. FAO/WHO/UNU. Human energy requirements: report of a joint FAO/WHO/UNU expert consultation. *FAO Food and Nutrition Technical Report Series 1*. Rome: FAO; 2004.
+5. Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. *J Am Diet Assoc*. 2005;105(5):775–789. doi:10.1016/j.jada.2005.02.005
+6. Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y. Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. *Am J Clin Nutr*. 2000;72(3):694–701. doi:10.1093/ajcn/72.3.694
+7. Garthe I, Raastad T, Refsnes PE, Koivisto A, Sundgot-Borgen J. Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes. *Int J Sport Nutr Exerc Metab*. 2011;21(2):97–104. doi:10.1123/ijsnem.21.2.97
+8. Hall KD. What is the required energy deficit per unit weight loss? *Int J Obes*. 2008;32(3):573–576. doi:10.1038/sj.ijo.0803720
+9. Helms ER, Aragon AA, Fitschen PJ. Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation. *J Int Soc Sports Nutr*. 2014;11:20. doi:10.1186/1550-2783-11-20
+10. Helms ER, Zinn C, Rowlands DS, Brown SR. A systematic review of dietary protein during caloric restriction in resistance trained lean athletes: a case for higher intakes. *Int J Sport Nutr Exerc Metab*. 2014;24(2):127–138. doi:10.1123/ijsnem.2013-0054
+11. Herrmann SD, Willis EA, Ainsworth BE, et al. 2024 Adult Compendium of Physical Activities: a third update of the energy costs of human activities. *J Sport Health Sci*. 2024;13(1):6–12. doi:10.1016/j.jshs.2023.10.010
+12. Iraki J, Fitschen P, Espinar S, Helms E. Nutrition recommendations for bodybuilders in the off-season: a narrative review. *Sports*. 2019;7(7):154. doi:10.3390/sports7070154
+13. Jäger R, Kerksick CM, Campbell BI, et al. International Society of Sports Nutrition Position Stand: protein and exercise. *J Int Soc Sports Nutr*. 2017;14:20. doi:10.1186/s12970-017-0177-8
+14. Kokura Y, Ueshima J, Saino Y, Maeda K. Enhanced protein intake on maintaining muscle mass, strength, and physical function in adults with overweight/obesity: a systematic review and meta-analysis. *Clin Nutr ESPEN*. 2024;63:417–426. doi:10.1016/j.clnesp.2024.06.030
+15. Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. *Am J Clin Nutr*. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S
+16. Lichtman SW, Pisarska K, Berman ER, et al. Discrepancy between self-reported and actual caloric intake and exercise in obese subjects. *N Engl J Med*. 1992;327(27):1893–1898. doi:10.1056/NEJM199212313272701
+17. McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). *JPEN J Parenter Enteral Nutr*. 2016;40(2):159–211. doi:10.1177/0148607115621863
+18. Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. *Am J Clin Nutr*. 1990;51(2):241–247. doi:10.1093/ajcn/51.2.241
+19. Montgomery DC, Peck EA, Vining GG. *Introduction to Linear Regression Analysis*. 6th ed. Wiley; 2021.
+20. Morton RW, Murphy KT, McKellar SR, et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults. *Br J Sports Med*. 2018;52(6):376–384. doi:10.1136/bjsports-2017-097608
+21. Murphy C, Koehler K. Energy deficiency impairs resistance training gains in lean mass but not strength: a meta-analysis and meta-regression. *Scand J Med Sci Sports*. 2022;32(1):125–137. doi:10.1111/sms.14075
+22. Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. *J Cachexia Sarcopenia Muscle*. 2022;13(2):795–810. doi:10.1002/jcsm.12922
+23. Prince SA, Adamo KB, Hamel ME, Hardt J, Connor Gorber S, Tremblay M. A comparison of direct versus self-report measures for assessing physical activity in adults: a systematic review. *Int J Behav Nutr Phys Act*. 2008;5:56. doi:10.1186/1479-5868-5-56
+24. Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. *Int J Obes*. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184
+25. Schoeller DA. Limitations in the assessment of dietary energy intake by self-report. *Metabolism*. 1995;44(2 Suppl 2):18–22. doi:10.1016/0026-0495(95)90204-X
+26. Walker J. *The Hacker's Diet: how to lose weight and hair through stress and poor nutrition*. fourmilab.ch; 2005.
+27. Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE. Self-weighing in weight management: a systematic literature review. *Obesity*. 2015;23(2):256–265. doi:10.1002/oby.20946

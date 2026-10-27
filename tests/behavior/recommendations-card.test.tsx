@@ -243,10 +243,30 @@ describe("tarjetas de recomendación", () => {
     const user = userEvent.setup();
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
-    expect(await screen.findByText(formatTemplate(t.expenditureCheck.noticeLower, { gap: "800" }))).toBeInTheDocument();
+    // He trains: part of the gap can be muscle gained while losing fat.
+    const notice = `${formatTemplate(t.expenditureCheck.noticeLower, { gap: "800" })} ${t.expenditureCheck.noticeLowerTraining}`;
+    expect(await screen.findByText(notice)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: t.expenditureCheck.why }));
     const reasons = within(await screen.findByRole("dialog")).getAllByRole("listitem");
     expect(reasons.map((li) => li.textContent)).toContain(t.expenditureCheck.lowerReason1);
+    expect(reasons.map((li) => li.textContent)).toContain(t.expenditureCheck.lowerReasonTraining);
+  });
+
+  it("sin gimnasio, el aviso de gastar menos no habla de músculo", async () => {
+    vi.mocked(api.session).mockResolvedValue({
+      username: "demo",
+      isAdmin: false,
+      calorieProfile: { ...profile, gymDaysPerWeek: 0 },
+    });
+    vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
+    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 1800));
+    const user = userEvent.setup();
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+
+    expect(await screen.findByText(formatTemplate(t.expenditureCheck.noticeLower, { gap: "750" }))).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.expenditureCheck.why }));
+    const reasons = within(await screen.findByRole("dialog")).getAllByRole("listitem");
+    expect(reasons.map((li) => li.textContent)).not.toContain(t.expenditureCheck.lowerReasonTraining);
   });
 
   it("«Ahora no» oculta el aviso, también al volver a la pantalla", async () => {
@@ -255,7 +275,7 @@ describe("tarjetas de recomendación", () => {
     const user = userEvent.setup();
     const { unmount } = render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
-    const notice = formatTemplate(t.expenditureCheck.noticeLower, { gap: "800" });
+    const notice = `${formatTemplate(t.expenditureCheck.noticeLower, { gap: "800" })} ${t.expenditureCheck.noticeLowerTraining}`;
     await screen.findByText(notice);
     await user.click(screen.getByRole("button", { name: t.expenditureCheck.notNow }));
     expect(screen.queryByText(notice)).toBeNull();

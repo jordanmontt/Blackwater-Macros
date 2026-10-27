@@ -39,6 +39,14 @@ fun getActivityMultiplier(gymDays: Int, gymMinutes: Int, walkingMinutes: Int): D
         MINUTES_PER_DAY
 }
 
+/**
+ * Whether the profile includes strength training (gym days and minutes above 0, web
+ * `doesStrengthTraining`). Then the app assumes the user also wants to gain muscle,
+ * whatever the goal; walking alone does not build muscle.
+ */
+fun doesStrengthTraining(profile: CalorieProfile): Boolean =
+    (profile.gymDaysPerWeek ?: 0) > 0 && (profile.gymSessionMinutes ?: 0) > 0
+
 private data class CalorieOffsets(val target: Double, val min: Double, val max: Double)
 
 private val CALORIE_OFFSETS: Map<Goal, CalorieOffsets> = mapOf(
