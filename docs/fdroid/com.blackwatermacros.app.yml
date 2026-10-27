@@ -21,9 +21,9 @@ RepoType: git
 Repo: https://github.com/jordanmontt/Blackwater-Macros.git
 
 Builds:
-  - versionName: 1.0.2
-    versionCode: 4
-    commit: 0e9dc4f77d0929a2ca38ba33542e2762de65c310
+  - versionName: 1.2.0
+    versionCode: 6
+    commit: 53ce03640d4e3211bab5709151ae7c7c1609b9fe
     subdir: android/app
     gradle:
       - yes
@@ -32,5 +32,5 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9.]+$
-CurrentVersion: 1.0.2
-CurrentVersionCode: 4
+CurrentVersion: 1.2.0
+CurrentVersionCode: 6
