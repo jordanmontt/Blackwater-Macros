@@ -199,45 +199,60 @@ h2 { font-size: 1.6rem; margin: 0 0 1rem; }
 
 .features dd { margin: 0.2rem 0 0; color: var(--muted); }
 
-/* The method is a sequence (basal rate → activity → target → check), so it is numbered. */
-.steps { list-style: none; counter-reset: step; margin: 0 0 1.5rem; padding: 0; }
-
-.steps li {
-  counter-increment: step;
-  position: relative;
-  padding: 0 0 1.25rem 2.75rem;
-}
-
-.steps li::before {
-  content: counter(step);
-  position: absolute;
-  left: 0;
-  top: 0.05rem;
-  width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 50%;
+/* Estimated → measured → used: the one illustrated moment of the page. */
+.blend {
+  margin: 0 0 1.75rem;
+  padding: 1.25rem 1.25rem 1rem;
   border: 1px solid var(--rule);
-  display: grid;
-  place-items: center;
-  font: 600 0.95rem/1 Karla, system-ui, sans-serif;
-  color: var(--link);
+  border-radius: 0.75rem;
+  max-width: 32rem;
 }
 
-.steps h3 { font-size: 1.05rem; margin: 0.2rem 0 0.25rem; }
+.blend dl { margin: 0; }
 
-.steps p { margin: 0; color: var(--muted); }
+.blend dl div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
 
-.steps .formula {
-  margin-top: 0.6rem;
-  padding: 0.6rem 0.85rem;
-  border-left: 3px solid var(--link);
-  background: color-mix(in srgb, var(--link) 7%, transparent);
-  color: var(--ink);
+.blend dt { color: var(--muted); }
+
+.blend dd {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
-.steps .formula span { display: block; font-size: 0.9rem; color: var(--muted); }
+.blend dd span { font-size: 0.85rem; font-weight: 400; color: var(--muted); }
+
+.blend .used { border-bottom: 0; }
+
+.blend .used dt { color: var(--ink); font-weight: 600; }
+
+.blend .used dd { font-size: 1.6rem; color: var(--link); }
+
+/* The split of the used number: the data's share filled, the formula's left empty. */
+.share {
+  height: 0.6rem;
+  margin-top: 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 22%, transparent);
+  overflow: hidden;
+}
+
+.share span { display: block; height: 100%; background: var(--link); border-radius: 999px; }
+
+.blend figcaption { margin-top: 0.6rem; font-size: 0.92rem; color: var(--muted); }
+
+@media (max-width: 30rem) {
+  .blend dl div { flex-direction: column; gap: 0.1rem; }
+}
 
 table { width: 100%; border-collapse: collapse; margin: 0 0 1.5rem; font-size: 0.98rem; }
 

@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Blackwater Macros: open-source calorie and macro tracker for Android</title>
-  <meta name="description" content="A free, open-source calorie and macro tracker for Android: log meals and weight, with calorie and protein targets based on transparent science. Private, no ads, no account needed. On F-Droid soon.">
+  <title>Blackwater Macros: open-source calorie tracker with proven science you can check</title>
+  <meta name="description" content="A free, open-source calorie and macro tracker for Android. Its targets come from published science, explained with your own numbers, and adjust every week to what your body actually burns. Private, no ads, no account needed.">
   <meta name="theme-color" content="#1f3326">
   <link rel="canonical" href="https://blackwater-macros.jordanmontt.fr/">
   <!-- Link previews (WhatsApp, Signal, Telegram…): absolute URLs, the store banner as the image. -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Blackwater Macros">
   <meta property="og:title" content="Blackwater Macros">
-  <meta property="og:description" content="Free software, private, no ads: a calorie and macro tracker for Android. Your data stays on your phone.">
+  <meta property="og:description" content="A calorie tracker with proven science you can check: targets that adjust to what you really burn. Free software, private, no ads.">
   <meta property="og:url" content="https://blackwater-macros.jordanmontt.fr/">
   <meta property="og:image" content="https://blackwater-macros.jordanmontt.fr/social.png">
   <meta property="og:image:type" content="image/png">
@@ -26,7 +26,7 @@
     "@type": "SoftwareApplication",
     "name": "Blackwater Macros",
     "alternateName": "Blackwater Macros calorie and macro tracker",
-    "description": "A free, open-source calorie and macro tracker for Android, with calorie and protein targets based on transparent science.",
+    "description": "A free, open-source calorie and macro tracker for Android, with calorie and protein targets from published science that adjust every week to the user's measured expenditure.",
     "url": "https://blackwater-macros.jordanmontt.fr/",
     "image": "https://blackwater-macros.jordanmontt.fr/social.png",
     "screenshot": "https://blackwater-macros.jordanmontt.fr/screenshots/1_meals.png",
@@ -54,9 +54,9 @@
     <div class="hero-inner">
       <div class="hero-text">
         <p class="brand"><img src="icon.png" alt="" width="56" height="56"> Blackwater Macros</p>
-        <h1>Calorie and macro tracker for Android</h1>
-        <p class="tagline">Free software. Private. No ads.</p>
-        <p class="lede">Log your meals and your weight, and it tells you how much to eat for your goal, using published science with every formula explained. Your data stays on your phone, you don't need an account, and anyone can read the code.</p>
+        <h1>A calorie tracker with proven science you can check</h1>
+        <p class="tagline">For Android. Free software, private, no ads.</p>
+        <p class="lede">Log your meals and your weight. It tells you how much to eat for your goal, shows how it got there, and every week checks the number against what your body actually did.</p>
         <div class="actions">
           <a class="download" id="download" href="https://github.com/jordanmontt/Blackwater-Macros/releases/latest/download/blackwater-macros.apk">Download the APK</a>
           <a class="secondary" href="https://app.blackwater-macros.jordanmontt.fr/">Open the web version</a>
@@ -80,8 +80,35 @@
         <li><img src="screenshots/4_meal_form.png" alt="" loading="lazy" width="1080" height="2400"><p>Review every ingredient before saving.</p></li>
         <li><img src="screenshots/5_progress.png" alt="" loading="lazy" width="1080" height="2400"><p>Your weight trend, without the daily noise.</p></li>
         <li><img src="screenshots/6_coach.png" alt="" loading="lazy" width="1080" height="2400"><p>Ask the coach about your numbers.</p></li>
-        <li><img src="screenshots/7_profile.png" alt="" loading="lazy" width="1080" height="2400"><p>Targets from your real activity.</p></li>
+        <li><img src="screenshots/7_profile.png" alt="" loading="lazy" width="1080" height="2400"><p>A target that adjusts to you.</p></li>
       </ul>
+    </section>
+
+    <section class="block adaptive">
+      <h2>A state-of-the-art target that learns from you</h2>
+      <p class="intro">Every calorie app starts with a formula, and formulas describe the average person. For you, the formula can be off by hundreds of calories a day. That's enough to lose weight when you meant to maintain, without knowing why.</p>
+      <figure class="blend">
+        <dl>
+          <div><dt>Estimated from your profile</dt><dd>2,400 <span>kcal/day</span></dd></div>
+          <div><dt>Measured from your last 4 weeks</dt><dd>2,750 <span>± 180 kcal/day</span></dd></div>
+          <div class="used"><dt>Used for your target</dt><dd>2,705 <span>kcal/day</span></dd></div>
+        </dl>
+        <div class="share" role="img" aria-label="87 % from your data, 13 % from the formula"><span style="width: 87%"></span></div>
+        <figcaption>87 % from your data, 13 % from the formula. An example.</figcaption>
+      </figure>
+      <p>To measure what you burn, the app compares what you ate with how your weight moved. Every Monday it combines the two numbers, and the more precise one counts more. With little data the formula leads. The more you log, the more your own numbers count.</p>
+    </section>
+
+    <section class="block">
+      <h2>Every number explained</h2>
+      <p class="intro">Every number in the app says where it comes from. Tap it and you see the formula with your own numbers filled in, the studies behind it, and what it can't tell you.</p>
+      <dl class="features">
+        <dt>Calories</dt>
+        <dd>Your basal rate, times what you really do (gym days, session length, walking), not a "lightly active" guess. Never below your basal rate.</dd>
+        <dt>Protein</dt>
+        <dd>A range from sports-nutrition research for your goal. It's counted on your lean mass when you log body fat. Eating more than the range is fine.</dd>
+      </dl>
+      <p><a href="https://github.com/jordanmontt/Blackwater-Macros/blob/main/docs/METHODOLOGY.md">Read the full methodology and its references</a></p>
     </section>
 
     <section class="block">
@@ -90,8 +117,6 @@
       <dl class="features">
         <dt>Log a meal in seconds</dt>
         <dd>Search everyday foods offline or millions of products on Open Food Facts, scan a barcode, type it in, or photograph it and let AI estimate it. Copy meals from another day or save your usual ones as templates.</dd>
-        <dt>Know your targets</dt>
-        <dd>A calorie range and a protein range for losing fat, maintaining or building muscle, with the day's progress.</dd>
         <dt>See your progress</dt>
         <dd>A weight trend that smooths out water swings, your weekly rate, body fat, and daily calories against your target.</dd>
         <dt>Past days stay as they were</dt>
@@ -99,31 +124,6 @@
         <dt>Five languages</dt>
         <dd>English, Spanish, French, Italian and German.</dd>
       </dl>
-    </section>
-
-    <section class="block science">
-      <h2>Science you can check</h2>
-      <p class="intro">Your targets come from published methods used in nutrition research and by sports dietitians, not from rules of thumb. The app explains every formula, its sources and its limits, with your own numbers, so you can redo any of them by hand.</p>
-      <ol class="steps">
-        <li>
-          <h3>Your basal rate</h3>
-          <p>The Mifflin-St Jeor equation, the most accurate of the common formulas for healthy adults.</p>
-          <p class="formula">10 × weight (kg) + 6.25 × height (cm) − 5 × age + 5 <span>(−161 instead of +5 for women)</span></p>
-        </li>
-        <li>
-          <h3>What you actually do</h3>
-          <p>No "lightly active" guess. You enter your gym days, how long a session lasts and how much you walk, and the FAO/WHO factorial method turns the hours of your day into an activity factor.</p>
-        </li>
-        <li>
-          <h3>A range for your goal</h3>
-          <p>About 400 kcal a day under your expenditure to lose fat, within 100 to maintain, 300 over to build muscle, and never below your basal rate. Protein from sports-nutrition research: 1.4 to 2.0 g per kg to maintain, 1.6 to 2.2 to build muscle, more while cutting, counted on your lean mass when you log body fat.</p>
-        </li>
-        <li>
-          <h3>Checked against your own data</h3>
-          <p>After about four weeks, what you ate and how your weight moved give your measured expenditure, with its margin of error. If it's clearly off from what your profile predicts, the app tells you and shows why. Your target never changes on its own.</p>
-        </li>
-      </ol>
-      <p><a href="https://github.com/jordanmontt/Blackwater-Macros/blob/main/docs/METHODOLOGY.md">Read the full methodology and its references</a></p>
     </section>
 
     <section class="block">
