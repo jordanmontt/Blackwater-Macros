@@ -65,3 +65,6 @@ public/wasm/
 /website/screenshots/
 /website/icon.png
 /website/social.png
+
+# Claude Code: per-person worktrees, previews and local settings
+.claude/
