@@ -105,7 +105,17 @@ describe("targetsOn", () => {
   it("uses the profile and the weight of that day", () => {
     // Before the change: 2 gym days, 20 min walking, 61 kg.
     expect(targetsOn(AFTER, HISTORY, WEIGHTS, "2026-10-12")).toEqual({
-      calorie: { bmr: 1325, activityFactor: 1.46, tdee: 1935, target: 1535, targetMin: 1435, targetMax: 1635, goal: "cut" },
+      calorie: {
+        bmr: 1325,
+        activityFactor: 1.46,
+        tdee: 1935,
+        expenditure: 1935,
+        dataShare: 0,
+        target: 1535,
+        targetMin: 1435,
+        targetMax: 1635,
+        goal: "cut",
+      },
       protein: {
         goal: "cut",
         basis: "leanMass",
@@ -120,10 +130,36 @@ describe("targetsOn", () => {
       bmr: 1320,
       activityFactor: 1.55,
       tdee: 2046,
+      expenditure: 2046,
+      dataShare: 0,
       target: 1646,
       targetMin: 1546,
       targetMax: 1746,
       goal: "cut",
+    });
+  });
+
+  it("uses the expenditure measured on that day's week", () => {
+    // Measured 2300 ± 177 from the week of 2026-10-12; nothing before.
+    const measuredOn = (day: string) =>
+      day >= "2026-10-12"
+        ? { tdee: 2300, margin: 177, avgIntake: 0, weightChangePerWeek: 0, loggedDays: 28, weighIns: 28, windowDays: 28 }
+        : null;
+    expect(targetsOn(AFTER, HISTORY, WEIGHTS, "2026-10-15", measuredOn).calorie).toMatchObject({
+      tdee: 2046,
+      expenditure: 2259,
+      dataShare: 0.84,
+      targetMin: 1759,
+      targetMax: 1959,
+    });
+    expect(targetsOn(AFTER, HISTORY, WEIGHTS, "2026-10-05", measuredOn).calorie).toMatchObject({
+      tdee: 1950,
+      expenditure: 1950,
+      dataShare: 0,
+    });
+    expect(averageTargets(AFTER, HISTORY, WEIGHTS, ["2026-10-05", "2026-10-15"], measuredOn).calorie).toEqual({
+      min: 1605,
+      max: 1805,
     });
   });
 

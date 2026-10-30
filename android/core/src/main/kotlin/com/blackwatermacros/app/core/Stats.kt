@@ -59,13 +59,6 @@ fun linearRatePerWeek(points: List<DataPoint>): Double? {
     return slope?.times(7)
 }
 
-private fun previousMonday(key: String): String {
-    val date = LocalDate.parse(key)
-    val weekday = date.dayOfWeek.value // Monday = 1 .. Sunday = 7
-    val diff = if (weekday == 7) 6 else weekday - 1
-    return addDaysToKey(key, -diff)
-}
-
 /**
  * Groups points into ISO weeks (starting Monday) and averages each week.
  * Only weeks that contain at least one entry are returned.
@@ -73,7 +66,7 @@ private fun previousMonday(key: String): String {
 fun weeklyAverages(points: List<DataPoint>): List<WeeklyAvg> {
     val buckets = LinkedHashMap<String, MutableList<Double>>()
     for (point in points) {
-        val weekStart = previousMonday(point.date)
+        val weekStart = weekStartOf(point.date)
         buckets.getOrPut(weekStart) { ArrayList() }.add(point.value)
     }
     return buckets.entries

@@ -184,4 +184,58 @@ describe("calculateCalorieRecommendation", () => {
     expect(rec.target).toBe(927);
     expect(rec.targetMax).toBe(997);
   });
+
+  describe("con gasto medido", () => {
+    const profile: CalorieProfile = {
+      gender: "male",
+      birthYear: 1990,
+      heightCm: 178,
+      gymDaysPerWeek: 3,
+      gymSessionMinutes: 60,
+      walkingMinutesPerDay: 30,
+      calorieGoal: "cut",
+    };
+    const measured = (tdee: number, margin: number) => ({
+      tdee,
+      margin,
+      avgIntake: 0,
+      weightChangePerWeek: 0,
+      loggedDays: 28,
+      weighIns: 28,
+      windowDays: 28,
+    });
+
+    it("sin él, el objetivo sale del gasto del perfil", () => {
+      const rec = calculateCalorieRecommendation(profile, 80, CURRENT_YEAR)!;
+      expect(rec.expenditure).toBe(2589);
+      expect(rec.dataShare).toBe(0);
+    });
+
+    it("el objetivo sale del gasto combinado: perfil 2589 ± 10 % y medido 2750 ± 177 → 2733", () => {
+      const rec = calculateCalorieRecommendation(profile, 80, CURRENT_YEAR, measured(2750, 177))!;
+      expect(rec.tdee).toBe(2589);
+      expect(rec.expenditure).toBe(2733);
+      expect(rec.dataShare).toBe(0.89);
+      expect(rec.target).toBe(2333);
+      expect(rec.targetMin).toBe(2233);
+      expect(rec.targetMax).toBe(2433);
+    });
+
+    it("el suelo del metabolismo basal se mantiene aunque el gasto medido sea bajo", () => {
+      const small: CalorieProfile = {
+        gender: "female",
+        birthYear: 1956,
+        heightCm: 150,
+        gymDaysPerWeek: 0,
+        gymSessionMinutes: 0,
+        walkingMinutesPerDay: 0,
+        calorieGoal: "cut",
+      };
+      const rec = calculateCalorieRecommendation(small, 50, 2026, measured(1000, 177))!;
+      expect(rec.expenditure).toBe(1097);
+      expect(rec.targetMin).toBe(927);
+      expect(rec.target).toBe(927);
+      expect(rec.targetMax).toBe(927);
+    });
+  });
 });

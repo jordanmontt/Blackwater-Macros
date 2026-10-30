@@ -1,5 +1,6 @@
 package com.blackwatermacros.app.core
 
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 /**
@@ -132,6 +133,53 @@ fun measureExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today:
 /** The measured expenditure, or null until the data can support it (see [measureExpenditure]). */
 fun estimateExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today: String): ExpenditureEstimate? =
     measureExpenditure(intake, weights, today).estimate
+
+// --- The target follows the data (web `combineExpenditure`) ---
+
+/**
+ * One standard deviation of the profile's expenditure (BMR x activity factor)
+ * for one person, as a fraction of it. Mifflin-St Jeor alone predicts the
+ * basal rate within ±10 % for about 82 % of healthy adults (Frankenfield 2005),
+ * an SD of about 7.5 %; the activity factor adds its own error.
+ */
+const val FORMULA_SD = 0.1
+
+/** What a target is built on, and the measured expenditure's weight in it (0–1, 2 decimals). */
+data class CombinedExpenditure(val expenditure: Double, val dataShare: Double)
+
+/**
+ * The expenditure a target is built on: the profile's and the measured one
+ * combined by their precision (inverse-variance weighting):
+ *
+ *   share = σ_profile² / (σ_profile² + σ_measured²),  σ_profile = 10 % x profile,  σ_measured = margin / 1.96
+ *   expenditure = profile + share x (measured − profile)
+ *
+ * Without a measurement it is the profile's.
+ */
+fun combineExpenditure(formulaTdee: Double, measured: ExpenditureEstimate?): CombinedExpenditure {
+    if (measured == null) return CombinedExpenditure(formulaTdee, 0.0)
+    val formulaVariance = (FORMULA_SD * formulaTdee).pow(2)
+    val measuredVariance = (measured.margin / Z_95).pow(2)
+    val share = formulaVariance / (formulaVariance + measuredVariance)
+    return CombinedExpenditure(
+        expenditure = mathRound(formulaTdee + share * (measured.tdee - formulaTdee)),
+        dataShare = mathRound(share * 100) / 100,
+    )
+}
+
+/**
+ * The measured expenditure each day's target uses: the one taken at the start
+ * of its week (Monday, [weekStartOf]) from the 4 weeks before, so targets change
+ * once a week, not with every weigh-in. Memoized per week: Progreso asks for
+ * every day of a period.
+ */
+fun weeklyExpenditure(intake: List<DataPoint>, weights: List<DataPoint>): (String) -> ExpenditureEstimate? {
+    val byWeek = HashMap<String, ExpenditureEstimate?>()
+    return { day ->
+        val monday = weekStartOf(day)
+        byWeek.getOrPut(monday) { estimateExpenditure(intake, weights, monday) }
+    }
+}
 
 // --- Checking the profile against the data (web `checkExpenditure`) ---
 

@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.blackwatermacros.app.core.CalorieRecommendation
 import com.blackwatermacros.app.core.Goal
 import com.blackwatermacros.app.core.ProteinBasis
 import com.blackwatermacros.app.core.ProteinRecommendation
@@ -88,6 +89,8 @@ fun NutritionRecommendationsCard(
             val dayTargets = if (isToday) null else ready.targets?.on(day)
             val calorie = if (dayTargets != null) dayTargets.calorie else ready.calorie
             val protein = if (dayTargets != null) dayTargets.protein else ready.protein
+            // The measurement that day's target uses (taken on that week's Monday).
+            val measured = if (isToday) ready.expenditure else ready.targets?.measuredOn?.invoke(day)
             val differsFromToday = dayTargets != null &&
                 (calorie?.targetMin != ready.calorie?.targetMin || calorie?.targetMax != ready.calorie?.targetMax ||
                     protein?.range != ready.protein?.range)
@@ -112,11 +115,12 @@ fun NutritionRecommendationsCard(
                             details = listOfNotNull(
                                 stringResource(R.string.rec_bmr, formatNumber(calorie.bmr)),
                                 stringResource(R.string.rec_tdee, formatNumber(calorie.tdee)),
-                                ready.expenditure?.let {
+                                measured?.let {
                                     stringResource(R.string.rec_measured_tdee, formatNumber(it.tdee), formatNumber(it.margin))
                                 },
                             ),
                         ) {
+                            TargetExpenditureLine(calorie) { onOpenMethodology(ADAPTIVE_SECTION) }
                             if (isToday) {
                                 ExpenditureNotices(
                                     check = ready.check,
@@ -147,6 +151,7 @@ fun NutritionRecommendationsCard(
                             rangeMax = protein.range.max,
                             barUnit = "g",
                             details = listOf(proteinPerKg(protein)),
+                            overIsFine = true,
                         )
                     }
                     if (differsFromToday) {
@@ -174,6 +179,25 @@ internal fun proteinPerKg(protein: ProteinRecommendation): String {
         ProteinBasis.REFERENCE_WEIGHT -> stringResource(R.string.rec_per_kg_reference, min, max, formatNumber(protein.basisKg, 1))
         ProteinBasis.BODY_WEIGHT -> stringResource(R.string.rec_per_kg, min, max)
     }
+}
+
+/**
+ * «Expenditure your target uses: 2990 kcal/day (85% from your data)», once the
+ * measured expenditure counts (core `combineExpenditure`); tapping it opens how.
+ */
+@Composable
+internal fun TargetExpenditureLine(calorie: CalorieRecommendation, onClick: () -> Unit) {
+    if (calorie.dataShare <= 0) return
+    Text(
+        stringResource(R.string.rec_target_expenditure) + ": " + stringResource(
+            R.string.rec_target_expenditure_value,
+            formatNumber(calorie.expenditure),
+            formatNumber(round(calorie.dataShare * 100)),
+        ),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.clickable(onClick = onClick),
+    )
 }
 
 /** A tappable explanation of what is missing, with a link to where to fix it. */
@@ -210,6 +234,8 @@ internal fun RecommendationSection(
     barUnit: String = "",
     showBar: Boolean = true,
     details: List<String> = emptyList(),
+    /** Going over the range is fine (protein): said in a neutral colour, the bar keeps its colour. */
+    overIsFine: Boolean = false,
     /** Shown after the details, before the bar (the expenditure check's notices). */
     beforeBar: @Composable () -> Unit = {},
 ) {
@@ -251,14 +277,15 @@ internal fun RecommendationSection(
         beforeBar()
         if (showBar) {
             Spacer(Modifier.height(10.dp))
-            IntakeBar(current, rangeMin, rangeMax, barUnit)
+            IntakeBar(current, rangeMin, rangeMax, barUnit, overIsFine)
         }
     }
 }
 
 /**
  * Progress towards the daily target: the outlined track is what is left, the
- * solid fill is what was eaten (ember once past the target) and the two
+ * solid fill is what was eaten (ember once past the target, unless
+ * [overIsFine]) and the two
  * markers crossing the bar are the target range. The numbers say it in words.
  */
 @Composable
@@ -267,13 +294,14 @@ private fun IntakeBar(
     rangeMin: Double,
     rangeMax: Double,
     unit: String,
+    overIsFine: Boolean,
 ) {
-    val status = intakeStatus(current, rangeMin, rangeMax, unit)
+    val status = intakeStatus(current, rangeMin, rangeMax, unit, overIsFine)
     val colors = MaterialTheme.colorScheme
     // Leave room past the target so going over is visible on the bar.
     val scaleMax = if (rangeMax > 0) rangeMax * 1.1 else 1.0
     fun frac(v: Double) = (v / scaleMax).coerceIn(0.0, 1.0).toFloat()
-    val over = current > rangeMax
+    val over = current > rangeMax && !overIsFine
     Column {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
             Text(status.label, style = MaterialTheme.typography.labelSmall, color = status.color, modifier = Modifier.weight(1f))
@@ -332,12 +360,17 @@ private fun IntakeBar(
 
 private data class Status(val label: String, val color: Color)
 
+/** [overIsFine] (protein): going over is said in a neutral colour, because eating more is not a problem. */
 @Composable
-private fun intakeStatus(current: Double, rangeMin: Double, rangeMax: Double, unit: String): Status = when {
+private fun intakeStatus(current: Double, rangeMin: Double, rangeMax: Double, unit: String, overIsFine: Boolean): Status = when {
     current in rangeMin..rangeMax -> Status(stringResource(R.string.rec_in_range), Color(0xFF2F7D43))
     current < rangeMin -> Status(
         stringResource(R.string.rec_missing, formatNumber(round(rangeMin - current)), formatNumber(round(rangeMax - current)), unit),
         Color(0xFFC8910A),
+    )
+    overIsFine -> Status(
+        stringResource(R.string.rec_protein_above, formatNumber(round(current - rangeMax))),
+        MaterialTheme.colorScheme.onSurfaceVariant,
     )
     else -> Status(stringResource(R.string.rec_exceeded, formatNumber(round(current - rangeMax)), unit), Color(0xFFB2561F))
 }

@@ -23,12 +23,18 @@ const weights = Array.from({ length: 28 }, (_, i) => ({
   bodyFatPct: i === 0 ? 20 : null,
 }));
 
+const expenditure = { tdee: 2750, margin: 177, avgIntake: 2300, weightChangePerWeek: -0.5, loggedDays: 28, weighIns: 28, windowDays: 28 };
+
+/** The profile's target alone, before there is a measured expenditure. */
+export const FORMULA_CALORIE = calculateCalorieRecommendation(profile, 80, 2026);
+
 export const COACH_INPUT: CoachInput = {
   today: TODAY,
   profile,
-  calorie: calculateCalorieRecommendation(profile, 80, 2026),
+  // As in the app: the target is built on the profile's and the measured expenditure combined.
+  calorie: calculateCalorieRecommendation(profile, 80, 2026, expenditure),
   protein: calculateProteinRecommendation(80, "cut", 20),
-  expenditure: { tdee: 2750, margin: 177, avgIntake: 2300, weightChangePerWeek: -0.5, loggedDays: 28, weighIns: 28, windowDays: 28 },
+  expenditure,
   meals: [
     {
       logDate: TODAY,

@@ -167,7 +167,7 @@ class ExpenditureTest {
 
     // Profile: BMR 1600 × activity factor 1.5 = 2400 kcal/day → normal range 2160–2640 (± 10 %).
     private val FORMULA = CalorieRecommendation(
-        bmr = 1600.0, activityFactor = 1.5, tdee = 2400.0,
+        bmr = 1600.0, activityFactor = 1.5, tdee = 2400.0, expenditure = 2400.0, dataShare = 0.0,
         target = 2400.0, targetMin = 2300.0, targetMax = 2500.0, goal = Goal.MAINTAIN,
     )
 
@@ -267,5 +267,47 @@ class ExpenditureTest {
         assertThat(approximateGap(770.0)).isEqualTo(750.0)
         assertThat(approximateGap(-523.0)).isEqualTo(500.0)
         assertThat(approximateGap(530.0)).isEqualTo(550.0)
+    }
+
+    // --- combineExpenditure ---
+
+    private fun measured(tdee: Double, margin: Double) = ExpenditureEstimate(tdee, margin, 0.0, 0.0, 28, 28, 28)
+
+    @Test
+    fun combineExpenditure_withoutAMeasurementItIsTheProfiles() {
+        assertThat(combineExpenditure(2608.0, null)).isEqualTo(CombinedExpenditure(2608.0, 0.0))
+    }
+
+    @Test
+    fun combineExpenditure_weighsEachByItsPrecision() {
+        // σ 260.8 and 214 / 1.96 = 109.2: 260.8² / (260.8² + 109.2²) = 0.851 → 2608 + 0.851 × 452 = 2993
+        assertThat(combineExpenditure(2608.0, measured(3060.0, 214.0))).isEqualTo(CombinedExpenditure(2993.0, 0.85))
+    }
+
+    @Test
+    fun combineExpenditure_theNarrowerTheMarginTheMoreTheDataCount() {
+        assertThat(combineExpenditure(2600.0, measured(2600.0, 177.0)).dataShare).isEqualTo(0.89)
+        assertThat(combineExpenditure(2600.0, measured(2600.0, 272.0)).dataShare).isEqualTo(0.78)
+        assertThat(combineExpenditure(2600.0, measured(2600.0, 300.0)).dataShare).isEqualTo(0.74)
+        assertThat(combineExpenditure(2600.0, measured(3000.0, 0.0))).isEqualTo(CombinedExpenditure(3000.0, 1.0))
+    }
+
+    // --- weeklyExpenditure ---
+
+    @Test
+    fun weeklyExpenditure_everyDayOfAWeekUsesTheMeasurementTakenOnItsMonday() {
+        // TODAY (2026-03-01) is a Sunday: its week started on Monday 2026-02-23.
+        val intake = meals(40, 2500.0)
+        val weights = weighIns(80.0, -0.5, 1, 40)
+        val measuredOn = weeklyExpenditure(intake, weights)
+        assertThat(measuredOn(TODAY)).isEqualTo(estimateExpenditure(intake, weights, "2026-02-23"))
+        assertThat(measuredOn("2026-02-23")).isSameInstanceAs(measuredOn(TODAY))
+        assertThat(measuredOn("2026-02-22")).isEqualTo(estimateExpenditure(intake, weights, "2026-02-16"))
+        assertThat(measuredOn("2026-02-22")).isNotEqualTo(measuredOn(TODAY))
+    }
+
+    @Test
+    fun weeklyExpenditure_isNullUntilTheDataCanSupportIt() {
+        assertThat(weeklyExpenditure(emptyList(), weighIns(80.0, -0.5, 1, 40))(TODAY)).isNull()
     }
 }

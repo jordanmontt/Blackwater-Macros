@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { addDaysToKey } from "../../src/lib/core/dates";
 import { buildCoachContext, buildCoachSystemPrompt, weightProjection } from "../../src/lib/core/coach";
-import { COACH_INPUT, TODAY } from "./coach.fixture";
+import { COACH_INPUT, FORMULA_CALORIE, TODAY } from "./coach.fixture";
 
 /** Daily weigh-ins from 27 days ago to today, changing `kgPerWeek`. */
 function daily(kgPerWeek: number) {
@@ -41,13 +41,14 @@ describe("buildCoachContext", () => {
         "Profile: male, 36 years, 178 cm, goal: cut (lose fat fastest while keeping muscle; gaining some is possible, more likely for beginners, people returning to training or with more fat to lose).",
         "Activity: gym 3 days/week × 60 min, walking 30 min/day.",
         "Strength training: the user also wants to gain muscle. The scale cannot tell muscle from fat: a kg of muscle stores about 1800 kcal and the usual weight loss about 7700, so losing fat while gaining muscle can keep the weight flat in a deficit (body recomposition), and the measured expenditure then comes out somewhat low. When the weight stalls, mention this and suggest other signs: strength, waist size, photos.",
-        "Calorie target: 2089–2289 kcal/day (BMR 1738, estimated TDEE 2589, activity factor 1.49).",
+        // 2589 ± 10 % and 2750 ± 177 (95 %): the data weigh 259² / (259² + 90²) = 89 %.
+        "Calorie target: 2233–2433 kcal/day, built on an expenditure of 2733 kcal/day: the profile's estimate (BMR 1738 × activity factor 1.49 = 2589) combined with the measured expenditure, which weighs 89% because it is the more precise of the two.",
         "Protein target: 147–198 g/day (2.3–3.1 g/kg of 64 kg lean mass).",
-        "Measured expenditure (energy balance, last 28 days): 2750 ± 177 kcal/day.",
+        "Measured expenditure (energy balance, the 28 days before this week's Monday): 2750 ± 177 kcal/day.",
         "Today's meals:",
         "- Desayuno: 450 kcal, 30 g protein, 50 g carbs, 12 g fat. Items: Avena (80 g), Leche (200 ml).",
         "Today so far: 450 kcal, 30 g protein, 50 g carbs, 12 g fat.",
-        "Calories: 1639–1839 kcal left to reach the target range.",
+        "Calories: 1783–1983 kcal left to reach the target range.",
         "Protein: 117–168 g left to reach the target range.",
         "Last 14 days (logged days only, oldest first):",
         "- 2026-02-26: 1900 kcal, 120 g protein, 180 g carbs, 60 g fat",
@@ -58,6 +59,14 @@ describe("buildCoachContext", () => {
         "Weight in the last 60 days: 28 weigh-ins, the first 80 kg on 2026-02-02.",
         "Weight trend (last 28 days): -0.5 kg/week, now 78.1 kg. Projection computed by the app if this trend continues: 75.9 ± 1 kg in 30 days.",
       ].join("\n"),
+    );
+  });
+
+  it("before there is a measured expenditure, the target comes from the profile alone", () => {
+    const lines = buildCoachContext({ ...COACH_INPUT, calorie: FORMULA_CALORIE, expenditure: null }).split("\n");
+    expect(lines).toContain("Calorie target: 2089–2289 kcal/day (BMR 1738, estimated TDEE 2589, activity factor 1.49).");
+    expect(lines).toContain(
+      "Measured expenditure: not enough data yet (needs 4 weeks of logged meals and frequent weigh-ins).",
     );
   });
 
@@ -106,9 +115,9 @@ describe("buildCoachContext", () => {
   });
 
   it("says when today is within or over the target range", () => {
-    const within = { ...COACH_INPUT, meals: [{ ...COACH_INPUT.meals[0], resolvedCalories: 2150, resolvedProtein: 220 }] };
+    const within = { ...COACH_INPUT, meals: [{ ...COACH_INPUT.meals[0], resolvedCalories: 2300, resolvedProtein: 220 }] };
     const text = buildCoachContext(within);
-    expect(text).toContain("Calories: within the target range (up to 139 kcal more).");
+    expect(text).toContain("Calories: within the target range (up to 133 kcal more).");
     expect(text).toContain("Protein: over the target range by 22 g.");
   });
 });

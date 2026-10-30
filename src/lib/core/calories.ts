@@ -1,4 +1,5 @@
-import type { CalorieProfile, CalorieRecommendation, Gender, Goal } from "./types";
+import { combineExpenditure } from "./expenditure";
+import type { CalorieProfile, CalorieRecommendation, ExpenditureEstimate, Gender, Goal } from "./types";
 
 /**
  * Mifflin-St Jeor equation (1990) — the most reliable predictive BMR equation
@@ -93,10 +94,16 @@ export function isCalorieProfileComplete(profile: CalorieProfile): boolean {
   );
 }
 
+/**
+ * The calorie target: the expenditure plus the goal's offset. The expenditure is
+ * the profile's (BMR × activity factor) combined with `measured`, the one from the
+ * user's meals and weigh-ins, when there is one (`combineExpenditure`).
+ */
 export function calculateCalorieRecommendation(
   profile: CalorieProfile,
   weightKg: number,
   currentYear: number,
+  measured: ExpenditureEstimate | null = null,
 ): CalorieRecommendation | null {
   if (!isCalorieProfileComplete(profile)) return null;
 
@@ -108,6 +115,7 @@ export function calculateCalorieRecommendation(
     profile.walkingMinutesPerDay!,
   );
   const tdee = Math.round(bmr * multiplier);
+  const { expenditure, dataShare } = combineExpenditure(tdee, measured);
   const offsets = CALORIE_OFFSETS[profile.calorieGoal!];
   // Safety floor: the target never goes below the basal metabolic rate. Only a
   // cut for a small, sedentary person gets there (e.g. TDEE 1540 − 500 = 1040
@@ -119,9 +127,11 @@ export function calculateCalorieRecommendation(
     bmr: floor,
     activityFactor: Math.round(multiplier * 100) / 100,
     tdee,
-    target: atLeastBmr(tdee + offsets.target),
-    targetMin: atLeastBmr(tdee + offsets.min),
-    targetMax: atLeastBmr(tdee + offsets.max),
+    expenditure,
+    dataShare,
+    target: atLeastBmr(expenditure + offsets.target),
+    targetMin: atLeastBmr(expenditure + offsets.min),
+    targetMax: atLeastBmr(expenditure + offsets.max),
     goal: profile.calorieGoal!,
   };
 }

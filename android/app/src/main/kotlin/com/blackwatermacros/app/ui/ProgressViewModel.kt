@@ -133,7 +133,7 @@ internal fun buildProgress(
     val averages = macroAverages(summary.calories)
 
     val ready = recommend(weights, profile, meals, today, history) as? RecommendationsUiState.Ready
-    // Each day keeps the targets it had (its profile and weight).
+    // Each day keeps the targets it had (its profile, weight and that week's measured expenditure).
     val loggedDays = summary.calories.filter { it.calories > 0 }.map { it.date }
     val calorieBands = loggedDays.map { day -> ready?.targets?.on(day)?.calorie?.let { it.targetMin to it.targetMax } }
 

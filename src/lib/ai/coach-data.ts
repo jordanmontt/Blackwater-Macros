@@ -1,17 +1,19 @@
 import { api } from "@/lib/api";
 import { calculateCalorieRecommendation, doesStrengthTraining } from "@/lib/core/calories";
 import { buildCoachContext, COACH_WEIGHT_DAYS, type CoachInput } from "@/lib/core/coach";
-import { addDaysToKey, toDateKey, todayKey } from "@/lib/core/dates";
+import { addDaysToKey, toDateKey, todayKey, weekStartOf } from "@/lib/core/dates";
 import { EXPENDITURE_WINDOW_DAYS, estimateExpenditure } from "@/lib/core/expenditure";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
 
 /**
  * The coach's view of the user's data, read fresh at each
- * question: profile, targets, measured expenditure, the last 4 weeks of meals
- * and the weigh-ins. Same numbers as the Comidas card and Progreso.
+ * question: profile, targets, this week's measured expenditure, the meals since
+ * 4 weeks before Monday and the weigh-ins. Same numbers as the Comidas card and Progreso.
  */
 export async function loadCoachInput(today = todayKey()): Promise<CoachInput> {
-  const from = addDaysToKey(today, -EXPENDITURE_WINDOW_DAYS);
+  // The measurement is this week's (the 4 weeks before Monday), as on the Comidas card.
+  const monday = weekStartOf(today);
+  const from = addDaysToKey(monday, -EXPENDITURE_WINDOW_DAYS);
   const [session, meals, weightDtos] = await Promise.all([
     api.session(),
     api.listMeals(from, today),
@@ -26,7 +28,12 @@ export async function loadCoachInput(today = todayKey()): Promise<CoachInput> {
   const latest = weightDtos.at(-1) ?? null;
   const bodyFatPct = weightDtos.findLast((w) => w.bodyFatPct !== null)?.bodyFatPct ?? null;
   const year = Number(today.slice(0, 4));
-  const calorie = latest ? calculateCalorieRecommendation(profile, latest.weightKg, year) : null;
+  const expenditure = estimateExpenditure(
+    meals.filter((meal) => meal.logDate < today).map((meal) => ({ date: meal.logDate, value: meal.resolvedCalories })),
+    weightDtos.map((w) => ({ date: toDateKey(new Date(w.measuredAt)), value: w.weightKg })),
+    monday,
+  );
+  const calorie = latest ? calculateCalorieRecommendation(profile, latest.weightKg, year, expenditure) : null;
   const protein =
     latest && profile.calorieGoal
       ? calculateProteinRecommendation(latest.weightKg, profile.calorieGoal, bodyFatPct, {
@@ -36,11 +43,6 @@ export async function loadCoachInput(today = todayKey()): Promise<CoachInput> {
           strengthTraining: doesStrengthTraining(profile),
         })
       : null;
-  const expenditure = estimateExpenditure(
-    meals.filter((meal) => meal.logDate < today).map((meal) => ({ date: meal.logDate, value: meal.resolvedCalories })),
-    weightDtos.map((w) => ({ date: toDateKey(new Date(w.measuredAt)), value: w.weightKg })),
-    today,
-  );
 
   return {
     today,

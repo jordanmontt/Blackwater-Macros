@@ -10,12 +10,18 @@ class CoachTest {
 
     private val profile = CalorieProfile(Gender.MALE, 1990, 178.0, 3, 60, 30, Goal.CUT)
 
+    private val expenditure = ExpenditureEstimate(2750.0, 177.0, 2300.0, -0.5, 28, 28, 28)
+
+    /** The profile's target alone, before there is a measured expenditure. */
+    private val formulaCalorie = calculateCalorieRecommendation(profile, 80.0, 2026)
+
     private val input = CoachInput(
         today = today,
         profile = profile,
-        calorie = calculateCalorieRecommendation(profile, 80.0, 2026),
+        // As in the app: the target is built on the profile's and the measured expenditure combined.
+        calorie = calculateCalorieRecommendation(profile, 80.0, 2026, expenditure),
         protein = calculateProteinRecommendation(80.0, Goal.CUT, 20.0),
-        expenditure = ExpenditureEstimate(2750.0, 177.0, 2300.0, -0.5, 28, 28, 28),
+        expenditure = expenditure,
         meals = listOf(
             CoachMeal(
                 today, "Desayuno",
@@ -68,13 +74,16 @@ class CoachTest {
                     "stores about 1800 kcal and the usual weight loss about 7700, so losing fat while gaining muscle can keep the " +
                     "weight flat in a deficit (body recomposition), and the measured expenditure then comes out somewhat low. " +
                     "When the weight stalls, mention this and suggest other signs: strength, waist size, photos.",
-                "Calorie target: 2089–2289 kcal/day (BMR 1738, estimated TDEE 2589, activity factor 1.49).",
+                // 2589 ± 10 % and 2750 ± 177 (95 %): the data weigh 259² / (259² + 90²) = 89 %.
+                "Calorie target: 2233–2433 kcal/day, built on an expenditure of 2733 kcal/day: the profile's estimate " +
+                    "(BMR 1738 × activity factor 1.49 = 2589) combined with the measured expenditure, which weighs 89% " +
+                    "because it is the more precise of the two.",
                 "Protein target: 147–198 g/day (2.3–3.1 g/kg of 64 kg lean mass).",
-                "Measured expenditure (energy balance, last 28 days): 2750 ± 177 kcal/day.",
+                "Measured expenditure (energy balance, the 28 days before this week's Monday): 2750 ± 177 kcal/day.",
                 "Today's meals:",
                 "- Desayuno: 450 kcal, 30 g protein, 50 g carbs, 12 g fat. Items: Avena (80 g), Leche (200 ml).",
                 "Today so far: 450 kcal, 30 g protein, 50 g carbs, 12 g fat.",
-                "Calories: 1639–1839 kcal left to reach the target range.",
+                "Calories: 1783–1983 kcal left to reach the target range.",
                 "Protein: 117–168 g left to reach the target range.",
                 "Last 14 days (logged days only, oldest first):",
                 "- 2026-02-26: 1900 kcal, 120 g protein, 180 g carbs, 60 g fat",
@@ -85,6 +94,15 @@ class CoachTest {
                 "Weight in the last 60 days: 28 weigh-ins, the first 80 kg on 2026-02-02.",
                 "Weight trend (last 28 days): -0.5 kg/week, now 78.1 kg. Projection computed by the app if this trend continues: 75.9 ± 1 kg in 30 days.",
             ).joinToString("\n"),
+        )
+    }
+
+    @Test
+    fun beforeThereIsAMeasuredExpenditureTheTargetComesFromTheProfileAlone() {
+        val lines = buildCoachContext(input.copy(calorie = formulaCalorie, expenditure = null)).split("\n")
+        assertThat(lines).contains("Calorie target: 2089–2289 kcal/day (BMR 1738, estimated TDEE 2589, activity factor 1.49).")
+        assertThat(lines).contains(
+            "Measured expenditure: not enough data yet (needs 4 weeks of logged meals and frequent weigh-ins).",
         )
     }
 
@@ -122,9 +140,9 @@ class CoachTest {
 
     @Test
     fun saysWhenTodayIsWithinOrOverTheTargetRange() {
-        val within = input.copy(meals = listOf(input.meals[0].copy(resolvedCalories = 2150.0, resolvedProtein = 220.0)))
+        val within = input.copy(meals = listOf(input.meals[0].copy(resolvedCalories = 2300.0, resolvedProtein = 220.0)))
         val text = buildCoachContext(within)
-        assertThat(text).contains("Calories: within the target range (up to 139 kcal more).")
+        assertThat(text).contains("Calories: within the target range (up to 133 kcal more).")
         assertThat(text).contains("Protein: over the target range by 22 g.")
     }
 

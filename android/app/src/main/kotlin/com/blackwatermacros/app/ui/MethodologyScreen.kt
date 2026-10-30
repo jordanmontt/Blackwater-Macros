@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.layout.Spacer
@@ -53,9 +54,12 @@ const val CHECK_SECTION = "check"
 /** The section «Past days keep their targets», opened from Perfil and from a past day's card. */
 const val PAST_DAYS_SECTION = "past-days"
 
+/** The section «Your target adjusts to your data», opened from the line saying what the target uses. */
+const val ADAPTIVE_SECTION = "adaptive"
+
 /**
- * [section] opens the page on that section: [CHECK_SECTION] or [PAST_DAYS_SECTION]
- * (web `/metodologia#check`, `/metodologia#past-days`).
+ * [section] opens the page on that section: [CHECK_SECTION], [PAST_DAYS_SECTION] or
+ * [ADAPTIVE_SECTION] (web `/metodologia#check`, `#past-days`, `#adaptive`).
  */
 @Composable
 fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
@@ -110,6 +114,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_protein_rec_ranges),
                     stringResource(R.string.meth_protein_rec_ffm),
                     stringResource(R.string.meth_protein_rec_reference),
+                    stringResource(R.string.meth_protein_rec_above),
                 ),
             )
             MethodCard(
@@ -150,14 +155,27 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                 Icons.Filled.MonitorHeart,
                 R.string.meth_measured_title,
                 R.string.meth_measured_body,
-                formula = listOf(
-                    stringResource(R.string.meth_measured_window),
-                    stringResource(R.string.meth_measured_intake),
-                    stringResource(R.string.meth_measured_slope),
-                    stringResource(R.string.meth_measured_formula),
-                    stringResource(R.string.meth_measured_margin),
+                formula = stringResource(R.string.meth_measured_formula).split("\n"),
+                afterTexts = listOf(
+                    stringResource(R.string.meth_measured_data),
+                    stringResource(R.string.meth_measured_uncertainty),
+                    stringResource(R.string.meth_measured_morning),
+                    stringResource(R.string.meth_measured_limits),
                 ),
-                afterRes = R.string.meth_measured_after,
+            )
+            MethodCard(
+                Icons.Filled.Tune,
+                R.string.meth_adaptive_title,
+                R.string.meth_adaptive_body,
+                formula = stringResource(R.string.meth_adaptive_formula).split("\n"),
+                afterTexts = listOf(
+                    stringResource(R.string.meth_adaptive_example),
+                    stringResource(R.string.meth_adaptive_why),
+                    stringResource(R.string.meth_adaptive_weekly),
+                ),
+                modifier = Modifier.onGloballyPositioned {
+                    sectionTops[ADAPTIVE_SECTION] = it.positionInParent().y.toInt()
+                },
             )
             MethodCard(
                 Icons.AutoMirrored.Filled.CompareArrows,
@@ -285,6 +303,8 @@ private fun ReferencesCard() {
                 "Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. J Cachexia Sarcopenia Muscle. 2022;13(2):795–810. doi:10.1002/jcsm.12922",
                 "Barakat C, Pearson J, Escalante G, Campbell B, De Souza EO. Body recomposition: can trained individuals build muscle and lose fat at the same time? Strength Cond J. 2020;42(5):7–21. doi:10.1519/SSC.0000000000000584",
                 "Antonio J, Ellerbroek A, Silver T, et al. A high protein diet (3.4 g/kg/d) combined with a heavy resistance training program improves body composition in healthy trained men and women – a follow-up investigation. J Int Soc Sports Nutr. 2015;12:39. doi:10.1186/s12970-015-0100-0",
+                "Antonio J, Ellerbroek A, Silver T, et al. A high protein diet has no harmful effects: a one-year crossover study in resistance-trained males. J Nutr Metab. 2016;2016:9104792. doi:10.1155/2016/9104792",
+                "Devries MC, Sithamparapillai A, Brimble KS, Banfield L, Morton RW, Phillips SM. Changes in kidney function do not differ between healthy adults consuming higher- compared with lower- or normal-protein diets: a systematic review and meta-analysis. J Nutr. 2018;148(11):1760–1775. doi:10.1093/jn/nxy197",
                 "Murphy C, Koehler K. Energy deficiency impairs resistance training gains in lean mass but not strength: a meta-analysis and meta-regression. Scand J Med Sci Sports. 2022;32(1):125–137. doi:10.1111/sms.14075",
                 "Garthe I, Raastad T, Refsnes PE, Koivisto A, Sundgot-Borgen J. Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes. Int J Sport Nutr Exerc Metab. 2011;21(2):97–104. doi:10.1123/ijsnem.21.2.97",
                 "Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y. Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. Am J Clin Nutr. 2000;72(3):694–701. doi:10.1093/ajcn/72.3.694",
@@ -294,6 +314,7 @@ private fun ReferencesCard() {
                 "Schoeller DA. Limitations in the assessment of dietary energy intake by self-report. Metabolism. 1995;44(2 Suppl 2):18–22. doi:10.1016/0026-0495(95)90204-X",
                 "Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. Int J Obes. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184",
                 "Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. Am J Clin Nutr. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S",
+                "Bajunaid R, Niu C, Hambly C, et al. Predictive equation derived from 6,497 doubly labelled water measurements enables the detection of erroneous self-reported energy intake. Nat Food. 2025;6(1):58–71. doi:10.1038/s43016-024-01089-5",
             )
             Column {
                 refs.forEachIndexed { i, ref ->

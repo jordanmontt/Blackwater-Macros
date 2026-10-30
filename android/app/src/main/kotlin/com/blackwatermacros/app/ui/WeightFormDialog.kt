@@ -76,6 +76,14 @@ fun WeightFormDialog(
                 Modifier.verticalScroll(rememberScrollState()).padding(top = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                // Mixed times of day tilt the trend the measured expenditure is built on.
+                if (weight == null) {
+                    Text(
+                        stringResource(R.string.weight_timing_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     LabeledField(stringResource(R.string.weight_kg), Modifier.weight(1f)) {
                         CompactField(

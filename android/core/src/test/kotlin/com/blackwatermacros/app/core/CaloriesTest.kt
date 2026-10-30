@@ -161,4 +161,39 @@ class CaloriesTest {
         assertThat(rec.target).isEqualTo(927.0)
         assertThat(rec.targetMax).isEqualTo(997.0)
     }
+
+    // --- with a measured expenditure ---
+
+    private val cutProfile = CalorieProfile(Gender.MALE, 1990, 178.0, 3, 60, 30, Goal.CUT)
+
+    private fun measured(tdee: Double, margin: Double) = ExpenditureEstimate(tdee, margin, 0.0, 0.0, 28, 28, 28)
+
+    @Test
+    fun calculateCalorieRecommendation_withoutAMeasurementTheProfilesExpenditure() {
+        val rec = calculateCalorieRecommendation(cutProfile, 80.0, 2026)!!
+        assertThat(rec.expenditure).isEqualTo(2589.0)
+        assertThat(rec.dataShare).isEqualTo(0.0)
+    }
+
+    @Test
+    fun calculateCalorieRecommendation_builtOnTheCombinedExpenditure() {
+        // Profile 2589 ± 10 % and measured 2750 ± 177 → 2733.
+        val rec = calculateCalorieRecommendation(cutProfile, 80.0, 2026, measured(2750.0, 177.0))!!
+        assertThat(rec.tdee).isEqualTo(2589.0)
+        assertThat(rec.expenditure).isEqualTo(2733.0)
+        assertThat(rec.dataShare).isEqualTo(0.89)
+        assertThat(rec.target).isEqualTo(2333.0)
+        assertThat(rec.targetMin).isEqualTo(2233.0)
+        assertThat(rec.targetMax).isEqualTo(2433.0)
+    }
+
+    @Test
+    fun calculateCalorieRecommendation_theBmrFloorHoldsWithALowMeasurement() {
+        val small = CalorieProfile(Gender.FEMALE, 1956, 150.0, 0, 0, 0, Goal.CUT)
+        val rec = calculateCalorieRecommendation(small, 50.0, 2026, measured(1000.0, 177.0))!!
+        assertThat(rec.expenditure).isEqualTo(1097.0)
+        assertThat(rec.targetMin).isEqualTo(927.0)
+        assertThat(rec.target).isEqualTo(927.0)
+        assertThat(rec.targetMax).isEqualTo(927.0)
+    }
 }

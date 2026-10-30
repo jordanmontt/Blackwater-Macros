@@ -134,7 +134,8 @@ class ValidationTest {
 
     @Test
     fun `recommendations use the latest body fat and measure expenditure from 4 weeks of data`() {
-        val today = "2026-03-01"
+        // A Monday: this week's measurement reads the 4 weeks before today.
+        val today = "2026-03-02"
         val profile = CalorieProfile(Gender.MALE, 1990, 178.0, 3, 60, 30, Goal.CUT)
         // Stable 80 kg every other day; body fat only logged on the first weigh-in.
         val weights = (28 downTo 1 step 2).map { n ->
@@ -152,6 +153,9 @@ class ValidationTest {
         assertThat(ready.protein!!.basisKg).isEqualTo(64.0)
         assertThat(ready.expenditure!!.tdee).isEqualTo(2500.0)
         assertThat(ready.expenditure!!.margin).isEqualTo(250.0)
+        // The target is built on the profile's 2589 and the measured 2500 ± 250 combined.
+        assertThat(ready.calorie!!.expenditure).isEqualTo(2517.0)
+        assertThat(ready.calorie!!.dataShare).isEqualTo(0.8)
 
         // Weekly weigh-ins are too uncertain: no measured value.
         val weekly = weights.filterIndexed { i, _ -> i % 4 == 0 }
@@ -160,7 +164,8 @@ class ValidationTest {
 
     @Test
     fun `recommendations check the profile against the data and keep the formula's inputs for the why`() {
-        val today = "2026-03-01"
+        // A Monday: this week's measurement reads the 4 weeks before today.
+        val today = "2026-03-02"
         val profile = CalorieProfile(Gender.MALE, 1990, 178.0, 3, 60, 30, Goal.MAINTAIN)
         // Stable 80 kg weighed daily for 5 weeks on 1800 kcal/day: 1800 ± 177, far below this profile.
         val weights = (35 downTo 1).map { n -> WeightDTO("w$n", "${addDaysToKey(today, -n)}T12:00:00Z", 80.0, null, null, "") }

@@ -43,6 +43,14 @@ class DatesTest {
     }
 
     @Test
+    fun weekStartOf_theMondayOfTheWeek() {
+        assertThat(weekStartOf("2026-10-30")).isEqualTo("2026-10-26") // Friday
+        assertThat(weekStartOf("2026-10-26")).isEqualTo("2026-10-26") // Monday
+        assertThat(weekStartOf("2026-11-01")).isEqualTo("2026-10-26") // Sunday
+        assertThat(weekStartOf("2026-01-01")).isEqualTo("2025-12-29") // across the year
+    }
+
+    @Test
     fun todayKey_returnsAValidKeyForTheCurrentDay() {
         assertThat(isValidDateKey(todayKey())).isTrue()
     }

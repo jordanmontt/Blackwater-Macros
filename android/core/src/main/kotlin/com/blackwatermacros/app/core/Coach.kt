@@ -158,7 +158,12 @@ fun buildCoachContext(input: CoachInput): String {
     if (doesStrengthTraining(profile)) lines += RECOMPOSITION_TEXT
 
     // Targets
-    lines += if (calorie != null) {
+    lines += if (calorie != null && calorie.dataShare > 0) {
+        "Calorie target: ${num(calorie.targetMin)}–${num(calorie.targetMax)} kcal/day, built on an expenditure of " +
+            "${num(calorie.expenditure)} kcal/day: the profile's estimate (BMR ${num(calorie.bmr)} × activity factor " +
+            "${num(calorie.activityFactor)} = ${num(calorie.tdee)}) combined with the measured expenditure, which weighs " +
+            "${num(mathRound(calorie.dataShare * 100))}% because it is the more precise of the two."
+    } else if (calorie != null) {
         "Calorie target: ${num(calorie.targetMin)}–${num(calorie.targetMax)} kcal/day (BMR ${num(calorie.bmr)}, " +
             "estimated TDEE ${num(calorie.tdee)}, activity factor ${num(calorie.activityFactor)})."
     } else {
@@ -174,7 +179,7 @@ fun buildCoachContext(input: CoachInput): String {
         lines += "Protein target: ${num(protein.range.min)}–${num(protein.range.max)} g/day ($basis)."
     }
     lines += if (expenditure != null) {
-        "Measured expenditure (energy balance, last ${num(expenditure.windowDays)} days): " +
+        "Measured expenditure (energy balance, the ${num(expenditure.windowDays)} days before this week's Monday): " +
             "${num(expenditure.tdee)} ± ${num(expenditure.margin)} kcal/day."
     } else {
         "Measured expenditure: not enough data yet (needs 4 weeks of logged meals and frequent weigh-ins)."

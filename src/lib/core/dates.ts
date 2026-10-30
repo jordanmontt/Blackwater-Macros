@@ -23,6 +23,12 @@ export function addDaysToKey(key: string, days: number): string {
   return toDateKey(date);
 }
 
+/** The Monday of `key`'s week (weeks start on Monday, as in ISO 8601). */
+export function weekStartOf(key: string): string {
+  const weekday = new Date(`${key}T00:00:00`).getDay(); // 0 = Sunday
+  return addDaysToKey(key, -(weekday === 0 ? 6 : weekday - 1));
+}
+
 export function daysBetweenKeys(from: string, to: string): number {
   const a = new Date(`${from}T00:00:00`).getTime();
   const b = new Date(`${to}T00:00:00`).getTime();

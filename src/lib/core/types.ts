@@ -132,7 +132,12 @@ export interface CalorieRecommendation {
   bmr: number;
   /** PAL used for the TDEE (TDEE / BMR), rounded to 2 decimals for display. */
   activityFactor: number;
+  /** The profile's expenditure: BMR × activity factor. */
   tdee: number;
+  /** What the target is built on: `tdee` combined with the measured expenditure (`combineExpenditure`), or `tdee` without one. */
+  expenditure: number;
+  /** The measured expenditure's weight in `expenditure`, 0–1 (0 without one). */
+  dataShare: number;
   target: number;
   targetMin: number;
   targetMax: number;

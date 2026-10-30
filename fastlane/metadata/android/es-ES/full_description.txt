@@ -16,7 +16,7 @@
 <li>Tu nivel de actividad calculado a partir de lo que realmente haces (días de gimnasio, duración de la sesión, minutos caminando) con el método factorial de la FAO/OMS, en lugar de un vago «poco activo / muy activo».</li>
 <li>Un rango de calorías para tu objetivo (perder grasa, mantener, ganar músculo) que nunca baja de tu gasto basal.</li>
 <li>Rangos de proteína de la investigación en nutrición deportiva, calculados sobre tu masa magra si registras tu grasa corporal.</li>
-<li>Tu gasto medido: tras unas semanas, la app compara lo que comiste con cómo evolucionó tu peso y muestra lo que realmente gastas, con su margen de error.</li>
+<li>Tu gasto medido: tras unas semanas, la app compara lo que comiste con cómo evolucionó tu peso, mide lo que realmente gastas, con su margen de error, y ajusta tu objetivo cada semana.</li>
 <li>Una comprobación de tu perfil: si tu gasto medido no coincide claramente con él, la app te dice por qué, con tus propios números y las causas probables.</li>
 </ul>
 <p><b>Totalmente transparente:</b> cada fórmula, sus fuentes y sus límites se explican dentro de la app (Metodología), así que puedes comprobar cada número tú mismo.</p>

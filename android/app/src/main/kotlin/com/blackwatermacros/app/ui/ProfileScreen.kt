@@ -64,7 +64,11 @@ fun ProfileScreen(onBack: () -> Unit, onOpenMethodology: (section: String?) -> U
                         onProfileChange = viewModel::updateProfile,
                         onOpenPastDays = { onOpenMethodology(PAST_DAYS_SECTION) },
                     )
-                    RecommendationsCard(loaded) { onOpenMethodology(CHECK_SECTION) }
+                    RecommendationsCard(
+                        loaded,
+                        onOpenCheck = { onOpenMethodology(CHECK_SECTION) },
+                        onOpenAdaptive = { onOpenMethodology(ADAPTIVE_SECTION) },
+                    )
                     Spacer(Modifier.height(24.dp))
                 }
             }
@@ -203,7 +207,7 @@ private fun RowScope.NumberField(
 }
 
 @Composable
-private fun RecommendationsCard(loaded: ProfileUiState.Loaded, onOpenMethodology: () -> Unit) {
+private fun RecommendationsCard(loaded: ProfileUiState.Loaded, onOpenCheck: () -> Unit, onOpenAdaptive: () -> Unit) {
     val calorie = loaded.calorieRec
     val protein = loaded.proteinRec
     if (calorie == null && protein == null) return
@@ -243,7 +247,8 @@ private fun RecommendationsCard(loaded: ProfileUiState.Loaded, onOpenMethodology
                             ),
                         )
                     }
-                    ExpenditureCheckStatus(loaded.check, loaded.inputs, onOpenMethodology)
+                    TargetExpenditureLine(calorie, onOpenAdaptive)
+                    ExpenditureCheckStatus(loaded.check, loaded.inputs, onOpenCheck)
                 }
             }
             if (protein != null) {

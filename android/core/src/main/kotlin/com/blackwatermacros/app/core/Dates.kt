@@ -33,6 +33,12 @@ fun addDaysToKey(key: String, days: Int): String {
     return toDateKey(date.plusDays(days.toLong()))
 }
 
+/** The Monday of [key]'s week (weeks start on Monday, as in ISO 8601). */
+fun weekStartOf(key: String): String {
+    val weekday = LocalDate.parse(key).dayOfWeek.value // Monday = 1 .. Sunday = 7
+    return addDaysToKey(key, -(weekday - 1))
+}
+
 fun daysBetweenKeys(from: String, to: String): Int {
     val a = LocalDate.parse(from)
     val b = LocalDate.parse(to)

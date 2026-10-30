@@ -64,10 +64,16 @@ fun isCalorieProfileComplete(profile: CalorieProfile): Boolean =
         profile.walkingMinutesPerDay != null &&
         profile.calorieGoal != null
 
+/**
+ * The calorie target: the expenditure plus the goal's offset. The expenditure is
+ * the profile's (BMR x activity factor) combined with [measured], the one from
+ * the user's meals and weigh-ins, when there is one ([combineExpenditure]).
+ */
 fun calculateCalorieRecommendation(
     profile: CalorieProfile,
     weightKg: Double,
     currentYear: Int,
+    measured: ExpenditureEstimate? = null,
 ): CalorieRecommendation? {
     if (!isCalorieProfileComplete(profile)) return null
 
@@ -79,6 +85,7 @@ fun calculateCalorieRecommendation(
         profile.walkingMinutesPerDay!!,
     )
     val tdee = mathRound(bmr * multiplier)
+    val (expenditure, dataShare) = combineExpenditure(tdee, measured)
     val offsets = CALORIE_OFFSETS.getValue(profile.calorieGoal!!)
     // Safety floor: the target never goes below the basal metabolic rate (web `calories.ts`).
     val floor = mathRound(bmr)
@@ -88,9 +95,11 @@ fun calculateCalorieRecommendation(
         bmr = floor,
         activityFactor = mathRound(multiplier * 100) / 100,
         tdee = tdee,
-        target = atLeastBmr(tdee + offsets.target),
-        targetMin = atLeastBmr(tdee + offsets.min),
-        targetMax = atLeastBmr(tdee + offsets.max),
+        expenditure = expenditure,
+        dataShare = dataShare,
+        target = atLeastBmr(expenditure + offsets.target),
+        targetMin = atLeastBmr(expenditure + offsets.min),
+        targetMax = atLeastBmr(expenditure + offsets.max),
         goal = profile.calorieGoal!!,
     )
 }

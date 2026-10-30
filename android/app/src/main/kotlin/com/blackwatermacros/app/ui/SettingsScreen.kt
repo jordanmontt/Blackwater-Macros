@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.Code
 import android.content.Intent
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -69,6 +70,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -134,6 +136,15 @@ fun SettingsScreen(
     val undoLabel = stringResource(R.string.action_undo)
     var editingTemplate by remember { mutableStateOf<TemplateDTO?>(null) }
     var templateFormOpen by remember { mutableStateOf(false) }
+    // A done export, import or deletion is said at the bottom of the screen, where it is seen;
+    // errors stay in the Data group until read (DataGroup).
+    val doneText = dataMessage?.takeUnless { it.isError }?.let { dataMessageText(it) }
+    LaunchedEffect(doneText) {
+        if (doneText != null) {
+            snackbarScope.launch { snackbarHostState.showSnackbar(doneText, withDismissAction = true) }
+            viewModel.dismissDataMessage()
+        }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -541,7 +552,7 @@ private fun DataGroup(viewModel: SettingsViewModel, message: DataMessage?, logge
         uri ?: return@rememberLauncherForActivityResult
         scope.launch {
             val ok = runCatching { writeText(context, uri, viewModel.backupText()) }.isSuccess
-            viewModel.onExported(ok)
+            viewModel.onExported(ok, displayName(context, uri) ?: backupFileName(todayKey()))
         }
     }
     val import = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -564,13 +575,12 @@ private fun DataGroup(viewModel: SettingsViewModel, message: DataMessage?, logge
             onClick = viewModel::requestDeleteData,
             color = MaterialTheme.colorScheme.error,
         )
-        message?.let {
-            val isError = it !is DataMessage.Exported && it !is DataMessage.Imported && it !is DataMessage.Deleted
+        message?.takeIf { it.isError }?.let {
             Row(Modifier.padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     dataMessageText(it),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f),
                 )
                 TextButton(onClick = viewModel::dismissDataMessage) { Text(stringResource(R.string.action_ok)) }
@@ -579,9 +589,12 @@ private fun DataGroup(viewModel: SettingsViewModel, message: DataMessage?, logge
     }
 }
 
+private val DataMessage.isError: Boolean
+    get() = this !is DataMessage.Exported && this !is DataMessage.Imported && this !is DataMessage.Deleted
+
 @Composable
 private fun dataMessageText(message: DataMessage): String = when (message) {
-    DataMessage.Exported -> stringResource(R.string.data_exported)
+    is DataMessage.Exported -> stringResource(R.string.data_exported, message.fileName)
     DataMessage.Imported -> stringResource(R.string.data_imported)
     DataMessage.Deleted -> stringResource(R.string.data_deleted)
     DataMessage.NotBackup -> stringResource(R.string.data_import_not_backup)
@@ -610,6 +623,15 @@ private fun importSummary(contents: BackupContents): String {
 
 private suspend fun writeText(context: Context, uri: Uri, text: String) = withContext(Dispatchers.IO) {
     context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(text.toByteArray(Charsets.UTF_8)) }
+}
+
+/** The name the user gave the file in the picker, or null if the provider does not say. */
+private suspend fun displayName(context: Context, uri: Uri): String? = withContext(Dispatchers.IO) {
+    runCatching {
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.getString(0) else null
+        }
+    }.getOrNull()
 }
 
 private suspend fun readText(context: Context, uri: Uri): String = withContext(Dispatchers.IO) {

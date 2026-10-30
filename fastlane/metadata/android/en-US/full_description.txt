@@ -16,7 +16,7 @@
 <li>Your activity level calculated from what you actually do (gym days, session length, daily walking) with the factorial method of the FAO/WHO, instead of a vague “lightly active / very active” guess.</li>
 <li>A calorie range for your goal (lose fat, maintain, build muscle) that never goes below your basal needs.</li>
 <li>Protein ranges from sports-nutrition research, on your lean mass when you log your body fat.</li>
-<li>Your measured expenditure: after a few weeks, the app compares what you ate with how your weight moved and shows what you really burn, with its margin of error.</li>
+<li>Your measured expenditure: after a few weeks, the app compares what you ate with how your weight moved, measures what you really burn, with its margin of error, and adjusts your target every week.</li>
 <li>A check of your profile: if your measured expenditure clearly disagrees with it, the app tells you why, with your own numbers and the likely causes.</li>
 </ul>
 <p><b>Fully transparent:</b> every formula, its sources and its limits are explained inside the app (Methodology), so you can check every number yourself.</p>

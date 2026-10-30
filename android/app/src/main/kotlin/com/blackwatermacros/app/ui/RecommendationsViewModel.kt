@@ -17,7 +17,9 @@ import com.blackwatermacros.app.core.ProteinRecommendation
 import com.blackwatermacros.app.core.averageTargets
 import com.blackwatermacros.app.core.targetsOn
 import com.blackwatermacros.app.core.checkExpenditure
-import com.blackwatermacros.app.core.estimateExpenditure
+import com.blackwatermacros.app.core.MeasuredOn
+import com.blackwatermacros.app.core.weekStartOf
+import com.blackwatermacros.app.core.weeklyExpenditure
 import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.data.AppPreferences
 import com.blackwatermacros.app.data.AppRepository
@@ -40,7 +42,7 @@ sealed interface RecommendationsUiState {
     data class Ready(
         val calorie: CalorieRecommendation?,
         val protein: ProteinRecommendation?,
-        /** Measured from the last 4 weeks; null until the data supports it. */
+        /** This week's: measured on Monday from the 4 weeks before; null until the data supports it. */
         val expenditure: ExpenditureEstimate? = null,
         /** The profile's expenditure checked against the measured one; null without a calorie target. */
         val check: ExpenditureCheck? = null,
@@ -51,16 +53,20 @@ sealed interface RecommendationsUiState {
     ) : RecommendationsUiState
 }
 
-/** What a day's targets come from: each day keeps the profile and the weight it had (`core/ProfileHistory.kt`). */
-data class TargetHistory(
+/**
+ * What a day's targets come from: each day keeps the profile, the weight and the
+ * measured expenditure (that week's Monday) it had (`core/ProfileHistory.kt`).
+ */
+class TargetHistory(
     val profile: CalorieProfile,
     val history: List<ProfilePeriod>,
     val weights: List<DatedWeight>,
+    val measuredOn: MeasuredOn = { null },
 ) {
-    fun on(day: String): DayTargets = targetsOn(profile, history, weights, day)
+    fun on(day: String): DayTargets = targetsOn(profile, history, weights, day, measuredOn)
 
     /** The mean of [days]' own targets (Progreso compares the period's average with it). */
-    fun average(days: List<String>): AverageTargets = averageTargets(profile, history, weights, days)
+    fun average(days: List<String>): AverageTargets = averageTargets(profile, history, weights, days, measuredOn)
 }
 
 /**
@@ -100,15 +106,16 @@ internal fun recommend(
     history: List<ProfilePeriod> = emptyList(),
 ): RecommendationsUiState {
     val latestWeight = weights.lastOrNull() ?: return RecommendationsUiState.NoWeight
-    val targets = TargetHistory(profile, history, datedWeights(weights))
-    // Today: the current profile and the latest weigh-in.
+    val intake = meals.map { DataPoint(it.logDate, it.resolvedCalories) }
+    val weighIns = weights.mapNotNull { w -> localDateKey(w.measuredAt)?.let { DataPoint(it, w.weightKg) } }
+    val measuredOn = weeklyExpenditure(intake, weighIns)
+    val targets = TargetHistory(profile, history, datedWeights(weights), measuredOn)
+    // Today: the current profile, the latest weigh-in and this week's measurement.
     val (calorie, protein) = targets.on(today)
     if (calorie == null && protein == null) return RecommendationsUiState.NeedsProfile
     val year = today.substring(0, 4).toInt()
-    val intake = meals.map { DataPoint(it.logDate, it.resolvedCalories) }
-    val weighIns = weights.mapNotNull { w -> localDateKey(w.measuredAt)?.let { DataPoint(it, w.weightKg) } }
-    val expenditure = estimateExpenditure(intake, weighIns, today)
-    val check = calorie?.let { checkExpenditure(intake, weighIns, it, today) }
+    val expenditure = measuredOn(today)
+    val check = calorie?.let { checkExpenditure(intake, weighIns, it, weekStartOf(today)) }
     return RecommendationsUiState.Ready(
         calorie,
         protein,

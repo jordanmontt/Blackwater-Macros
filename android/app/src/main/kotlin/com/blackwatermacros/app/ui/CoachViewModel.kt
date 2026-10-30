@@ -20,6 +20,7 @@ import com.blackwatermacros.app.core.addDaysToKey
 import com.blackwatermacros.app.core.buildCoachContext
 import com.blackwatermacros.app.core.buildCoachSystemPrompt
 import com.blackwatermacros.app.core.todayKey
+import com.blackwatermacros.app.core.weekStartOf
 import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.core.AiImage
 import com.blackwatermacros.app.data.ai.AiClient
@@ -295,11 +296,12 @@ class CoachViewModel(
     private fun fitLocalHistory(system: String, history: List<AiMessage>, questionTokens: Int): List<AiMessage> =
         fitHistoryToBudget(history, approxTokens(system) + questionTokens, LocalEngine.MAX_TOKENS - LOCAL_ANSWER_TOKENS)
 
-    /** Same data as the Comidas card and Progreso: profile, targets, 4 weeks of meals, weigh-ins. */
+    /** Same data as the Comidas card and Progreso: profile, targets, the meals since 4 weeks before Monday, weigh-ins. */
     private suspend fun loadCoachInput(today: String = todayKey()): CoachInput {
         val profile = repository.profile().first()
         val weightDtos = repository.weights().first()
-        val from = addDaysToKey(today, -EXPENDITURE_WINDOW_DAYS)
+        // This week's measurement reads the 4 weeks before Monday.
+        val from = addDaysToKey(weekStartOf(today), -EXPENDITURE_WINDOW_DAYS)
         val meals = repository.allMeals().first().filter { it.logDate in from..today }
         val ready = recommend(weightDtos, profile, meals.filter { it.logDate < today }, today) as? RecommendationsUiState.Ready
         val weightFrom = addDaysToKey(today, -COACH_WEIGHT_DAYS)

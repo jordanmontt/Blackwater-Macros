@@ -1,4 +1,4 @@
-import { addDaysToKey, daysBetweenKeys } from "./dates";
+import { addDaysToKey, daysBetweenKeys, weekStartOf } from "./dates";
 import type { DailyNutritionPoint, StatsRange } from "./types";
 
 export interface DataPoint {
@@ -58,13 +58,6 @@ export function linearRatePerWeek(points: DataPoint[]): number | null {
   return slope === null ? null : slope * 7;
 }
 
-function previousMonday(key: string): string {
-  const date = new Date(`${key}T00:00:00`);
-  const weekday = date.getDay(); // 0 = Sunday
-  const diff = weekday === 0 ? 6 : weekday - 1;
-  return addDaysToKey(key, -diff);
-}
-
 /**
  * Groups points into ISO weeks (starting Monday) and averages each week.
  * Only weeks that contain at least one entry are returned.
@@ -72,7 +65,7 @@ function previousMonday(key: string): string {
 export function weeklyAverages(points: DataPoint[]): { weekStart: string; avg: number }[] {
   const buckets = new Map<string, number[]>();
   for (const point of points) {
-    const weekStart = previousMonday(point.date);
+    const weekStart = weekStartOf(point.date);
     const bucket = buckets.get(weekStart) ?? [];
     bucket.push(point.value);
     buckets.set(weekStart, bucket);

@@ -776,6 +776,12 @@ the account, AI keys and models, theme, language.
   UTC date). Disabled in demo mode.
 - **Android:** the same row writes `repository.backupData()` through `buildBackup` to a file
   the user picks (`CreateDocument("application/json")`), with or without an account.
+- **Feedback (Android):** a done export says «Datos guardados en <name>» in a snackbar (the
+  name the picker returned, `OpenableColumns.DISPLAY_NAME`); a done import or deletion says so
+  the same way. Errors (not an export, damaged, failed) stay as a red line in the Data group
+  until «OK» (`SettingsScreen.kt` `DataGroup`). No progress bar: the file is built in memory
+  and a year of data is well under a megabyte, so it takes a moment. The web export is a
+  browser download, which shows its own progress.
 
 #### Import (Android, only without an account)
 
@@ -1030,7 +1036,11 @@ math**. Why each formula was chosen, its sources, limits and the rejected altern
   rests (Compendium 2024: 3.5–6 METs); 3.5 = moderate walking. Monotonic: more training
   never lowers it. Profile limits cap it at ≈ 2.64.
 - **TDEE** = `round(BMR × PAL)`; `activityFactor` (PAL, 2 decimals) is returned for display.
-- **Target:** fixed offsets — cut −400 (−500…−300), maintain ±100, surplus +300 (+200…+400).
+- **Expenditure** (what the target is built on): `tdee` combined with the measured one
+  when there is one (`calculateCalorieRecommendation(profile, kg, year, measured)` →
+  `combineExpenditure`, §8.3.2); returned as `expenditure` and `dataShare` (0–1), `tdee`
+  stays the profile's.
+- **Target:** fixed offsets on `expenditure` — cut −400 (−500…−300), maintain ±100, surplus +300 (+200…+400).
   **Floor:** `target`, `targetMin` and `targetMax` never go below the BMR (only reached by a
   cut for small, sedentary people).
 - METs are used as multiples of BMR (an approximation: 1 MET is usually a bit above the real
@@ -1051,9 +1061,10 @@ the magnitudes: [METHODOLOGY.md](./METHODOLOGY.md) §1.4.
   yesterday or later (a second edit the same day). Web: `api.updateSettings(profile, session)`
   (without a known history it sends none); Android: `AppRepository.saveProfile`, in one
   transaction.
-- **Reading** (`targetsOn(profile, history, weights, day)`): `profileOn` (the earliest period
+- **Reading** (`targetsOn(profile, history, weights, day, measuredOn?)`): `profileOn` (the earliest period
   with `until ≥ day`, else the current profile), `weightOn` (last weigh-in ≤ day, else the
-  first), `bodyFatOn` (same, among weigh-ins with body fat), age from the day's year. Today
+  first), `bodyFatOn` (same, among weigh-ins with body fat), age from the day's year, and
+  `measuredOn(day)` (`weeklyExpenditure`: the measurement of that day's Monday; none by default). Today
   gives the usual numbers. `averageTargets` is the mean of several days' ranges.
 - **Where:** the Today card on a past day (web `NutritionRecommendationsCard day`, Android
   `RecommendationsUiState.Ready.targets`), with «Objetivos de ese día…» when they differ from
@@ -1062,7 +1073,7 @@ the magnitudes: [METHODOLOGY.md](./METHODOLOGY.md) §1.4.
   for all = the flat labelled band), and «objetivo» next to the averages is `averageTargets`
   of the logged days. Perfil: «Los cambios cuentan desde hoy…», linked to
   `/metodologia#past-days` (Android `metodologia?section=past-days`).
-- **Unchanged:** the profile check and the coach read the current profile.
+- **Unchanged:** the profile check and the coach read the current profile (and this week's measurement).
 - **Sync:** the history travels with the profile (same last-write-wins): `SyncEngine` sends it
   in `PUT /api/settings`; the download replaces it when the local profile isn't pending, and a
   server without the field (`profileHistory` null) leaves the phone's alone.
@@ -1111,7 +1122,8 @@ The result has `basis` (`bodyWeight` | `leanMass` | `referenceWeight`), `basisKg
 
 ### 8.3 Measured expenditure (`expenditure.ts`)
 
-Energy balance over the **28 days before today** (MacroFactor-style):
+Energy balance over the **28 days before a day** (MacroFactor-style); the app always measures
+on **this week's Monday** (`weekStartOf(today)`, `dates.ts`):
 `TDEE = mean intake of logged days − β × 7700`, β = least-squares weight slope (kg/day).
 
 - Days without meals (or summing to 0 kcal) are **excluded**, never counted as 0.
@@ -1121,11 +1133,14 @@ Energy balance over the **28 days before today** (MacroFactor-style):
   margin `1.96 × SE(β) × 7700 ≤ 300 kcal/day`, with `SE(β) = σ / √Σ(x − x̄)²` and σ the
   residual SD (n − 2 df), floored at 0.5 kg so a few aligned weigh-ins can't look precise.
   Weekly weigh-ins never qualify; ~3/week do; daily gives ≈ ±180.
-- It is displayed **next to** the formula TDEE (home card and Perfil, `± margin`); it
-  **never replaces the target**. Perfil explains what is missing when it isn't available.
-- Web: `lib/use-measured-expenditure.ts` (meals `meals:<from>:<yesterday>` + `weights`
-  cache keys). Android: `recommend(weights, profile, meals, today)` in
-  `RecommendationsViewModel.kt`.
+- It is displayed next to the formula TDEE (home card and Perfil, `± margin`) and the
+  target is built on both combined (§8.3.2). Perfil explains what is missing when it isn't available.
+- Web: `lib/use-measured-expenditure.ts`: every day's kcal from the all-time stats
+  (`stats:all:<today>`, `api.stats("all")`, the same cache key as Progreso's «all» tab, so
+  a past day can get its week's measurement) + `weights`; `useMeasuredOn()`,
+  `useMeasuredExpenditure()` (this week's), `useExpenditureCheck()`. `useRecommendations`
+  passes `measuredOn` to `targetsOn`. Android: `recommend(weights, profile, meals, today)`
+  in `RecommendationsViewModel.kt` (`TargetHistory(…, measuredOn)`).
 - `measureExpenditure` returns the counts (logged days, weigh-in days, span, margin) even
   when they aren't enough; `estimateExpenditure` is its `.estimate`.
 
@@ -1134,8 +1149,8 @@ Energy balance over the **28 days before today** (MacroFactor-style):
 Science and every threshold: [METHODOLOGY.md](./METHODOLOGY.md) §3.1. In short, the
 verdict is «higher»/«lower» only when the whole 95 % range of the measured value lies
 outside the profile's TDEE ± 10 % (`FORMULA_TOLERANCE`), and it is `confirmed` only if the
-window that ended 7 days earlier says the same (so the check reads `CHECK_DAYS` = 35 days of
-meals). Otherwise «matches», or `notEnoughData` with `missing` in fixing order (meals,
+measurement of the previous Monday says the same (callers pass `weekStartOf(today)`, so the
+check reads the 35 days before Monday). Otherwise «matches», or `notEnoughData` with `missing` in fixing order (meals,
 weigh-ins, span, margin).
 
 - **Layers** (the app's transparency rule: show only when needed, explain all of it):
@@ -1161,6 +1176,34 @@ weigh-ins, span, margin).
   `meth_check_*`.
 - **With strength training** a «lower» notice and its causes also name muscle gained while
   losing fat (§8.2.1).
+- **The target already follows the data** (§8.3.2), so the notices end with «your target
+  already takes it into account» and the sheet's `targetNote` says the check is about
+  whether the profile fits.
+
+### 8.3.2 The target follows the data (`combineExpenditure`, `weeklyExpenditure`)
+
+Science, the case that motivated it and every number: [METHODOLOGY.md](./METHODOLOGY.md) §3.2.
+
+- `combineExpenditure(formulaTdee, measured)`: inverse-variance weighting with
+  `FORMULA_SD` = 0.10 (σ_profile = 10 % of the profile's TDEE) and σ_measured =
+  `margin / Z_95`; returns `{ expenditure, dataShare }` (rounded kcal, share to 2 decimals).
+  No measurement → the profile's, share 0.
+- `weeklyExpenditure(intake, weights)` returns `(day) => estimate` memoized per Monday
+  (`weekStartOf`): the measurement is taken on Monday from the 28 days before, so targets
+  change once a week; Progreso asks for every day of a period.
+- **Shown:** «Gasto usado para tu objetivo: N kcal/día (S % de tus datos)»
+  (`calorias.targetExpenditure*`; web `TargetExpenditure` in
+  `nutrition-recommendations.tsx`, Android `TargetExpenditureLine`) on the Comidas card and
+  in Perfil, only when `dataShare > 0`, linked to `/metodologia#adaptive` (Android
+  `metodologia?section=adaptive`, `ADAPTIVE_SECTION`).
+- **Coach:** with `dataShare > 0` the target line says the expenditure it is built on and
+  the data's share (`coach.ts` / `Coach.kt`).
+- **Weigh-in timing:** the weight form asks for morning weigh-ins (`peso.timingHint`,
+  Android `weight_timing_hint`), as do `expenditureCheck.weighInHint` and
+  `metodologia.measuredMorning`.
+- **Tests** that build data relative to today pin the clock to a Monday (web
+  `vi.setSystemTime`, Android `today = "2026-03-02"`), so «the 4 weeks before Monday» are the
+  4 weeks before today whatever day the suite runs.
 
 ### 8.4 Where it is stored and shown
 
@@ -1520,9 +1563,9 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | -------- | ------ | ---------------- |
 | `nutrition.test.ts` | `sumIngredientNutrition`, `resolveMealTotals`, `round1`, `round2` | `NutritionTest.kt` |
 | `protein.test.ts` | `calculateProteinRecommendation` (maintain with strength training), reference weight at BMI 25 | `ProteinTest.kt` |
-| `calories.test.ts` | `calculateBMR`, activity (PAL), `doesStrengthTraining`, `calculateCalorieRecommendation` (BMR floor) | `CaloriesTest.kt` |
-| `profile-history.test.ts` | `withProfileChange`, `profileOn`, `weightOn`, `bodyFatOn`, `targetsOn`, `averageTargets` | `ProfileHistoryTest.kt` |
-| `expenditure.test.ts` | `estimateExpenditure`, `measureExpenditure`, `fitWeightTrend`, `dailyMeans`, `checkExpenditure` (verdicts, confirmation, what is missing), `showsGapNotice`, `onlyWeighInsMissing`, `approximateGap` | `ExpenditureTest.kt` |
+| `calories.test.ts` | `calculateBMR`, activity (PAL), `doesStrengthTraining`, `calculateCalorieRecommendation` (BMR floor, built on a measured expenditure) | `CaloriesTest.kt` |
+| `profile-history.test.ts` | `withProfileChange`, `profileOn`, `weightOn`, `bodyFatOn`, `targetsOn`, `averageTargets` (each day with its week's measurement) | `ProfileHistoryTest.kt` |
+| `expenditure.test.ts` | `estimateExpenditure`, `measureExpenditure`, `fitWeightTrend`, `dailyMeans`, `checkExpenditure` (verdicts, confirmation, what is missing), `showsGapNotice`, `onlyWeighInsMissing`, `approximateGap`, `combineExpenditure`, `weeklyExpenditure` | `ExpenditureTest.kt` |
 | `foods.test.ts` | portions, Open Food Facts parsing, shop labels and why a barcode missed, `searchGenericFoods` | `FoodsTest.kt` |
 | `ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), answer and stream parsing, how a stream ended (`parseAiStreamEnd`), `aiErrorKind` | `AiProvidersTest.kt` |
 | `ai-models.test.ts` | `buildModelListRequest`, `parseModelList`, `naturalCompare` | `AiModelsTest.kt` |
@@ -1530,7 +1573,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `progress.test.ts` | `macroAverages` | `ProgressTest.kt` |
 | `numbers.test.ts` | `formatDecimal`, `normalizeDecimal` (the one number format, §6) | `NumbersTest.kt` |
 | `coach.test.ts` (+ `coach.fixture.ts`) | `weightProjection`, `buildCoachContext` (exact text; goal text with and without strength training), `buildCoachSystemPrompt` | `CoachTest.kt` |
-| `dates.test.ts` | date keys, `parseLocalDateTime`, `datetime-local` values | `DatesTest.kt` |
+| `dates.test.ts` | date keys, `weekStartOf`, `parseLocalDateTime`, `datetime-local` values | `DatesTest.kt` |
 | `stats.test.ts` | moving average, weekly rate, series | `StatsTest.kt` |
 | `stats-builder.test.ts` | `buildStatsFromData` | `StatsBuilderTest.kt` |
 | `backup.test.ts` | `buildBackup` (the exact file text), `backupFileName` | `BackupTest.kt` |
@@ -1891,9 +1934,12 @@ every language (§6). The export file's names are English (a file format, §5.11
 - **Charts:** hand-drawn Compose Canvas; all text sizes in sp (`AxisTextSize`,
   `TooltipTextSize`) so they follow the phone's font size.
 - **Intake bars** (Comidas): outlined track = what is left, solid fill = eaten (ember past
-  the target), two markers = target range, «eaten / min–max unit» next to the status.
+  the calorie target; protein over its range keeps the normal fill and says «X g above the
+  range» in grey, `overIsFine`, because more protein is not a problem, METHODOLOGY §2.1),
+  two markers = target range, «eaten / min–max unit» next to the status.
   The calorie card lists Promedio estimado, TMB, TDEE and (when the data supports it) the
-  measured expenditure ± margin and the profile check's notice (§8.3.1) before the bar;
+  measured expenditure ± margin, the expenditure the target uses (§8.3.2) and the profile
+  check's notice (§8.3.1) before the bar;
   the protein card shows g/kg (of lean mass
   when a cut uses body fat). Same design on the web (`components/nutrition-recommendations.tsx`).
 - **Comidas:** double-tap the date → today; deleting a meal asks first, then offers Undo;

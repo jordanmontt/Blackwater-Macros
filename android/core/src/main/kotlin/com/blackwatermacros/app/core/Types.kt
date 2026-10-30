@@ -134,7 +134,12 @@ data class CalorieRecommendation(
     val bmr: Double,
     /** PAL used for the TDEE (TDEE / BMR), rounded to 2 decimals for display. */
     val activityFactor: Double,
+    /** The profile's expenditure: BMR x activity factor. */
     val tdee: Double,
+    /** What the target is built on: [tdee] combined with the measured expenditure ([combineExpenditure]), or [tdee] without one. */
+    val expenditure: Double,
+    /** The measured expenditure's weight in [expenditure], 0–1 (0 without one). */
+    val dataShare: Double,
     val target: Double,
     val targetMin: Double,
     val targetMax: Double,

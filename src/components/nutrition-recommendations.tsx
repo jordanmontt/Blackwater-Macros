@@ -1,13 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { DumbbellIcon, FlameIcon } from "lucide-react";
 import { formatNumber } from "@/i18n/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExpenditureNotices, formulaInputs } from "@/components/expenditure-check";
-import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
+import { useExpenditureCheck } from "@/lib/use-measured-expenditure";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { todayKey } from "@/lib/core/dates";
-import type { Goal, ProteinRecommendation } from "@/lib/core/types";
+import type { CalorieRecommendation, Goal, ProteinRecommendation } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,8 @@ const GOAL_LABELS: Record<Goal, string> = {
 /**
  * Status text for an intake vs a recommended range: "en rango", or how much
  * is missing to reach the goal as a small range ("te faltan X–Y") / exceeded
- * past the goal ("te pasaste de X–Y").
+ * past the goal ("te pasaste de X"). `overIsFine` (protein): going over is
+ * said in a neutral colour, because eating more is not a problem.
  */
 function intakeStatus(
   current: number,
@@ -29,9 +31,10 @@ function intakeStatus(
   missingTemplate: string,
   exceededTemplate: string,
   inRangeLabel: string,
-): { statusLabel: string; statusColor: string } {
+  overIsFine = false,
+): { statusLabel: string; statusColor: string; overIsFine: boolean } {
   if (current >= rangeMin && current <= rangeMax) {
-    return { statusLabel: inRangeLabel, statusColor: "text-green-600 dark:text-green-400" };
+    return { statusLabel: inRangeLabel, statusColor: "text-green-600 dark:text-green-400", overIsFine };
   }
   if (current < rangeMin) {
     const missingMin = formatNumber(Math.round(rangeMin - current), 0);
@@ -39,18 +42,21 @@ function intakeStatus(
     return {
       statusLabel: formatTemplate(missingTemplate, { min: missingMin, max: missingMax }),
       statusColor: "text-yellow-600 dark:text-yellow-400",
+      overIsFine,
     };
   }
   const exceeded = formatNumber(Math.round(current - rangeMax), 0);
   return {
     statusLabel: formatTemplate(exceededTemplate, { min: exceeded }),
-    statusColor: "text-orange-600 dark:text-orange-400",
+    statusColor: overIsFine ? "text-muted-foreground" : "text-orange-600 dark:text-orange-400",
+    overIsFine,
   };
 }
 
 /**
  * Progress towards the daily target. The outlined track is what is left, the
- * solid fill is what was eaten (orange once past the target), and the two
+ * solid fill is what was eaten (orange once past the target, unless
+ * `overIsFine`), and the two
  * markers crossing the bar are the target range. The numbers above say it in
  * words: eaten / target.
  */
@@ -61,6 +67,7 @@ function IntakeBar({
   unit,
   statusLabel,
   statusColor,
+  overIsFine,
 }: {
   current: number;
   rangeMin: number;
@@ -68,11 +75,12 @@ function IntakeBar({
   unit: string;
   statusLabel: string;
   statusColor: string;
+  overIsFine: boolean;
 }) {
   // Leave room past the target so going over is visible on the bar.
   const scaleMax = rangeMax > 0 ? rangeMax * 1.1 : 1;
   const toPct = (v: number) => Math.min(Math.max((v / scaleMax) * 100, 0), 100);
-  const over = current > rangeMax;
+  const over = current > rangeMax && !overIsFine;
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between gap-2 text-xs">
@@ -126,9 +134,10 @@ export function NutritionRecommendationsCard({
 }) {
   const today = useRecommendations();
   const { profile, latestWeight } = today;
-  const { calorieRec, proteinRec } = useRecommendations(day);
+  const { calorieRec, proteinRec, measuredOn } = useRecommendations(day);
   const isToday = day === undefined || day === todayKey();
-  const measured = useMeasuredExpenditure();
+  // The measurement that day's target uses (taken on that week's Monday).
+  const measured = measuredOn?.(day ?? todayKey()) ?? null;
   // The check judges the current profile, whatever day is shown.
   const check = useExpenditureCheck(today.calorieRec);
   const differsFromToday =
@@ -192,6 +201,7 @@ export function NutritionRecommendationsCard({
                   </span>
                 </p>
               ) : null}
+              {calorieRec.dataShare > 0 ? <TargetExpenditure rec={calorieRec} /> : null}
             </div>
             {isToday ? (
               <ExpenditureNotices
@@ -248,8 +258,9 @@ export function NutritionRecommendationsCard({
                   proteinRec.range.min,
                   proteinRec.range.max,
                   t.protein.missingProtein,
-                  t.protein.exceededProtein,
+                  t.protein.aboveRangeBy,
                   t.protein.inRange,
+                  true,
                 )}
               />
             </div>
@@ -263,6 +274,27 @@ export function NutritionRecommendationsCard({
         ) : null}
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * «Gasto usado para tu objetivo: 2990 kcal/día (85 % de tus datos)»: what the
+ * target is built on, once the measured expenditure counts (`combineExpenditure`).
+ * It opens how (`/metodologia#adaptive`).
+ */
+export function TargetExpenditure({ rec }: { rec: CalorieRecommendation }) {
+  return (
+    <p>
+      <Link href="/metodologia#adaptive" className="hover:underline">
+        {t.calorias.targetExpenditure}:{" "}
+        <span className="whitespace-nowrap">
+          {formatTemplate(t.calorias.targetExpenditureValue, {
+            n: formatNumber(rec.expenditure),
+            share: formatNumber(Math.round(rec.dataShare * 100)),
+          })}
+        </span>
+      </Link>
+    </p>
   );
 }
 

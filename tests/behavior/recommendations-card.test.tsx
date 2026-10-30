@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { formatTemplate, t } from "@/i18n";
@@ -6,6 +6,7 @@ import { NutritionRecommendationsCard } from "@/components/nutrition-recommendat
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import type { CalorieProfile, MealDTO, WeightDTO } from "@/lib/core/types";
 import { calculateCalorieRecommendation } from "@/lib/core/calories";
+import { buildStatsFromData } from "@/lib/core/stats-builder";
 import { formatNumber } from "@/i18n/format";
 
 /**
@@ -15,9 +16,11 @@ import { formatNumber } from "@/i18n/format";
  *    ("te faltan X–Y"), no como un número exacto,
  *  - el número grande es el promedio estimado del rango, no un objetivo exacto,
  *  - si la ingesta está dentro del rango se indica "en rango",
- *  - si se excede se muestra un rango ("te pasaste de X–Y"),
+ *  - si se excede se muestra un valor ("te pasaste de X"); en proteína, pasarse
+ *    no es un problema: se dice en gris y la barra no cambia de color,
  *  - con 4 semanas de comidas y pesajes frecuentes aparece el gasto medido
- *    con su margen; con pesajes semanales no aparece,
+ *    con su margen, y el objetivo se calcula con él mezclado con el del perfil;
+ *    con pesajes semanales no aparece,
  *  - en definición con % de grasa, la proteína se calcula sobre la masa magra,
  *  - si el gasto medido queda claramente fuera del de tu perfil (dos semanas
  *    seguidas), una línea lo dice; «¿Por qué?» enseña el cálculo con tus
@@ -36,9 +39,9 @@ vi.mock("@/lib/api", () => ({
   },
   api: {
     listWeights: vi.fn(),
-    listMeals: vi.fn(),
+    stats: vi.fn(),
     session: vi.fn(),
-  } satisfies Pick<typeof import("@/lib/api").api, "listWeights" | "listMeals" | "session">,
+  } satisfies Pick<typeof import("@/lib/api").api, "listWeights" | "stats" | "session">,
 }));
 
 import { api } from "@/lib/api";
@@ -63,18 +66,31 @@ const profile: CalorieProfile = {
   calorieGoal: "maintain",
 };
 
+/** The card reads every day's kcal from the all-time stats, as the server builds them (meals in date order). */
+function logMeals(meals: MealDTO[]) {
+  const sorted = [...meals].sort((a, b) => a.logDate.localeCompare(b.logDate));
+  vi.mocked(api.stats).mockImplementation(async (range, today) => buildStatsFromData(sorted, [], range, today));
+}
+
 describe("tarjetas de recomendación", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clearCache();
     localStorage.clear();
+    // A Monday: this week's measurement reads the 4 weeks before today.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 2, 2, 12));
     vi.mocked(api.listWeights).mockResolvedValue([weight]);
-    vi.mocked(api.listMeals).mockResolvedValue([]);
+    logMeals([]);
     vi.mocked(api.session).mockResolvedValue({
       username: "demo",
       isAdmin: false,
       calorieProfile: profile,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("muestra la cantidad que falta como un rango, no un número exacto", async () => {
@@ -135,6 +151,16 @@ describe("tarjetas de recomendación", () => {
     expect(screen.getAllByTestId("intake-fill")[0].className).toContain("bg-tertiary");
   });
 
+  it("pasarse de proteína no es un aviso: se dice en gris y la barra no cambia de color", async () => {
+    // Mantenimiento con gimnasio, 80 kg: 1,6–2,2 g/kg → 128–176 g; 200 g son 24 g por encima.
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={200} />);
+
+    const above = await screen.findByText(formatTemplate(t.protein.aboveRangeBy, { min: "24" }));
+    expect(above.className).toContain("text-muted-foreground");
+    expect(screen.queryByText(/te pasaste de \d+ g/)).toBeNull();
+    expect(screen.getAllByTestId("intake-fill")[1].className).toContain("bg-primary");
+  });
+
   /** One weigh-in every `every` days over the last 4 weeks, stable at 80 kg. */
   function weighIns(every: number): WeightDTO[] {
     const rows: WeightDTO[] = [];
@@ -167,7 +193,7 @@ describe("tarjetas de recomendación", () => {
 
   it("con 4 semanas de datos muestra el gasto medido junto al estimado", async () => {
     vi.mocked(api.listWeights).mockResolvedValue(weighIns(1));
-    vi.mocked(api.listMeals).mockResolvedValue(mealsEveryDay(2500));
+    logMeals(mealsEveryDay(2500));
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
     // Peso estable → gasto = ingesta media; pesaje diario → margen ±177
@@ -177,7 +203,7 @@ describe("tarjetas de recomendación", () => {
 
   it("con pesajes semanales el margen es demasiado grande y no lo muestra", async () => {
     vi.mocked(api.listWeights).mockResolvedValue(weighIns(7));
-    vi.mocked(api.listMeals).mockResolvedValue(mealsEveryDay(2500));
+    logMeals(mealsEveryDay(2500));
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
     await screen.findByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"));
@@ -217,7 +243,7 @@ describe("tarjetas de recomendación", () => {
   it("si gastas claramente más que tu perfil, lo dice y «¿Por qué?» enseña el cálculo con tus números", async () => {
     // 2600 kcal/día perdiendo 0,7 kg/semana durante 5 semanas → 2600 + 0,1 × 7700 = 3370 ± 177.
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, -0.7));
-    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 2600));
+    logMeals(meals(35, 2600));
     const user = userEvent.setup();
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
@@ -236,10 +262,30 @@ describe("tarjetas de recomendación", () => {
     expect(within(dialog).getByRole("button", { name: t.expenditureCheck.howItWorks })).toHaveAttribute("href", "/metodologia#check");
   });
 
+  it("con gasto medido, el objetivo se calcula con él y lo dice, enlazando a cómo se hace", async () => {
+    // Perfil 2608 ± 10 %, medido 3370 ± 177: los datos pesan un 89 % → 3288; mantenimiento 3188–3388.
+    vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, -0.7));
+    logMeals(meals(35, 2600));
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+
+    const used = await screen.findByRole("link", { name: (name) => name.startsWith(t.calorias.targetExpenditure) });
+    expect(used).toHaveTextContent(formatTemplate(t.calorias.targetExpenditureValue, { n: "3288", share: "89" }));
+    expect(used).toHaveAttribute("href", "/metodologia#adaptive");
+    expect(screen.getByText((_, el) => el?.tagName === "P" && /^3188 – 3388\s/.test(el.textContent ?? ""))).toBeInTheDocument();
+    // The profile's own expenditure is still shown next to it.
+    expect(screen.getByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"))).toHaveTextContent("2608");
+  });
+
+  it("sin gasto medido, el objetivo sale solo del perfil y no hay línea de gasto usado", async () => {
+    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    await screen.findByText(/te faltan \d+–\d+ kcal/);
+    expect(screen.queryByText((content) => content.startsWith(t.calorias.targetExpenditure))).toBeNull();
+  });
+
   it("si gastas claramente menos, enumera las causas empezando por la comida sin registrar", async () => {
     // Peso estable con 1800 kcal/día → 1800 ± 177, muy por debajo de 2347.
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
-    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 1800));
+    logMeals(meals(35, 1800));
     const user = userEvent.setup();
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
@@ -259,7 +305,7 @@ describe("tarjetas de recomendación", () => {
       calorieProfile: { ...profile, gymDaysPerWeek: 0 },
     });
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
-    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 1800));
+    logMeals(meals(35, 1800));
     const user = userEvent.setup();
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
@@ -271,7 +317,7 @@ describe("tarjetas de recomendación", () => {
 
   it("«Ahora no» oculta el aviso, también al volver a la pantalla", async () => {
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
-    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 1800));
+    logMeals(meals(35, 1800));
     const user = userEvent.setup();
     const { unmount } = render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
@@ -288,7 +334,7 @@ describe("tarjetas de recomendación", () => {
 
   it("si el gasto medido cabe en el ±10 % del perfil, no dice nada", async () => {
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
-    vi.mocked(api.listMeals).mockResolvedValue(meals(35, 2500));
+    logMeals(meals(35, 2500));
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 
     await screen.findByText((content) => content.startsWith("Gasto medido:"));
@@ -297,7 +343,7 @@ describe("tarjetas de recomendación", () => {
 
   it("si registras las comidas pero faltan pesajes, lo dice una vez", async () => {
     vi.mocked(api.listWeights).mockResolvedValue(weighIns(7));
-    vi.mocked(api.listMeals).mockResolvedValue(mealsEveryDay(2500));
+    logMeals(mealsEveryDay(2500));
     const user = userEvent.setup();
     render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
 

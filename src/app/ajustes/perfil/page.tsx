@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { api, errorText } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { ExpenditureCheckStatus, formulaInputs } from "@/components/expenditure-check";
-import { proteinPerKgText } from "@/components/nutrition-recommendations";
+import { proteinPerKgText, TargetExpenditure } from "@/components/nutrition-recommendations";
 import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
@@ -146,7 +146,7 @@ export default function PerfilPage() {
   }
 
   const calorieRec = latestWeight
-    ? calculateCalorieRecommendation(calorieProfile, latestWeight, new Date().getFullYear())
+    ? calculateCalorieRecommendation(calorieProfile, latestWeight, new Date().getFullYear(), measured)
     : null;
 
   // The verdict follows the profile being edited: change your activity, see if it now matches.
@@ -381,6 +381,11 @@ export default function PerfilPage() {
                         })}
                       </p>
                     </>
+                  ) : null}
+                  {calorieRec.dataShare > 0 ? (
+                    <div className="text-xs text-muted-foreground">
+                      <TargetExpenditure rec={calorieRec} />
+                    </div>
                   ) : null}
                   <ExpenditureCheckStatus
                     check={check}

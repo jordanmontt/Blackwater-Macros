@@ -61,18 +61,19 @@ export default function ProgresoPage() {
     },
   });
   const summary = summaryRes.data ?? null;
-  const { weights, profile, profileHistory } = useRecommendations();
-  // Each day keeps the targets it had (the profile and weight of that day).
+  const { weights, profile, profileHistory, measuredOn } = useRecommendations();
+  // Each day keeps the targets it had (the profile, weight and measured expenditure of that day).
   const targets = useMemo(() => {
     const dated = datedWeights(weights ?? []);
+    const measured = measuredOn ?? undefined;
     return {
       calorieOn: (day: string): TargetRange | null => {
-        const calorie = targetsOn(profile, profileHistory, dated, day).calorie;
+        const calorie = targetsOn(profile, profileHistory, dated, day, measured).calorie;
         return calorie ? { min: calorie.targetMin, max: calorie.targetMax } : null;
       },
-      average: (days: string[]) => averageTargets(profile, profileHistory, dated, days),
+      average: (days: string[]) => averageTargets(profile, profileHistory, dated, days, measured),
     };
-  }, [weights, profile, profileHistory]);
+  }, [weights, profile, profileHistory, measuredOn]);
   const weightsRes = useCachedResource<WeightDTO[]>("weights", () => api.listWeights());
 
   function openForm(entry: WeightDTO | null) {

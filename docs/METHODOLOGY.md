@@ -26,9 +26,10 @@ need individual guidance.
    reason are written down here.
 2. **Conservative when unsure.** Exercise energy is counted low, deficits and surpluses
    are moderate, the target never goes below the basal metabolic rate.
-3. **The formula sets the target; your own data checks it.** The measured expenditure is
-   shown next to the formula, never silently replaces it, so the target does not jump
-   with the scale's noise.
+3. **The formula starts the target; your own data take over.** Once there is a measured
+   expenditure, the target is built on the formula's and the measured expenditure combined
+   by how precise each one is (§3.2), recalculated once a week so it does not jump with
+   the scale's noise. The screen always says what the target is built on.
 4. **Show the uncertainty, hide what the data cannot support.** The measured expenditure
    carries a 95 % margin and is hidden when that margin is too wide.
 5. **"Not logged" is not "zero".** Days without meals are left out of averages, never
@@ -42,10 +43,11 @@ need individual guidance.
 | Activity factor (PAL) | Factorial method from gym and walking minutes | FAO/WHO/UNU 2004; Compendium 2024 |
 | Calorie target | TDEE − 400 / ± 100 / + 300 kcal, never below BMR | Hall 2008; Helms 2014 (JISSN); Iraki 2019 |
 | Past days | Each day keeps the profile and weigh-in it had; changes count from today | FAO/WHO/UNU 2004 (PAL as habitual average) |
-| Protein | g/kg by goal (maintain 1.6–2.2 with strength training); lean mass when cutting with body fat; weight at BMI 25 above BMI 25 | Jäger 2017; Morton 2018; Nunes 2022; Helms 2014 (IJSNEM); McClave 2016; Kokura 2024; Gallagher 2000 |
+| Protein | g/kg by goal (maintain 1.6–2.2 with strength training); lean mass when cutting with body fat; weight at BMI 25 above BMI 25; above the range is not a warning | Jäger 2017; Morton 2018; Nunes 2022; Helms 2014 (IJSNEM); McClave 2016; Kokura 2024; Gallagher 2000; Devries 2018; Antonio 2016 |
 | Strength training | With gym days, every goal also aims at muscle; a flat weight in a deficit can be fat lost and muscle gained | Barakat 2020; Murphy & Koehler 2022; Garthe 2011; Hall 2008 |
-| Measured expenditure | Energy balance over 28 days, least-squares weight slope, 95 % margin | Hall 2008; Montgomery 2021 |
-| Profile check | Measured 95 % range entirely outside profile ± 10 %, on two weekly windows | Frankenfield 2005; Schoeller 1995; Lichtman 1992 |
+| Measured expenditure | Energy balance over the 28 days before Monday, least-squares weight slope, 95 % margin | Hall 2008; Montgomery 2021 |
+| Adaptive target | Formula (σ = 10 %) and measured (σ = margin ÷ 1.96) combined by inverse-variance weighting, weekly | Frankenfield 2005; Bajunaid 2025 |
+| Profile check | Measured 95 % range entirely outside profile ± 10 %, on two weekly measurements; says whether the profile fits, the target already follows the data | Frankenfield 2005; Schoeller 1995; Lichtman 1992 |
 | Weight trend | 7-day moving average | Zheng 2015; Walker 2005 |
 | Weekly rate | Least-squares slope × 7 | Montgomery 2021 |
 | Coach projection | Trend line extended 30 days with its 95 % confidence band | Montgomery 2021 |
@@ -136,6 +138,9 @@ expenditure shows by how much.
 
 ### 1.3 Calorie target
 
+The offsets apply to the expenditure the target is built on: the formula's TDEE until there
+is a measured expenditure, then the two combined (§3.2).
+
 | Goal | Target | Range | Expected change (÷ 7700 kcal/kg) |
 |---|---|---|---|
 | Cut | TDEE − 400 | − 500 … − 300 | ≈ 0.36 kg/week (0.27–0.45) |
@@ -162,7 +167,8 @@ how much is lean tissue and water. It is also a *static* rule: over months, expe
 adapts and a fixed deficit slows down. Here it is used only for two things:
 - translating the offsets into the rates above, as guidance;
 - the 4-week measured expenditure (§3), which uses your actual weight trend and
-  therefore includes any adaptation that has already happened.
+  therefore includes any adaptation that has already happened. Since the target now
+  follows it (§3.2), a deficit that slows down is caught at the next weekly update.
 
 **Floor.** The target, its minimum and its maximum never go below the BMR. Only a cut for
 a small, sedentary person reaches it (e.g. TDEE 1540 − 500 = 1040 against a BMR of
@@ -171,8 +177,9 @@ a very-low-calorie diet and is better done with supervision.
 
 ### 1.4 Past days keep their targets (`profile-history.ts`)
 
-**Rule.** A day's targets use the profile in effect that day and the last weigh-in on or
-before it (before the first weigh-in, the first one). Editing the activity, the goal or any
+**Rule.** A day's targets use the profile in effect that day, the last weigh-in on or
+before it (before the first weigh-in, the first one) and the expenditure measured on that
+week's Monday (§3.2). Editing the activity, the goal or any
 other profile field counts from today: the app keeps the old profile for the days up to
 yesterday. Several edits on the same day are one change.
 
@@ -223,6 +230,16 @@ In one of them, trained people eating 3.4 g/kg lost more fat than at 2.3 g/kg bu
 no more lean mass (Antonio et al. 2015). The meta-analyses above put the plateau for
 muscle at ~1.6 g/kg with an upper limit near 2.2, so the app stays at 1.6–2.2 outside a
 cut. The cut's 2.3–3.1 g/kg of lean mass is already close to Barakat's range.
+
+**Above the range is not a warning.** The top of each range is where the evidence stops
+seeing extra benefit for muscle, not a safety limit, so the app says «X g above the range»
+in a neutral grey and keeps the bar's colour (calories over the range stay orange). In
+healthy adults a meta-analysis of 28 studies found no difference in the change of kidney
+function between high-protein diets (≥ 1.5 g/kg, ≥ 20 % of energy or ≥ 100 g/day) and
+normal ones (Devries et al. 2018). In a one-year crossover study in 14 resistance-trained
+men, 2.5–3.3 g/kg/day had no harmful effect on blood lipids or liver and kidney markers
+(Antonio et al. 2016); it is a small study, so it supports, not proves, the point. People
+with kidney disease are outside the scope of these numbers (see the note at the top).
 
 **Why lean mass only when cutting.** Each range is applied on the basis it was derived
 for. The deficit studies express protein per kg of lean mass. The maintenance and surplus
@@ -355,7 +372,7 @@ from **energy balance**, as adaptive apps such as MacroFactor do. If weight is s
 you burn what you eat; if it moves, the difference is energy stored or released.
 
 ```
-Window:  the 28 days before today (today is excluded: it is still being logged)
+Window:  the 28 days before this week's Monday (the current week is still being logged)
 intake = mean kcal of the days with meals logged
 β      = least-squares slope of the daily-mean weights [kg/day]
 TDEE   = intake − β × 7700
@@ -405,18 +422,25 @@ Worked margins, at the 0.5 kg floor and 28-day window:
 - *Water and glycogen shifts:* in the first weeks of a new diet, and across the menstrual
   cycle.
 
-For those reasons, and so that the target does not move with the scale, the measured
-value is **shown next to the formula and never replaces the target**. If the two disagree
-for several weeks, the measured value is the better description of *your* expenditure.
+A **constant** logging error does not hurt the target, though: if you always log 10 % less
+than you eat, the measured expenditure is low by the same amount, and a target built on it
+is in the same units as your logging. The 4-week window, the margin, the weekly update
+and the formula's share in §3.2 soften the rest.
 
-**Worked example.** Over 4 weeks you logged 25 days averaging 2300 kcal. The weight
+**Weigh-ins at the same time of day.** Weight rises through the day with food and drink.
+Mixing morning and evening weigh-ins adds scatter; switching from evening to morning
+weigh-ins tilts the slope down even with no real change. The app asks for morning
+weigh-ins, after the toilet and before eating (weight form, weigh-in hint, Metodología).
+
+**Worked example.** Over the 4 weeks before Monday you logged 25 days averaging 2300 kcal. The weight
 trend fell 0.1 kg/week (β = −0.0143 kg/day), so `TDEE = 2300 + 0.0143 × 7700 ≈ 2410`.
 
 ### 3.1 Checking the profile against the data (`checkExpenditure`)
 
-The measured value is shown next to the formula (principle 3). When the two **clearly**
-disagree, the app also says so, explains why with the user's own numbers, and lists what
-can cause it. The target does not change.
+The target already follows the measured value (§3.2). The check answers a different
+question: **does the profile fit the person?** When the formula and the data **clearly**
+disagree, the app says so, explains why with the user's own numbers, and lists what can
+cause it, so the user can fix the activity minutes or the logging.
 
 ```
 profile  = BMR × PAL                                  (§1)
@@ -424,7 +448,7 @@ normal   = profile × (1 ± 0.10)
 measured = TDEE ± margin                               (§3, 95 %)
 higher:    measured − margin > profile × 1.10
 lower:     measured + margin < profile × 0.90
-confirmed: the same verdict on the 28-day window that ended 7 days earlier
+measured on this week's Monday; confirmed: the same verdict on the previous Monday
 ```
 
 **Rules, and why.**
@@ -463,6 +487,63 @@ logged but weigh-ins are what is missing, Today says so once.
 2600 kcal/day losing 0.7 kg/week, weighed daily: measured `2600 + 0.1 × 7700 = 3370 ± 177`.
 The low end, 3193, is above 2869, and it was a week earlier too: «you burn about 750 kcal/day
 more than your profile estimates». His data correspond to a PAL of 3370 / 1750 ≈ 1.93.
+
+### 3.2 The target follows the data (`combineExpenditure`, `weeklyExpenditure`)
+
+Until 2026-10 the measured value was only shown next to the formula. A real case showed
+why that is not enough: a man training 5 × 80 min a week, on «maintain», ate at the top of
+his range for weeks and lost 0.35–0.5 kg/week. His measured expenditure was 400–480 kcal
+above the formula's 2608 for two weeks, but the check (§3.1) still said «matches», because
+it only speaks when the whole 95 % range is beyond ±10 % (≈ 470 kcal for him). A gap the
+size of a whole cut was invisible, and his «maintenance» was a cut.
+
+```
+σ_profile  = 10 % × profile's expenditure (BMR × PAL)
+σ_measured = margin ÷ 1.96                     (the margin is the 95 % one, §3)
+share      = σ_profile² ÷ (σ_profile² + σ_measured²)
+expenditure = profile + share × (measured − profile)
+target     = expenditure − 400 / ± 100 / + 300 (§1.3), never below the BMR
+```
+
+**Why combine rather than replace.** Inverse-variance weighting is the standard way to
+combine two estimates of the same quantity: each counts by its precision, and the result
+is more precise than either. With little data the formula leads; with good data the data
+lead. It also makes the change gradual instead of a switch on the day the measurement
+appears.
+
+**Why trust the data at all.** Prediction equations are right on average and poor for one
+person: an equation built from 6497 doubly-labelled-water measurements (weight, age, sex)
+has 95 % predictive limits of about −40 % / +60 % for an individual (Bajunaid et al.
+2025). The profile adds activity minutes and does better, but its intensities are fixed
+guesses (§1.2). The measured value is the person's own, in the units of their own
+logging. Adaptive apps do the same: MacroFactor uses the formula only at the start and
+then sets targets from the data-driven expenditure at a weekly check-in with smoothing;
+Carbon adjusts each week from logged intake and the weight trend.
+
+**Why σ = 10 %.** Mifflin-St Jeor is within ±10 % of measured BMR in about 82 % of
+non-obese adults (Frankenfield 2005), an SD of ≈ 7.5 % if the errors are normal; the
+activity factor adds its own error, so 10 % for BMR × PAL. Resulting shares for a
+2600 kcal profile: daily weigh-ins (±177) → 89 %; 3 a week (±272) → 78 %; the widest
+margin shown (±300) → 74 %. The share is shown on screen («85 % from your data»).
+
+**Why weekly.** The measurement is taken on Monday from the 4 weeks before
+(`weekStartOf`), and every day of that week uses it: the target changes once a week, not
+with every weigh-in (MacroFactor and Carbon update at a weekly check-in too). The check
+(§3.1) uses the same measurement and confirms on the previous Monday's. A past day keeps
+the target of its own week, computed from the data before that Monday.
+
+**Safeguards kept.** The measurement's rules (21 logged days of 28, ≥ 4 weigh-in days
+over ≥ 14 days, margin ≤ ±300) and the BMR floor. Without a measurement the target is
+exactly the formula's.
+
+**Worked example (the case above).** Profile 2608 (BMR 1671 × 1.56). On Monday
+2026-10-26 the measurement was 3060 ± 214: share = 260.8² ÷ (260.8² + 109.2²) = 0.85,
+expenditure = 2608 + 0.85 × 452 = 2993, maintenance 2893–3093 kcal/day instead of
+2508–2708.
+
+**Limits.** Same as §3: water and glycogen at the start of a diet, the menstrual cycle,
+and the 7700 kcal/kg approximation. During recomposition the scale understates fat loss,
+so the measured value comes out somewhat low (§2.4): the target errs on the low side.
 
 ---
 
@@ -558,32 +639,46 @@ margin(x) = 1.96 × σ × √(1/n + (x − x̄)² / Sxx)        (σ floored at 0
   - *Kept:* the calorie offsets; the cut's pace and protein already match the evidence on
     gaining muscle in a deficit (Murphy & Koehler 2022; Garthe 2011).
 
+- **2026-10-30, the target follows the data (§3.2); protein above the range (§2.1).**
+  - *Changed:* the calorie target is built on the formula and the measured expenditure
+    combined by precision, measured every Monday; the check now says whether the profile
+    fits, not whether to change the target. Morning weigh-ins asked for. Protein above the
+    range is said in neutral grey, not as a warning.
+  - *Why:* a user's data (above) showed the strict check hiding a cut-sized gap at
+    «maintain». Sources: Frankenfield 2005, Bajunaid 2025, Devries 2018, Antonio 2016;
+    MacroFactor and Carbon help pages for what adaptive apps do.
+  - *Kept:* the check's thresholds (±10 %, whole 95 % range, two weeks), now only for the
+    profile.
+
 ## 9. References
 
 1. Antonio J, Ellerbroek A, Silver T, et al. A high protein diet (3.4 g/kg/d) combined with a heavy resistance training program improves body composition in healthy trained men and women – a follow-up investigation. *J Int Soc Sports Nutr*. 2015;12:39. doi:10.1186/s12970-015-0100-0
-2. Barakat C, Pearson J, Escalante G, Campbell B, De Souza EO. Body recomposition: can trained individuals build muscle and lose fat at the same time? *Strength Cond J*. 2020;42(5):7–21. doi:10.1519/SSC.0000000000000584
-3. Byrne NM, Hills AP, Hunter GR, Weinsier RL, Schutz Y. Metabolic equivalent: one size does not fit all. *J Appl Physiol*. 2005;99(3):1112–1119. doi:10.1152/japplphysiol.00023.2004
-4. FAO/WHO/UNU. Human energy requirements: report of a joint FAO/WHO/UNU expert consultation. *FAO Food and Nutrition Technical Report Series 1*. Rome: FAO; 2004.
-5. Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. *J Am Diet Assoc*. 2005;105(5):775–789. doi:10.1016/j.jada.2005.02.005
-6. Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y. Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. *Am J Clin Nutr*. 2000;72(3):694–701. doi:10.1093/ajcn/72.3.694
-7. Garthe I, Raastad T, Refsnes PE, Koivisto A, Sundgot-Borgen J. Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes. *Int J Sport Nutr Exerc Metab*. 2011;21(2):97–104. doi:10.1123/ijsnem.21.2.97
-8. Hall KD. What is the required energy deficit per unit weight loss? *Int J Obes*. 2008;32(3):573–576. doi:10.1038/sj.ijo.0803720
-9. Helms ER, Aragon AA, Fitschen PJ. Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation. *J Int Soc Sports Nutr*. 2014;11:20. doi:10.1186/1550-2783-11-20
-10. Helms ER, Zinn C, Rowlands DS, Brown SR. A systematic review of dietary protein during caloric restriction in resistance trained lean athletes: a case for higher intakes. *Int J Sport Nutr Exerc Metab*. 2014;24(2):127–138. doi:10.1123/ijsnem.2013-0054
-11. Herrmann SD, Willis EA, Ainsworth BE, et al. 2024 Adult Compendium of Physical Activities: a third update of the energy costs of human activities. *J Sport Health Sci*. 2024;13(1):6–12. doi:10.1016/j.jshs.2023.10.010
-12. Iraki J, Fitschen P, Espinar S, Helms E. Nutrition recommendations for bodybuilders in the off-season: a narrative review. *Sports*. 2019;7(7):154. doi:10.3390/sports7070154
-13. Jäger R, Kerksick CM, Campbell BI, et al. International Society of Sports Nutrition Position Stand: protein and exercise. *J Int Soc Sports Nutr*. 2017;14:20. doi:10.1186/s12970-017-0177-8
-14. Kokura Y, Ueshima J, Saino Y, Maeda K. Enhanced protein intake on maintaining muscle mass, strength, and physical function in adults with overweight/obesity: a systematic review and meta-analysis. *Clin Nutr ESPEN*. 2024;63:417–426. doi:10.1016/j.clnesp.2024.06.030
-15. Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. *Am J Clin Nutr*. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S
-16. Lichtman SW, Pisarska K, Berman ER, et al. Discrepancy between self-reported and actual caloric intake and exercise in obese subjects. *N Engl J Med*. 1992;327(27):1893–1898. doi:10.1056/NEJM199212313272701
-17. McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). *JPEN J Parenter Enteral Nutr*. 2016;40(2):159–211. doi:10.1177/0148607115621863
-18. Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. *Am J Clin Nutr*. 1990;51(2):241–247. doi:10.1093/ajcn/51.2.241
-19. Montgomery DC, Peck EA, Vining GG. *Introduction to Linear Regression Analysis*. 6th ed. Wiley; 2021.
-20. Morton RW, Murphy KT, McKellar SR, et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults. *Br J Sports Med*. 2018;52(6):376–384. doi:10.1136/bjsports-2017-097608
-21. Murphy C, Koehler K. Energy deficiency impairs resistance training gains in lean mass but not strength: a meta-analysis and meta-regression. *Scand J Med Sci Sports*. 2022;32(1):125–137. doi:10.1111/sms.14075
-22. Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. *J Cachexia Sarcopenia Muscle*. 2022;13(2):795–810. doi:10.1002/jcsm.12922
-23. Prince SA, Adamo KB, Hamel ME, Hardt J, Connor Gorber S, Tremblay M. A comparison of direct versus self-report measures for assessing physical activity in adults: a systematic review. *Int J Behav Nutr Phys Act*. 2008;5:56. doi:10.1186/1479-5868-5-56
-24. Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. *Int J Obes*. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184
-25. Schoeller DA. Limitations in the assessment of dietary energy intake by self-report. *Metabolism*. 1995;44(2 Suppl 2):18–22. doi:10.1016/0026-0495(95)90204-X
-26. Walker J. *The Hacker's Diet: how to lose weight and hair through stress and poor nutrition*. fourmilab.ch; 2005.
-27. Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE. Self-weighing in weight management: a systematic literature review. *Obesity*. 2015;23(2):256–265. doi:10.1002/oby.20946
+2. Antonio J, Ellerbroek A, Silver T, et al. A high protein diet has no harmful effects: a one-year crossover study in resistance-trained males. *J Nutr Metab*. 2016;2016:9104792. doi:10.1155/2016/9104792
+3. Bajunaid R, Niu C, Hambly C, et al. Predictive equation derived from 6,497 doubly labelled water measurements enables the detection of erroneous self-reported energy intake. *Nat Food*. 2025;6(1):58–71. doi:10.1038/s43016-024-01089-5
+4. Barakat C, Pearson J, Escalante G, Campbell B, De Souza EO. Body recomposition: can trained individuals build muscle and lose fat at the same time? *Strength Cond J*. 2020;42(5):7–21. doi:10.1519/SSC.0000000000000584
+5. Byrne NM, Hills AP, Hunter GR, Weinsier RL, Schutz Y. Metabolic equivalent: one size does not fit all. *J Appl Physiol*. 2005;99(3):1112–1119. doi:10.1152/japplphysiol.00023.2004
+6. Devries MC, Sithamparapillai A, Brimble KS, Banfield L, Morton RW, Phillips SM. Changes in kidney function do not differ between healthy adults consuming higher- compared with lower- or normal-protein diets: a systematic review and meta-analysis. *J Nutr*. 2018;148(11):1760–1775. doi:10.1093/jn/nxy197
+7. FAO/WHO/UNU. Human energy requirements: report of a joint FAO/WHO/UNU expert consultation. *FAO Food and Nutrition Technical Report Series 1*. Rome: FAO; 2004.
+8. Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. *J Am Diet Assoc*. 2005;105(5):775–789. doi:10.1016/j.jada.2005.02.005
+9. Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y. Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. *Am J Clin Nutr*. 2000;72(3):694–701. doi:10.1093/ajcn/72.3.694
+10. Garthe I, Raastad T, Refsnes PE, Koivisto A, Sundgot-Borgen J. Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes. *Int J Sport Nutr Exerc Metab*. 2011;21(2):97–104. doi:10.1123/ijsnem.21.2.97
+11. Hall KD. What is the required energy deficit per unit weight loss? *Int J Obes*. 2008;32(3):573–576. doi:10.1038/sj.ijo.0803720
+12. Helms ER, Aragon AA, Fitschen PJ. Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation. *J Int Soc Sports Nutr*. 2014;11:20. doi:10.1186/1550-2783-11-20
+13. Helms ER, Zinn C, Rowlands DS, Brown SR. A systematic review of dietary protein during caloric restriction in resistance trained lean athletes: a case for higher intakes. *Int J Sport Nutr Exerc Metab*. 2014;24(2):127–138. doi:10.1123/ijsnem.2013-0054
+14. Herrmann SD, Willis EA, Ainsworth BE, et al. 2024 Adult Compendium of Physical Activities: a third update of the energy costs of human activities. *J Sport Health Sci*. 2024;13(1):6–12. doi:10.1016/j.jshs.2023.10.010
+15. Iraki J, Fitschen P, Espinar S, Helms E. Nutrition recommendations for bodybuilders in the off-season: a narrative review. *Sports*. 2019;7(7):154. doi:10.3390/sports7070154
+16. Jäger R, Kerksick CM, Campbell BI, et al. International Society of Sports Nutrition Position Stand: protein and exercise. *J Int Soc Sports Nutr*. 2017;14:20. doi:10.1186/s12970-017-0177-8
+17. Kokura Y, Ueshima J, Saino Y, Maeda K. Enhanced protein intake on maintaining muscle mass, strength, and physical function in adults with overweight/obesity: a systematic review and meta-analysis. *Clin Nutr ESPEN*. 2024;63:417–426. doi:10.1016/j.clnesp.2024.06.030
+18. Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. *Am J Clin Nutr*. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S
+19. Lichtman SW, Pisarska K, Berman ER, et al. Discrepancy between self-reported and actual caloric intake and exercise in obese subjects. *N Engl J Med*. 1992;327(27):1893–1898. doi:10.1056/NEJM199212313272701
+20. McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). *JPEN J Parenter Enteral Nutr*. 2016;40(2):159–211. doi:10.1177/0148607115621863
+21. Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. *Am J Clin Nutr*. 1990;51(2):241–247. doi:10.1093/ajcn/51.2.241
+22. Montgomery DC, Peck EA, Vining GG. *Introduction to Linear Regression Analysis*. 6th ed. Wiley; 2021.
+23. Morton RW, Murphy KT, McKellar SR, et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults. *Br J Sports Med*. 2018;52(6):376–384. doi:10.1136/bjsports-2017-097608
+24. Murphy C, Koehler K. Energy deficiency impairs resistance training gains in lean mass but not strength: a meta-analysis and meta-regression. *Scand J Med Sci Sports*. 2022;32(1):125–137. doi:10.1111/sms.14075
+25. Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. *J Cachexia Sarcopenia Muscle*. 2022;13(2):795–810. doi:10.1002/jcsm.12922
+26. Prince SA, Adamo KB, Hamel ME, Hardt J, Connor Gorber S, Tremblay M. A comparison of direct versus self-report measures for assessing physical activity in adults: a systematic review. *Int J Behav Nutr Phys Act*. 2008;5:56. doi:10.1186/1479-5868-5-56
+27. Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. *Int J Obes*. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184
+28. Schoeller DA. Limitations in the assessment of dietary energy intake by self-report. *Metabolism*. 1995;44(2 Suppl 2):18–22. doi:10.1016/0026-0495(95)90204-X
+29. Walker J. *The Hacker's Diet: how to lose weight and hair through stress and poor nutrition*. fourmilab.ch; 2005.
+30. Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE. Self-weighing in weight management: a systematic literature review. *Obesity*. 2015;23(2):256–265. doi:10.1002/oby.20946

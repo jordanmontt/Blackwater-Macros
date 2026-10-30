@@ -1,9 +1,20 @@
 import { calculateCalorieRecommendation, doesStrengthTraining, isCalorieProfileComplete } from "./calories";
 import { addDaysToKey } from "./dates";
 import { calculateProteinRecommendation } from "./protein";
-import type { CalorieProfile, CalorieRecommendation, ProfilePeriod, ProteinRecommendation } from "./types";
+import type {
+  CalorieProfile,
+  CalorieRecommendation,
+  ExpenditureEstimate,
+  ProfilePeriod,
+  ProteinRecommendation,
+} from "./types";
 
 export type { ProfilePeriod };
+
+/** The measured expenditure a day's target uses (`weeklyExpenditure`); none by default. */
+export type MeasuredOn = (day: string) => ExpenditureEstimate | null;
+
+const NOT_MEASURED: MeasuredOn = () => null;
 
 /** A weigh-in on its local calendar day. */
 export interface DatedWeight {
@@ -96,20 +107,22 @@ export function bodyFatOn(weights: DatedWeight[], day: string): number | null {
 
 /**
  * The calorie and protein targets of `day`, with the profile, weight and body
- * fat known that day and the age in that day's year. Today's targets are the
- * usual ones (current profile, latest weigh-in).
+ * fat known that day, the age in that day's year and the expenditure measured
+ * at the start of that week (`measuredOn`). Today's targets are the usual ones
+ * (current profile, latest weigh-in).
  */
 export function targetsOn(
   profile: CalorieProfile,
   history: ProfilePeriod[],
   weights: DatedWeight[],
   day: string,
+  measuredOn: MeasuredOn = NOT_MEASURED,
 ): DayTargets {
   const weight = weightOn(weights, day);
   if (weight === null) return { calorie: null, protein: null };
   const dayProfile = profileOn(profile, history, day);
   const year = Number(day.slice(0, 4));
-  const calorie = calculateCalorieRecommendation(dayProfile, weight.weightKg, year);
+  const calorie = calculateCalorieRecommendation(dayProfile, weight.weightKg, year, measuredOn(day));
   const protein =
     dayProfile.calorieGoal === null
       ? null
@@ -124,18 +137,19 @@ export function targetsOn(
 
 /**
  * The mean of the targets of `days` (e.g. the logged days of a period), each
- * with its own profile and weight. Null for a target no day has.
+ * with its own profile, weight and measured expenditure. Null for a target no day has.
  */
 export function averageTargets(
   profile: CalorieProfile,
   history: ProfilePeriod[],
   weights: DatedWeight[],
   days: string[],
+  measuredOn: MeasuredOn = NOT_MEASURED,
 ): { calorie: TargetRange | null; protein: TargetRange | null } {
   const calories: TargetRange[] = [];
   const proteins: TargetRange[] = [];
   for (const day of days) {
-    const targets = targetsOn(profile, history, weights, day);
+    const targets = targetsOn(profile, history, weights, day, measuredOn);
     if (targets.calorie) calories.push({ min: targets.calorie.targetMin, max: targets.calorie.targetMax });
     if (targets.protein) proteins.push(targets.protein.range);
   }

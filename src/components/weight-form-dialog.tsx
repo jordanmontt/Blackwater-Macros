@@ -82,6 +82,8 @@ export function WeightFormDialog({
           <DialogTitle>{entry ? t.peso.edit : t.peso.addTitle}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          {/* Mixed times of day tilt the trend the measured expenditure is built on. */}
+          {entry ? null : <p className="text-xs text-muted-foreground">{t.peso.timingHint}</p>}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="weight-input">{t.peso.weightLabel}</Label>

@@ -56,7 +56,8 @@ data class DeleteDataPrompt(val loggedIn: Boolean, val unsyncedChanges: Int)
 
 /** Feedback after an export, an import or a data deletion. */
 sealed interface DataMessage {
-    data object Exported : DataMessage
+    /** [fileName]: what the file was saved as (the user can rename it in the picker). */
+    data class Exported(val fileName: String) : DataMessage
     data object Imported : DataMessage
     data object Deleted : DataMessage
     data object NotBackup : DataMessage
@@ -135,8 +136,8 @@ class SettingsViewModel(
 
     suspend fun backupText(): String = buildBackup(repository.backupData(), isoUtc(java.time.Instant.now()))
 
-    fun onExported(success: Boolean) {
-        _dataMessage.value = if (success) DataMessage.Exported else DataMessage.Failed
+    fun onExported(success: Boolean, fileName: String) {
+        _dataMessage.value = if (success) DataMessage.Exported(fileName) else DataMessage.Failed
     }
 
     /** Reads and checks a file; a valid one waits for the confirmation. Without an account only. */

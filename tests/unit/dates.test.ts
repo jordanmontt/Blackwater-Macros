@@ -8,6 +8,7 @@ import {
   toDateKey,
   toDateTimeLocalValue,
   todayKey,
+  weekStartOf,
 } from "@/lib/core/dates";
 
 describe("claves de fecha (YYYY-MM-DD en hora local)", () => {
@@ -33,6 +34,13 @@ describe("claves de fecha (YYYY-MM-DD en hora local)", () => {
   it("calcula la distancia en días entre dos claves", () => {
     expect(daysBetweenKeys("2026-03-01", "2026-03-08")).toBe(7);
     expect(daysBetweenKeys("2026-03-08", "2026-03-01")).toBe(-7);
+  });
+
+  it("el lunes de la semana de una fecha (las semanas empiezan en lunes)", () => {
+    expect(weekStartOf("2026-10-30")).toBe("2026-10-26"); // viernes
+    expect(weekStartOf("2026-10-26")).toBe("2026-10-26"); // lunes
+    expect(weekStartOf("2026-11-01")).toBe("2026-10-26"); // domingo
+    expect(weekStartOf("2026-01-01")).toBe("2025-12-29"); // cruza el año
   });
 
   it("'hoy' devuelve una clave válida para el día actual", () => {

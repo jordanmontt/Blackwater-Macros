@@ -1,6 +1,6 @@
 "use client";
 
-import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -53,6 +53,7 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.proteinRecRanges}</p>
         <p>{t.metodologia.proteinRecFfm}</p>
         <p>{t.metodologia.proteinRecReference}</p>
+        <p>{t.metodologia.proteinRecAbove}</p>
       </MethodologyCard>
 
       <MethodologyCard icon={<FlameIcon />} title={t.metodologia.tdeeTitle}>
@@ -80,7 +81,17 @@ export default function MetodologiaPage() {
         <FormulaLines text={t.metodologia.measuredFormula} />
         <p>{t.metodologia.measuredData}</p>
         <p>{t.metodologia.measuredUncertainty}</p>
+        <p>{t.metodologia.measuredMorning}</p>
         <p>{t.metodologia.measuredLimits}</p>
+      </MethodologyCard>
+
+      {/* Linked from the «Gasto usado para tu objetivo» line (/metodologia#adaptive). */}
+      <MethodologyCard id="adaptive" icon={<SlidersHorizontalIcon />} title={t.metodologia.adaptiveTitle}>
+        <p>{t.metodologia.adaptiveBody}</p>
+        <FormulaLines text={t.metodologia.adaptiveFormula} />
+        <p>{t.metodologia.adaptiveExample}</p>
+        <p>{t.metodologia.adaptiveWhy}</p>
+        <p>{t.metodologia.adaptiveWeekly}</p>
       </MethodologyCard>
 
       {/* Linked from the «Why?» of the expenditure check (/metodologia#check). */}
@@ -273,6 +284,21 @@ const REFERENCES: { authors: string; title: string; source: string; details: str
     doi: "10.1186/s12970-015-0100-0",
   },
   {
+    authors: "Antonio J, Ellerbroek A, Silver T, et al.",
+    title: "A high protein diet has no harmful effects: a one-year crossover study in resistance-trained males",
+    source: "J Nutr Metab",
+    details: "2016;2016:9104792.",
+    doi: "10.1155/2016/9104792",
+  },
+  {
+    authors: "Devries MC, Sithamparapillai A, Brimble KS, Banfield L, Morton RW, Phillips SM",
+    title:
+      "Changes in kidney function do not differ between healthy adults consuming higher- compared with lower- or normal-protein diets: a systematic review and meta-analysis",
+    source: "J Nutr",
+    details: "2018;148(11):1760–1775.",
+    doi: "10.1093/jn/nxy197",
+  },
+  {
     authors: "Murphy C, Koehler K",
     title: "Energy deficiency impairs resistance training gains in lean mass but not strength: a meta-analysis and meta-regression",
     source: "Scand J Med Sci Sports",
@@ -337,6 +363,14 @@ const REFERENCES: { authors: string; title: string; source: string; details: str
     source: "Am J Clin Nutr",
     details: "1992;56(1 Suppl):292S–293S.",
     doi: "10.1093/ajcn/56.1.292S",
+  },
+  {
+    authors: "Bajunaid R, Niu C, Hambly C, et al.",
+    title:
+      "Predictive equation derived from 6,497 doubly labelled water measurements enables the detection of erroneous self-reported energy intake",
+    source: "Nat Food",
+    details: "2025;6(1):58–71.",
+    doi: "10.1038/s43016-024-01089-5",
   },
 ];
 

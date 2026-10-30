@@ -92,7 +92,7 @@ class ProfileHistoryTest {
         // Before the change: 2 gym days, 20 min walking, 61 kg.
         assertThat(targetsOn(after, history, weights, "2026-10-12")).isEqualTo(
             DayTargets(
-                CalorieRecommendation(1325.0, 1.46, 1935.0, 1535.0, 1435.0, 1635.0, Goal.CUT),
+                CalorieRecommendation(1325.0, 1.46, 1935.0, 1935.0, 0.0, 1535.0, 1435.0, 1635.0, Goal.CUT),
                 ProteinRecommendation(
                     Goal.CUT,
                     ProteinBasis.LEAN_MASS,
@@ -105,7 +105,27 @@ class ProfileHistoryTest {
         )
         // From the change on: 4 gym days, 60 min walking, 60.5 kg (+111 kcal).
         assertThat(targetsOn(after, history, weights, "2026-10-15").calorie)
-            .isEqualTo(CalorieRecommendation(1320.0, 1.55, 2046.0, 1646.0, 1546.0, 1746.0, Goal.CUT))
+            .isEqualTo(CalorieRecommendation(1320.0, 1.55, 2046.0, 2046.0, 0.0, 1646.0, 1546.0, 1746.0, Goal.CUT))
+    }
+
+    @Test
+    fun usesTheExpenditureMeasuredOnThatDaysWeek() {
+        // Measured 2300 ± 177 from the week of 2026-10-12; nothing before.
+        val measuredOn: MeasuredOn = { day ->
+            if (day >= "2026-10-12") ExpenditureEstimate(2300.0, 177.0, 0.0, 0.0, 28, 28, 28) else null
+        }
+        val calorie = targetsOn(after, history, weights, "2026-10-15", measuredOn).calorie!!
+        assertThat(calorie.tdee).isEqualTo(2046.0)
+        assertThat(calorie.expenditure).isEqualTo(2259.0)
+        assertThat(calorie.dataShare).isEqualTo(0.84)
+        assertThat(calorie.targetMin).isEqualTo(1759.0)
+        assertThat(calorie.targetMax).isEqualTo(1959.0)
+        val before = targetsOn(after, history, weights, "2026-10-05", measuredOn).calorie!!
+        assertThat(before.tdee).isEqualTo(1950.0)
+        assertThat(before.expenditure).isEqualTo(1950.0)
+        assertThat(before.dataShare).isEqualTo(0.0)
+        assertThat(averageTargets(after, history, weights, listOf("2026-10-05", "2026-10-15"), measuredOn).calorie)
+            .isEqualTo(TargetRange(1605.0, 1805.0))
     }
 
     @Test

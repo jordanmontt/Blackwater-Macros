@@ -19,6 +19,11 @@ data class DayTargets(val calorie: CalorieRecommendation?, val protein: ProteinR
 
 data class AverageTargets(val calorie: TargetRange?, val protein: TargetRange?)
 
+/** The measured expenditure a day's target uses ([weeklyExpenditure]); none by default. */
+typealias MeasuredOn = (String) -> ExpenditureEstimate?
+
+private val NOT_MEASURED: MeasuredOn = { null }
+
 /**
  * The history after replacing [previous] with [next] today: changes apply from
  * today on, so days up to yesterday keep [previous]. Unchanged when nothing
@@ -57,19 +62,21 @@ fun bodyFatOn(weights: List<DatedWeight>, day: String): Double? {
 
 /**
  * The calorie and protein targets of [day], with the profile, weight and body
- * fat known that day and the age in that day's year. Today's targets are the
- * usual ones (current profile, latest weigh-in).
+ * fat known that day, the age in that day's year and the expenditure measured
+ * at the start of that week ([measuredOn]). Today's targets are the usual ones
+ * (current profile, latest weigh-in).
  */
 fun targetsOn(
     profile: CalorieProfile,
     history: List<ProfilePeriod>,
     weights: List<DatedWeight>,
     day: String,
+    measuredOn: MeasuredOn = NOT_MEASURED,
 ): DayTargets {
     val weight = weightOn(weights, day) ?: return DayTargets(null, null)
     val dayProfile = profileOn(profile, history, day)
     val year = day.substring(0, 4).toInt()
-    val calorie = calculateCalorieRecommendation(dayProfile, weight.weightKg, year)
+    val calorie = calculateCalorieRecommendation(dayProfile, weight.weightKg, year, measuredOn(day))
     val protein = dayProfile.calorieGoal?.let { goal ->
         calculateProteinRecommendation(
             weight.weightKg,
@@ -88,18 +95,19 @@ fun targetsOn(
 
 /**
  * The mean of the targets of [days] (e.g. the logged days of a period), each
- * with its own profile and weight. Null for a target no day has.
+ * with its own profile, weight and measured expenditure. Null for a target no day has.
  */
 fun averageTargets(
     profile: CalorieProfile,
     history: List<ProfilePeriod>,
     weights: List<DatedWeight>,
     days: List<String>,
+    measuredOn: MeasuredOn = NOT_MEASURED,
 ): AverageTargets {
     val calories = mutableListOf<TargetRange>()
     val proteins = mutableListOf<TargetRange>()
     for (day in days) {
-        val targets = targetsOn(profile, history, weights, day)
+        val targets = targetsOn(profile, history, weights, day, measuredOn)
         targets.calorie?.let { calories += TargetRange(it.targetMin, it.targetMax) }
         targets.protein?.let { proteins += TargetRange(it.range.min, it.range.max) }
     }

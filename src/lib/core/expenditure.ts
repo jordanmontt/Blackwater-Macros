@@ -1,4 +1,4 @@
-import { addDaysToKey, daysBetweenKeys } from "./dates";
+import { addDaysToKey, daysBetweenKeys, weekStartOf } from "./dates";
 import type { DataPoint } from "./stats";
 import type {
   CalorieRecommendation,
@@ -171,6 +171,59 @@ export function estimateExpenditure(
   today: string,
 ): ExpenditureEstimate | null {
   return measureExpenditure(intake, weights, today).estimate;
+}
+
+// --- The target follows the data ---
+
+/**
+ * One standard deviation of the profile's expenditure (BMR × activity factor)
+ * for one person, as a fraction of it. Mifflin-St Jeor alone predicts the
+ * basal rate within ±10 % for about 82 % of healthy adults (Frankenfield 2005),
+ * an SD of about 7.5 %; the activity factor adds its own error.
+ */
+export const FORMULA_SD = 0.1;
+
+/**
+ * The expenditure a target is built on: the profile's and the measured one
+ * combined by their precision (inverse-variance weighting, the usual way to
+ * combine two estimates of one quantity):
+ *
+ *   share = σ_profile² / (σ_profile² + σ_measured²),  σ_profile = 10 % × profile,  σ_measured = margin / 1.96
+ *   expenditure = profile + share × (measured − profile)
+ *
+ * Without a measurement it is the profile's; with daily weigh-ins the data
+ * weighs about 90 %. `dataShare` is `share` rounded to 2 decimals.
+ */
+export function combineExpenditure(
+  formulaTdee: number,
+  measured: ExpenditureEstimate | null,
+): { expenditure: number; dataShare: number } {
+  if (measured === null) return { expenditure: formulaTdee, dataShare: 0 };
+  const formulaVariance = (FORMULA_SD * formulaTdee) ** 2;
+  const measuredVariance = (measured.margin / Z_95) ** 2;
+  const share = formulaVariance / (formulaVariance + measuredVariance);
+  return {
+    expenditure: Math.round(formulaTdee + share * (measured.tdee - formulaTdee)),
+    dataShare: Math.round(share * 100) / 100,
+  };
+}
+
+/**
+ * The measured expenditure each day's target uses: the one taken at the start
+ * of its week (Monday, `weekStartOf`) from the 4 weeks before, so targets change
+ * once a week, not with every weigh-in. Memoized per week: Progreso asks for
+ * every day of a period.
+ */
+export function weeklyExpenditure(
+  intake: DataPoint[],
+  weights: DataPoint[],
+): (day: string) => ExpenditureEstimate | null {
+  const byWeek = new Map<string, ExpenditureEstimate | null>();
+  return (day) => {
+    const monday = weekStartOf(day);
+    if (!byWeek.has(monday)) byWeek.set(monday, estimateExpenditure(intake, weights, monday));
+    return byWeek.get(monday) ?? null;
+  };
 }
 
 // --- Checking the profile against the data ---

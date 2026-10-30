@@ -3,14 +3,17 @@ import { addDaysToKey } from "../../src/lib/core/dates";
 import {
   approximateGap,
   checkExpenditure,
+  combineExpenditure,
   dailyMeans,
   estimateExpenditure,
   fitWeightTrend,
   measureExpenditure,
   onlyWeighInsMissing,
   showsGapNotice,
+  weeklyExpenditure,
 } from "../../src/lib/core/expenditure";
 import type { DataPoint } from "../../src/lib/core/stats";
+import type { ExpenditureEstimate } from "../../src/lib/core/types";
 
 const TODAY = "2026-03-01";
 /** The date `n` days before TODAY (1 = yesterday, 28 = first day of the window). */
@@ -236,6 +239,52 @@ describe("checkExpenditure", () => {
     expect(missing(meals(28, 2400), weighIns(80, 0, 1, 13))).toEqual(["weightSpan"]);
     expect(missing(meals(28, 2400), weighIns(80, 0, 7))).toEqual(["margin"]);
     expect(missing(meals(10, 2400), weighIns(80, 0, 7))).toEqual(["meals", "margin"]);
+  });
+});
+
+describe("combineExpenditure", () => {
+  const measured = (tdee: number, margin: number): ExpenditureEstimate => ({
+    tdee,
+    margin,
+    avgIntake: 0,
+    weightChangePerWeek: 0,
+    loggedDays: 28,
+    weighIns: 28,
+    windowDays: 28,
+  });
+
+  it("without a measurement, it is the profile's", () => {
+    expect(combineExpenditure(2608, null)).toEqual({ expenditure: 2608, dataShare: 0 });
+  });
+
+  it("weighs each by its precision: profile 2608 ± 10 %, measured 3060 ± 214 → the data weigh 85 %", () => {
+    // σ 260.8 and 214 / 1.96 = 109.2: 260.8² / (260.8² + 109.2²) = 0.851 → 2608 + 0.851 × 452 = 2993
+    expect(combineExpenditure(2608, measured(3060, 214))).toEqual({ expenditure: 2993, dataShare: 0.85 });
+  });
+
+  it("the narrower the margin, the more the data count", () => {
+    expect(combineExpenditure(2600, measured(2600, 177)).dataShare).toBe(0.89); // daily weigh-ins
+    expect(combineExpenditure(2600, measured(2600, 272)).dataShare).toBe(0.78); // 3 a week
+    expect(combineExpenditure(2600, measured(2600, 300)).dataShare).toBe(0.74); // the widest shown
+    expect(combineExpenditure(2600, measured(3000, 0))).toEqual({ expenditure: 3000, dataShare: 1 });
+  });
+});
+
+describe("weeklyExpenditure", () => {
+  // TODAY (2026-03-01) is a Sunday: its week started on Monday 2026-02-23.
+  const intake = meals(40, 2500);
+  const weights = weighIns(80, -0.5, 1, 40);
+
+  it("every day of a week uses the measurement taken on its Monday", () => {
+    const measuredOn = weeklyExpenditure(intake, weights);
+    expect(measuredOn(TODAY)).toEqual(estimateExpenditure(intake, weights, "2026-02-23"));
+    expect(measuredOn("2026-02-23")).toBe(measuredOn(TODAY));
+    expect(measuredOn("2026-02-22")).toEqual(estimateExpenditure(intake, weights, "2026-02-16"));
+    expect(measuredOn("2026-02-22")).not.toEqual(measuredOn(TODAY));
+  });
+
+  it("is null until the data can support it", () => {
+    expect(weeklyExpenditure([], weights)(TODAY)).toBeNull();
   });
 });
 

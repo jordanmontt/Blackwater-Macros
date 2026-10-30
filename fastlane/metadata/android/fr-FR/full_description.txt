@@ -16,8 +16,8 @@
 <li>Votre niveau d’activité calculé d’après ce que vous faites vraiment (salle, marche) avec la méthode factorielle de la FAO/OMS, au lieu d’un vague « peu actif / très actif ».</li>
 <li>Une plage de calories pour votre objectif (perdre du gras, maintenir, prendre du muscle) qui ne descend jamais sous vos besoins de base.</li>
 <li>Des plages de protéines de la nutrition sportive, sur votre masse maigre si vous notez votre masse grasse.</li>
-<li>Votre dépense mesurée : après quelques semaines, l’app compare ce que vous avez mangé à l’évolution de votre poids et montre ce que vous dépensez réellement, avec sa marge d’erreur.</li>
-<li>Un contrôle de votre profil : si votre dépense mesurée s’en écarte nettement, l’app vous dit pourquoi, avec vos chiffres.</li>
+<li>Votre dépense mesurée : après quelques semaines, l’app compare ce que vous avez mangé à l’évolution de votre poids, mesure votre dépense réelle avec sa marge d’erreur et ajuste votre objectif chaque semaine.</li>
+<li>Un contrôle de votre profil : si votre dépense mesurée s’en écarte nettement, l’app vous explique pourquoi.</li>
 </ul>
 <p><b>Entièrement transparent :</b> chaque formule, ses sources et ses limites sont expliquées dans l’app (Méthodologie) ; vous pouvez vérifier chaque chiffre.</p>
 
