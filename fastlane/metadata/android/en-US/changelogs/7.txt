@@ -1,0 +1,4 @@
+• Your calorie target now adapts to you: after about 4 weeks, what you ate and how your weight moved measure what you really burn. Every Monday the target combines it with your profile's estimate; the more precise one counts more.
+• Eating more protein than the range is shown in grey, not as a warning: it's fine.
+• Tip: weigh yourself in the morning, always at the same time.
+• Export, import and delete now confirm when they're done.

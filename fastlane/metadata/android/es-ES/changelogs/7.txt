@@ -1,0 +1,4 @@
+• Tu objetivo de calorías ahora se adapta a ti: tras unas 4 semanas, lo que comiste y cómo cambió tu peso miden lo que de verdad gastas. Cada lunes el objetivo lo combina con la estimación de tu perfil; cuenta más la más precisa.
+• Comer más proteína que el rango se muestra en gris, no como aviso: no pasa nada.
+• Consejo: pésate por la mañana, siempre a la misma hora.
+• Exportar, importar y borrar ahora confirman cuando terminan.

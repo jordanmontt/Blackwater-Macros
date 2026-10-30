@@ -78,6 +78,13 @@ The two are signed with different keys, so an app from one can't update an app f
       text in [fdroid/merge-request.md](./fdroid/merge-request.md)). GitLab emails you when a
       reviewer comments; answer there. If they ask for the `TetheredNet` anti-feature (because
       of the sync server), accept it. After the merge the app appears within days.
+- [ ] **Reopen the F-Droid merge request on or after 24 November 2026.** It was closed on
+      2026-10-30: F-Droid wants [3 months of active development](https://f-droid.org/docs/Inclusion_Policy/#quality-control),
+      and the repository started on 2026-08-24. Before reopening: in the fork, update `master`
+      from upstream and rebase the branch `com.blackwatermacros.app` on it, put the latest tag
+      in its `metadata/com.blackwatermacros.app.yml` (copy `docs/fdroid/com.blackwatermacros.app.yml`),
+      wait for the pipeline to be green, then reopen !53565 with a short comment: actively
+      developed since 24 Aug 2026, with the number of releases since.
 - [ ] **Once it is on F-Droid:** replace «Coming soon to F-Droid» with the F-Droid badge and
       link (`https://f-droid.org/packages/com.blackwatermacros.app/`) in the README and in
       `website/index.html` (the line under the Download button), then push `main` so the
@@ -114,8 +121,10 @@ Example for a release `1.2.0`; use your own numbers.
 
 Once the app is merged on F-Droid, F-Droid needs nothing from you: its bot sees the new tag,
 adds it to the recipe in fdroiddata and publishes the build within a few days (status:
-https://monitor.f-droid.org). **While the merge request is still open**, the bot doesn't run:
-after the tag, change the `Builds` entry (`versionName`, `versionCode`, `commit` = the full hash
+https://monitor.f-droid.org). **Until then** (the merge request is closed until 24 Nov 2026,
+see above), after the tag update `docs/fdroid/com.blackwatermacros.app.yml` only; the fork
+catches up when the merge request is reopened. **While the merge request is open**, the bot
+doesn't run: after the tag, change the `Builds` entry (`versionName`, `versionCode`, `commit` = the full hash
 from `git rev-parse v1.2.0`) and `CurrentVersion`/`CurrentVersionCode` in the fork's
 `metadata/com.blackwatermacros.app.yml` (branch `com.blackwatermacros.app`) and in
 `docs/fdroid/com.blackwatermacros.app.yml`. Only the newest version stays in the recipe. The
