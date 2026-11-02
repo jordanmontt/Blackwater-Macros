@@ -30,6 +30,8 @@ data class FoodChoice(
     val source: String,
     /** Some macros were missing in the source and count as 0. */
     val incomplete: Boolean = false,
+    /** The barcode, for products (missing in recents saved before it existed). */
+    val code: String? = null,
 ) {
     val per100g: Per100g get() = Per100g(calories, protein, carbs, fat)
 }

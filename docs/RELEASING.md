@@ -58,6 +58,15 @@ The two are signed with different keys, so an app from one can't update an app f
   until it shows synced; then switch to the website APK as above. (Girlfriend's phone: done
   2026-10-21, the build stays installed for now.)
 
+- [ ] **Open Food Facts account for the app** (before the first release with «Add this product»).
+  Done 2026-11-01: the account `blackwater-macros-app` exists, their API usage form is filled in,
+  and its password is in `OFF_APP_PASSWORD` (`src/lib/core/new-product.ts` and
+  `android/core/src/main/kotlin/com/blackwatermacros/app/core/NewProduct.kt`; it is public on
+  purpose, like other open-source apps', and only says «sent by Blackwater Macros»; Open Food
+  Facts can block one install through `app_uuid` without blocking the app). Still to do:
+  try it first on their test server (docs/DEVELOPMENT.md: `NEXT_PUBLIC_OFF_SERVER` /
+  `-PoffServer`), with a test-server account in Settings → Open Food Facts, then add one real
+  product on the phone and check it on world.openfoodfacts.org.
 - [ ] **Vercel** → Settings → Git → Production Branch = `dev` (so pushes to `dev` deploy the web).
 - [ ] **Google and Bing** (so the website shows up in searches). The website already has
   `robots.txt` and `sitemap.xml`; nothing to change in the repository.

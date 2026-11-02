@@ -17,6 +17,7 @@ import com.blackwatermacros.app.data.ApiService
 import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.ai.AiClient
 import com.blackwatermacros.app.data.ai.AiSettingsStore
+import com.blackwatermacros.app.data.ai.LabelReader
 import com.blackwatermacros.app.data.ai.MealEstimator
 import com.blackwatermacros.app.data.ai.ModelListStore
 import com.blackwatermacros.app.data.ai.local.LocalEngine
@@ -24,7 +25,13 @@ import com.blackwatermacros.app.data.ai.local.LocalModelCatalog
 import com.blackwatermacros.app.data.ai.local.ModelRunGuard
 import com.blackwatermacros.app.data.ai.local.LocalModelManager
 import com.blackwatermacros.app.data.foods.GenericFoodsStore
+import com.blackwatermacros.app.data.foods.OffAccountStore
+import com.blackwatermacros.app.data.foods.OffUploader
 import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
+import com.blackwatermacros.app.data.foods.OwnProductState
+import com.blackwatermacros.app.data.foods.OwnProductStore
+import com.blackwatermacros.app.data.foods.OwnProducts
+import com.blackwatermacros.app.data.foods.scheduleOwnProductUploads
 import com.blackwatermacros.app.data.foods.RecentFoods
 import com.blackwatermacros.app.data.local.LocalDatabase
 import com.blackwatermacros.app.data.sync.SyncEngine
@@ -60,6 +67,11 @@ object AppGraph {
         private set
     lateinit var recentFoods: RecentFoods
         private set
+    /** Products added from a label, sent to Open Food Facts from the phone. */
+    lateinit var ownProducts: OwnProducts
+        private set
+    lateinit var labelReader: LabelReader
+        private set
     lateinit var aiSettings: AiSettingsStore
         private set
     lateinit var ai: AiClient
@@ -92,7 +104,10 @@ object AppGraph {
     fun refreshOnOpen() {
         backgroundScope.launch { runCatching { modelLists.refresh(aiSettings.current.config) } }
         backgroundScope.launch { updates.checkIfDue() }
+        if (ownProducts.store.products.value.any { it.state == OwnProductState.PENDING }) scheduleOwnProducts()
     }
+
+    private lateinit var scheduleOwnProducts: () -> Unit
 
     fun init(context: Context) {
         val baseUrl = BuildConfig.API_BASE_URL.let { if (it.endsWith("/")) it else "$it/" }
@@ -113,6 +128,13 @@ object AppGraph {
         genericFoods = GenericFoodsStore.fromAssets(context)
         openFoodFacts = OpenFoodFactsClient.create()
         recentFoods = RecentFoods(context)
+        scheduleOwnProducts = { scheduleOwnProductUploads(context) }
+        ownProducts = OwnProducts(
+            store = OwnProductStore.create(context),
+            account = OffAccountStore(context),
+            uploader = OffUploader.create(),
+            schedule = { scheduleOwnProducts() },
+        )
         aiSettings = AiSettingsStore(context)
         ai = AiClient.create()
         modelLists = ModelListStore(context.getSharedPreferences(ModelListStore.PREFS_NAME, Context.MODE_PRIVATE), fetch = ai::listModels)
@@ -122,6 +144,7 @@ object AppGraph {
         modelRunGuard = ModelRunGuard(context)
         localEngine = LocalEngine(context, modelRunGuard)
         mealEstimator = MealEstimator(ai, aiSettings, localEngine)
+        labelReader = LabelReader(ai, aiSettings, localEngine)
         updates = UpdateChecker(
             prefs = context.getSharedPreferences(UpdateChecker.PREFS_NAME, Context.MODE_PRIVATE),
             currentVersion = BuildConfig.VERSION_NAME,

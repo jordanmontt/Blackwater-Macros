@@ -3,7 +3,7 @@
 <p><b>Log a meal in seconds</b></p>
 <ul>
 <li>Search a built-in database of everyday foods, or millions of products on Open Food Facts.</li>
-<li>Scan a barcode.</li>
+<li>Scan a barcode. A product Open Food Facts doesn’t have? Add it from its label and it’s shared there for everyone.</li>
 <li>Type it by hand, ingredient by ingredient or just the total.</li>
 <li>Take a photo or describe the meal and let AI estimate the macros (optional, see below).</li>
 <li>Copy meals from another day or save your usual ones as templates.</li>
@@ -32,7 +32,7 @@
 
 <p><b>Private by design</b></p>
 <ul>
-<li>Your data stays on your phone. Without logging in, it never leaves the device: the app never contacts our server. It only goes online when you ask: food search and barcodes (Open Food Facts), the AI provider you chose (only what you send it), and the list or download of phone AI models (GitHub, Hugging Face).</li>
+<li>Your data stays on your phone. Without logging in, it never leaves the device: the app never contacts our server. It only goes online when you ask: food search, barcodes and the products you add (Open Food Facts), the AI provider you chose (only what you send it), and the list or download of phone AI models (GitHub, Hugging Face).</li>
 <li>No ads, no analytics, no trackers. Free software (AGPL-3.0).</li>
 <li>Export all your data in one readable file.</li>
 </ul>
@@ -46,4 +46,4 @@
 
 <p>Available in English, Spanish, French, Italian and German.</p>
 
-<p><b>Permissions:</b> internet (food search, AI, model download), camera (barcodes and meal photos, only when you use them), notifications and foreground service (progress of a model download).</p>
+<p><b>Permissions:</b> internet (food search, AI, model download), camera (barcodes, meal and label photos, only when you use them), notifications and foreground service (progress of a model download).</p>

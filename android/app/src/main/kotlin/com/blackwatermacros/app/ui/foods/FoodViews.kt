@@ -18,6 +18,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.TextButton
@@ -65,6 +68,8 @@ import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.mathRound
 import com.blackwatermacros.app.core.scalePer100g
 import com.blackwatermacros.app.data.foods.FoodChoice
+import com.blackwatermacros.app.data.foods.OwnProduct
+import com.blackwatermacros.app.data.foods.OwnProductState
 import com.blackwatermacros.app.ui.CompactField
 import com.blackwatermacros.app.ui.FieldLabel
 import com.blackwatermacros.app.ui.formatNumber
@@ -97,6 +102,7 @@ fun FoodSearchView(
         if (query.isEmpty()) {
             if (state.recents.isNotEmpty()) ResultGroup(stringResource(R.string.food_recent), state.recents, onPick)
         } else {
+            if (state.own.isNotEmpty()) ResultGroup(stringResource(R.string.food_your_products), state.own, onPick)
             if (state.generic.isNotEmpty()) ResultGroup(stringResource(R.string.food_generic), state.generic, onPick)
             when (val online = state.online) {
                 OnlineResults.Loading -> Hint(stringResource(R.string.food_searching))
@@ -104,7 +110,7 @@ fun FoodSearchView(
                 is OnlineResults.Done -> {
                     if (online.choices.isNotEmpty()) {
                         ResultGroup(stringResource(R.string.food_products), online.choices, onPick)
-                    } else if (state.generic.isEmpty()) {
+                    } else if (state.generic.isEmpty() && state.own.isEmpty()) {
                         Hint(stringResource(R.string.food_no_results, query))
                     }
                 }
@@ -175,9 +181,13 @@ private fun per100Text(choice: FoodChoice) =
     // Same rounding as the portion totals (JS Math.round), so 100 g shows the same kcal.
     stringResource(R.string.food_per_100, formatNumber(mathRound(choice.calories)), formatNumber(choice.protein, 1))
 
-/** How much of the chosen food (web `PortionPicker`). */
+/**
+ * How much of the chosen food (web `PortionPicker`). A product the user added
+ * ([own]) says so, can be edited ([onEdit]) and shows whether Open Food Facts
+ * has it yet.
+ */
 @Composable
-fun PortionView(choice: FoodChoice, onAdd: (grams: Double) -> Unit) {
+fun PortionView(choice: FoodChoice, own: OwnProduct? = null, onEdit: ((OwnProduct) -> Unit)? = null, onAdd: (grams: Double) -> Unit) {
     var text by rememberSaveable(choice.key) { mutableStateOf(toDecimalInput(choice.servingGrams ?: 100.0)) }
     val grams = text.replace(",", ".").toDoubleOrNull()
     val valid = grams != null && grams > 0 && grams <= 5000
@@ -192,6 +202,7 @@ fun PortionView(choice: FoodChoice, onAdd: (grams: Double) -> Unit) {
             )
             Text(per100Text(choice), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (choice.incomplete) Hint(stringResource(R.string.food_incomplete))
+            if (own != null) OwnProductLine(own, onEdit)
         }
         FieldLabel(stringResource(R.string.food_grams))
         CompactField(
@@ -226,6 +237,54 @@ fun PortionView(choice: FoodChoice, onAdd: (grams: Double) -> Unit) {
     }
 }
 
+/** «Tu producto · Editar» and whether Open Food Facts has it yet. */
+@Composable
+private fun OwnProductLine(own: OwnProduct, onEdit: ((OwnProduct) -> Unit)?) {
+    Spacer(Modifier.height(6.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            stringResource(R.string.new_product_yours),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .padding(horizontal = 8.dp, vertical = 2.dp),
+        )
+        Spacer(Modifier.weight(1f))
+        if (onEdit != null) {
+            TextButton(onClick = { onEdit(own) }) {
+                Icon(Icons.Filled.Edit, contentDescription = null, Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(stringResource(R.string.new_product_edit))
+            }
+        }
+    }
+    val sent = own.state == OwnProductState.SENT
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (sent) {
+            Icon(Icons.Filled.Check, contentDescription = null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(4.dp))
+        }
+        Text(
+            when (own.state) {
+                OwnProductState.SENT -> stringResource(R.string.new_product_status_sent)
+                // WorkManager sends it as soon as there is a connection.
+                OwnProductState.PENDING -> stringResource(R.string.new_product_status_pending)
+                OwnProductState.ACCOUNT -> stringResource(R.string.new_product_status_account)
+                OwnProductState.REJECTED -> stringResource(R.string.new_product_status_rejected) +
+                    own.detail.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty()
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = when (own.state) {
+                OwnProductState.SENT -> MaterialTheme.colorScheme.primary
+                OwnProductState.PENDING -> MaterialTheme.colorScheme.onSurfaceVariant
+                else -> MaterialTheme.colorScheme.error
+            },
+        )
+    }
+}
+
 @Composable
 private fun TotalCell(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -240,7 +299,9 @@ private fun TotalCell(label: String, value: String) {
  * is something to lose). Frames are analysed in memory and dropped: nothing is saved.
  * The camera only runs while waiting for a code: once a code gave nothing usable
  * it stays off (it would read the same label again and again), says why, and
- * offers the other ways in ([onSearchByName], [onPhoto]) or another scan.
+ * offers to add the product from its label ([onAddProduct]; not for a shop
+ * label, whose code changes with every package), the other ways in
+ * ([onSearchByName], [onPhoto]) or another scan.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -250,6 +311,7 @@ fun BarcodeView(
     onCodeChange: (String) -> Unit,
     onCode: (String) -> Unit,
     onScanAgain: () -> Unit,
+    onAddProduct: (BarcodeLookup.NotFound) -> Unit,
     onSearchByName: () -> Unit,
     onPhoto: () -> Unit,
 ) {
@@ -294,11 +356,19 @@ fun BarcodeView(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 if (lookup is BarcodeLookup.NotFound) {
+                    val canAdd = lookup.reason != BarcodeMiss.STORE_LABEL
                     Text(
-                        stringResource(R.string.food_not_found_next),
+                        stringResource(if (canAdd) R.string.food_not_found_add else R.string.food_not_found_next),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    if (canAdd) {
+                        Button(onClick = { onAddProduct(lookup) }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Filled.Add, contentDescription = null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.food_add_product))
+                        }
+                    }
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = onSearchByName) {

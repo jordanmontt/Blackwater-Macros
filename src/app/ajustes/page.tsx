@@ -15,6 +15,7 @@ import {
   InfoIcon,
   LogOutIcon,
   PaletteIcon,
+  PackagePlusIcon,
   PencilIcon,
   PlayCircleIcon,
   PlusIcon,
@@ -126,6 +127,12 @@ export default function AjustesPage() {
       <SettingsGroup title={t.ajustes.groupPersonal}>
         <SettingsRow icon={UserIcon} title={t.perfil.title} description={t.perfil.description} href="/ajustes/perfil" />
         <SettingsRow icon={SparklesIcon} title={t.ai.title} description={t.ai.linkSubtitle} href="/ajustes/ia" />
+        <SettingsRow
+          icon={PackagePlusIcon}
+          title={t.offAccount.title}
+          description={t.offAccount.linkSubtitle}
+          href="/ajustes/open-food-facts"
+        />
         {/* Collapsed by default: with many templates the list would take the whole page. */}
         <SettingsRow
           icon={BookmarkIcon}

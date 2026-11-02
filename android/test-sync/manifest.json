@@ -80,6 +80,11 @@
       "source": "src/lib/core/profile-history.ts",
       "ts": "tests/unit/profile-history.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/ProfileHistoryTest.kt"
+    },
+    {
+      "source": "src/lib/core/new-product.ts",
+      "ts": "tests/unit/new-product.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/NewProductTest.kt"
     }
   ]
 }

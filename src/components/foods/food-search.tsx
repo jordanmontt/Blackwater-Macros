@@ -6,6 +6,7 @@ import { SearchIcon, SparklesIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { searchGenericFoods, type FoodProduct, type GenericFood } from "@/lib/core/foods";
+import { newProductToFoodProduct, searchOwnProducts } from "@/lib/core/new-product";
 import { isDemoMode } from "@/lib/demo-store";
 import {
   genericChoice,
@@ -14,6 +15,7 @@ import {
   recentFoods,
   type FoodChoice,
 } from "@/lib/foods/foods-client";
+import { ownChoice, ownProduct, useOwnProducts } from "@/lib/foods/own-products";
 import { currentLanguage, formatTemplate, t } from "@/i18n";
 
 const ONLINE_MIN_CHARS = 3;
@@ -23,8 +25,9 @@ const ONLINE_DEBOUNCE_MS = 450;
 const onlineCache = new Map<string, FoodProduct[]>();
 
 /**
- * Search: generic foods first (offline, instant, Spanish names), then Open
- * Food Facts products (online, debounced). Recent picks when the box is empty.
+ * Search: the user's own products first (added from a label), then generic
+ * foods (offline, instant, Spanish names), then Open Food Facts products
+ * (online, debounced). Recent picks when the box is empty.
  */
 export function FoodSearch({
   onPick,
@@ -52,6 +55,11 @@ export function FoodSearch({
   }, []);
 
   const trimmed = query.trim();
+  const own = useOwnProducts();
+  const ownMatches = useMemo(
+    () => searchOwnProducts(own.map((item) => newProductToFoodProduct(item.product)), trimmed),
+    [own, trimmed],
+  );
   const genericMatches = useMemo(
     () => (generic && trimmed ? searchGenericFoods(generic, trimmed, currentLanguage(), 8) : []),
     [generic, trimmed],
@@ -107,6 +115,14 @@ export function FoodSearch({
         ) : null
       ) : (
         <>
+          {ownMatches.length > 0 ? (
+            <ResultGroup title={t.addFood.yourProducts}>
+              {ownMatches.map((product) => {
+                const item = ownProduct(product.code);
+                return item ? <ResultRow key={`own-${product.code}`} choice={ownChoice(item)} onPick={onPick} /> : null;
+              })}
+            </ResultGroup>
+          ) : null}
           {genericMatches.length > 0 ? (
             <ResultGroup title={t.addFood.generic}>
               {genericMatches.map((match) => (
@@ -124,7 +140,7 @@ export function FoodSearch({
           {waitingOnline ? <p className="text-xs text-muted-foreground">{t.addFood.searching}</p> : null}
           {onlineError ? <p className="text-xs text-muted-foreground">{t.addFood.onlineError}</p> : null}
           {isDemoMode() ? <p className="text-xs text-muted-foreground">{t.addFood.demoNoOnline}</p> : null}
-          {generic !== null && genericMatches.length === 0 && onlineProducts?.length === 0 ? (
+          {generic !== null && ownMatches.length === 0 && genericMatches.length === 0 && onlineProducts?.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
               {formatTemplate(t.addFood.noResults, { q: trimmed })}
             </p>

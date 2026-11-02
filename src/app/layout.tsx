@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AppNav } from "@/components/app-nav";
 import { DemoBanner } from "@/components/demo-banner";
 import { AiModelRefresh } from "@/components/ai-model-refresh";
+import { OwnProductUploads } from "@/components/own-product-uploads";
 import { PwaInstall } from "@/components/pwa-install";
 import { ThemeColorSync } from "@/components/theme-color-sync";
 import { OnboardingRedirect } from "@/components/onboarding-redirect";
@@ -60,6 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ThemeColorSync />
             <DemoBanner />
             <AiModelRefresh />
+            <OwnProductUploads />
             <PwaInstall />
             <AuthRedirect />
             <OnboardingRedirect />

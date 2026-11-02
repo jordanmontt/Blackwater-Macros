@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 11 and older. The AI keys never leave this phone (encrypted with a Keystore key that is not backed up anyway). -->
+<!-- Android 11 and older. The AI keys and the Open Food Facts password never leave this phone (encrypted with a Keystore key that is not backed up anyway). -->
 <full-backup-content>
     <exclude domain="sharedpref" path="ai_settings.xml" />
+    <exclude domain="sharedpref" path="off_account.xml" />
 </full-backup-content>

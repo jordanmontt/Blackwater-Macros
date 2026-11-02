@@ -41,6 +41,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.blackwatermacros.app.ui.AdminScreen
 import com.blackwatermacros.app.ui.AiSettingsScreen
+import com.blackwatermacros.app.ui.OffAccountScreen
 import com.blackwatermacros.app.ui.AppTab
 import com.blackwatermacros.app.ui.BlackwaterShapes
 import com.blackwatermacros.app.ui.BlackwaterTypography
@@ -288,6 +289,7 @@ private fun AppNavHost(
                 onOpenLogin = { navController.navigate("login") },
                 onOpenProfile = { navController.navigate("perfil") },
                 onOpenAi = { navController.navigate("ia") },
+                onOpenOpenFoodFacts = { navController.navigate("open-food-facts") },
                 onOpenTutorial = { navController.navigate(ONBOARDING_ROUTE) },
                 onOpenMetodologia = { navController.navigate("metodologia") },
                 onOpenAdmin = { navController.navigate("admin") },
@@ -301,6 +303,9 @@ private fun AppNavHost(
         }
         composable("ia") {
             AiSettingsScreen(onBack = { navController.popBackStack() })
+        }
+        composable("open-food-facts") {
+            OffAccountScreen(onBack = { navController.popBackStack() })
         }
         composable(
             "metodologia?section={section}",

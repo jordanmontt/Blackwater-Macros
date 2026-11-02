@@ -10,10 +10,14 @@ import {
   type GenericFood,
   type Per100g,
 } from "@/lib/core/foods";
+import { offKnownProduct } from "@/lib/core/new-product";
+import { OFF_SERVER, ownChoice, ownProduct } from "@/lib/foods/own-products";
 
 /** A food the user picked from search or a barcode, before choosing the portion. */
 export interface FoodChoice {
   key: string;
+  /** The barcode, for products (missing in recents saved before it existed). */
+  code?: string | null;
   name: string;
   brand: string | null;
   per100g: Per100g;
@@ -23,7 +27,7 @@ export interface FoodChoice {
   incomplete: boolean;
 }
 
-const OFF_PRODUCT_URL = "https://world.openfoodfacts.org/api/v2/product/";
+const OFF_PRODUCT_URL = `${OFF_SERVER}/api/v2/product/`;
 const OFF_FIELDS =
   "code,product_name,product_name_es,product_name_en,product_name_fr,product_name_de,product_name_it,generic_name,brands,serving_size,serving_quantity,nutriments";
 
@@ -44,26 +48,38 @@ export function loadGenericFoods(): Promise<GenericFood[]> {
   return genericFoods;
 }
 
-/** A barcode lookup: the product, or why there is none. */
-export type BarcodeResult = { product: FoodProduct } | { miss: BarcodeMiss };
+/**
+ * A barcode lookup: the product (`own`: one the user added, from this
+ * browser), or why there is none, with the name and brand Open Food Facts
+ * already has when it knows the product without nutrition.
+ */
+export type BarcodeResult =
+  | { choice: FoodChoice; own: boolean }
+  | { miss: BarcodeMiss; known: { name: string | null; brand: string | null } };
 
 /**
- * Looks a barcode up in Open Food Facts (browser request; the product API
- * allows it). Throws when offline.
+ * Looks a barcode up: first the products added in this browser (Open Food Facts
+ * may still answer «unknown» from its cache, or not have it yet), then Open Food
+ * Facts (browser request; the product API allows it). Throws when offline.
  */
 export async function lookupBarcode(code: string, lang: FoodLang = "es"): Promise<BarcodeResult> {
+  const own = ownProduct(code);
+  if (own) return { choice: ownChoice(own), own: true };
   const url = `${OFF_PRODUCT_URL}${encodeURIComponent(code)}.json?fields=${OFF_FIELDS}`;
   const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (response.status === 404) return { miss: barcodeMiss(code, null) };
+  if (response.status === 404) return { miss: barcodeMiss(code, null), known: { name: null, brand: null } };
   if (!response.ok) throw new Error(`Open Food Facts ${response.status}`);
   const json: unknown = await response.json();
   const product = parseOffProduct(json, lang);
-  return product ? { product } : { miss: barcodeMiss(code, json) };
+  return product
+    ? { choice: productChoice(product), own: false }
+    : { miss: barcodeMiss(code, json), known: offKnownProduct(json, lang) };
 }
 
 export function genericChoice(food: GenericFood, name: string): FoodChoice {
   return {
     key: food.id,
+    code: null,
     name,
     brand: null,
     per100g: food.per100g,
@@ -76,6 +92,7 @@ export function genericChoice(food: GenericFood, name: string): FoodChoice {
 export function productChoice(product: FoodProduct): FoodChoice {
   return {
     key: `off:${product.code ?? product.name}`,
+    code: product.code,
     name: product.name,
     brand: product.brand,
     per100g: product.per100g,

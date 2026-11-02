@@ -4,7 +4,9 @@ import com.blackwatermacros.app.BuildConfig
 import com.blackwatermacros.app.core.BarcodeMiss
 import com.blackwatermacros.app.core.FoodLang
 import com.blackwatermacros.app.core.FoodProduct
+import com.blackwatermacros.app.core.OffKnownProduct
 import com.blackwatermacros.app.core.barcodeMiss
+import com.blackwatermacros.app.core.offKnownProduct
 import com.blackwatermacros.app.core.parseOffProduct
 import com.blackwatermacros.app.core.parseOffSearch
 import kotlinx.coroutines.Dispatchers
@@ -16,10 +18,13 @@ import okhttp3.Request
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-/** A barcode lookup: the product, or why there is none. */
+/**
+ * A barcode lookup: the product, or why there is none, with the name and brand
+ * Open Food Facts already has when it knows the product without nutrition.
+ */
 sealed interface BarcodeResult {
     data class Found(val product: FoodProduct) : BarcodeResult
-    data class Missing(val reason: BarcodeMiss) : BarcodeResult
+    data class Missing(val reason: BarcodeMiss, val known: OffKnownProduct = OffKnownProduct(null, null)) : BarcodeResult
 }
 
 /**
@@ -29,7 +34,7 @@ sealed interface BarcodeResult {
  */
 class OpenFoodFactsClient(
     private val http: OkHttpClient,
-    private val productBaseUrl: String = "https://world.openfoodfacts.org/api/v2/product/",
+    private val productBaseUrl: String = "${BuildConfig.OFF_SERVER}/api/v2/product/",
     private val searchUrl: String = "https://search.openfoodfacts.org/search",
 ) {
     /** The product, or why there is none; throws [IOException] when offline or on errors. */
@@ -39,7 +44,8 @@ class OpenFoodFactsClient(
             if (response.code == 404) return@withContext BarcodeResult.Missing(barcodeMiss(code, null))
             if (!response.isSuccessful) throw IOException("Open Food Facts ${response.code}")
             val json = Json.parseToJsonElement(response.body!!.string())
-            parseOffProduct(json, lang)?.let { BarcodeResult.Found(it) } ?: BarcodeResult.Missing(barcodeMiss(code, json))
+            parseOffProduct(json, lang)?.let { BarcodeResult.Found(it) }
+                ?: BarcodeResult.Missing(barcodeMiss(code, json), offKnownProduct(json, lang))
         }
     }
 
@@ -64,7 +70,7 @@ class OpenFoodFactsClient(
         const val USER_AGENT_PREFIX = "BlackwaterMacros/"
 
         fun create(
-            productBaseUrl: String = "https://world.openfoodfacts.org/api/v2/product/",
+            productBaseUrl: String = "${BuildConfig.OFF_SERVER}/api/v2/product/",
             searchUrl: String = "https://search.openfoodfacts.org/search",
         ): OpenFoodFactsClient = OpenFoodFactsClient(
             OkHttpClient.Builder()

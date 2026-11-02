@@ -87,7 +87,7 @@ class ValidationTest {
         ) = addFoodHasUnsavedInput(view, photoText, photoCount, estimating, query, barcodeCode, copySelected)
 
         assertThat(AddFoodView.entries.map { unsaved(it) })
-            .containsExactly(false, false, false, false, true, false).inOrder() // only a chosen portion
+            .containsExactly(false, false, false, false, true, false, true).inOrder() // a chosen portion, a new product's form
         // The AI description and photos count everywhere: they survive the sheet's Back arrow.
         assertThat(unsaved(AddFoodView.PHOTO, photoText = "Arroz con pollo, un plato grande")).isTrue()
         assertThat(unsaved(AddFoodView.MENU, photoText = "Arroz con pollo")).isTrue()

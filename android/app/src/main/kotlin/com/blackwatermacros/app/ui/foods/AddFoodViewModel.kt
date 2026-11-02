@@ -8,12 +8,17 @@ import com.blackwatermacros.app.core.FoodLang
 import com.blackwatermacros.app.core.FoodProduct
 import com.blackwatermacros.app.core.GenericFood
 import com.blackwatermacros.app.core.GenericFoodMatch
+import com.blackwatermacros.app.core.OffKnownProduct
+import com.blackwatermacros.app.core.newProductToFoodProduct
 import com.blackwatermacros.app.core.searchGenericFoods
+import com.blackwatermacros.app.core.searchOwnProducts
 import com.blackwatermacros.app.data.foods.BarcodeResult
 import com.blackwatermacros.app.data.foods.FoodChoice
 import com.blackwatermacros.app.data.foods.GenericFoodsStore
 import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
+import com.blackwatermacros.app.data.foods.OwnProductStore
 import com.blackwatermacros.app.data.foods.RecentFoods
+import com.blackwatermacros.app.data.foods.toChoice
 import com.blackwatermacros.app.ui.appLocale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +50,8 @@ sealed interface OnlineResults {
 data class FoodSearchState(
     val query: String = "",
     val recents: List<FoodChoice> = emptyList(),
+    /** Products the user added from a label («Tus productos»), first. */
+    val own: List<FoodChoice> = emptyList(),
     val generic: List<FoodChoice> = emptyList(),
     val online: OnlineResults = OnlineResults.Idle,
 )
@@ -53,7 +60,7 @@ sealed interface BarcodeLookup {
     data object Idle : BarcodeLookup
     data object Loading : BarcodeLookup
     data class Found(val choice: FoodChoice) : BarcodeLookup
-    data class NotFound(val reason: BarcodeMiss) : BarcodeLookup
+    data class NotFound(val reason: BarcodeMiss, val known: OffKnownProduct = OffKnownProduct(null, null)) : BarcodeLookup
     data object Offline : BarcodeLookup
 }
 
@@ -73,6 +80,7 @@ fun GenericFoodMatch.toChoice() = FoodChoice(
 
 fun FoodProduct.toChoice() = FoodChoice(
     key = "off:${code ?: name}",
+    code = code,
     name = name,
     brand = brand,
     calories = per100g.calories,
@@ -86,14 +94,18 @@ fun FoodProduct.toChoice() = FoodChoice(
 
 /**
  * «Buscar» and «Código de barras» (web `FoodSearch` + `BarcodeScanner`):
- * generic foods first (offline, instant), then Open Food Facts (online,
- * debounced, cached per query), recents when the box is empty.
+ * the user's own products first (added from a label), then generic foods
+ * (offline, instant), then Open Food Facts (online, debounced, cached per
+ * query), recents when the box is empty. A barcode is looked up among the
+ * user's own products before Open Food Facts (which may still answer «unknown»
+ * from its cache).
  */
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class AddFoodViewModel(
     private val genericFoods: GenericFoodsStore = AppGraph.genericFoods,
     private val openFoodFacts: OpenFoodFactsClient = AppGraph.openFoodFacts,
     private val recentFoods: RecentFoods = AppGraph.recentFoods,
+    private val ownProducts: OwnProductStore = AppGraph.ownProducts.store,
     private val lang: () -> FoodLang = ::currentFoodLang,
 ) : ViewModel() {
 
@@ -129,9 +141,14 @@ class AddFoodViewModel(
         }
         .onStart { emit(OnlineResults.Idle) }
 
+    private val ownResults = combine(query, ownProducts.products) { q, list ->
+        val matches = searchOwnProducts(list.map { newProductToFoodProduct(it.product) }, q)
+        matches.mapNotNull { match -> ownProducts.get(match.code)?.toChoice() }
+    }
+
     val state: StateFlow<FoodSearchState> =
-        combine(query, recents, genericResults, onlineResults) { q, recent, generic, online ->
-            FoodSearchState(q, recent, generic, if (q.trim().length < ONLINE_MIN_CHARS) OnlineResults.Idle else online)
+        combine(query, recents, ownResults, genericResults, onlineResults) { q, recent, own, generic, online ->
+            FoodSearchState(q, recent, own, generic, if (q.trim().length < ONLINE_MIN_CHARS) OnlineResults.Idle else online)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), FoodSearchState())
 
     private val _barcode = MutableStateFlow<BarcodeLookup>(BarcodeLookup.Idle)
@@ -148,6 +165,9 @@ class AddFoodViewModel(
         recents.value = recentFoods.list()
     }
 
+    /** A product the user added (maybe edited since it went into the recents): its current values. */
+    fun current(choice: FoodChoice): FoodChoice = ownProducts.get(choice.code)?.toChoice() ?: choice
+
     fun remember(choice: FoodChoice) {
         recentFoods.remember(choice)
         recents.value = recentFoods.list()
@@ -156,12 +176,16 @@ class AddFoodViewModel(
     fun lookUpBarcode(code: String) {
         val digits = code.filter { it.isDigit() }
         if (digits.length < 6) return
+        ownProducts.get(digits)?.let {
+            _barcode.value = BarcodeLookup.Found(it.toChoice())
+            return
+        }
         _barcode.value = BarcodeLookup.Loading
         viewModelScope.launch {
             _barcode.value = try {
                 when (val result = openFoodFacts.product(digits, lang())) {
                     is BarcodeResult.Found -> BarcodeLookup.Found(result.product.toChoice())
-                    is BarcodeResult.Missing -> BarcodeLookup.NotFound(result.reason)
+                    is BarcodeResult.Missing -> BarcodeLookup.NotFound(result.reason, result.known)
                 }
             } catch (e: CancellationException) {
                 throw e

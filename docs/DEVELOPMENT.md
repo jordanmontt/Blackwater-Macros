@@ -46,6 +46,10 @@ cd android
 - **No Node needed:** the shared texts are read from `../src/i18n/*.json` by Gradle itself.
 - **Backend URL:** `BuildConfig.API_BASE_URL` (production by default; only used after logging
   in). Another one: `./gradlew :app:installDebug -Papp.baseUrl=http://10.0.2.2:3000/`.
+- **Open Food Facts:** `BuildConfig.OFF_SERVER` (the real one by default). To try «Añadir este
+  producto» without adding test products to the real database, build against their test
+  server, `-PoffServer=https://world.openfoodfacts.net`, and enter an account made on
+  that server in Settings → Open Food Facts (it doesn't share accounts with the real one).
 - **Emulator or phone:** `./gradlew :app:installDebug` then
   `adb shell am start -n com.blackwatermacros.app.debug/com.blackwatermacros.app.MainActivity`.
   Debug builds are `com.blackwatermacros.app.debug`, «Blackwater Macros (debug)» in the
@@ -69,6 +73,10 @@ npm run dev
 Node ≥ 20.19 (22 LTS recommended; on Node ≥ 25 run the tests with
 `NODE_OPTIONS=--no-experimental-webstorage`). The login page has **«Explora datos de demo»**:
 45 days of sample data kept only in the browser tab, no account needed.
+
+Trying «Añadir este producto» without touching the real Open Food Facts database:
+`NEXT_PUBLIC_OFF_SERVER=https://world.openfoodfacts.net npm run dev`, then enter an account
+made on that test server in Ajustes → Open Food Facts.
 
 ## Useful commands
 

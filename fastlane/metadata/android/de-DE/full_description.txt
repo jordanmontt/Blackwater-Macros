@@ -3,9 +3,9 @@
 <p><b>Eine Mahlzeit in Sekunden erfassen</b></p>
 <ul>
 <li>Suche in einer eingebauten Datenbank alltäglicher Lebensmittel oder unter Millionen Produkten von Open Food Facts.</li>
-<li>Scanne einen Barcode.</li>
+<li>Scanne einen Barcode. Produkt fehlt bei Open Food Facts? Füge es mit seiner Nährwerttabelle hinzu, es wird dort geteilt.</li>
 <li>Gib sie von Hand ein, Zutat für Zutat oder nur die Summe.</li>
-<li>Mach ein Foto oder beschreibe die Mahlzeit und lass die KI die Makros schätzen (optional, siehe unten).</li>
+<li>Mach ein Foto oder beschreibe die Mahlzeit und lass die KI die Makros schätzen.</li>
 <li>Kopiere Mahlzeiten von einem anderen Tag oder speichere deine üblichen als Vorlagen.</li>
 </ul>
 
@@ -13,7 +13,7 @@
 <p>Wissenschaft auf dem neuesten Stand, einfach erklärt: die Methoden der aktuellen Ernährungsforschung und der Sporternährung, nach ein paar Wochen mit deinem eigenen Gewicht überprüft.</p>
 <ul>
 <li>Dein Grundumsatz mit der Mifflin-St-Jeor-Gleichung.</li>
-<li>Dein Aktivitätsniveau berechnet aus dem, was du wirklich tust (Training, Gehen), mit der faktoriellen Methode der FAO/WHO statt eines vagen „wenig aktiv / sehr aktiv“.</li>
+<li>Dein Aktivitätsniveau berechnet aus dem, was du wirklich tust (Training, Gehen), mit der faktoriellen Methode der FAO/WHO.</li>
 <li>Ein Kalorienbereich für dein Ziel (Fett verlieren, halten, Muskeln aufbauen), der nie unter deinen Grundbedarf fällt.</li>
 <li>Eiweißbereiche aus der Sporternährungsforschung, bezogen auf deine fettfreie Masse, wenn du deinen Körperfettanteil erfasst.</li>
 <li>Dein gemessener Verbrauch: Nach einigen Wochen vergleicht die App, was du gegessen hast, mit dem Verlauf deines Gewichts, misst deinen echten Verbrauch mit Fehlerspanne und passt dein Ziel jede Woche an.</li>
@@ -32,7 +32,7 @@
 
 <p><b>Privat von Grund auf</b></p>
 <ul>
-<li>Deine Daten bleiben auf deinem Telefon. Ohne Anmeldung verlassen sie nie das Gerät: Die App kontaktiert nie unseren Server. Sie geht nur online, wenn du es willst: Lebensmittelsuche und Barcodes (Open Food Facts), der gewählte KI-Anbieter (nur was du ihm schickst) und KI-Modelle fürs Telefon (GitHub, Hugging Face).</li>
+<li>Deine Daten bleiben auf deinem Telefon. Ohne Anmeldung verlassen sie nie das Gerät: Die App kontaktiert nie unseren Server. Sie geht nur online, wenn du es willst: Suche, Barcodes und Produkte, die du hinzufügst (Open Food Facts), der gewählte KI-Anbieter (nur was du ihm schickst) und KI-Modelle fürs Telefon (GitHub, Hugging Face).</li>
 <li>Keine Werbung, keine Analyse, keine Tracker. Freie Software (AGPL-3.0).</li>
 <li>Exportiere alle deine Daten in einer lesbaren Datei.</li>
 </ul>
@@ -40,7 +40,7 @@
 <p><b>Ein Konto, wenn du willst</b></p>
 <ul>
 <li>Die App funktioniert vollständig ohne Konto. Mit einem Konto werden deine Daten auch in der Cloud gespeichert und zwischen deinen Geräten synchronisiert.</li>
-<li>Mehrere Konten auf einem Telefon: Wechsle mit einem Tippen, zum Beispiel um auch die Mahlzeiten deiner Familie einzutragen. Jedes Konto behält seine eigenen Daten.</li>
+<li>Mehrere Konten auf einem Telefon: Wechsle mit einem Tippen, zum Beispiel um auch die Mahlzeiten deiner Familie einzutragen.</li>
 <li>Konten gibt es vorerst nur auf Einladung.</li>
 </ul>
 

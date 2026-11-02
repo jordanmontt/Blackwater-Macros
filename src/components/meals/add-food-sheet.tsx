@@ -12,24 +12,37 @@ import { BarcodeScanner } from "@/components/foods/barcode-scanner";
 import { FoodSearch } from "@/components/foods/food-search";
 import { PhotoEstimate } from "@/components/foods/photo-estimate";
 import { PortionPicker } from "@/components/foods/portion-picker";
-import { productChoice, rememberFood, type FoodChoice } from "@/lib/foods/foods-client";
+import { NewProductForm } from "@/components/foods/new-product-form";
+import { rememberFood, type FoodChoice } from "@/lib/foods/foods-client";
+import { ownChoice, ownProduct, saveOwnProduct } from "@/lib/foods/own-products";
 import { foodToIngredient } from "@/lib/core/foods";
+import type { NewProduct } from "@/lib/core/new-product";
 import type { MealEstimate } from "@/lib/core/ai-schema";
 import { api } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { addDaysToKey } from "@/lib/core/dates";
 import { copyMealPayload } from "@/lib/meal-payload";
 import type { IngredientInput, MealDTO, MealTemplateDTO } from "@/lib/core/types";
-import { formatTemplate, t } from "@/i18n";
+import { currentLanguage, formatTemplate, t } from "@/i18n";
 
-type View = "menu" | "copy" | "search" | "barcode" | "portion" | "photo";
+type View = "menu" | "copy" | "search" | "barcode" | "portion" | "photo" | "newProduct";
+
+/** «Añadir este producto» (from a barcode miss) or «Editar» (from the portion screen). */
+interface ProductDraft {
+  code: string;
+  existing: boolean;
+  known: { name: string | null; brand: string | null };
+  initial: NewProduct | null;
+}
 
 /**
  * «Añadir comida»: every way to add food to `day`. Buscar and Código de barras
  * pick a food and its portion, then hand it over (`onFoodPicked`) for the
  * review form; Escribir a mano opens that form empty; Copiar de otro día and
  * the templates add meals directly (with Undo); holding a template (or a right
- * click) offers to edit or delete it, after the sheet closes. `pickOnly`: opened from the
+ * click) offers to edit or delete it, after the sheet closes. A barcode Open Food Facts
+ * doesn't have can be added from its label («Nuevo producto»), which then goes on to
+ * the portion like a found product. `pickOnly`: opened from the
  * review form to add one more food, so only Buscar and Código are offered.
  */
 const templateMenuItem =
@@ -69,10 +82,21 @@ export function AddFoodSheet({
   /** Set when the photo view was opened by «Estimar “…” con IA» from search. */
   const [estimateQuery, setEstimateQuery] = useState<string | null>(null);
 
+  const [draft, setDraft] = useState<ProductDraft | null>(null);
+  const [draftBack, setDraftBack] = useState<View>("barcode");
+
   function pick(next: FoodChoice, from: View) {
-    setChoice(next);
+    // A product the user added (maybe edited since it went into the recents): its current values.
+    const own = ownProduct(next.code);
+    setChoice(own ? ownChoice(own) : next);
     setBack(from);
     setView("portion");
+  }
+
+  function openDraft(next: ProductDraft, from: View) {
+    setDraft(next);
+    setDraftBack(from);
+    setView("newProduct");
   }
   const [busy, setBusy] = useState(false);
 
@@ -80,6 +104,7 @@ export function AddFoodSheet({
     if (!next) {
       setView("menu");
       setChoice(null);
+      setDraft(null);
       setEstimateQuery(null);
     }
     onOpenChange(next);
@@ -92,6 +117,7 @@ export function AddFoodSheet({
     barcode: t.addFood.barcode,
     portion: t.addFood.portionTitle,
     photo: t.photo.title,
+    newProduct: draft?.initial ? t.newProduct.editTitle : t.newProduct.title,
   };
 
   /** Creates the meals, closes the sheet and offers Undo. */
@@ -129,7 +155,15 @@ export function AddFoodSheet({
             size="icon-sm"
             aria-label={t.addFood.back}
             onClick={() => {
-              setView(view === "portion" ? back : view === "photo" && estimateQuery !== null ? "search" : "menu");
+              setView(
+                view === "portion"
+                  ? back
+                  : view === "newProduct"
+                    ? draftBack
+                    : view === "photo" && estimateQuery !== null
+                      ? "search"
+                      : "menu",
+              );
               setEstimateQuery(null);
             }}
           >
@@ -261,16 +295,41 @@ export function AddFoodSheet({
         />
       ) : view === "barcode" ? (
         <BarcodeScanner
-          onFound={(product) => pick(productChoice(product), "barcode")}
+          onFound={(found) => pick(found, "barcode")}
+          onAddProduct={(code, existing, known) => openDraft({ code, existing, known, initial: null }, "barcode")}
           onSearchByName={() => setView("search")}
           onPhoto={() => {
             setEstimateQuery(null);
             setView("photo");
           }}
         />
+      ) : view === "newProduct" && draft ? (
+        <NewProductForm
+          key={draft.code}
+          code={draft.code}
+          initial={draft.initial}
+          known={draft.known}
+          existing={draft.existing}
+          editing={draft.initial !== null}
+          onSave={(product, photo) => {
+            const saved = saveOwnProduct({ product, lang: currentLanguage(), existing: draft.existing, photo });
+            setChoice(ownChoice(saved));
+            // After saving, Back from the portion goes where the form came from, not to the form.
+            setBack(draftBack === "portion" ? back : draftBack);
+            setDraft(null);
+            setView("portion");
+          }}
+        />
       ) : view === "portion" && choice ? (
         <PortionPicker
+          key={choice.key + JSON.stringify(choice.per100g)}
           choice={choice}
+          onEdit={(own) =>
+            openDraft(
+              { code: own.product.code, existing: own.existing, known: { name: null, brand: null }, initial: own.product },
+              "portion",
+            )
+          }
           onAdd={(grams) => {
             rememberFood(choice);
             const ingredient = foodToIngredient(choice.name, choice.per100g, grams);

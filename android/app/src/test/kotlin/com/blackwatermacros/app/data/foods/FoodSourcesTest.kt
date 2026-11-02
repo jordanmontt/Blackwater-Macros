@@ -3,6 +3,7 @@ package com.blackwatermacros.app.data.foods
 import androidx.test.core.app.ApplicationProvider
 import com.blackwatermacros.app.core.BarcodeMiss
 import com.blackwatermacros.app.core.FoodLang
+import com.blackwatermacros.app.core.OffKnownProduct
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
@@ -65,7 +66,9 @@ class FoodSourcesTest {
         server.enqueue(MockResponse().setBody("""{"status":0}"""))
         assertThat(client.product("3033490004743", FoodLang.ES)).isEqualTo(BarcodeResult.Missing(BarcodeMiss.UNKNOWN))
         server.enqueue(MockResponse().setBody("""{"status":1,"product":{"product_name":"X","nutriments":{}}}"""))
-        assertThat(client.product("3033490004743", FoodLang.ES)).isEqualTo(BarcodeResult.Missing(BarcodeMiss.NO_NUTRITION))
+        // Known without nutrition: its name starts «Añadir este producto».
+        assertThat(client.product("3033490004743", FoodLang.ES))
+            .isEqualTo(BarcodeResult.Missing(BarcodeMiss.NO_NUTRITION, OffKnownProduct("X", null)))
         server.enqueue(MockResponse().setResponseCode(503))
         val failure = runCatching { client.product("3", FoodLang.ES) }.exceptionOrNull()
         assertThat(failure).isInstanceOf(IOException::class.java)

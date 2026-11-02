@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { BarcodeMiss, FoodProduct } from "@/lib/core/foods";
-import { lookupBarcode } from "@/lib/foods/foods-client";
+import type { BarcodeMiss } from "@/lib/core/foods";
+import { lookupBarcode, type FoodChoice } from "@/lib/foods/foods-client";
 import { currentLanguage, t } from "@/i18n";
 
 type Status = "starting" | "scanning" | "cameraError" | "lookingUp" | BarcodeMiss | "offline";
@@ -36,28 +37,36 @@ async function createDetector(): Promise<Detector> {
  * Scans a barcode with the camera (or takes it typed) and looks the product
  * up in Open Food Facts. The video is only shown on screen: nothing is saved.
  * The camera stops at the first code; when it gives nothing usable, says why
- * and offers the other ways (search by name, photo) or another scan.
+ * and offers to add the product from its label (`onAddProduct`: not for a
+ * shop label, whose code changes with every package), the other ways (search by
+ * name, photo) or another scan.
  */
 export function BarcodeScanner({
   onFound,
+  onAddProduct,
   onSearchByName,
   onPhoto,
 }: {
-  onFound: (product: FoodProduct) => void;
+  onFound: (choice: FoodChoice) => void;
+  onAddProduct: (code: string, existing: boolean, known: { name: string | null; brand: string | null }) => void;
   onSearchByName: () => void;
   onPhoto: () => void;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState<Status>("starting");
   const [code, setCode] = useState("");
+  const [known, setKnown] = useState<{ name: string | null; brand: string | null }>({ name: null, brand: null });
   const [attempt, setAttempt] = useState(0);
 
   async function lookUp(value: string) {
     setStatus("lookingUp");
     try {
       const result = await lookupBarcode(value, currentLanguage());
-      if ("product" in result) onFound(result.product);
-      else setStatus(result.miss);
+      if ("choice" in result) onFound(result.choice);
+      else {
+        setKnown(result.known);
+        setStatus(result.miss);
+      }
     } catch {
       setStatus("offline");
     }
@@ -136,7 +145,19 @@ export function BarcodeScanner({
             <br />
             {message}
           </p>
-          {status !== "offline" ? <p className="text-sm text-muted-foreground">{t.addFood.notFoundNext}</p> : null}
+          {status === "unknown" || status === "noNutrition" ? (
+            <>
+              <p className="text-sm text-muted-foreground">{t.addFood.notFoundAdd}</p>
+              <Button
+                className="w-full"
+                onClick={() => onAddProduct(code.replace(/\D/g, ""), status === "noNutrition", known)}
+              >
+                <PlusIcon /> {t.addFood.addProduct}
+              </Button>
+            </>
+          ) : status === "storeLabel" ? (
+            <p className="text-sm text-muted-foreground">{t.addFood.notFoundNext}</p>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={onSearchByName}>
               {t.addFood.searchByName}

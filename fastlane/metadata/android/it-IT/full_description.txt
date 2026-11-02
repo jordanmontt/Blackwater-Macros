@@ -3,9 +3,9 @@
 <p><b>Registra un pasto in pochi secondi</b></p>
 <ul>
 <li>Cerca in un database di alimenti comuni incluso nell’app, o tra milioni di prodotti di Open Food Facts.</li>
-<li>Scansiona un codice a barre.</li>
+<li>Scansiona un codice a barre. Non è su Open Food Facts? Aggiungilo con la sua tabella nutrizionale e viene condiviso lì.</li>
 <li>Scrivilo a mano, ingrediente per ingrediente o solo il totale.</li>
-<li>Scatta una foto o descrivi il pasto e lascia che l’IA stimi i macro (facoltativo, vedi sotto).</li>
+<li>Scatta una foto o descrivi il pasto e lascia che l’IA stimi i macro.</li>
 <li>Copia pasti da un altro giorno o salva quelli abituali come modelli.</li>
 </ul>
 
@@ -13,7 +13,7 @@
 <p>Scienza all’avanguardia, spiegata in parole semplici: i metodi della ricerca attuale sulla nutrizione e dei dietisti sportivi, verificati dopo qualche settimana con il tuo peso reale.</p>
 <ul>
 <li>Il tuo metabolismo basale con l’equazione di Mifflin-St Jeor.</li>
-<li>Il tuo livello di attività calcolato da quello che fai davvero (palestra, camminata) con il metodo fattoriale della FAO/OMS, invece di un vago «poco attivo / molto attivo».</li>
+<li>Il tuo livello di attività calcolato da quello che fai davvero (palestra, camminata) con il metodo fattoriale della FAO/OMS.</li>
 <li>Un intervallo di calorie per il tuo obiettivo (perdere grasso, mantenere, aumentare la massa) che non scende mai sotto il tuo fabbisogno basale.</li>
 <li>Intervalli di proteine dalla ricerca in nutrizione sportiva, calcolati sulla massa magra se registri la tua massa grassa.</li>
 <li>Il tuo dispendio misurato: dopo qualche settimana, l’app confronta quello che hai mangiato con l’andamento del peso, misura quanto consumi davvero con il suo margine di errore e regola l’obiettivo ogni settimana.</li>
@@ -32,7 +32,7 @@
 
 <p><b>Privata per progetto</b></p>
 <ul>
-<li>I tuoi dati restano sul telefono. Senza account non lasciano mai il dispositivo: l’app non contatta mai il nostro server. Si collega solo quando lo chiedi tu: ricerca di alimenti e codici a barre (Open Food Facts), il fornitore di IA scelto (solo ciò che gli invii), e i modelli di IA per il telefono (GitHub, Hugging Face).</li>
+<li>I tuoi dati restano sul telefono. Senza account non lasciano mai il dispositivo: l’app non contatta mai il nostro server. Si collega solo quando lo chiedi tu: ricerca, codici a barre e prodotti che aggiungi (Open Food Facts), il fornitore di IA scelto (solo ciò che gli invii), e i modelli di IA per il telefono (GitHub, Hugging Face).</li>
 <li>Niente pubblicità, niente analisi, niente tracker. Software libero (AGPL-3.0).</li>
 <li>Esporta tutti i tuoi dati in un file leggibile.</li>
 </ul>
@@ -40,7 +40,7 @@
 <p><b>Account, se ne vuoi uno</b></p>
 <ul>
 <li>L’app funziona completamente senza account. Con un account i tuoi dati sono conservati anche nel cloud e sincronizzati tra i tuoi dispositivi.</li>
-<li>Più account sullo stesso telefono: passa dall’uno all’altro con un tocco, per esempio per registrare anche i pasti della tua famiglia. Ogni account conserva i propri dati.</li>
+<li>Più account sullo stesso telefono: passa dall’uno all’altro con un tocco, per esempio per registrare anche i pasti della tua famiglia.</li>
 <li>Per ora gli account sono solo su invito.</li>
 </ul>
 

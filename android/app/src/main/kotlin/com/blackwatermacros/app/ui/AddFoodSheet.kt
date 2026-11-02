@@ -64,13 +64,20 @@ import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.TemplateDTO
 import com.blackwatermacros.app.data.WireIngredient
+import com.blackwatermacros.app.AppGraph
+import com.blackwatermacros.app.core.BarcodeMiss
 import com.blackwatermacros.app.data.foods.FoodChoice
+import com.blackwatermacros.app.data.foods.toChoice
 import com.blackwatermacros.app.core.foodToIngredient
 import com.blackwatermacros.app.ui.foods.AddFoodViewModel
 import com.blackwatermacros.app.ui.foods.BarcodeLookup
 import com.blackwatermacros.app.ui.foods.BarcodeView
 import com.blackwatermacros.app.ui.foods.FoodSearchView
+import com.blackwatermacros.app.ui.foods.NewProductView
+import com.blackwatermacros.app.ui.foods.NewProductViewModel
 import com.blackwatermacros.app.ui.foods.PortionView
+import com.blackwatermacros.app.ui.foods.ProductDraft
+import com.blackwatermacros.app.ui.foods.currentFoodLang
 import com.blackwatermacros.app.ui.foods.PhotoEstimateState
 import com.blackwatermacros.app.ui.foods.PhotoEstimateView
 import com.blackwatermacros.app.ui.foods.PhotoEstimateViewModel
@@ -80,7 +87,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.Flow
 
-internal enum class AddFoodView { MENU, COPY, SEARCH, BARCODE, PORTION, PHOTO }
+internal enum class AddFoodView { MENU, COPY, SEARCH, BARCODE, PORTION, PHOTO, NEW_PRODUCT }
 
 /**
  * Whether closing «Añadir comida» now would lose something the user entered. The
@@ -100,7 +107,7 @@ internal fun addFoodHasUnsavedInput(
         when (view) {
             AddFoodView.SEARCH -> query.isNotBlank()
             AddFoodView.BARCODE -> barcodeCode.isNotBlank()
-            AddFoodView.PORTION -> true
+            AddFoodView.PORTION, AddFoodView.NEW_PRODUCT -> true
             AddFoodView.COPY -> copySelected > 0
             AddFoodView.MENU, AddFoodView.PHOTO -> false
         }
@@ -111,7 +118,9 @@ internal fun addFoodHasUnsavedInput(
  * ([onFoodPicked]) for the review form; Escribir a mano opens that form empty;
  * Copiar de otro día and the templates add meals directly (the caller offers
  * Undo); holding a template offers to edit or delete it ([onEditTemplate],
- * [onDeleteTemplate], after the sheet closes). [pickOnly]: opened from the review form to add one more food, so only
+ * [onDeleteTemplate], after the sheet closes). A barcode Open Food Facts doesn't have can be
+ * added from its label («Nuevo producto»), which then goes on to the portion like a found
+ * product and is sent to Open Food Facts. [pickOnly]: opened from the review form to add one more food, so only
  * Buscar and Código are offered. Swipe down or tap outside closes it; once
  * something was entered (an AI description, photos, a search…) it asks first
  * ([GuardedBottomSheet]).
@@ -135,10 +144,20 @@ fun AddFoodSheet(
     pickOnly: Boolean = false,
     foods: AddFoodViewModel = viewModel(),
     photo: PhotoEstimateViewModel = viewModel(),
+    newProduct: NewProductViewModel = viewModel(),
 ) {
     var view by rememberSaveable { mutableStateOf(AddFoodView.MENU) }
     var back by rememberSaveable { mutableStateOf(AddFoodView.MENU) }
     var choice by remember { mutableStateOf<FoodChoice?>(null) }
+    var draft by remember { mutableStateOf<ProductDraft?>(null) }
+    var draftBack by remember { mutableStateOf(AddFoodView.BARCODE) }
+    val ownProducts by AppGraph.ownProducts.store.products.collectAsStateWithLifecycle()
+    fun openDraft(next: ProductDraft, from: AddFoodView) {
+        newProduct.start(next)
+        draft = next
+        draftBack = from
+        view = AddFoodView.NEW_PRODUCT
+    }
     val searchState by foods.state.collectAsStateWithLifecycle()
     val barcode by foods.barcode.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
@@ -195,6 +214,7 @@ fun AddFoodSheet(
                     IconButton(onClick = {
                         view = when {
                             view == AddFoodView.PORTION -> back
+                            view == AddFoodView.NEW_PRODUCT -> draftBack
                             view == AddFoodView.PHOTO && fromSearch -> AddFoodView.SEARCH
                             else -> AddFoodView.MENU
                         }
@@ -212,6 +232,7 @@ fun AddFoodSheet(
                             AddFoodView.BARCODE -> R.string.food_barcode
                             AddFoodView.PORTION -> R.string.food_portion_title
                             AddFoodView.PHOTO -> R.string.photo_title
+                            AddFoodView.NEW_PRODUCT -> if (draft?.initial != null) R.string.new_product_edit_title else R.string.new_product_title
                         },
                     ),
                     style = MaterialTheme.typography.titleLarge,
@@ -297,7 +318,7 @@ fun AddFoodSheet(
                     view = AddFoodView.PHOTO
                 },
             ) {
-                choice = it
+                choice = foods.current(it)
                 back = AddFoodView.SEARCH
                 view = AddFoodView.PORTION
             }
@@ -325,6 +346,16 @@ fun AddFoodSheet(
                     barcodeCode = ""
                     foods.clearBarcode()
                 },
+                onAddProduct = { missed ->
+                    openDraft(
+                        ProductDraft(
+                            code = barcodeCode.filter(Char::isDigit),
+                            existing = missed.reason == BarcodeMiss.NO_NUTRITION,
+                            known = missed.known,
+                        ),
+                        AddFoodView.BARCODE,
+                    )
+                },
                 onSearchByName = {
                     barcodeCode = ""
                     foods.clearBarcode()
@@ -337,8 +368,25 @@ fun AddFoodSheet(
                     view = AddFoodView.PHOTO
                 },
             )
+            AddFoodView.NEW_PRODUCT -> draft?.let { current ->
+                NewProductView(current, newProduct) { product, jpeg ->
+                    val saved = AppGraph.ownProducts.save(product, currentFoodLang(), current.existing, jpeg)
+                    choice = saved.toChoice()
+                    // After saving, Back from the portion goes where the form came from, not to the form.
+                    if (draftBack != AddFoodView.PORTION) back = draftBack
+                    draft = null
+                    view = AddFoodView.PORTION
+                }
+            }
             AddFoodView.PORTION -> choice?.let { picked ->
-                PortionView(picked) { grams ->
+                val own = ownProducts.firstOrNull { it.code == picked.code }
+                PortionView(
+                    picked,
+                    own = own,
+                    onEdit = { item ->
+                        openDraft(ProductDraft(code = item.code, existing = item.existing, initial = item.product), AddFoodView.PORTION)
+                    },
+                ) { grams ->
                     foods.remember(picked)
                     val ingredient = foodToIngredient(picked.name, picked.per100g, grams)
                     onDismiss()

@@ -55,7 +55,9 @@ src/
     ui/*                    # shadcn/ui primitives (Base UI based)
     meals/*                 # DayNavigator, MealCard, MealForm (review form), AddFoodSheet («Añadir comida»)
     ui/sheet.tsx            # Bottom sheet on phones (drag down / outside / Esc closes), dialog from sm
-    foods/*                 # FoodSearch, PortionPicker, BarcodeScanner (search / barcode in «Añadir comida»)
+    foods/*                 # FoodSearch, PortionPicker, BarcodeScanner (search / barcode in «Añadir comida»),
+                            #   NewProductForm («Añadir este producto»: a label Open Food Facts doesn't have, §8.5)
+    own-product-uploads.tsx # Sends the products added from a label when the app opens / comes back online
     nutrition-recommendations.tsx  # Merged calorie + protein recommendations card (Comidas page)
     weight-fat-chart.tsx          # Combined weight (kg) + body fat (%) chart with trend line
     demo-banner.tsx         # Persistent "demo mode" banner + exit to login
@@ -68,6 +70,7 @@ src/
     api.ts demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
     meal-payload.ts         # A meal's/template's content as sent and stored (mealContent, storedMealContent)
     local-json-store.ts     # A JSON value in localStorage as a useSyncExternalStore store (AI settings, model lists)
+    foods/own-products.ts   # Products added from a label: kept in this browser, sent straight to Open Food Facts (§8.5)
   i18n/<lang>.json          # ALL user-facing copy, es (the reference) en fr it de; Android reads them too (§6 i18n)
   i18n/<lang>.ts            # Typed wrappers: every language has the shape of es (tests/unit/i18n.test.ts)
   i18n/languages.ts format.ts   # Language list + cookie/Accept-Language choice; locale-aware dates, the one number format
@@ -700,6 +703,8 @@ Barcode lookups do not use this route: the product API allows browser requests, 
 web calls `https://world.openfoodfacts.org/api/v2/product/<code>.json` directly and
 Android calls it with its own User-Agent. Open Food Facts limits searches to about
 10/min per IP; the web debounces (450 ms, ≥ 3 characters) and caches per query.
+Products added from a label are written to Open Food Facts the same way, straight from the
+browser or the phone, never through this server (§8.5).
 
 ### 5.10 Settings
 
@@ -833,8 +838,9 @@ expired and keeps local data. Statistics are computed on the phone, so `/api/sta
 |---|---|---|
 | Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), single daily-totals card, merged calorie + protein recommendations card (average, BMR, TDEE, progress bars; a past day shows the targets it had, §8.1.1), meal list (each card: edit, «Guardar como plantilla» — saved at once under the meal's title via `mealContent`, with an Undo toast that deletes it — and delete), delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast. Holding a template (or a right click: Base UI `ContextMenu`; Android `TemplateChip`, a long-press `DropdownMenu`) offers Editar and Borrar without going to Ajustes: the sheet closes, then the page shows `TemplateForm` or the delete confirm with an Undo (`restoreTemplate`), as Ajustes does |
 | Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight/fat chart; daily calories chart (logged days only) with the target band (it steps where a day's target changed, §8.1.1); «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets = mean of the logged days' own targets, measured expenditure); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
-| Ajustes | `app/ajustes/page.tsx` | A grouped list, the same as Android: a short heading per group and one card of rows (`components/settings/settings-list.tsx`: `SettingsGroup`, `SettingsRow` — icon, title, a line under it, an arrow or a control), every setting on the page and one tap away. **Cuenta** (who is logged in, logout), **Personal** (Perfil, IA, templates: collapsed, with the manager and the new-template dialog), **Tus datos** («Exportar mis datos», one file, §5.11; no import on the web), **Aplicación** (theme, the only place to switch it; language, `language-row.tsx`; the tutorial), **Acerca de** (Metodología, the website `WEBSITE_URL` from `lib/links.ts`, source code, «Administración» for admins) |
+| Ajustes | `app/ajustes/page.tsx` | A grouped list, the same as Android: a short heading per group and one card of rows (`components/settings/settings-list.tsx`: `SettingsGroup`, `SettingsRow` — icon, title, a line under it, an arrow or a control), every setting on the page and one tap away. **Cuenta** (who is logged in, logout), **Personal** (Perfil, IA, Open Food Facts, templates: collapsed, with the manager and the new-template dialog), **Tus datos** («Exportar mis datos», one file, §5.11; no import on the web), **Aplicación** (theme, the only place to switch it; language, `language-row.tsx`; the tutorial), **Acerca de** (Metodología, the website `WEBSITE_URL` from `lib/links.ts`, source code, «Administración» for admins) |
 | IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly |
+| Open Food Facts | `app/ajustes/open-food-facts/page.tsx` | The user's own Open Food Facts account for the products they add (checked with `/cgi/auth.pl`, then kept in `localStorage["bw:off-account"]`, this browser only); without one they go as Blackwater Macros (§8.5) |
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector with one line on what the goal does (§8.2.1), calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
@@ -1251,6 +1257,62 @@ rest of the calorie profile.
   only barcode source: the largest open database (strongest in France and Europe), free
   to reuse (ODbL). The alternatives either have no nutrition (UPCitemdb), cover only the
   US (USDA Branded Foods) or forbid reuse (commercial APIs).
+- **«Añadir este producto»** (an unknown code, or one Open Food Facts has without
+  nutrition; not a shop label, whose code changes with every package): the main button of
+  the miss card opens «Nuevo producto» (web `NewProductForm`, Android `NewProductView`),
+  which then goes on to the portion like a found product. Pure part in `core/new-product.ts`
+  = Kotlin `NewProduct.kt` (mirrored tests):
+  - **The label as printed:** name (required; Open Food Facts' own name and brand when it
+    knows the product), brand, «per 100 g / 100 ml / a serving» with the serving size as
+    text («200 ml», read by `parseServingGrams`; required per serving, optional otherwise,
+    then it adds «1 ración»), kcal and protein required, carbs and fat optional (0).
+    `newProductPer100g` converts a serving to per 100 (Bolivian milk is labelled per
+    200 ml); `newProductProblems` refuses what is impossible for 100 g (> 900 kcal or
+    > 100 g of nutrients: a misplaced digit or the wrong basis).
+  - **Photo of the label:** optional, one, downscaled like «Foto o texto». With AI set up
+    for photos it is read (`buildLabelReadingSystemPrompt`, `parseLabelReading`: copy the
+    numbers as printed, never estimate, null when unreadable; web `lib/ai/label.ts`,
+    Android `LabelReader`) and fills the form for the user to check. It also goes to Open
+    Food Facts as the nutrition image, so its volunteers can check the values.
+  - **Sent to Open Food Facts, not to us:** straight from the browser (their write
+    endpoints allow any origin) or the phone, never through the Blackwater server, with or
+    without a Blackwater account. `POST /cgi/product_jqm2.pl` with `offProductFields` (the
+    label as printed: `nutrition_data_per`, `serving_size`, `nutriment_<id>` + unit;
+    `add_brands`, never replacing; a product Open Food Facts already had keeps its name),
+    then `POST /cgi/product_image_upload.pl` (`imagefield=nutrition_<lang>`, the JPEG as
+    `imgupload_nutrition_<lang>`). Their answers: `offFieldsOutcome` / `offImageOutcome`
+    (ok, retry on 408/429/5xx/offline, account, rejected). Open Food Facts no longer takes
+    anonymous edits («no user credentials»), so every write carries an account: the
+    shared `blackwater-macros-app` (`OFF_APP_USER_ID`/`OFF_APP_PASSWORD` in both cores; the
+    password is public on purpose, as in other open-source apps: it only says «sent by this
+    app», RELEASING.md), or the user's own from Ajustes → Open Food Facts. Each write also
+    sends `app_name`, `app_version` and `app_uuid` (a random id per install/browser, so
+    moderators can block one install, not the app). Without the app password everything
+    stays pending.
+  - **Kept on the device:** web `localStorage["bw:own-products"]` (`lib/foods/own-products.ts`),
+    Android `own_products` prefs (`data/foods/OwnProducts.kt`); 50 at most (the oldest sent
+    ones are forgotten). Not synced: Open Food Facts is where the product lives. The copy
+    exists because a write can fail (Open Food Facts asks apps to queue writes until
+    confirmed) and because Open Food Facts caches lookups, «not found» included (a second
+    request for an unknown code came back `x-cache-status: HIT`), so the next scan checks
+    the device first (`lookupBarcode` / `AddFoodViewModel.lookUpBarcode`). It also gives
+    «Tu producto · Editar» on the portion screen (only on the device that added it), the
+    status line (added / will be sent when online / the account or the product refused)
+    and «Tus productos» first in search (`searchOwnProducts`). An edit is sent again.
+  - **The photo** waits only until Open Food Facts has it: web in the same record (base64),
+    Android in `noBackupFilesDir/off-photos`, deleted once sent (or refused for good).
+  - **When it is sent:** web right after saving, when the app opens and on `online`
+    (`OwnProductUploads` in the layout); Android through WorkManager (`OwnProductUploadWorker`,
+    unique work `own-products`, needs a connection, linear backoff), enqueued on save, on
+    an account change and on open when something is pending.
+  - **The user's own account** (optional): checked with `POST /cgi/auth.pl`; web
+    `localStorage["bw:off-account"]`, Android `off_account` prefs with the password
+    AES-GCM-encrypted by a Keystore key and the file excluded from backups (like the AI
+    keys). Products the old account couldn't send are tried again.
+  - **Trying it** without touching the real database: their test server,
+    `NEXT_PUBLIC_OFF_SERVER=https://world.openfoodfacts.net` (web) /
+    `-PoffServer=https://world.openfoodfacts.net` (Android), with a test-server account
+    entered in Ajustes → Open Food Facts (production and test accounts are separate).
 - A picked food + grams becomes one ingredient row (`foodToIngredient`) in the review
   form; inside the form «Buscar alimento» appends more. Recent picks: `localStorage`
   (web) / SharedPreferences (Android), 20 max.
@@ -1265,7 +1327,9 @@ rest of the calorie profile.
 3. **API keys never leave the device/browser** except to the chosen provider: not synced, not
    sent to the Blackwater server, excluded from Android backups.
 4. **Photos are never stored:** kept in memory (or a cache file deleted at once), downscaled,
-   sent, discarded — never in the gallery, the database or the server.
+   sent, discarded — never in the gallery, the database or the server. The one exception is
+   the label photo of a product the user adds (§8.5): it is published on Open Food Facts,
+   sent straight there, and waits on the device only until it is sent.
 5. **Manual entry stays first-class:** both modes (`per_ingredient`, `total_only`) keep working;
    AI, barcode and search only fill the same review form.
 6. **F-Droid clean:** only free-software dependencies (no Google Play Services, ML Kit, Firebase).
@@ -1287,6 +1351,7 @@ rest of the calorie profile.
 | D10 | Web keys in that browser's `localStorage`; the browser calls the provider directly. |
 | D11 | The coach receives a compact summary of the user's data, toggle «El coach puede ver mis datos» (on by default). |
 | D12 | First steps: on a fresh Android install / first web login with an incomplete profile; «Iniciar sesión» first on Android. |
+| D13 | A product Open Food Facts lacks is added from its label and always sent to Open Food Facts (no «this device only» option: the text above Save is the consent), with the app's shared account or the user's own; the device keeps only a copy for the next scan, editing and pending uploads (§8.5). |
 
 **What the coach sees** (`buildCoachContext`, core, exact text tested): profile (the goal
 worded by whether the user does strength training, plus a recomposition note when they do,
@@ -1567,6 +1632,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `profile-history.test.ts` | `withProfileChange`, `profileOn`, `weightOn`, `bodyFatOn`, `targetsOn`, `averageTargets` (each day with its week's measurement) | `ProfileHistoryTest.kt` |
 | `expenditure.test.ts` | `estimateExpenditure`, `measureExpenditure`, `fitWeightTrend`, `dailyMeans`, `checkExpenditure` (verdicts, confirmation, what is missing), `showsGapNotice`, `onlyWeighInsMissing`, `approximateGap`, `combineExpenditure`, `weeklyExpenditure` | `ExpenditureTest.kt` |
 | `foods.test.ts` | portions, Open Food Facts parsing, shop labels and why a barcode missed, `searchGenericFoods` | `FoodsTest.kt` |
+| `new-product.test.ts` | «Añadir este producto»: per serving → per 100, form problems, the Open Food Facts write fields and answers, `offKnownProduct`, `searchOwnProducts`, reading a label with AI | `NewProductTest.kt` |
 | `ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), answer and stream parsing, how a stream ended (`parseAiStreamEnd`), `aiErrorKind` | `AiProvidersTest.kt` |
 | `ai-models.test.ts` | `buildModelListRequest`, `parseModelList`, `naturalCompare` | `AiModelsTest.kt` |
 | `ai-schema.test.ts` | `parseMealEstimate`, prompts, `estimateToIngredients` | `AiSchemaTest.kt` |
@@ -1607,7 +1673,8 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls (also each period of `profileHistory`; no history = key left out), admin; status codes and error envelopes |
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.json`) |
 | `data/BackupImportTest.kt` | Reads the web's export file; not an export, a newer format, and one wrong value (with where it is) refuse the whole file; text trimmed as the server stores it |
-| `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, why a code missed, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
+| `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, why a code missed and the name it already knows, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
+| `data/foods/OwnProductsTest.kt` | «Añadir este producto» (mirrors `add-food-new-product.test.tsx`): values then the label photo go to Open Food Facts with the app's or the user's account and the photo file is deleted; offline / 503 waits and the next run sends it; a refused account is retried after changing it; a refused product says why and stops; an edit is sent again; nothing is sent without the app password; the account check; the password encrypted and kept out of backups |
 | `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; a stream cut by the token limit, by an error inside the stream or by the connection fails after the text that arrived, even when the screen reads slowly; keys encrypted per provider; AI prefs excluded from backups |
 | `data/ai/ModelListStoreTest.kt` | The model dropdown's list: reused for a day, asked again when old, forced or for another key; survives a restart; never stores the key |
 | `data/ai/MealEstimatorTest.kt` | «Foto o texto»: photos + description → one JSON request (mirrors `add-food-photo.test.tsx`); unreadable answers; the language told to the model; photo downscale; the camera FileProvider only reaches the temporary folder |
@@ -1641,6 +1708,7 @@ Web behavior tests describe user requirements; when one exists on both platforms
 | `progreso-page` | `ProgressLogicTest` |
 | `recommendations-card`, `perfil-page` | `ValidationTest` (`recommend`) |
 | `coach-page`, `add-food-photo`, `ai-settings`, `onboarding` | `CoachTest`, `MealEstimatorTest`, `AiClientTest` + `ModelListStoreTest`, `OnboardingTest` |
+| `add-food-new-product` | `OwnProductsTest` (the form itself: not automated, checked on a device) |
 | `unit/local-models-catalog` | `LocalModelCatalogTest` |
 | other `*-page.test.tsx` (screens) | not automated — Compose UI tests are a known gap; screens are checked on a device |
 
@@ -1766,7 +1834,7 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
 - **Settings:** the web's grouped list (`SettingsGroup` / `SettingsRow` in
   `SettingsComponents.kt`, rows are Material `ListItem`s): **Cuenta** (sync status, sync
   now, switch or add an account, logout; logged out, one «Iniciar sesión» row), **Personal**
-  (Perfil, IA, templates), **Tus datos** (export; import only without an account, §5.11; delete all), **Aplicación** (theme,
+  (Perfil, IA, Open Food Facts, templates), **Tus datos** (export; import only without an account, §5.11; delete all), **Aplicación** (theme,
   language, «Check for updates» in own-key builds, tutorial), **Acerca de** (Metodología,
   website `BuildConfig.WEBSITE_URL`, source code, donate, Admin). Every row has an icon and
   is one tap away. Goal, body data and recommendations live in a pushed **Perfil** page
@@ -1863,6 +1931,8 @@ app/src/main/kotlin/com/blackwatermacros/app/
     sync/SyncEngine.kt       # push + pull, typed SyncOutcome/SyncProblem, never throws
     sync/SyncScheduler.kt    # SyncScheduler interface + WorkManager implementation + SyncWorker
     update/UpdateChecker.kt  # «A new version is available» for the website APK only (§14.1)
+    foods/OwnProducts.kt     # products added from a label: store, Open Food Facts account, uploader (§8.5)
+    foods/OwnProductUploads.kt # WorkManager job that sends them when there is a connection
     ApiService.kt, ApiClient.kt, WireModels.kt, JsonConfig.kt (profileBody: explicit nulls),
     AccountInterceptor.kt (Bearer token; nothing but login without an account),
     ResponseErrorMapper.kt (admin error messages)
@@ -1872,6 +1942,8 @@ app/src/main/kotlin/com/blackwatermacros/app/
                                             #   (`toCopyTemplateRequest`), undo delete/add/save
     AddFoodSheet.kt                         # «Añadir comida»: search, barcode, manual, copy, templates (hold: edit/delete)
     foods/AddFoodViewModel.kt, FoodViews.kt # search (generic + Open Food Facts), portion, CameraX + zxing-cpp scanner
+    foods/NewProductView.kt                 # «Nuevo producto»: the label typed or read by AI (§8.5)
+    OffAccountScreen.kt                     # Ajustes → Open Food Facts (the user's own account)
     MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue, toCopyRequest) +
                                             #   validation, in a GuardedBottomSheet (asks before losing edits)
     NutritionRecommendationsCard.kt, RecommendationsViewModel.kt  # calorie/protein card + intake bars

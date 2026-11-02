@@ -13,7 +13,7 @@ class NetworkHostsTest {
 
     /** Host → when the app talks to it. Keep in sync with README.md «Private by design». */
     private val allowed = mapOf(
-        "world.openfoodfacts.org" to "barcode lookup, only when you scan or type a barcode",
+        "world.openfoodfacts.org" to "barcode lookup, and the products you add (with their label photo), only when you do",
         "search.openfoodfacts.org" to "food search, only when you search a product online",
         "raw.githubusercontent.com" to "list of phone AI models, only when you open Settings → AI",
         "huggingface.co" to "phone AI model download, only when you tap download",

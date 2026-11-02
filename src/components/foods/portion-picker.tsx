@@ -1,17 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { CheckIcon, PencilIcon } from "lucide-react";
 import { formatNumber } from "@/i18n/format";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { scalePer100g } from "@/lib/core/foods";
 import type { FoodChoice } from "@/lib/foods/foods-client";
+import { ownProduct, useOwnProducts, type OwnProduct } from "@/lib/foods/own-products";
 import { normalizeDecimal } from "@/lib/utils";
 import { formatTemplate, t } from "@/i18n";
 
-/** How much of the chosen food: grams (or ml), with 100 g and one-serving shortcuts. */
-export function PortionPicker({ choice, onAdd }: { choice: FoodChoice; onAdd: (grams: number) => void }) {
+/**
+ * How much of the chosen food: grams (or ml), with 100 g and one-serving
+ * shortcuts. A product the user added says so, can be edited (`onEdit`) and
+ * shows whether Open Food Facts has it yet.
+ */
+export function PortionPicker({
+  choice,
+  onAdd,
+  onEdit,
+}: {
+  choice: FoodChoice;
+  onAdd: (grams: number) => void;
+  onEdit?: (own: OwnProduct) => void;
+}) {
+  useOwnProducts();
+  const own = ownProduct(choice.code);
   const [text, setText] = useState(() => String(choice.servingGrams ?? 100).replace(".", ","));
   const grams = Number(text.replace(",", "."));
   const valid = Number.isFinite(grams) && grams > 0 && grams <= 5000;
@@ -31,6 +48,19 @@ export function PortionPicker({ choice, onAdd }: { choice: FoodChoice; onAdd: (g
           })}
         </p>
         {choice.incomplete ? <p className="mt-1 text-xs text-muted-foreground">{t.addFood.incomplete}</p> : null}
+        {own ? (
+          <div className="mt-2 space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{t.newProduct.yourProduct}</Badge>
+              {onEdit ? (
+                <Button variant="ghost" size="sm" className="ml-auto" onClick={() => onEdit(own)}>
+                  <PencilIcon /> {t.newProduct.edit}
+                </Button>
+              ) : null}
+            </div>
+            <OwnProductStatus own={own} />
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-2">
@@ -80,5 +110,44 @@ export function PortionPicker({ choice, onAdd }: { choice: FoodChoice; onAdd: (g
         {t.addFood.addItem}
       </Button>
     </div>
+  );
+}
+
+function useOnline(): boolean {
+  const [online, setOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+  return online;
+}
+
+/** Whether Open Food Facts has the product yet, in one line. */
+function OwnProductStatus({ own }: { own: OwnProduct }) {
+  const online = useOnline();
+  if (own.state === "sent") {
+    return (
+      <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400" role="status">
+        <CheckIcon className="size-3.5" /> {t.newProduct.status.sent}
+      </p>
+    );
+  }
+  const text =
+    own.state === "pending"
+      ? online
+        ? t.newProduct.status.sending
+        : t.newProduct.status.pending
+      : own.state === "account"
+        ? t.newProduct.status.account
+        : `${t.newProduct.status.rejected}${own.detail ? ` (${own.detail})` : ""}`;
+  return (
+    <p className={own.state === "pending" ? "text-xs text-muted-foreground" : "text-xs text-destructive"} role="status">
+      {text}
+    </p>
   );
 }

@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddBusiness
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Bookmarks
@@ -117,6 +118,7 @@ fun SettingsScreen(
     onOpenLogin: () -> Unit,
     onOpenProfile: () -> Unit,
     onOpenAi: () -> Unit,
+    onOpenOpenFoodFacts: () -> Unit,
     onOpenTutorial: () -> Unit,
     onOpenMetodologia: () -> Unit,
     onOpenAdmin: () -> Unit,
@@ -182,6 +184,13 @@ fun SettingsScreen(
                     title = stringResource(R.string.ai_title),
                     subtitle = stringResource(R.string.ai_link_subtitle),
                     onClick = onOpenAi,
+                    trailing = { RowArrow() },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.AddBusiness,
+                    title = stringResource(R.string.off_account_title),
+                    subtitle = stringResource(R.string.off_account_subtitle),
+                    onClick = onOpenOpenFoodFacts,
                     trailing = { RowArrow() },
                 )
                 TemplatesRows(

@@ -39,6 +39,9 @@ android {
         buildConfigField("String", "RELEASE_CERT_SHA256", "\"$releaseCert\"")
         buildConfigField("String", "LATEST_RELEASE_URL", "\"https://api.github.com/repos/jordanmontt/Blackwater-Macros/releases/latest\"")
         buildConfigField("String", "WEBSITE_URL", "\"https://blackwater-macros.jordanmontt.fr/\"")
+        // Open Food Facts; `-PoffServer=<their test server>` tries «Añadir este producto» without touching the real database.
+        val offServer = (project.findProperty("offServer") as String?) ?: "https://world.openfoodfacts.org"
+        buildConfigField("String", "OFF_SERVER", "\"$offServer\"")
     }
 
     signingConfigs {

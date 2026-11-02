@@ -26,6 +26,9 @@ recipe library.
   millions of products on Open Food Facts, scan a barcode, type it by hand (ingredient by
   ingredient or just the total), or take a photo and let AI estimate it. Copy meals from
   another day or save your usual ones as templates (also straight from a logged meal; hold one to edit or delete it). Deleting asks first, and can be undone.
+- **A product Open Food Facts doesn't have?** Add it from its nutrition label (per 100 g,
+  100 ml or per serving; AI can read the label for you). You log it right away, and it is
+  shared with Open Food Facts so the next person who scans it finds it.
 - **Know your targets.** A calorie range and a protein range for your goal (lose fat,
   maintain, build muscle), with progress bars for the day.
 - **See your progress.** A weight trend that smooths out daily water swings, your weekly
@@ -80,6 +83,8 @@ every number on screen can be checked by hand.
 - **Photo or text:** take up to five photos of a meal (or of its nutrition label) and/or
   describe it; the AI lists the foods with grams and macros, and you review them before
   saving.
+- **Nutrition labels:** when you add a product Open Food Facts doesn't have, a photo of its
+  label fills in the values; you check them before saving.
 - **Coach:** ask about your diet and progress; it gets a short summary of your data only if
   you allow it, and the conversation is never stored.
 - **Bring your own key**: Google Gemini (free key, with a step-by-step guide), OpenAI,
@@ -87,6 +92,8 @@ every number on screen can be checked by hand.
   (Gemma 4 or Qwen3, downloaded on request): nothing leaves the device.
 - Your key is stored only on your phone (encrypted, excluded from backups) and goes straight
   to the provider you chose, never to us. Photos are shrunk in memory, sent, and discarded.
+  The one exception is a label photo you add to a product: it is shared with Open Food Facts
+  (see below).
 
 ## Private by design
 
@@ -99,12 +106,21 @@ every number on screen can be checked by hand.
   | When | Where |
   |---|---|
   | You search a product online or look up a barcode | Open Food Facts |
+  | You add a product Open Food Facts doesn't have | Open Food Facts (its name, brand, values and label photo) |
   | You open Settings → AI (list of phone models) | GitHub (this repository) |
   | You download a phone AI model | Hugging Face |
   | You use AI with your own key | the provider you chose (Google, OpenAI, Anthropic, OpenRouter, your server) |
   | Once a day, only in the APK from the website (not F-Droid's), to check for a new version; can be turned off in Settings | GitHub |
 
   A test (`NetworkHostsTest`) fails if the code ever learns another address.
+- **Products you add are shared, never your data.** They go straight from your phone (or
+  browser) to Open Food Facts, never through our server, under its open licences (ODbL for the
+  values, CC BY-SA for the photo). They are sent with the app's shared Open Food Facts
+  account, or with yours if you add it in Settings → Open Food Facts (kept on the phone only,
+  encrypted, excluded from backups), plus a random number for this install so moderators
+  can block one install without blocking the app. Nothing about you. Without a connection the
+  product and its label photo wait on the phone, and the photo is deleted once Open Food Facts
+  has it.
 - **No ads, no analytics, no trackers, no Google services.**
 
 ## Accounts, if you want one
@@ -120,8 +136,8 @@ For now, accounts are by invitation only.
 
 ## Permissions
 
-- **Internet**: food search, barcodes, AI and model downloads (see the table above).
-- **Camera**: scanning barcodes and photographing meals, only when you use them.
+- **Internet**: food search, barcodes, products you add, AI and model downloads (see the table above).
+- **Camera**: scanning barcodes and photographing meals or nutrition labels, only when you use them.
 - **Notifications and foreground service**: the progress of a phone AI model download.
 
 ## Blackwater Macros and Chompass
