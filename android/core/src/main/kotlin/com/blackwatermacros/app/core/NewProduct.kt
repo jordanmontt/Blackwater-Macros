@@ -39,6 +39,23 @@ data class NewProduct(
 
 enum class NewProductProblem { NAME, CALORIES, PROTEIN, SERVING, TOO_HIGH }
 
+/** How Open Food Facts stores a product's values: per 100 g (or ml) or per serving. */
+enum class OffDataPer(val id: String) {
+    PER_100G("100g"),
+    SERVING("serving");
+
+    companion object {
+        fun fromId(id: String?): OffDataPer? = entries.firstOrNull { it.id == id }
+    }
+}
+
+/**
+ * «Corregir valores»: a product Open Food Facts has with values that don't
+ * match its label. [base] is what Open Food Facts has, in the basis it stores
+ * ([per]), to start the form from and to show what changed.
+ */
+data class OffCorrection(val per: OffDataPer, val base: NewProduct)
+
 /** The shared account products are sent with unless the user signs in with theirs (RELEASING.md). */
 const val OFF_APP_USER_ID = "blackwater-macros-app"
 /** Public on purpose, like other open-source apps' (it only says «sent by Blackwater Macros»). */
@@ -56,11 +73,19 @@ fun newProductPer100g(product: NewProduct): Per100g {
     return Per100g(scale(product.calories), scale(product.protein), scale(product.carbs), scale(product.fat))
 }
 
-/** What still stops the form from saving, in screen order (see the web). */
-fun newProductProblems(product: NewProduct): List<NewProductProblem> {
+/**
+ * What still stops the form from saving, in screen order (see the web).
+ * [keepPer]: a correction, sent in the basis Open Food Facts stores, which
+ * needs the serving size to convert.
+ */
+fun newProductProblems(product: NewProduct, keepPer: OffDataPer? = null): List<NewProductProblem> {
     val problems = mutableListOf<NewProductProblem>()
     if (product.name.isBlank()) problems += NewProductProblem.NAME
-    if (product.basis == LabelBasis.SERVING && servingAmount(product) == null) problems += NewProductProblem.SERVING
+    if ((product.basis == LabelBasis.SERVING && servingAmount(product) == null) ||
+        (keepPer != null && newProductInBasis(product, keepPer) == null)
+    ) {
+        problems += NewProductProblem.SERVING
+    }
     if (product.calories == null || !product.calories.isFinite() || product.calories < 0) problems += NewProductProblem.CALORIES
     if (product.protein == null || !product.protein.isFinite() || product.protein < 0) problems += NewProductProblem.PROTEIN
     if (NewProductProblem.SERVING !in problems) {
@@ -80,6 +105,72 @@ fun newProductToFoodProduct(product: NewProduct): FoodProduct = FoodProduct(
     incomplete = product.carbs == null || product.fat == null,
 )
 
+/**
+ * The label's values in the basis Open Food Facts stores ([per]): a correction
+ * keeps it, so the nutrients the app doesn't send (sugars, salt…) keep their
+ * meaning. Null when converting needs a serving size that isn't there.
+ */
+fun newProductInBasis(product: NewProduct, per: OffDataPer): NewProduct? {
+    val isServing = product.basis == LabelBasis.SERVING
+    if (isServing == (per == OffDataPer.SERVING)) return product
+    val serving = servingAmount(product)?.takeIf { it > 0 } ?: return null
+    val factor = if (isServing) 100 / serving else serving / 100
+    fun scale(value: Double?) = value?.let { round2(it * factor) }
+    return product.copy(
+        basis = if (per == OffDataPer.SERVING) LabelBasis.SERVING else LabelBasis.PER_100G,
+        calories = scale(product.calories),
+        protein = scale(product.protein),
+        carbs = scale(product.carbs),
+        fat = scale(product.fat),
+    )
+}
+
+/** The label's four values; null = not given. */
+data class LabelValues(val calories: Double?, val protein: Double?, val carbs: Double?, val fat: Double?)
+
+/** Which of the four values. */
+enum class LabelNutrient { CALORIES, PROTEIN, CARBS, FAT }
+
+private fun NewProduct.value(nutrient: LabelNutrient): Double? = when (nutrient) {
+    LabelNutrient.CALORIES -> calories
+    LabelNutrient.PROTEIN -> protein
+    LabelNutrient.CARBS -> carbs
+    LabelNutrient.FAT -> fat
+}
+
+fun LabelValues.value(nutrient: LabelNutrient): Double? = when (nutrient) {
+    LabelNutrient.CALORIES -> calories
+    LabelNutrient.PROTEIN -> protein
+    LabelNutrient.CARBS -> carbs
+    LabelNutrient.FAT -> fat
+}
+
+/**
+ * What Open Food Facts has, in the basis and serving the form shows now (to
+ * write «Open Food Facts: 64» next to a changed value); null when a serving
+ * size is missing to convert.
+ */
+fun correctionBaseline(correction: OffCorrection, form: NewProduct): LabelValues? {
+    val base = correction.base
+    val baseServing = servingAmount(base)
+    val formServing = servingAmount(form)
+    val to100 = if (base.basis == LabelBasis.SERVING) baseServing?.takeIf { it != 0.0 }?.let { 100 / it } else 1.0
+    val from100 = if (form.basis == LabelBasis.SERVING) formServing?.takeIf { it != 0.0 }?.let { it / 100 } else 1.0
+    if (to100 == null || from100 == null) return null
+    fun scale(value: Double?) = value?.let { round1(it * to100 * from100) }
+    return LabelValues(scale(base.calories), scale(base.protein), scale(base.carbs), scale(base.fat))
+}
+
+/** The values the form changes from what Open Food Facts has (an empty field changes nothing). */
+fun correctionChanges(correction: OffCorrection, form: NewProduct): List<LabelNutrient> {
+    val baseline = correctionBaseline(correction, form)
+    return LabelNutrient.entries.filter { nutrient ->
+        val value = form.value(nutrient) ?: return@filter false
+        val before = baseline?.value(nutrient) ?: return@filter true
+        kotlin.math.abs(value - before) > (if (nutrient == LabelNutrient.CALORIES) 0.5 else 0.05)
+    }
+}
+
 /** Who sends it and from which app install (`app_uuid`: a random id, so moderators can block one install). */
 data class OffWriteContext(
     val lang: FoodLang,
@@ -87,8 +178,10 @@ data class OffWriteContext(
     val password: String,
     val appVersion: String,
     val appUuid: String,
-    /** Open Food Facts already had the product (without nutrition): keep its name and brand. */
+    /** Open Food Facts already had the product: keep its name and brand. */
     val existing: Boolean,
+    /** A correction: send the values in the basis Open Food Facts stores. */
+    val keepPer: OffDataPer? = null,
 )
 
 private fun credentials(context: OffWriteContext): List<Pair<String, String>> = listOf(
@@ -99,8 +192,9 @@ private fun credentials(context: OffWriteContext): List<Pair<String, String>> = 
     "app_uuid" to context.appUuid,
 )
 
-/** The form fields of `POST /cgi/product_jqm2.pl`: the label as printed. */
-fun offProductFields(product: NewProduct, context: OffWriteContext): List<Pair<String, String>> {
+/** The form fields of `POST /cgi/product_jqm2.pl`: the label as printed, or for a correction in the basis it stores. */
+fun offProductFields(label: NewProduct, context: OffWriteContext): List<Pair<String, String>> {
+    val product = context.keepPer?.let { newProductInBasis(label, it) } ?: label
     val fields = mutableListOf("code" to product.code)
     fields += credentials(context)
     fields += "lc" to context.lang.code
@@ -174,6 +268,41 @@ fun offKnownProduct(json: JsonElement?, lang: FoodLang): OffKnownProduct {
     return OffKnownProduct(
         name = jsonText(product["product_name_${lang.code}"]) ?: jsonText(product["product_name"]) ?: jsonText(product["generic_name"]),
         brand = brands?.split(",")?.first()?.trim(),
+    )
+}
+
+private fun nutrient(nutriments: JsonObject, id: String, suffix: String): Double? {
+    val primitive = nutriments["$id$suffix"] as? JsonPrimitive ?: return null
+    if (primitive is JsonNull) return null
+    return primitive.content.toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0 }
+}
+
+/**
+ * A product Open Food Facts has, as «Corregir valores» starts from it: its name
+ * and brand, and its values in the basis it stores them. Null when it has no
+ * such product.
+ */
+fun parseOffCorrection(json: JsonElement?, code: String, lang: FoodLang): OffCorrection? {
+    val product = (json as? JsonObject)?.get("product") as? JsonObject ?: return null
+    val known = offKnownProduct(json, lang)
+    val per = if (jsonText(product["nutrition_data_per"]) == "serving") OffDataPer.SERVING else OffDataPer.PER_100G
+    val suffix = if (per == OffDataPer.SERVING) "_serving" else "_100g"
+    val nutriments = product["nutriments"] as? JsonObject ?: JsonObject(emptyMap())
+    val kj = nutrient(nutriments, "energy-kj", suffix) ?: nutrient(nutriments, "energy", suffix)
+    val calories = nutrient(nutriments, "energy-kcal", suffix) ?: kj?.let { it / 4.184 }
+    return OffCorrection(
+        per = per,
+        base = NewProduct(
+            code = code,
+            name = known.name.orEmpty(),
+            brand = known.brand,
+            basis = if (per == OffDataPer.SERVING) LabelBasis.SERVING else LabelBasis.PER_100G,
+            servingSize = jsonText(product["serving_size"]),
+            calories = calories?.let { round1(it) },
+            protein = nutrient(nutriments, "proteins", suffix)?.let { round1(it) },
+            carbs = nutrient(nutriments, "carbohydrates", suffix)?.let { round1(it) },
+            fat = nutrient(nutriments, "fat", suffix)?.let { round1(it) },
+        ),
     )
 }
 

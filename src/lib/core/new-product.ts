@@ -1,6 +1,6 @@
 import { extractJson } from "./ai-schema";
 import { normalizeText, parseServingGrams, type FoodLang, type FoodProduct, type Per100g } from "./foods";
-import { round1 } from "./nutrition";
+import { round1, round2 } from "./nutrition";
 
 /**
  * «Añadir este producto»: a product Open Food Facts doesn't have (or has without
@@ -26,6 +26,19 @@ export interface NewProduct {
 }
 
 export type NewProductProblem = "name" | "calories" | "protein" | "serving" | "tooHigh";
+
+/** How Open Food Facts stores a product's values: per 100 g (or ml) or per serving. */
+export type OffDataPer = "100g" | "serving";
+
+/**
+ * «Corregir valores»: a product Open Food Facts has with values that don't
+ * match its label. `base` is what Open Food Facts has, in the basis it stores
+ * (`per`), to start the form from and to show what changed.
+ */
+export interface OffCorrection {
+  per: OffDataPer;
+  base: NewProduct;
+}
 
 /** The shared account products are sent with unless the user signs in with theirs (RELEASING.md). */
 export const OFF_APP_USER_ID = "blackwater-macros-app";
@@ -54,12 +67,18 @@ export function newProductPer100g(product: NewProduct): Per100g {
 /**
  * What still stops the form from saving, in screen order. Over 100 g of
  * nutrients or 900 kcal per 100 g is impossible: a misplaced digit or the
- * wrong basis.
+ * wrong basis. `keepPer`: a correction, sent in the basis Open Food Facts
+ * stores, which needs the serving size to convert.
  */
-export function newProductProblems(product: NewProduct): NewProductProblem[] {
+export function newProductProblems(product: NewProduct, keepPer: OffDataPer | null = null): NewProductProblem[] {
   const problems: NewProductProblem[] = [];
   if (product.name.trim() === "") problems.push("name");
-  if (product.basis === "serving" && servingAmount(product) === null) problems.push("serving");
+  if (
+    (product.basis === "serving" && servingAmount(product) === null) ||
+    (keepPer !== null && newProductInBasis(product, keepPer) === null)
+  ) {
+    problems.push("serving");
+  }
   if (product.calories === null || !Number.isFinite(product.calories) || product.calories < 0) problems.push("calories");
   if (product.protein === null || !Number.isFinite(product.protein) || product.protein < 0) problems.push("protein");
   if (!problems.includes("serving")) {
@@ -81,6 +100,66 @@ export function newProductToFoodProduct(product: NewProduct): FoodProduct {
   };
 }
 
+/**
+ * The label's values in the basis Open Food Facts stores (`per`): a correction
+ * keeps it, so the nutrients the app doesn't send (sugars, salt…) keep their
+ * meaning. Null when converting needs a serving size that isn't there.
+ */
+export function newProductInBasis(product: NewProduct, per: OffDataPer): NewProduct | null {
+  const isServing = product.basis === "serving";
+  if (isServing === (per === "serving")) return product;
+  const serving = servingAmount(product);
+  if (serving === null || serving <= 0) return null;
+  const factor = isServing ? 100 / serving : serving / 100;
+  const scale = (value: number | null) => (value === null ? null : round2(value * factor));
+  return {
+    ...product,
+    basis: per === "serving" ? "serving" : "100g",
+    calories: scale(product.calories),
+    protein: scale(product.protein),
+    carbs: scale(product.carbs),
+    fat: scale(product.fat),
+  };
+}
+
+/** The label's four values; null = not given. */
+export type LabelValues = Pick<NewProduct, "calories" | "protein" | "carbs" | "fat">;
+
+/**
+ * What Open Food Facts has, in the basis and serving the form shows now (to
+ * write «Open Food Facts: 64» next to a changed value); null when a serving
+ * size is missing to convert.
+ */
+export function correctionBaseline(correction: OffCorrection, form: NewProduct): LabelValues | null {
+  const { base } = correction;
+  const baseServing = servingAmount(base);
+  const formServing = servingAmount(form);
+  const to100 = base.basis === "serving" ? (baseServing ? 100 / baseServing : null) : 1;
+  const from100 = form.basis === "serving" ? (formServing ? formServing / 100 : null) : 1;
+  if (to100 === null || from100 === null) return null;
+  const scale = (value: number | null) => (value === null ? null : round1(value * to100 * from100));
+  return {
+    calories: scale(base.calories),
+    protein: scale(base.protein),
+    carbs: scale(base.carbs),
+    fat: scale(base.fat),
+  };
+}
+
+const NUTRIENTS = ["calories", "protein", "carbs", "fat"] as const;
+
+/** The values the form changes from what Open Food Facts has (an empty field changes nothing). */
+export function correctionChanges(correction: OffCorrection, form: NewProduct): (keyof LabelValues)[] {
+  const baseline = correctionBaseline(correction, form);
+  return NUTRIENTS.filter((key) => {
+    const value = form[key];
+    if (value === null) return false;
+    const before = baseline?.[key] ?? null;
+    if (baseline === null || before === null) return true;
+    return Math.abs(value - before) > (key === "calories" ? 0.5 : 0.05);
+  });
+}
+
 /** Who sends it and from which app install (`app_uuid`: a random id, so moderators can block one install). */
 export interface OffWriteContext {
   lang: FoodLang;
@@ -88,8 +167,10 @@ export interface OffWriteContext {
   password: string;
   appVersion: string;
   appUuid: string;
-  /** Open Food Facts already had the product (without nutrition): keep its name and brand. */
+  /** Open Food Facts already had the product: keep its name and brand. */
   existing: boolean;
+  /** A correction: send the values in the basis Open Food Facts stores. */
+  keepPer: OffDataPer | null;
 }
 
 function credentials(context: OffWriteContext): [string, string][] {
@@ -104,10 +185,12 @@ function credentials(context: OffWriteContext): [string, string][] {
 
 /**
  * The form fields of `POST /cgi/product_jqm2.pl`: the label as printed (Open
- * Food Facts converts a serving to 100 g itself). Brands are added, never
- * replaced; a product Open Food Facts already had keeps its name.
+ * Food Facts converts a serving to 100 g itself), or for a correction in the
+ * basis it stores. Brands are added, never replaced; a product Open Food Facts
+ * already had keeps its name.
  */
-export function offProductFields(product: NewProduct, context: OffWriteContext): [string, string][] {
+export function offProductFields(label: NewProduct, context: OffWriteContext): [string, string][] {
+  const product = context.keepPer ? (newProductInBasis(label, context.keepPer) ?? label) : label;
   const fields: [string, string][] = [["code", product.code], ...credentials(context), ["lc", context.lang]];
   if (!context.existing) fields.push([`product_name_${context.lang}`, product.name.trim()]);
   const brand = product.brand?.trim();
@@ -192,6 +275,43 @@ export function offKnownProduct(json: unknown, lang: FoodLang): { name: string |
   return {
     name: toText(product[`product_name_${lang}`]) ?? toText(product.product_name) ?? toText(product.generic_name),
     brand: brands ? brands.split(",")[0].trim() : null,
+  };
+}
+
+function nutrient(nutriments: Record<string, unknown>, id: string, suffix: string): number | null {
+  const value = nutriments[`${id}${suffix}`];
+  const number = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+/**
+ * A product Open Food Facts has, as «Corregir valores» starts from it: its name
+ * and brand, and its values in the basis it stores them. Null when it has no
+ * such product.
+ */
+export function parseOffCorrection(json: unknown, code: string, lang: FoodLang): OffCorrection | null {
+  const product = asRecord(asRecord(json)?.product);
+  if (!product) return null;
+  const known = offKnownProduct(json, lang);
+  const per: OffDataPer = product.nutrition_data_per === "serving" ? "serving" : "100g";
+  const suffix = per === "serving" ? "_serving" : "_100g";
+  const nutriments = asRecord(product.nutriments) ?? {};
+  const kj = nutrient(nutriments, "energy-kj", suffix) ?? nutrient(nutriments, "energy", suffix);
+  const calories = nutrient(nutriments, "energy-kcal", suffix) ?? (kj === null ? null : kj / 4.184);
+  const round = (value: number | null) => (value === null ? null : round1(value));
+  return {
+    per,
+    base: {
+      code,
+      name: known.name ?? "",
+      brand: known.brand,
+      basis: per === "serving" ? "serving" : "100g",
+      servingSize: toText(product.serving_size),
+      calories: round(calories),
+      protein: round(nutrient(nutriments, "proteins", suffix)),
+      carbs: round(nutrient(nutriments, "carbohydrates", suffix)),
+      fat: round(nutrient(nutriments, "fat", suffix)),
+    },
   };
 }
 

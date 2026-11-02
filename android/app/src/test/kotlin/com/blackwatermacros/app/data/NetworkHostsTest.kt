@@ -15,6 +15,7 @@ class NetworkHostsTest {
     private val allowed = mapOf(
         "world.openfoodfacts.org" to "barcode lookup, and the products you add (with their label photo), only when you do",
         "search.openfoodfacts.org" to "food search, only when you search a product online",
+        "images.openfoodfacts.org" to "a product's label photo, only when you edit or correct it",
         "raw.githubusercontent.com" to "list of phone AI models, only when you open Settings → AI",
         "huggingface.co" to "phone AI model download, only when you tap download",
         "generativelanguage.googleapis.com" to "Google Gemini, only with your own key",

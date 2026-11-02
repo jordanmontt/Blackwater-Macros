@@ -232,7 +232,11 @@ fun AddFoodSheet(
                             AddFoodView.BARCODE -> R.string.food_barcode
                             AddFoodView.PORTION -> R.string.food_portion_title
                             AddFoodView.PHOTO -> R.string.photo_title
-                            AddFoodView.NEW_PRODUCT -> if (draft?.initial != null) R.string.new_product_edit_title else R.string.new_product_title
+                            AddFoodView.NEW_PRODUCT -> when {
+                                draft?.initial != null -> R.string.new_product_edit_title
+                                draft?.correction != null -> R.string.new_product_correct_title
+                                else -> R.string.new_product_title
+                            }
                         },
                     ),
                     style = MaterialTheme.typography.titleLarge,
@@ -370,7 +374,7 @@ fun AddFoodSheet(
             )
             AddFoodView.NEW_PRODUCT -> draft?.let { current ->
                 NewProductView(current, newProduct) { product, jpeg ->
-                    val saved = AppGraph.ownProducts.save(product, currentFoodLang(), current.existing, jpeg)
+                    val saved = AppGraph.ownProducts.save(product, currentFoodLang(), current.existing, jpeg, current.correction)
                     choice = saved.toChoice()
                     // After saving, Back from the portion goes where the form came from, not to the form.
                     if (draftBack != AddFoodView.PORTION) back = draftBack
@@ -384,7 +388,21 @@ fun AddFoodSheet(
                     picked,
                     own = own,
                     onEdit = { item ->
-                        openDraft(ProductDraft(code = item.code, existing = item.existing, initial = item.product), AddFoodView.PORTION)
+                        openDraft(
+                            ProductDraft(code = item.code, existing = item.existing, initial = item.product, correction = item.offCorrection),
+                            AddFoodView.PORTION,
+                        )
+                    },
+                    onCorrect = {
+                        val code = picked.code
+                        val found = code?.let { foods.correction(it) }
+                        if (code != null && found != null) {
+                            openDraft(
+                                ProductDraft(code = code, existing = true, correction = found.correction, labelImage = found.labelImage),
+                                AddFoodView.PORTION,
+                            )
+                        }
+                        found != null
                     },
                 ) { grams ->
                     foods.remember(picked)

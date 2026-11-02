@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckIcon, PencilIcon } from "lucide-react";
+import { CheckIcon, Loader2Icon, PencilIcon } from "lucide-react";
 import { formatNumber } from "@/i18n/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,20 +15,25 @@ import { formatTemplate, t } from "@/i18n";
 
 /**
  * How much of the chosen food: grams (or ml), with 100 g and one-serving
- * shortcuts. A product the user added says so, can be edited (`onEdit`) and
- * shows whether Open Food Facts has it yet.
+ * shortcuts. A product the user added (or corrected) says so, can be edited
+ * (`onEdit`) and shows whether Open Food Facts has it yet. Any other Open Food
+ * Facts product offers «Corregir valores» (`onCorrect`, false when Open Food
+ * Facts couldn't be reached).
  */
 export function PortionPicker({
   choice,
   onAdd,
   onEdit,
+  onCorrect,
 }: {
   choice: FoodChoice;
   onAdd: (grams: number) => void;
   onEdit?: (own: OwnProduct) => void;
+  onCorrect?: () => Promise<boolean>;
 }) {
   useOwnProducts();
   const own = ownProduct(choice.code);
+  const [correcting, setCorrecting] = useState<"idle" | "busy" | "failed">("idle");
   const [text, setText] = useState(() => String(choice.servingGrams ?? 100).replace(".", ","));
   const grams = Number(text.replace(",", "."));
   const valid = Number.isFinite(grams) && grams > 0 && grams <= 5000;
@@ -51,7 +56,7 @@ export function PortionPicker({
         {own ? (
           <div className="mt-2 space-y-1">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">{t.newProduct.yourProduct}</Badge>
+              <Badge variant="secondary">{own.correction ? t.newProduct.yourCorrection : t.newProduct.yourProduct}</Badge>
               {onEdit ? (
                 <Button variant="ghost" size="sm" className="ml-auto" onClick={() => onEdit(own)}>
                   <PencilIcon /> {t.newProduct.edit}
@@ -59,6 +64,27 @@ export function PortionPicker({
               ) : null}
             </div>
             <OwnProductStatus own={own} />
+          </div>
+        ) : onCorrect && choice.source === "off" && choice.code ? (
+          <div className="mt-1">
+            <Button
+              variant="link"
+              size="sm"
+              className="h-auto px-0 text-xs text-muted-foreground"
+              disabled={correcting === "busy"}
+              onClick={async () => {
+                setCorrecting("busy");
+                setCorrecting((await onCorrect()) ? "idle" : "failed");
+              }}
+            >
+              {correcting === "busy" ? <Loader2Icon className="animate-spin" /> : null}
+              {t.newProduct.correctLink}
+            </Button>
+            {correcting === "failed" ? (
+              <p className="text-xs text-destructive" role="alert">
+                {t.newProduct.correctFailed}
+              </p>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -133,7 +159,7 @@ function OwnProductStatus({ own }: { own: OwnProduct }) {
   if (own.state === "sent") {
     return (
       <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400" role="status">
-        <CheckIcon className="size-3.5" /> {t.newProduct.status.sent}
+        <CheckIcon className="size-3.5" /> {own.correction ? t.newProduct.status.sentCorrection : t.newProduct.status.sent}
       </p>
     );
   }

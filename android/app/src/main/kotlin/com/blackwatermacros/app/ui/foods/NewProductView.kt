@@ -2,6 +2,11 @@ package com.blackwatermacros.app.ui.foods
 
 import android.content.Context
 import android.net.Uri
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import com.blackwatermacros.app.data.foods.OwnProductStore
+import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
+import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -51,9 +56,14 @@ import com.blackwatermacros.app.core.LabelBasis
 import com.blackwatermacros.app.core.LabelReading
 import com.blackwatermacros.app.core.NewProduct
 import com.blackwatermacros.app.core.NewProductProblem
+import com.blackwatermacros.app.core.LabelNutrient
+import com.blackwatermacros.app.core.OffCorrection
 import com.blackwatermacros.app.core.OffKnownProduct
+import com.blackwatermacros.app.core.correctionBaseline
+import com.blackwatermacros.app.core.correctionChanges
 import com.blackwatermacros.app.core.newProductPer100g
 import com.blackwatermacros.app.core.newProductProblems
+import com.blackwatermacros.app.core.value
 import com.blackwatermacros.app.data.ai.AiException
 import com.blackwatermacros.app.data.ai.AiFailure
 import com.blackwatermacros.app.data.ai.AiSettingsStore
@@ -80,15 +90,24 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
 
-/** «Añadir este producto» (from a barcode miss) or «Editar» (from the portion screen). */
+/**
+ * «Añadir este producto» (from a barcode miss), «Editar» or «Corregir valores»
+ * (from the portion screen; [correction]: what Open Food Facts has).
+ */
 data class ProductDraft(
     val code: String,
     val existing: Boolean,
     val known: OffKnownProduct = OffKnownProduct(null, null),
     val initial: NewProduct? = null,
+    val correction: OffCorrection? = null,
+    /** Open Food Facts' label photo (URL), when it was fetched with the correction. */
+    val labelImage: String? = null,
 )
 
 class LabelPhoto(val image: AiImage, val preview: ImageBitmap)
+
+/** A label photo the form didn't take: one waiting on the phone, or the one Open Food Facts shows. */
+class SavedLabelPhoto(val preview: ImageBitmap, val fromDevice: Boolean)
 
 sealed interface LabelReadState {
     data object Idle : LabelReadState
@@ -139,7 +158,7 @@ data class NewProductFields(
         private fun text(value: Double?): String = value?.let(::toDecimalInput).orEmpty()
 
         fun of(draft: ProductDraft): NewProductFields {
-            val initial = draft.initial ?: return NewProductFields(name = draft.known.name.orEmpty(), brand = draft.known.brand.orEmpty())
+            val initial = draft.initial ?: draft.correction?.base ?: return NewProductFields(name = draft.known.name.orEmpty(), brand = draft.known.brand.orEmpty())
             return NewProductFields(
                 name = initial.name,
                 brand = initial.brand.orEmpty(),
@@ -163,6 +182,8 @@ class NewProductViewModel(
     private val reader: LabelReader = AppGraph.labelReader,
     settings: AiSettingsStore = AppGraph.aiSettings,
     localModel: StateFlow<LocalModelState> = AppGraph.localModels.state,
+    private val ownProducts: OwnProductStore = AppGraph.ownProducts.store,
+    private val openFoodFacts: OpenFoodFactsClient = AppGraph.openFoodFacts,
 ) : ViewModel() {
 
     val aiReady: StateFlow<Boolean> = combine(settings.settings, localModel) { current, model ->
@@ -178,8 +199,13 @@ class NewProductViewModel(
     private val _reading = MutableStateFlow<LabelReadState>(LabelReadState.Idle)
     val reading: StateFlow<LabelReadState> = _reading.asStateFlow()
 
+    /** Shown until a new photo replaces it. */
+    private val _savedPhoto = MutableStateFlow<SavedLabelPhoto?>(null)
+    val savedPhoto: StateFlow<SavedLabelPhoto?> = _savedPhoto.asStateFlow()
+
     private var draftCode: String? = null
     private var job: Job? = null
+    private var savedJob: Job? = null
 
     /** A new form for [draft] (the same draft again keeps what was typed, e.g. after rotating). */
     fun start(draft: ProductDraft) {
@@ -189,6 +215,26 @@ class NewProductViewModel(
         _fields.value = NewProductFields.of(draft)
         _photo.value = null
         _reading.value = LabelReadState.Idle
+        loadSavedPhoto(draft)
+    }
+
+    /**
+     * The photo waiting on the phone for this product, or else (editing or
+     * correcting) the one Open Food Facts has; nothing for a new product.
+     */
+    private fun loadSavedPhoto(draft: ProductDraft) {
+        savedJob?.cancel()
+        _savedPhoto.value = null
+        savedJob = viewModelScope.launch {
+            val waiting = withContext(Dispatchers.IO) { ownProducts.photo(draft.code) }
+            val bytes = waiting ?: run {
+                if (draft.initial == null && draft.correction == null) return@launch
+                val url = draft.labelImage ?: openFoodFacts.labelImage(draft.code, currentFoodLang()) ?: return@launch
+                openFoodFacts.image(url)
+            } ?: return@launch
+            val preview = withContext(Dispatchers.Default) { decodePreview(bytes) } ?: return@launch
+            _savedPhoto.value = SavedLabelPhoto(preview, fromDevice = waiting != null)
+        }
     }
 
     fun edit(change: (NewProductFields) -> NewProductFields) = _fields.update(change)
@@ -227,10 +273,15 @@ class NewProductViewModel(
         _reading.value = LabelReadState.Idle
     }
 
-    /** The product and the photo (JPEG) to save, or null with the problems shown. */
-    fun submit(code: String): Pair<NewProduct, ByteArray?>? {
+    /**
+     * The product and the photo (JPEG) to save, or null with the problems shown.
+     * A correction that changes nothing and brings no photo would only repeat
+     * what Open Food Facts has.
+     */
+    fun submit(code: String, correction: OffCorrection? = null): Pair<NewProduct, ByteArray?>? {
         val product = _fields.value.toProduct(code)
-        if (newProductProblems(product).isNotEmpty() || _reading.value == LabelReadState.Reading) {
+        val unchanged = correction != null && correctionChanges(correction, product).isEmpty() && _photo.value == null
+        if (newProductProblems(product, correction?.per).isNotEmpty() || unchanged || _reading.value == LabelReadState.Reading) {
             _fields.update { it.copy(tried = true) }
             return null
         }
@@ -238,6 +289,15 @@ class NewProductViewModel(
         draftCode = null
         return product to jpeg
     }
+}
+
+/** A small bitmap for the 64 dp thumbnail. */
+private fun decodePreview(bytes: ByteArray): ImageBitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    var sample = 1
+    while (bounds.outWidth / (sample * 2) >= 256 && bounds.outHeight / (sample * 2) >= 256) sample *= 2
+    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
 }
 
 @Composable
@@ -250,13 +310,18 @@ fun NewProductView(
     val photo by viewModel.photo.collectAsStateWithLifecycle()
     val reading by viewModel.reading.collectAsStateWithLifecycle()
     val aiReady by viewModel.aiReady.collectAsStateWithLifecycle()
+    val savedPhoto by viewModel.savedPhoto.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
     val pickers = rememberPhotoPickers(
         onCameraFile = { file -> viewModel.addPhoto(context, Uri.fromFile(file), deleteAfter = file) },
         onGallery = { uris -> uris.firstOrNull()?.let { viewModel.addPhoto(context, it) } },
     )
     val product = fields.toProduct(draft.code)
-    val problems = newProductProblems(product)
+    val correction = draft.correction
+    val changes = correction?.let { correctionChanges(it, product) }.orEmpty()
+    val baseline = correction?.let { correctionBaseline(it, product) }
+    val unchanged = correction != null && changes.isEmpty() && photo == null
+    val problems = newProductProblems(product, correction?.per)
     val shown = if (fields.tried) problems else emptyList()
 
     @Composable
@@ -278,7 +343,14 @@ fun NewProductView(
     }
 
     @Composable
-    fun NumberField(label: String, value: String, problem: NewProductProblem?, modifier: Modifier, onChange: (String) -> Unit) {
+    fun NumberField(
+        label: String,
+        value: String,
+        nutrient: LabelNutrient,
+        problem: NewProductProblem?,
+        modifier: Modifier,
+        onChange: (String) -> Unit,
+    ) {
         Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             FieldLabel(label)
             CompactField(
@@ -290,18 +362,67 @@ fun NewProductView(
                 modifier = Modifier.fillMaxWidth(),
             )
             if (problem != null) Error(problem)
+            val before = baseline?.value(nutrient)
+            if (before != null && nutrient in changes) {
+                Text(
+                    stringResource(R.string.new_product_off_value, formatNumber(before, if (nutrient == LabelNutrient.CALORIES) 0 else 1)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            stringResource(R.string.new_product_barcode, draft.code),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            if (correction != null) {
+                Text(
+                    if (fields.brand.isBlank()) fields.name else "${fields.name} · ${fields.brand}",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+            }
+            Text(
+                stringResource(R.string.new_product_barcode, draft.code),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (correction != null) {
+                Text(
+                    stringResource(R.string.new_product_correct_check),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
 
         val current = photo
-        if (current == null) {
+        val saved = savedPhoto
+        if (current == null && saved != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    saved.preview,
+                    contentDescription = stringResource(R.string.new_product_label_photo_alt),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp)),
+                )
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(if (saved.fromDevice) R.string.new_product_photo_waiting else R.string.new_product_photo_on_off),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TextButton(onClick = pickers.openCamera) {
+                        Icon(Icons.Filled.Refresh, contentDescription = null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(stringResource(R.string.new_product_retake))
+                    }
+                }
+            }
+        } else if (current == null) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedButton(onClick = pickers.openCamera, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Filled.PhotoCamera, contentDescription = null, Modifier.size(18.dp))
@@ -368,27 +489,30 @@ fun NewProductView(
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            FieldLabel(stringResource(R.string.new_product_name))
-            CompactField(
-                value = fields.name,
-                onValueChange = { value -> viewModel.edit { it.copy(name = value) } },
-                placeholder = stringResource(R.string.new_product_name_placeholder),
-                capitalize = true,
-                isError = NewProductProblem.NAME in shown,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Error(NewProductProblem.NAME)
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            FieldLabel("${stringResource(R.string.new_product_brand)} (${stringResource(R.string.new_product_optional)})")
-            CompactField(
-                value = fields.brand,
-                onValueChange = { value -> viewModel.edit { it.copy(brand = value) } },
-                placeholder = "",
-                capitalize = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+        // A correction keeps Open Food Facts' name and brand (shown above).
+        if (correction == null) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                FieldLabel(stringResource(R.string.new_product_name))
+                CompactField(
+                    value = fields.name,
+                    onValueChange = { value -> viewModel.edit { it.copy(name = value) } },
+                    placeholder = stringResource(R.string.new_product_name_placeholder),
+                    capitalize = true,
+                    isError = NewProductProblem.NAME in shown,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Error(NewProductProblem.NAME)
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                FieldLabel("${stringResource(R.string.new_product_brand)} (${stringResource(R.string.new_product_optional)})")
+                CompactField(
+                    value = fields.brand,
+                    onValueChange = { value -> viewModel.edit { it.copy(brand = value) } },
+                    placeholder = "",
+                    capitalize = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -428,18 +552,18 @@ fun NewProductView(
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            NumberField(stringResource(R.string.new_product_calories), fields.calories, NewProductProblem.CALORIES, Modifier.weight(1f)) { value ->
+            NumberField(stringResource(R.string.new_product_calories), fields.calories, LabelNutrient.CALORIES, NewProductProblem.CALORIES, Modifier.weight(1f)) { value ->
                 viewModel.edit { it.copy(calories = value) }
             }
-            NumberField(stringResource(R.string.new_product_protein), fields.protein, NewProductProblem.PROTEIN, Modifier.weight(1f)) { value ->
+            NumberField(stringResource(R.string.new_product_protein), fields.protein, LabelNutrient.PROTEIN, NewProductProblem.PROTEIN, Modifier.weight(1f)) { value ->
                 viewModel.edit { it.copy(protein = value) }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            NumberField(stringResource(R.string.new_product_carbs), fields.carbs, null, Modifier.weight(1f)) { value ->
+            NumberField(stringResource(R.string.new_product_carbs), fields.carbs, LabelNutrient.CARBS, null, Modifier.weight(1f)) { value ->
                 viewModel.edit { it.copy(carbs = value) }
             }
-            NumberField(stringResource(R.string.new_product_fat), fields.fat, null, Modifier.weight(1f)) { value ->
+            NumberField(stringResource(R.string.new_product_fat), fields.fat, LabelNutrient.FAT, null, Modifier.weight(1f)) { value ->
                 viewModel.edit { it.copy(fat = value) }
             }
         }
@@ -459,15 +583,28 @@ fun NewProductView(
             )
         }
         Error(NewProductProblem.TOO_HIGH)
+        if (fields.tried && unchanged && problems.isEmpty()) {
+            Text(
+                stringResource(R.string.new_product_error_unchanged),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
 
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Text(
-            stringResource(if (draft.existing) R.string.new_product_consent_existing else R.string.new_product_consent),
+            stringResource(
+                when {
+                    correction != null -> R.string.new_product_consent_correction
+                    draft.existing -> R.string.new_product_consent_existing
+                    else -> R.string.new_product_consent
+                },
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Button(
-            onClick = { viewModel.submit(draft.code)?.let { (saved, jpeg) -> onSave(saved, jpeg) } },
+            onClick = { viewModel.submit(draft.code, correction)?.let { (saved, jpeg) -> onSave(saved, jpeg) } },
             enabled = reading != LabelReadState.Reading,
             modifier = Modifier.fillMaxWidth(),
         ) {

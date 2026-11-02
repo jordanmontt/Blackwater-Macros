@@ -15,16 +15,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material3.TextButton
-import com.blackwatermacros.app.core.BarcodeMiss
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,21 +28,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,6 +66,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.blackwatermacros.app.R
+import com.blackwatermacros.app.core.BarcodeMiss
 import com.blackwatermacros.app.core.mathRound
 import com.blackwatermacros.app.core.scalePer100g
 import com.blackwatermacros.app.data.foods.FoodChoice
@@ -76,6 +78,7 @@ import com.blackwatermacros.app.ui.formatNumber
 import com.blackwatermacros.app.ui.toDecimalInput
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.launch
 import zxingcpp.BarcodeReader
 
 /** Search box, recents, generic foods and Open Food Facts products (web `FoodSearch`). */
@@ -187,7 +190,13 @@ private fun per100Text(choice: FoodChoice) =
  * has it yet.
  */
 @Composable
-fun PortionView(choice: FoodChoice, own: OwnProduct? = null, onEdit: ((OwnProduct) -> Unit)? = null, onAdd: (grams: Double) -> Unit) {
+fun PortionView(
+    choice: FoodChoice,
+    own: OwnProduct? = null,
+    onEdit: ((OwnProduct) -> Unit)? = null,
+    onCorrect: (suspend () -> Boolean)? = null,
+    onAdd: (grams: Double) -> Unit,
+) {
     var text by rememberSaveable(choice.key) { mutableStateOf(toDecimalInput(choice.servingGrams ?: 100.0)) }
     val grams = text.replace(",", ".").toDoubleOrNull()
     val valid = grams != null && grams > 0 && grams <= 5000
@@ -202,7 +211,11 @@ fun PortionView(choice: FoodChoice, own: OwnProduct? = null, onEdit: ((OwnProduc
             )
             Text(per100Text(choice), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (choice.incomplete) Hint(stringResource(R.string.food_incomplete))
-            if (own != null) OwnProductLine(own, onEdit)
+            if (own != null) {
+                OwnProductLine(own, onEdit)
+            } else if (onCorrect != null && choice.source == "off" && choice.code != null) {
+                CorrectLink(onCorrect)
+            }
         }
         FieldLabel(stringResource(R.string.food_grams))
         CompactField(
@@ -237,13 +250,46 @@ fun PortionView(choice: FoodChoice, own: OwnProduct? = null, onEdit: ((OwnProduc
     }
 }
 
-/** «Tu producto · Editar» and whether Open Food Facts has it yet. */
+/** «¿Los valores no coinciden con la tabla? Corrígelos» (false: Open Food Facts couldn't be reached). */
+@Composable
+private fun CorrectLink(onCorrect: suspend () -> Boolean) {
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    var failed by remember { mutableStateOf(false) }
+    TextButton(
+        onClick = {
+            busy = true
+            failed = false
+            scope.launch {
+                failed = !onCorrect()
+                busy = false
+            }
+        },
+        enabled = !busy,
+        contentPadding = PaddingValues(0.dp),
+    ) {
+        if (busy) {
+            CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+            Spacer(Modifier.width(6.dp))
+        }
+        Text(stringResource(R.string.new_product_correct_link), style = MaterialTheme.typography.bodySmall)
+    }
+    if (failed) {
+        Text(
+            stringResource(R.string.new_product_correct_failed),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
+}
+
+/** «Tu producto · Editar» (or «Tu corrección») and whether Open Food Facts has it yet. */
 @Composable
 private fun OwnProductLine(own: OwnProduct, onEdit: ((OwnProduct) -> Unit)?) {
     Spacer(Modifier.height(6.dp))
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
-            stringResource(R.string.new_product_yours),
+            stringResource(if (own.correction != null) R.string.new_product_your_correction else R.string.new_product_yours),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier
@@ -268,7 +314,9 @@ private fun OwnProductLine(own: OwnProduct, onEdit: ((OwnProduct) -> Unit)?) {
         }
         Text(
             when (own.state) {
-                OwnProductState.SENT -> stringResource(R.string.new_product_status_sent)
+                OwnProductState.SENT -> stringResource(
+                    if (own.correction != null) R.string.new_product_status_sent_correction else R.string.new_product_status_sent,
+                )
                 // WorkManager sends it as soon as there is a connection.
                 OwnProductState.PENDING -> stringResource(R.string.new_product_status_pending)
                 OwnProductState.ACCOUNT -> stringResource(R.string.new_product_status_account)

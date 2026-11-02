@@ -13,6 +13,7 @@ import com.blackwatermacros.app.core.newProductToFoodProduct
 import com.blackwatermacros.app.core.searchGenericFoods
 import com.blackwatermacros.app.core.searchOwnProducts
 import com.blackwatermacros.app.data.foods.BarcodeResult
+import com.blackwatermacros.app.data.foods.CorrectionStart
 import com.blackwatermacros.app.data.foods.FoodChoice
 import com.blackwatermacros.app.data.foods.GenericFoodsStore
 import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
@@ -194,6 +195,16 @@ class AddFoodViewModel(
             }
         }
     }
+
+    /** What Open Food Facts has now for «Corregir valores»; null when it can't be reached or doesn't have it. */
+    suspend fun correction(code: String): CorrectionStart? =
+        try {
+            openFoodFacts.correction(code, lang())
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
 
     fun clearBarcode() {
         _barcode.value = BarcodeLookup.Idle

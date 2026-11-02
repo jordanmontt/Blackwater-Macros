@@ -12,6 +12,7 @@ import {
   offLabelImageField,
   offProductFields,
   type NewProduct,
+  type OffCorrection,
   type OffWriteContext,
   type OffWriteOutcome,
 } from "@/lib/core/new-product";
@@ -34,8 +35,10 @@ export type OwnProductState = "pending" | "sent" | "account" | "rejected";
 export interface OwnProduct {
   product: NewProduct;
   lang: FoodLang;
-  /** Open Food Facts already had it without nutrition: only the values are sent. */
+  /** Open Food Facts already had it: only the values (and photo) are sent, never the name or brand. */
   existing: boolean;
+  /** «Corregir valores»: what Open Food Facts had, and the basis to send in (missing in older records). */
+  correction?: OffCorrection | null;
   /** The label photo (JPEG, base64) until Open Food Facts has it. */
   photo: string | null;
   /** The values (new or edited) still have to reach Open Food Facts. */
@@ -101,18 +104,25 @@ export function ownChoice(item: OwnProduct): FoodChoice {
   };
 }
 
-/** Saves (or replaces, after «Editar») a product and starts sending it. `photo`: a new label photo, if any. */
+/**
+ * Saves (or replaces, after «Editar») a product and starts sending it.
+ * `photo`: a new label photo, if any; `correction`: values Open Food Facts had
+ * that the user corrected.
+ */
 export function saveOwnProduct(input: {
   product: NewProduct;
   lang: FoodLang;
   existing: boolean;
+  correction?: OffCorrection | null;
   photo: AiImage | null;
 }): OwnProduct {
   const previous = ownProduct(input.product.code);
+  const correction = previous?.correction ?? input.correction ?? null;
   const item: OwnProduct = {
     product: input.product,
     lang: input.lang,
-    existing: previous?.existing ?? input.existing,
+    existing: previous?.existing ?? (input.existing || correction !== null),
+    correction,
     photo: input.photo?.data ?? previous?.photo ?? null,
     fieldsPending: true,
     state: "pending",
@@ -242,6 +252,7 @@ async function sendAll(): Promise<void> {
       appVersion: "web",
       appUuid,
       existing: item.existing,
+      keepPer: item.correction?.per ?? null,
     };
     try {
       if (item.fieldsPending) {

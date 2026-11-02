@@ -12,11 +12,11 @@ import { BarcodeScanner } from "@/components/foods/barcode-scanner";
 import { FoodSearch } from "@/components/foods/food-search";
 import { PhotoEstimate } from "@/components/foods/photo-estimate";
 import { PortionPicker } from "@/components/foods/portion-picker";
-import { NewProductForm } from "@/components/foods/new-product-form";
-import { rememberFood, type FoodChoice } from "@/lib/foods/foods-client";
+import { NewProductForm, type SavedLabelPhoto } from "@/components/foods/new-product-form";
+import { fetchCorrection, fetchLabelImage, rememberFood, type FoodChoice } from "@/lib/foods/foods-client";
 import { ownChoice, ownProduct, saveOwnProduct } from "@/lib/foods/own-products";
 import { foodToIngredient } from "@/lib/core/foods";
-import type { NewProduct } from "@/lib/core/new-product";
+import type { NewProduct, OffCorrection } from "@/lib/core/new-product";
 import type { MealEstimate } from "@/lib/core/ai-schema";
 import { api } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
@@ -27,12 +27,15 @@ import { currentLanguage, formatTemplate, t } from "@/i18n";
 
 type View = "menu" | "copy" | "search" | "barcode" | "portion" | "photo" | "newProduct";
 
-/** «Añadir este producto» (from a barcode miss) or «Editar» (from the portion screen). */
+/** «Añadir este producto» (from a barcode miss), «Editar» or «Corregir valores» (from the portion screen). */
 interface ProductDraft {
   code: string;
   existing: boolean;
   known: { name: string | null; brand: string | null };
   initial: NewProduct | null;
+  correction: OffCorrection | null;
+  /** The label photo already there, shown in the form (loaded after it opens when it comes from Open Food Facts). */
+  photo: SavedLabelPhoto | null;
 }
 
 /**
@@ -117,7 +120,11 @@ export function AddFoodSheet({
     barcode: t.addFood.barcode,
     portion: t.addFood.portionTitle,
     photo: t.photo.title,
-    newProduct: draft?.initial ? t.newProduct.editTitle : t.newProduct.title,
+    newProduct: draft?.initial
+      ? t.newProduct.editTitle
+      : draft?.correction
+        ? t.newProduct.correctTitle
+        : t.newProduct.title,
   };
 
   /** Creates the meals, closes the sheet and offers Undo. */
@@ -296,7 +303,9 @@ export function AddFoodSheet({
       ) : view === "barcode" ? (
         <BarcodeScanner
           onFound={(found) => pick(found, "barcode")}
-          onAddProduct={(code, existing, known) => openDraft({ code, existing, known, initial: null }, "barcode")}
+          onAddProduct={(code, existing, known) =>
+            openDraft({ code, existing, known, initial: null, correction: null, photo: null }, "barcode")
+          }
           onSearchByName={() => setView("search")}
           onPhoto={() => {
             setEstimateQuery(null);
@@ -310,9 +319,17 @@ export function AddFoodSheet({
           initial={draft.initial}
           known={draft.known}
           existing={draft.existing}
+          correction={draft.correction}
+          savedPhoto={draft.photo}
           editing={draft.initial !== null}
           onSave={(product, photo) => {
-            const saved = saveOwnProduct({ product, lang: currentLanguage(), existing: draft.existing, photo });
+            const saved = saveOwnProduct({
+              product,
+              lang: currentLanguage(),
+              existing: draft.existing,
+              correction: draft.correction,
+              photo,
+            });
             setChoice(ownChoice(saved));
             // After saving, Back from the portion goes where the form came from, not to the form.
             setBack(draftBack === "portion" ? back : draftBack);
@@ -324,12 +341,49 @@ export function AddFoodSheet({
         <PortionPicker
           key={choice.key + JSON.stringify(choice.per100g)}
           choice={choice}
-          onEdit={(own) =>
+          onEdit={(own) => {
+            const code = own.product.code;
+            const waiting = own.photo ? { src: `data:image/jpeg;base64,${own.photo}`, from: "device" as const } : null;
             openDraft(
-              { code: own.product.code, existing: own.existing, known: { name: null, brand: null }, initial: own.product },
+              {
+                code,
+                existing: own.existing,
+                known: { name: null, brand: null },
+                initial: own.product,
+                correction: own.correction ?? null,
+                photo: waiting,
+              },
               "portion",
-            )
-          }
+            );
+            // Sent already: show the photo Open Food Facts has, when it arrives.
+            if (!waiting) {
+              void fetchLabelImage(code, currentLanguage()).then((src) => {
+                if (src) setDraft((current) => (current?.code === code ? { ...current, photo: { src, from: "off" } } : current));
+              });
+            }
+          }}
+          onCorrect={async () => {
+            const code = choice.code;
+            if (!code) return false;
+            try {
+              const found = await fetchCorrection(code, currentLanguage());
+              if (!found) return false;
+              openDraft(
+                {
+                  code,
+                  existing: true,
+                  known: { name: null, brand: null },
+                  initial: null,
+                  correction: found.correction,
+                  photo: found.labelImage ? { src: found.labelImage, from: "off" } : null,
+                },
+                "portion",
+              );
+              return true;
+            } catch {
+              return false;
+            }
+          }}
           onAdd={(grams) => {
             rememberFood(choice);
             const ingredient = foodToIngredient(choice.name, choice.per100g, grams);

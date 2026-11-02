@@ -56,7 +56,7 @@ src/
     meals/*                 # DayNavigator, MealCard, MealForm (review form), AddFoodSheet («Añadir comida»)
     ui/sheet.tsx            # Bottom sheet on phones (drag down / outside / Esc closes), dialog from sm
     foods/*                 # FoodSearch, PortionPicker, BarcodeScanner (search / barcode in «Añadir comida»),
-                            #   NewProductForm («Añadir este producto»: a label Open Food Facts doesn't have, §8.5)
+                            #   NewProductForm («Añadir este producto» / «Corregir valores» from the label, §8.5)
     own-product-uploads.tsx # Sends the products added from a label when the app opens / comes back online
     nutrition-recommendations.tsx  # Merged calorie + protein recommendations card (Comidas page)
     weight-fat-chart.tsx          # Combined weight (kg) + body fat (%) chart with trend line
@@ -1301,6 +1301,11 @@ rest of the calorie profile.
     and «Tus productos» first in search (`searchOwnProducts`). An edit is sent again.
   - **The photo** waits only until Open Food Facts has it: web in the same record (base64),
     Android in `noBackupFilesDir/off-photos`, deleted once sent (or refused for good).
+    «Editar» shows it in the form while it waits («Espera en este dispositivo…»); once sent,
+    the form shows the one Open Food Facts has (`fetchLabelImage` /
+    `OpenFoodFactsClient.labelImage`: `image_nutrition_url` with `lc`, loaded after the form
+    opens; nothing when offline). Only `https://images.openfoodfacts.(org|net)/` is loaded
+    as a photo. A new photo replaces the one shown.
   - **When it is sent:** web right after saving, when the app opens and on `online`
     (`OwnProductUploads` in the layout); Android through WorkManager (`OwnProductUploadWorker`,
     unique work `own-products`, needs a connection, linear backoff), enqueued on save, on
@@ -1313,6 +1318,36 @@ rest of the calorie profile.
     `NEXT_PUBLIC_OFF_SERVER=https://world.openfoodfacts.net` (web) /
     `-PoffServer=https://world.openfoodfacts.net` (Android), with a test-server account
     entered in Ajustes → Open Food Facts (production and test accounts are separate).
+- **«Corregir valores»** (a product Open Food Facts has, but its values don't match the
+  label in hand: the recipe changed, or it was typed wrong): a quiet link on the portion
+  screen of any Open Food Facts product that isn't already the user's («¿Los valores no
+  coinciden con la tabla? Corrígelos»). Open Food Facts is a wiki: any account may change a
+  product's values, every change stays in its history with who made it, and moderators can
+  revert it, so the label photo matters most here. It reuses «Nuevo producto»:
+  - **It starts from what Open Food Facts has now**, fetched again
+    (`fetchCorrection` / `OpenFoodFactsClient.correction`, with `nutrition_data_per`) and
+    read by `parseOffCorrection` (`OffCorrection`: `per` = how it stores the values, and
+    `base` = name, brand, serving size and its values in that basis, missing ones empty).
+    Offline (or gone) the link says it couldn't reach Open Food Facts and stays put.
+  - **The form** shows the name and brand as text (never sent: `existing`), a line asking
+    to check that the barcode and the package size match, and under each value that
+    differs «Open Food Facts: 64» (`correctionBaseline`: its values converted to the
+    form's basis and serving; `correctionChanges`: what differs by more than 0.5 kcal or
+    0.05 g, an empty field changes nothing). Save refuses a correction that changes
+    nothing and brings no photo (`errors.unchanged`).
+  - **Sent in the basis Open Food Facts stores** (`OffWriteContext.keepPer` →
+    `newProductInBasis`): Open Food Facts keeps one `nutrition_data_per` per product and
+    reads every entered nutrient in it, so switching a product stored per 100 g to «per
+    serving» while sending only our four values could change the meaning of the ones we
+    don't send (sugars, salt…). A label per 200 ml is converted to per 100 ml before
+    sending (and a per-100 label to per serving for a product stored per serving, which
+    then needs the serving size: `newProductProblems(product, keepPer)`).
+  - **Its label photo is shown** («La foto de la tabla que tiene Open Food Facts»), to
+    compare with the package in hand: `image_nutrition_url` asked with `lc=<lang>` in the
+    same request; «Repetir» replaces it with a new one.
+  - **Then like an added product:** kept on the device with its `correction` (so «Editar»
+    shows the same hints and keeps the basis), «Tu corrección · Editar», «Corregido en Open
+    Food Facts», sent and retried the same way.
 - A picked food + grams becomes one ingredient row (`foodToIngredient`) in the review
   form; inside the form «Buscar alimento» appends more. Recent picks: `localStorage`
   (web) / SharedPreferences (Android), 20 max.
@@ -1351,7 +1386,7 @@ rest of the calorie profile.
 | D10 | Web keys in that browser's `localStorage`; the browser calls the provider directly. |
 | D11 | The coach receives a compact summary of the user's data, toggle «El coach puede ver mis datos» (on by default). |
 | D12 | First steps: on a fresh Android install / first web login with an incomplete profile; «Iniciar sesión» first on Android. |
-| D13 | A product Open Food Facts lacks is added from its label and always sent to Open Food Facts (no «this device only» option: the text above Save is the consent), with the app's shared account or the user's own; the device keeps only a copy for the next scan, editing and pending uploads (§8.5). |
+| D13 | A product Open Food Facts lacks is added from its label and always sent to Open Food Facts (no «this device only» option: the text above Save is the consent), with the app's shared account or the user's own; the device keeps only a copy for the next scan, editing and pending uploads (§8.5). Values that don't match the label are corrected the same way, in the basis Open Food Facts stores. |
 
 **What the coach sees** (`buildCoachContext`, core, exact text tested): profile (the goal
 worded by whether the user does strength training, plus a recomposition note when they do,
@@ -1632,7 +1667,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `profile-history.test.ts` | `withProfileChange`, `profileOn`, `weightOn`, `bodyFatOn`, `targetsOn`, `averageTargets` (each day with its week's measurement) | `ProfileHistoryTest.kt` |
 | `expenditure.test.ts` | `estimateExpenditure`, `measureExpenditure`, `fitWeightTrend`, `dailyMeans`, `checkExpenditure` (verdicts, confirmation, what is missing), `showsGapNotice`, `onlyWeighInsMissing`, `approximateGap`, `combineExpenditure`, `weeklyExpenditure` | `ExpenditureTest.kt` |
 | `foods.test.ts` | portions, Open Food Facts parsing, shop labels and why a barcode missed, `searchGenericFoods` | `FoodsTest.kt` |
-| `new-product.test.ts` | «Añadir este producto»: per serving → per 100, form problems, the Open Food Facts write fields and answers, `offKnownProduct`, `searchOwnProducts`, reading a label with AI | `NewProductTest.kt` |
+| `new-product.test.ts` | «Añadir este producto»: per serving → per 100, form problems, the Open Food Facts write fields and answers, `offKnownProduct`, `searchOwnProducts`, reading a label with AI; «Corregir valores»: `parseOffCorrection`, `newProductInBasis`, `correctionBaseline`/`correctionChanges`, the fields in the stored basis | `NewProductTest.kt` |
 | `ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), answer and stream parsing, how a stream ended (`parseAiStreamEnd`), `aiErrorKind` | `AiProvidersTest.kt` |
 | `ai-models.test.ts` | `buildModelListRequest`, `parseModelList`, `naturalCompare` | `AiModelsTest.kt` |
 | `ai-schema.test.ts` | `parseMealEstimate`, prompts, `estimateToIngredients` | `AiSchemaTest.kt` |
@@ -1673,8 +1708,8 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ApiContractTest.kt` | Wire format against MockWebServer (mirrors `tests/behavior/routes-*.test.ts`): auth, `PUT /:id` upserts, deletes, settings with explicit nulls (also each period of `profileHistory`; no history = key left out), admin; status codes and error envelopes |
 | `data/ResponseErrorMapperTest.kt` | Server error codes → the app's `server_error_*` strings; unknown code → the server's text; status fallbacks; the code list equals the web's (`src/i18n/es.json`) |
 | `data/BackupImportTest.kt` | Reads the web's export file; not an export, a newer format, and one wrong value (with where it is) refuse the whole file; text trimmed as the server stores it |
-| `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, why a code missed and the name it already knows, errors, Spanish search, User-Agent); the bundled index loads with Spanish names; recent foods |
-| `data/foods/OwnProductsTest.kt` | «Añadir este producto» (mirrors `add-food-new-product.test.tsx`): values then the label photo go to Open Food Facts with the app's or the user's account and the photo file is deleted; offline / 503 waits and the next run sends it; a refused account is retried after changing it; a refused product says why and stops; an edit is sent again; nothing is sent without the app password; the account check; the password encrypted and kept out of backups |
+| `data/foods/FoodSourcesTest.kt` | Open Food Facts client (barcode, why a code missed and the name it already knows, errors, Spanish search, User-Agent, the values, basis and label photo for «Corregir valores», a photo only from Open Food Facts' image server); the bundled index loads with Spanish names; recent foods |
+| `data/foods/OwnProductsTest.kt` | «Añadir este producto» (mirrors `add-food-new-product.test.tsx`): values then the label photo go to Open Food Facts with the app's or the user's account and the photo file is deleted; offline / 503 waits and the next run sends it; a refused account is retried after changing it; a refused product says why and stops; an edit is sent again; nothing is sent without the app password; a correction is sent in the stored basis without the name and keeps it after a restart and an edit; the account check; the password encrypted and kept out of backups |
 | `data/ai/AiClientTest.kt` | AI client against MockWebServer (never a real provider): «Probar», whole and streamed answers, error kinds; a stream cut by the token limit, by an error inside the stream or by the connection fails after the text that arrived, even when the screen reads slowly; keys encrypted per provider; AI prefs excluded from backups |
 | `data/ai/ModelListStoreTest.kt` | The model dropdown's list: reused for a day, asked again when old, forced or for another key; survives a restart; never stores the key |
 | `data/ai/MealEstimatorTest.kt` | «Foto o texto»: photos + description → one JSON request (mirrors `add-food-photo.test.tsx`); unreadable answers; the language told to the model; photo downscale; the camera FileProvider only reaches the temporary folder |

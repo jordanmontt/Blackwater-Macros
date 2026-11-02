@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildLabelReadingSystemPrompt,
+  correctionBaseline,
+  correctionChanges,
+  newProductInBasis,
   newProductPer100g,
   newProductProblems,
   newProductToFoodProduct,
@@ -10,9 +13,11 @@ import {
   offKnownProduct,
   offProductFields,
   parseLabelReading,
+  parseOffCorrection,
   searchOwnProducts,
   servingAmount,
   type NewProduct,
+  type OffCorrection,
   type OffWriteContext,
 } from "../../src/lib/core/new-product";
 import type { FoodProduct } from "../../src/lib/core/foods";
@@ -48,6 +53,13 @@ const CONTEXT: OffWriteContext = {
   appVersion: "1.4.0",
   appUuid: "0b4e1c52-7d1a-4f0e-9a7b-3c2d1e0f9a8b",
   existing: false,
+  keepPer: null,
+};
+
+/** Open Food Facts has the milk per 100 ml, with the old recipe's values. */
+const MILK_ON_OFF: OffCorrection = {
+  per: "100g",
+  base: { ...MILK, name: "Leche entera", basis: "100g", servingSize: "200 ml", calories: 64, protein: 3.2, carbs: 4.8, fat: null },
 };
 
 describe("newProductPer100g / servingAmount", () => {
@@ -246,5 +258,84 @@ describe("buildLabelReadingSystemPrompt", () => {
     expect(prompt).toContain("Never estimate or invent a value");
     expect(prompt).toContain('"basis": "100g" | "100ml" | "serving"');
     expect(prompt).toContain("write it in Spanish");
+  });
+});
+
+describe("newProductInBasis", () => {
+  it("keeps a label already in the basis Open Food Facts stores", () => {
+    expect(newProductInBasis(MILK, "serving")).toBe(MILK);
+    expect(newProductInBasis(OATS, "100g")).toBe(OATS);
+  });
+
+  it("converts a label per serving to per 100, and per 100 to per serving", () => {
+    expect(newProductInBasis(MILK, "100g")).toEqual({ ...MILK, basis: "100g", calories: 62, protein: 3.2, carbs: 4.8, fat: 3.3 });
+    expect(newProductInBasis({ ...OATS, servingSize: "250 ml" }, "serving")).toEqual({
+      ...OATS,
+      servingSize: "250 ml",
+      basis: "serving",
+      calories: 115,
+      protein: 2.5,
+      carbs: null,
+      fat: 3.75,
+    });
+  });
+
+  it("can't convert without a serving size", () => {
+    expect(newProductInBasis(OATS, "serving")).toBeNull();
+    expect(newProductProblems(OATS, "serving")).toEqual(["serving"]);
+    expect(newProductProblems({ ...OATS, servingSize: "250 ml" }, "serving")).toEqual([]);
+  });
+});
+
+describe("correctionBaseline / correctionChanges", () => {
+  it("shows what Open Food Facts has in the basis and serving of the form", () => {
+    expect(correctionBaseline(MILK_ON_OFF, MILK_ON_OFF.base)).toEqual({ calories: 64, protein: 3.2, carbs: 4.8, fat: null });
+    expect(correctionBaseline(MILK_ON_OFF, MILK)).toEqual({ calories: 128, protein: 6.4, carbs: 9.6, fat: null });
+    expect(correctionBaseline(MILK_ON_OFF, { ...MILK, servingSize: null })).toBeNull();
+  });
+
+  it("lists only the values that really change; an empty field changes nothing", () => {
+    expect(correctionChanges(MILK_ON_OFF, MILK_ON_OFF.base)).toEqual([]);
+    expect(correctionChanges(MILK_ON_OFF, MILK)).toEqual(["calories", "fat"]);
+    expect(correctionChanges(MILK_ON_OFF, { ...MILK_ON_OFF.base, calories: 64.3, protein: null })).toEqual([]);
+  });
+});
+
+describe("parseOffCorrection", () => {
+  const json = {
+    status: 1,
+    product: {
+      product_name_es: "Leche entera",
+      brands: "PIL",
+      serving_size: "200 ml",
+      nutrition_data_per: "100g",
+      nutriments: { "energy-kcal_100g": 64, proteins_100g: 3.2, carbohydrates_100g: 4.8, "energy-kcal_serving": 128 },
+    },
+  };
+
+  it("starts from Open Food Facts' values in the basis it stores, missing ones empty", () => {
+    expect(parseOffCorrection(json, "7771234000123", "es")).toEqual(MILK_ON_OFF);
+  });
+
+  it("reads a product stored per serving, and kJ when kcal is missing", () => {
+    const perServing = {
+      product: { ...json.product, nutrition_data_per: "serving", nutriments: { "energy-kj_serving": 535.6, proteins_serving: 6.4 } },
+    };
+    expect(parseOffCorrection(perServing, "7771234000123", "es")).toEqual({
+      per: "serving",
+      base: { ...MILK_ON_OFF.base, basis: "serving", calories: 128, protein: 6.4, carbs: null, fat: null },
+    });
+    expect(parseOffCorrection({ status: 0 }, "1", "es")).toBeNull();
+  });
+});
+
+describe("offProductFields for a correction", () => {
+  it("sends the values in the basis Open Food Facts stores, never the name or brand", () => {
+    const fields = offProductFields(MILK, { ...CONTEXT, existing: true, keepPer: "100g" });
+    expect(fields).toContainEqual(["nutrition_data_per", "100g"]);
+    expect(fields).toContainEqual(["nutriment_energy-kcal", "62"]);
+    expect(fields).toContainEqual(["nutriment_fat", "3.3"]);
+    expect(fields).toContainEqual(["serving_size", "200 ml"]);
+    expect(fields.map(([key]) => key)).not.toContain("product_name_es");
   });
 });

@@ -20,7 +20,13 @@ import { formatTemplate, t } from "@/i18n";
  *    se envía al volver la conexión,
  *  - el siguiente escaneo y la búsqueda lo encuentran en este navegador,
  *  - «Editar» corrige los valores y vuelve a enviarlos,
- *  - con IA, la foto de la tabla rellena los valores.
+ *  - con IA, la foto de la tabla rellena los valores,
+ *  - al editar se ve la foto de la tabla que espera en este navegador, y al corregir la
+ *    que tiene Open Food Facts,
+ *  - un producto que Open Food Facts tiene con valores que no coinciden con la tabla
+ *    se corrige desde la cantidad («Corregir valores»): el formulario parte de sus
+ *    valores, muestra lo que tenía junto a cada valor cambiado, no guarda sin cambios
+ *    y envía la corrección en la base que Open Food Facts guarda (sin nombre ni marca).
  * `fetch` está simulado: nunca se llama a Open Food Facts de verdad.
  */
 
@@ -72,6 +78,8 @@ import { clearCache } from "@/lib/client-cache";
 const UNKNOWN = "7771234000123";
 const KNOWN_WITHOUT_NUTRITION = "8410000000017";
 const SHOP_LABEL = "2098053024201";
+/** Open Food Facts has it per 100 ml with an old recipe's values (and no fat). */
+const WRONG_VALUES = "7771234000222";
 
 const fetchMock = vi.fn<typeof fetch>();
 let offline = false;
@@ -85,6 +93,18 @@ function stubFetch() {
       return new Response(
         JSON.stringify({ status: 1, product: { product_name: "Galletas María", brands: "Fontaneda", nutriments: {} } }),
       );
+    }
+    if (url.includes(`/api/v2/product/${WRONG_VALUES}`)) {
+      const product = {
+        code: WRONG_VALUES,
+        product_name: "Leche entera",
+        brands: "PIL",
+        serving_size: "200 ml",
+        nutrition_data_per: "100g",
+        nutriments: { "energy-kcal_100g": 64, proteins_100g: 3.2, carbohydrates_100g: 4.8 },
+        image_nutrition_url: `https://images.openfoodfacts.org/images/products/777/123/400/0222/nutrition_es.3.400.jpg`,
+      };
+      return new Response(JSON.stringify({ status: 1, product }));
     }
     if (url.includes("/api/v2/product/")) return new Response(JSON.stringify({ status: 0 }));
     if (url.endsWith("/cgi/product_jqm2.pl")) return new Response(JSON.stringify({ status: 1, status_verbose: "fields saved" }));
@@ -288,6 +308,22 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(within(own).getByText(/Leche entera/)).toBeInTheDocument();
   });
 
+  it("al editar se ve la foto de la tabla que aún espera en este navegador", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await lookUp(user, UNKNOWN);
+    await user.click(await screen.findByRole("button", { name: t.addFood.addProduct }));
+    await user.upload(screen.getByTestId("label-photo-input"), new File(["x"], "label.jpg", { type: "image/jpeg" }));
+    await fillMilk(user);
+    offline = true;
+    await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+
+    await user.click(await screen.findByRole("button", { name: t.newProduct.edit }));
+    expect(await screen.findByTestId("saved-label-photo")).toHaveAttribute("src", "data:image/jpeg;base64,TEFCRUw=");
+    expect(screen.getByText(t.newProduct.photoWaiting)).toBeInTheDocument();
+    expect(screen.getByLabelText(t.newProduct.calories)).toHaveValue("124");
+  });
+
   it("con IA, la foto de la tabla rellena los valores y se envía después de ellos", async () => {
     localStorage.setItem("bw:ai", JSON.stringify({ provider: "gemini", apiKeys: { gemini: "fake-key" } }));
     const user = userEvent.setup();
@@ -316,6 +352,83 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(photo.get("imgupload_nutrition_es")).toBeInstanceOf(Blob);
     // Once Open Food Facts has it, the photo leaves this browser.
     expect(JSON.parse(localStorage.getItem("bw:own-products")!)[0].photo).toBeNull();
+  });
+});
+
+describe("Añadir comida: corregir los valores de un producto de Open Food Facts", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    clearCache();
+    sessionStorage.clear();
+    localStorage.clear();
+    offline = false;
+    fetchMock.mockReset();
+    stubFetch();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("parte de sus valores, muestra lo que cambia y envía la corrección por 100 ml", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await lookUp(user, WRONG_VALUES);
+    await screen.findByLabelText(t.addFood.gramsLabel);
+    await user.click(screen.getByRole("button", { name: t.newProduct.correctLink }));
+
+    expect(await screen.findByRole("dialog", { name: t.newProduct.correctTitle })).toBeInTheDocument();
+    expect(screen.getByText(t.newProduct.correctCheck)).toBeInTheDocument();
+    expect(screen.getByText(t.newProduct.consentCorrection)).toBeInTheDocument();
+    // Its label photo, to compare with the package in hand.
+    expect(screen.getByTestId("saved-label-photo")).toHaveAttribute("src", expect.stringContaining("nutrition_es.3.400.jpg"));
+    expect(screen.getByText(t.newProduct.photoOnOff)).toBeInTheDocument();
+    // The name and brand stay Open Food Facts'; the values start from what it has.
+    expect(screen.queryByLabelText(t.newProduct.name)).toBeNull();
+    expect(screen.getByLabelText(t.newProduct.calories)).toHaveValue("64");
+    expect(screen.getByLabelText(t.newProduct.fat)).toHaveValue("");
+
+    await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+    expect(screen.getByText(t.newProduct.errors.unchanged)).toBeInTheDocument();
+    expect(writes("/cgi/product_jqm2.pl")).toHaveLength(0);
+
+    // The label in hand is per 200 ml serving: 124 kcal instead of 128, and the fat.
+    await user.click(screen.getByRole("button", { name: t.newProduct.basisServing }));
+    expect(screen.getByLabelText(t.newProduct.servingSize)).toHaveValue("200 ml");
+    for (const [label, value] of [
+      [t.newProduct.calories, "124"],
+      [t.newProduct.protein, "6,4"],
+      [t.newProduct.carbs, "9,6"],
+      [t.newProduct.fat, "6,6"],
+    ]) {
+      await user.clear(screen.getByLabelText(label));
+      await user.type(screen.getByLabelText(label), value);
+    }
+    expect(screen.getByText(formatTemplate(t.newProduct.offValue, { value: "128" }))).toBeInTheDocument();
+    expect(screen.queryByText(formatTemplate(t.newProduct.offValue, { value: "6,4" }))).toBeNull();
+    await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+
+    expect(await screen.findByText(t.newProduct.yourCorrection)).toBeInTheDocument();
+    expect(await screen.findByText(t.newProduct.status.sentCorrection)).toBeInTheDocument();
+    expect(screen.getByText(formatTemplate(t.addFood.per100, { kcal: "62", p: "3,2" }))).toBeInTheDocument();
+    const fields = sentFields();
+    expect(fields.get("nutrition_data_per")).toBe("100g");
+    expect(fields.get("nutriment_energy-kcal")).toBe("62");
+    expect(fields.get("nutriment_fat")).toBe("3.3");
+    expect(fields.get("product_name_es")).toBeNull();
+    expect(fields.get("add_brands")).toBeNull();
+  });
+
+  it("sin conexión dice que no se pudo y no abre el formulario", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await lookUp(user, WRONG_VALUES);
+    await screen.findByLabelText(t.addFood.gramsLabel);
+    offline = true;
+    await user.click(screen.getByRole("button", { name: t.newProduct.correctLink }));
+    expect(await screen.findByText(t.newProduct.correctFailed)).toBeInTheDocument();
+    expect(screen.getByLabelText(t.addFood.gramsLabel)).toBeInTheDocument();
   });
 });
 

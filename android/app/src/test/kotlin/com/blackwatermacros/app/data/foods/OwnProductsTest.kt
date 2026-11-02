@@ -5,6 +5,8 @@ import androidx.test.core.app.ApplicationProvider
 import com.blackwatermacros.app.core.FoodLang
 import com.blackwatermacros.app.core.LabelBasis
 import com.blackwatermacros.app.core.NewProduct
+import com.blackwatermacros.app.core.OffCorrection
+import com.blackwatermacros.app.core.OffDataPer
 import com.blackwatermacros.app.data.ai.SecretCipher
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
@@ -179,6 +181,31 @@ class OwnProductsTest {
         assertThat(edit["nutriment_energy-kcal"]).isEqualTo("130")
         assertThat(edit).doesNotContainKey("product_name_es")
         assertThat(store.products.value).hasSize(1)
+    }
+
+    @Test
+    fun `a correction is sent in the basis Open Food Facts stores, keeps its name, and survives a restart and an edit`() = runBlocking {
+        val onOff = OffCorrection(OffDataPer.PER_100G, milk.copy(basis = LabelBasis.PER_100G, calories = 64.0, protein = 3.2, carbs = 4.8, fat = null))
+        val products = products()
+        products.save(milk, FoodLang.ES, existing = false, photo = null, correction = onOff)
+        server.enqueue(ok())
+        products.sendPending()
+        val sent = form(server.takeRequest().body.readUtf8())
+        assertThat(sent["nutrition_data_per"]).isEqualTo("100g")
+        assertThat(sent["nutriment_energy-kcal"]).isEqualTo("62")
+        assertThat(sent["nutriment_fat"]).isEqualTo("3.3")
+        assertThat(sent).doesNotContainKey("product_name_es")
+        assertThat(sent).doesNotContainKey("add_brands")
+
+        val reopened = OwnProductStore(context.getSharedPreferences("own_products_test", Context.MODE_PRIVATE), photoDir)
+        assertThat(reopened.get(milk.code)!!.offCorrection).isEqualTo(onOff)
+        assertThat(reopened.get(milk.code)!!.existing).isTrue()
+
+        products.save(milk.copy(calories = 120.0), FoodLang.ES, existing = false, photo = null)
+        assertThat(store.get(milk.code)!!.offCorrection).isEqualTo(onOff)
+        server.enqueue(ok())
+        products.sendPending()
+        assertThat(form(server.takeRequest().body.readUtf8())["nutriment_energy-kcal"]).isEqualTo("60")
     }
 
     @Test

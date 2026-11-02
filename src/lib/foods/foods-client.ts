@@ -10,7 +10,7 @@ import {
   type GenericFood,
   type Per100g,
 } from "@/lib/core/foods";
-import { offKnownProduct } from "@/lib/core/new-product";
+import { offKnownProduct, parseOffCorrection, type OffCorrection } from "@/lib/core/new-product";
 import { OFF_SERVER, ownChoice, ownProduct } from "@/lib/foods/own-products";
 
 /** A food the user picked from search or a barcode, before choosing the portion. */
@@ -74,6 +74,47 @@ export async function lookupBarcode(code: string, lang: FoodLang = "es"): Promis
   return product
     ? { choice: productChoice(product), own: false }
     : { miss: barcodeMiss(code, json), known: offKnownProduct(json, lang) };
+}
+
+/** The nutrition label photo Open Food Facts shows for `lc`, only from its own image server. */
+function offLabelImage(json: unknown): string | null {
+  const product = (json as { product?: { image_nutrition_url?: unknown } } | null)?.product;
+  const url = product?.image_nutrition_url;
+  return typeof url === "string" && /^https:\/\/images\.openfoodfacts\.(org|net)\//.test(url) ? url : null;
+}
+
+async function fetchProduct(code: string, lang: FoodLang, fields: string): Promise<unknown | null> {
+  const query = `fields=${fields}&lc=${lang}`;
+  const response = await fetch(`${OFF_PRODUCT_URL}${encodeURIComponent(code)}.json?${query}`, {
+    signal: AbortSignal.timeout(8000),
+    cache: "no-store",
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Open Food Facts ${response.status}`);
+  return response.json();
+}
+
+/**
+ * What Open Food Facts has now for «Corregir valores» (fetched again, so the
+ * form starts from its latest values and the basis it stores them in), with
+ * its label photo. Null when it doesn't have the product; throws when offline.
+ */
+export async function fetchCorrection(
+  code: string,
+  lang: FoodLang,
+): Promise<{ correction: OffCorrection; labelImage: string | null } | null> {
+  const json = await fetchProduct(code, lang, `${OFF_FIELDS},nutrition_data_per,image_nutrition_url`);
+  const correction = json === null ? null : parseOffCorrection(json, code, lang);
+  return correction ? { correction, labelImage: offLabelImage(json) } : null;
+}
+
+/** The label photo Open Food Facts has for a product (to show it while editing); null offline or without one. */
+export async function fetchLabelImage(code: string, lang: FoodLang): Promise<string | null> {
+  try {
+    return offLabelImage(await fetchProduct(code, lang, "image_nutrition_url"));
+  } catch {
+    return null;
+  }
 }
 
 export function genericChoice(food: GenericFood, name: string): FoodChoice {

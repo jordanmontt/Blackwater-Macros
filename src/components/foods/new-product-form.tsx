@@ -7,11 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AiImage } from "@/lib/core/ai-providers";
 import {
+  correctionBaseline,
+  correctionChanges,
   newProductPer100g,
   newProductProblems,
   type LabelBasis,
+  type LabelValues,
   type NewProduct,
   type NewProductProblem,
+  type OffCorrection,
 } from "@/lib/core/new-product";
 import { AiError } from "@/lib/ai/client";
 import { downscalePhoto } from "@/lib/ai/images";
@@ -29,6 +33,12 @@ const BASES: { value: LabelBasis; label: string }[] = [
 
 type Reading = "idle" | "reading" | "done" | "failed";
 
+/** A label photo the form didn't take: one waiting on this device, or the one Open Food Facts shows. */
+export interface SavedLabelPhoto {
+  src: string;
+  from: "device" | "off";
+}
+
 function numberText(value: number | null): string {
   return value === null ? "" : toDecimalInput(value);
 }
@@ -45,13 +55,19 @@ function parseNumber(text: string): number | null {
  * (when AI is set up; the photo also goes to Open Food Facts so its volunteers
  * can check the values). `initial`: editing a product added before;
  * `existing`: Open Food Facts already has it without nutrition, so the text says
- * only the values are added.
+ * only the values are added. `correction` («Corregir valores»): Open Food Facts
+ * has it with values that don't match the label; the form starts from them,
+ * keeps the name and brand, and shows what Open Food Facts had next to each
+ * changed value. `savedPhoto`: the label photo already there (waiting to be sent,
+ * or on Open Food Facts), shown until a new one replaces it.
  */
 export function NewProductForm({
   code,
   initial,
   known,
   existing,
+  correction = null,
+  savedPhoto = null,
   editing,
   onSave,
 }: {
@@ -59,19 +75,22 @@ export function NewProductForm({
   initial: NewProduct | null;
   known: { name: string | null; brand: string | null };
   existing: boolean;
+  correction?: OffCorrection | null;
+  savedPhoto?: SavedLabelPhoto | null;
   editing: boolean;
   onSave: (product: NewProduct, photo: AiImage | null) => void;
 }) {
   const settings = useAiSettings();
   const aiReady = isAiReady(settings);
-  const [name, setName] = useState(initial?.name ?? known.name ?? "");
-  const [brand, setBrand] = useState(initial?.brand ?? known.brand ?? "");
-  const [basis, setBasis] = useState<LabelBasis>(initial?.basis ?? "100g");
-  const [serving, setServing] = useState(initial?.servingSize ?? "");
-  const [calories, setCalories] = useState(numberText(initial?.calories ?? null));
-  const [protein, setProtein] = useState(numberText(initial?.protein ?? null));
-  const [carbs, setCarbs] = useState(numberText(initial?.carbs ?? null));
-  const [fat, setFat] = useState(numberText(initial?.fat ?? null));
+  const start = initial ?? correction?.base ?? null;
+  const [name, setName] = useState(start?.name ?? known.name ?? "");
+  const [brand, setBrand] = useState(start?.brand ?? known.brand ?? "");
+  const [basis, setBasis] = useState<LabelBasis>(start?.basis ?? "100g");
+  const [serving, setServing] = useState(start?.servingSize ?? "");
+  const [calories, setCalories] = useState(numberText(start?.calories ?? null));
+  const [protein, setProtein] = useState(numberText(start?.protein ?? null));
+  const [carbs, setCarbs] = useState(numberText(start?.carbs ?? null));
+  const [fat, setFat] = useState(numberText(start?.fat ?? null));
   const [photo, setPhoto] = useState<AiImage | null>(null);
   const [reading, setReading] = useState<Reading>("idle");
   const [readDetail, setReadDetail] = useState("");
@@ -92,7 +111,11 @@ export function NewProductForm({
     carbs: parseNumber(carbs),
     fat: parseNumber(fat),
   };
-  const problems = newProductProblems(product);
+  const changes = correction ? correctionChanges(correction, product) : [];
+  const baseline = correction ? correctionBaseline(correction, product) : null;
+  // A correction that changes nothing and brings no photo would only repeat what Open Food Facts has.
+  const unchanged = correction !== null && changes.length === 0 && photo === null;
+  const problems = newProductProblems(product, correction?.per ?? null);
   const shown = tried ? problems : [];
   const per100 = newProductPer100g(product);
   const canShowPer100 =
@@ -142,18 +165,35 @@ export function NewProductForm({
     ) : null;
   }
 
-  const numberField = (id: string, label: string, value: string, set: (v: string) => void, problem?: NewProductProblem) => (
-    <div className="space-y-1">
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        inputMode="decimal"
-        value={value}
-        aria-invalid={problem ? shown.includes(problem) : undefined}
-        onChange={(event) => set(normalizeDecimal(event.target.value))}
-      />
-    </div>
-  );
+  const numberField = (
+    id: string,
+    label: string,
+    value: string,
+    set: (v: string) => void,
+    nutrient: keyof LabelValues,
+    problem?: NewProductProblem,
+  ) => {
+    const before = baseline?.[nutrient] ?? null;
+    const hint = changes.includes(nutrient) && before !== null;
+    return (
+      <div className="space-y-1">
+        <Label htmlFor={id}>{label}</Label>
+        <Input
+          id={id}
+          inputMode="decimal"
+          value={value}
+          aria-invalid={problem ? shown.includes(problem) : undefined}
+          aria-describedby={hint ? `${id}-off` : undefined}
+          onChange={(event) => set(normalizeDecimal(event.target.value))}
+        />
+        {hint ? (
+          <p id={`${id}-off`} className="text-xs text-muted-foreground tabular-nums">
+            {formatTemplate(t.newProduct.offValue, { value: formatNumber(before, nutrient === "calories" ? 0 : 1) })}
+          </p>
+        ) : null}
+      </div>
+    );
+  };
 
   return (
     <form
@@ -162,10 +202,19 @@ export function NewProductForm({
       onSubmit={(event) => {
         event.preventDefault();
         setTried(true);
-        if (problems.length === 0 && reading !== "reading") onSave(product, photo);
+        if (problems.length === 0 && !unchanged && reading !== "reading") onSave(product, photo);
       }}
     >
-      <p className="text-xs text-muted-foreground tabular-nums">{formatTemplate(t.newProduct.barcode, { code })}</p>
+      <div className="space-y-1">
+        {correction ? (
+          <p className="font-medium">
+            {name}
+            {brand ? <span className="font-normal text-muted-foreground"> · {brand}</span> : null}
+          </p>
+        ) : null}
+        <p className="text-xs text-muted-foreground tabular-nums">{formatTemplate(t.newProduct.barcode, { code })}</p>
+        {correction ? <p className="text-xs text-muted-foreground">{t.newProduct.correctCheck}</p> : null}
+      </div>
 
       <div className="space-y-2">
         {photo ? (
@@ -209,6 +258,24 @@ export function NewProductForm({
               </div>
             </div>
           </div>
+        ) : savedPhoto ? (
+          <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element -- a data URL or Open Food Facts' image */}
+            <img
+              src={savedPhoto.src}
+              alt={t.newProduct.labelPhotoAlt}
+              className="size-16 shrink-0 rounded-lg border object-cover"
+              data-testid="saved-label-photo"
+            />
+            <div className="min-w-0 space-y-1 text-sm">
+              <p className="text-muted-foreground">
+                {savedPhoto.from === "device" ? t.newProduct.photoWaiting : t.newProduct.photoOnOff}
+              </p>
+              <Button type="button" variant="ghost" size="sm" onClick={() => fileInput.current?.click()}>
+                <RefreshCwIcon /> {t.newProduct.retake}
+              </Button>
+            </div>
+          </div>
         ) : (
           <>
             <Button type="button" variant="outline" className="w-full" onClick={() => fileInput.current?.click()}>
@@ -233,23 +300,27 @@ export function NewProductForm({
         />
       </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="product-name">{t.newProduct.name}</Label>
-        <Input
-          id="product-name"
-          placeholder={t.newProduct.namePlaceholder}
-          value={name}
-          aria-invalid={shown.includes("name") || undefined}
-          onChange={(event) => setName(event.target.value)}
-        />
-        {error("name")}
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="product-brand">
-          {t.newProduct.brand} <span className="font-normal text-muted-foreground">({t.newProduct.optional})</span>
-        </Label>
-        <Input id="product-brand" value={brand} onChange={(event) => setBrand(event.target.value)} />
-      </div>
+      {correction ? null : (
+        <>
+          <div className="space-y-1">
+            <Label htmlFor="product-name">{t.newProduct.name}</Label>
+            <Input
+              id="product-name"
+              placeholder={t.newProduct.namePlaceholder}
+              value={name}
+              aria-invalid={shown.includes("name") || undefined}
+              onChange={(event) => setName(event.target.value)}
+            />
+            {error("name")}
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="product-brand">
+              {t.newProduct.brand} <span className="font-normal text-muted-foreground">({t.newProduct.optional})</span>
+            </Label>
+            <Input id="product-brand" value={brand} onChange={(event) => setBrand(event.target.value)} />
+          </div>
+        </>
+      )}
 
       <div className="space-y-1.5">
         <p className="text-sm font-medium" id="basis-label">
@@ -292,15 +363,15 @@ export function NewProductForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          {numberField("product-kcal", t.newProduct.calories, calories, setCalories, "calories")}
+          {numberField("product-kcal", t.newProduct.calories, calories, setCalories, "calories", "calories")}
           {error("calories")}
         </div>
         <div className="space-y-1">
-          {numberField("product-protein", t.newProduct.protein, protein, setProtein, "protein")}
+          {numberField("product-protein", t.newProduct.protein, protein, setProtein, "protein", "protein")}
           {error("protein")}
         </div>
-        {numberField("product-carbs", t.newProduct.carbs, carbs, setCarbs)}
-        {numberField("product-fat", t.newProduct.fat, fat, setFat)}
+        {numberField("product-carbs", t.newProduct.carbs, carbs, setCarbs, "carbs")}
+        {numberField("product-fat", t.newProduct.fat, fat, setFat, "fat")}
       </div>
       {canShowPer100 ? (
         <p className="text-xs text-muted-foreground" data-testid="per-100-line">
@@ -313,8 +384,14 @@ export function NewProductForm({
       ) : null}
       {error("tooHigh")}
 
+      {tried && unchanged && problems.length === 0 ? (
+        <p className="text-xs text-destructive" role="alert">
+          {t.newProduct.errors.unchanged}
+        </p>
+      ) : null}
+
       <p className="border-t pt-3 text-xs text-muted-foreground">
-        {existing ? t.newProduct.consentExisting : t.newProduct.consent}
+        {correction ? t.newProduct.consentCorrection : existing ? t.newProduct.consentExisting : t.newProduct.consent}
       </p>
       <Button type="submit" className="w-full" disabled={reading === "reading"}>
         {editing ? t.newProduct.saveEdit : t.newProduct.save}

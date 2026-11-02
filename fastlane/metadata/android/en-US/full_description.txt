@@ -32,7 +32,7 @@
 
 <p><b>Private by design</b></p>
 <ul>
-<li>Your data stays on your phone. Without logging in, it never leaves the device: the app never contacts our server. It only goes online when you ask: food search, barcodes and the products you add (Open Food Facts), the AI provider you chose (only what you send it), and the list or download of phone AI models (GitHub, Hugging Face).</li>
+<li>Your data stays on your phone. Without logging in, it never leaves the device: the app never contacts our server. It only goes online when you ask: food search, barcodes and the products you add or correct (Open Food Facts), the AI provider you chose (only what you send it), and the list or download of phone AI models (GitHub, Hugging Face).</li>
 <li>No ads, no analytics, no trackers. Free software (AGPL-3.0).</li>
 <li>Export all your data in one readable file.</li>
 </ul>

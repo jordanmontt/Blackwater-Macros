@@ -40,6 +40,12 @@ class NewProductTest {
         existing = false,
     )
 
+    /** Open Food Facts has the milk per 100 ml, with the old recipe's values. */
+    private val milkOnOff = OffCorrection(
+        per = OffDataPer.PER_100G,
+        base = milk.copy(name = "Leche entera", basis = LabelBasis.PER_100G, calories = 64.0, protein = 3.2, carbs = 4.8, fat = null),
+    )
+
     private fun json(text: String) = Json.parseToJsonElement(text)
 
     // --- newProductPer100g / servingAmount ---
@@ -245,5 +251,81 @@ class NewProductTest {
         assertThat(prompt).contains("Never estimate or invent a value")
         assertThat(prompt).contains("\"basis\": \"100g\" | \"100ml\" | \"serving\"")
         assertThat(prompt).contains("write it in Spanish")
+    }
+
+    // --- newProductInBasis ---
+
+    @Test
+    fun keepsALabelAlreadyInTheBasisOpenFoodFactsStores() {
+        assertThat(newProductInBasis(milk, OffDataPer.SERVING)).isSameInstanceAs(milk)
+        assertThat(newProductInBasis(oats, OffDataPer.PER_100G)).isSameInstanceAs(oats)
+    }
+
+    @Test
+    fun convertsALabelPerServingToPer100AndPer100ToPerServing() {
+        assertThat(newProductInBasis(milk, OffDataPer.PER_100G))
+            .isEqualTo(milk.copy(basis = LabelBasis.PER_100G, calories = 62.0, protein = 3.2, carbs = 4.8, fat = 3.3))
+        assertThat(newProductInBasis(oats.copy(servingSize = "250 ml"), OffDataPer.SERVING)).isEqualTo(
+            oats.copy(servingSize = "250 ml", basis = LabelBasis.SERVING, calories = 115.0, protein = 2.5, carbs = null, fat = 3.75),
+        )
+    }
+
+    @Test
+    fun cantConvertWithoutAServingSize() {
+        assertThat(newProductInBasis(oats, OffDataPer.SERVING)).isNull()
+        assertThat(newProductProblems(oats, OffDataPer.SERVING)).containsExactly(NewProductProblem.SERVING)
+        assertThat(newProductProblems(oats.copy(servingSize = "250 ml"), OffDataPer.SERVING)).isEmpty()
+    }
+
+    // --- correctionBaseline / correctionChanges ---
+
+    @Test
+    fun showsWhatOpenFoodFactsHasInTheBasisAndServingOfTheForm() {
+        assertThat(correctionBaseline(milkOnOff, milkOnOff.base)).isEqualTo(LabelValues(64.0, 3.2, 4.8, null))
+        assertThat(correctionBaseline(milkOnOff, milk)).isEqualTo(LabelValues(128.0, 6.4, 9.6, null))
+        assertThat(correctionBaseline(milkOnOff, milk.copy(servingSize = null))).isNull()
+    }
+
+    @Test
+    fun listsOnlyTheValuesThatReallyChangeAndAnEmptyFieldChangesNothing() {
+        assertThat(correctionChanges(milkOnOff, milkOnOff.base)).isEmpty()
+        assertThat(correctionChanges(milkOnOff, milk)).containsExactly(LabelNutrient.CALORIES, LabelNutrient.FAT).inOrder()
+        assertThat(correctionChanges(milkOnOff, milkOnOff.base.copy(calories = 64.3, protein = null))).isEmpty()
+    }
+
+    // --- parseOffCorrection ---
+
+    private val offMilk = """
+        {"status":1,"product":{"product_name_es":"Leche entera","brands":"PIL","serving_size":"200 ml",
+        "nutrition_data_per":"100g","nutriments":{"energy-kcal_100g":64,"proteins_100g":3.2,"carbohydrates_100g":4.8,"energy-kcal_serving":128}}}
+    """
+
+    @Test
+    fun startsFromOpenFoodFactsValuesInTheBasisItStoresMissingOnesEmpty() {
+        assertThat(parseOffCorrection(json(offMilk), "7771234000123", FoodLang.ES)).isEqualTo(milkOnOff)
+    }
+
+    @Test
+    fun readsAProductStoredPerServingAndKjWhenKcalIsMissing() {
+        val perServing = """
+            {"product":{"product_name_es":"Leche entera","brands":"PIL","serving_size":"200 ml",
+            "nutrition_data_per":"serving","nutriments":{"energy-kj_serving":535.6,"proteins_serving":6.4}}}
+        """
+        assertThat(parseOffCorrection(json(perServing), "7771234000123", FoodLang.ES)).isEqualTo(
+            OffCorrection(OffDataPer.SERVING, milkOnOff.base.copy(basis = LabelBasis.SERVING, calories = 128.0, protein = 6.4, carbs = null, fat = null)),
+        )
+        assertThat(parseOffCorrection(json("""{"status":0}"""), "1", FoodLang.ES)).isNull()
+    }
+
+    // --- offProductFields for a correction ---
+
+    @Test
+    fun sendsTheValuesInTheBasisOpenFoodFactsStoresNeverTheNameOrBrand() {
+        val fields = offProductFields(milk, context.copy(existing = true, keepPer = OffDataPer.PER_100G))
+        assertThat(fields).contains("nutrition_data_per" to "100g")
+        assertThat(fields).contains("nutriment_energy-kcal" to "62")
+        assertThat(fields).contains("nutriment_fat" to "3.3")
+        assertThat(fields).contains("serving_size" to "200 ml")
+        assertThat(fields.map { it.first }).doesNotContain("product_name_es")
     }
 }
