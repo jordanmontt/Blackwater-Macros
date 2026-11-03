@@ -157,6 +157,8 @@
     "namePlaceholder": "Oat drink",
     "brand": "Brand",
     "optional": "optional",
+    "packageLang": "Language of the package",
+    "packageLangHint": "Open Food Facts keeps the name and the label photo under this language.",
     "basisLabel": "The label's values are for",
     "basis100g": "100 g",
     "basis100ml": "100 ml",

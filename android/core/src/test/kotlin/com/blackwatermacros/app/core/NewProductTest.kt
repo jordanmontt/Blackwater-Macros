@@ -32,7 +32,7 @@ class NewProductTest {
     )
 
     private val context = OffWriteContext(
-        lang = FoodLang.ES,
+        lang = "es",
         userId = "blackwater-macros-app",
         password = "secret",
         appVersion = "1.4.0",
@@ -44,6 +44,7 @@ class NewProductTest {
     private val milkOnOff = OffCorrection(
         per = OffDataPer.PER_100G,
         base = milk.copy(name = "Leche entera", basis = LabelBasis.PER_100G, calories = 64.0, protein = 3.2, carbs = 4.8, fat = null),
+        lang = "es",
     )
 
     private fun json(text: String) = Json.parseToJsonElement(text)
@@ -120,6 +121,7 @@ class NewProductTest {
             "app_version" to "1.4.0",
             "app_uuid" to "0b4e1c52-7d1a-4f0e-9a7b-3c2d1e0f9a8b",
             "lc" to "es",
+            "lang" to "es",
             "product_name_es" to "Leche entera",
             "add_brands" to "PIL",
             "nutrition_data_per" to "serving",
@@ -138,7 +140,7 @@ class NewProductTest {
 
     @Test
     fun leavesOutWhatTheUserLeftEmpty() {
-        val fields = offProductFields(oats, context.copy(lang = FoodLang.EN))
+        val fields = offProductFields(oats, context.copy(lang = "en"))
         assertThat(fields.map { it.first }).doesNotContain("add_brands")
         assertThat(fields.map { it.first }).doesNotContain("nutriment_carbohydrates")
         assertThat(fields).contains("product_name_en" to "Oat drink")
@@ -151,11 +153,21 @@ class NewProductTest {
         assertThat(keys).doesNotContain("product_name_es")
         assertThat(keys).doesNotContain("add_brands")
         assertThat(keys).contains("nutriment_energy-kcal")
+        // Its main language stays Open Food Facts'.
+        assertThat(keys).doesNotContain("lang")
     }
 
     @Test
-    fun sendsThePhotoAsTheNutritionLabelInTheAppLanguage() {
-        assertThat(offImageFields("7771234000123", context.copy(lang = FoodLang.FR))).containsExactly(
+    fun namesANewProductInThePackagesLanguageWhateverTheApps() {
+        val fields = offProductFields(milk, context.copy(lang = "pt"))
+        assertThat(fields).contains("lc" to "pt")
+        assertThat(fields).contains("lang" to "pt")
+        assertThat(fields).contains("product_name_pt" to "Leche entera")
+    }
+
+    @Test
+    fun sendsThePhotoAsTheNutritionLabelInThePackagesLanguage() {
+        assertThat(offImageFields("7771234000123", context.copy(lang = "fr"))).containsExactly(
             "code" to "7771234000123",
             "user_id" to "blackwater-macros-app",
             "password" to "secret",
@@ -191,10 +203,18 @@ class NewProductTest {
 
     @Test
     fun startsTheFormFromWhatOpenFoodFactsKnows() {
-        val known = json("""{"status":1,"product":{"product_name":"Galletas María","product_name_es":"Galletas María Oro","brands":"Fontaneda, Mondelez"}}""")
-        assertThat(offKnownProduct(known, FoodLang.ES)).isEqualTo(OffKnownProduct("Galletas María Oro", "Fontaneda"))
-        assertThat(offKnownProduct(known, FoodLang.FR)).isEqualTo(OffKnownProduct("Galletas María", "Fontaneda"))
+        val known = json("""{"status":1,"product":{"product_name":"Galletas María","product_name_es":"Galletas María Oro","brands":"Fontaneda, Mondelez","lang":"es"}}""")
+        assertThat(offKnownProduct(known, FoodLang.ES)).isEqualTo(OffKnownProduct("Galletas María Oro", "Fontaneda", "es"))
+        assertThat(offKnownProduct(known, FoodLang.FR)).isEqualTo(OffKnownProduct("Galletas María", "Fontaneda", "es"))
         assertThat(offKnownProduct(json("""{"status":0}"""), FoodLang.ES)).isEqualTo(OffKnownProduct(null, null))
+    }
+
+    @Test
+    fun readsTheMainLanguageOnlyAsATwoLetterCode() {
+        assertThat(packageLang(" ES ")).isEqualTo("es")
+        assertThat(packageLang("spanish")).isNull()
+        assertThat(packageLang(null)).isNull()
+        assertThat(offKnownProduct(json("""{"product":{"lc":"pt"}}"""), FoodLang.ES).lang).isEqualTo("pt")
     }
 
     // --- searchOwnProducts ---
@@ -217,9 +237,9 @@ class NewProductTest {
 
     @Test
     fun readsTheModelsJsonAlsoInsideAFence() {
-        val answer = "```json\n{\"name\":\"Leche entera\",\"brand\":\"PIL\",\"basis\":\"serving\",\"servingSize\":\"200 ml\",\"calories\":124,\"protein\":\"6,4 g\",\"carbs\":9.6,\"fat\":null}\n```"
+        val answer = "```json\n{\"name\":\"Leche entera\",\"brand\":\"PIL\",\"language\":\"es\",\"basis\":\"serving\",\"servingSize\":\"200 ml\",\"calories\":124,\"protein\":\"6,4 g\",\"carbs\":9.6,\"fat\":null}\n```"
         assertThat(parseLabelReading(answer)).isEqualTo(
-            LabelReading("Leche entera", "PIL", LabelBasis.SERVING, "200 ml", 124.0, 6.4, 9.6, null),
+            LabelReading("Leche entera", "es", "PIL", LabelBasis.SERVING, "200 ml", 124.0, 6.4, 9.6, null),
         )
     }
 
@@ -251,6 +271,7 @@ class NewProductTest {
         assertThat(prompt).contains("Never estimate or invent a value")
         assertThat(prompt).contains("\"basis\": \"100g\" | \"100ml\" | \"serving\"")
         assertThat(prompt).contains("write it in Spanish")
+        assertThat(prompt).contains("ISO 639-1 code of the language the label is written in")
     }
 
     // --- newProductInBasis ---
@@ -297,7 +318,7 @@ class NewProductTest {
 
     private val offMilk = """
         {"status":1,"product":{"product_name_es":"Leche entera","brands":"PIL","serving_size":"200 ml",
-        "nutrition_data_per":"100g","nutriments":{"energy-kcal_100g":64,"proteins_100g":3.2,"carbohydrates_100g":4.8,"energy-kcal_serving":128}}}
+        "nutrition_data_per":"100g","lang":"es","nutriments":{"energy-kcal_100g":64,"proteins_100g":3.2,"carbohydrates_100g":4.8,"energy-kcal_serving":128}}}
     """
 
     @Test
@@ -309,10 +330,14 @@ class NewProductTest {
     fun readsAProductStoredPerServingAndKjWhenKcalIsMissing() {
         val perServing = """
             {"product":{"product_name_es":"Leche entera","brands":"PIL","serving_size":"200 ml",
-            "nutrition_data_per":"serving","nutriments":{"energy-kj_serving":535.6,"proteins_serving":6.4}}}
+            "nutrition_data_per":"serving","lang":"es","nutriments":{"energy-kj_serving":535.6,"proteins_serving":6.4}}}
         """
         assertThat(parseOffCorrection(json(perServing), "7771234000123", FoodLang.ES)).isEqualTo(
-            OffCorrection(OffDataPer.SERVING, milkOnOff.base.copy(basis = LabelBasis.SERVING, calories = 128.0, protein = 6.4, carbs = null, fat = null)),
+            OffCorrection(
+                OffDataPer.SERVING,
+                milkOnOff.base.copy(basis = LabelBasis.SERVING, calories = 128.0, protein = 6.4, carbs = null, fat = null),
+                lang = "es",
+            ),
         )
         assertThat(parseOffCorrection(json("""{"status":0}"""), "1", FoodLang.ES)).isNull()
     }

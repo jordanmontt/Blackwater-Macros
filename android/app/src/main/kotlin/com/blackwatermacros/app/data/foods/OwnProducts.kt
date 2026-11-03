@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.blackwatermacros.app.BuildConfig
-import com.blackwatermacros.app.core.FoodLang
 import com.blackwatermacros.app.core.LabelBasis
 import com.blackwatermacros.app.core.NewProduct
 import com.blackwatermacros.app.core.OFF_APP_PASSWORD
@@ -78,11 +77,11 @@ data class StoredLabel(
 
 /** [OffCorrection] as stored on the phone. */
 @Serializable
-data class StoredCorrection(val per: String, val base: StoredLabel) {
-    fun toCorrection() = OffCorrection(OffDataPer.fromId(per) ?: OffDataPer.PER_100G, base.toNewProduct())
+data class StoredCorrection(val per: String, val base: StoredLabel, val lang: String? = null) {
+    fun toCorrection() = OffCorrection(OffDataPer.fromId(per) ?: OffDataPer.PER_100G, base.toNewProduct(), lang)
 
     companion object {
-        fun of(correction: OffCorrection) = StoredCorrection(correction.per.id, StoredLabel.of(correction.base))
+        fun of(correction: OffCorrection) = StoredCorrection(correction.per.id, StoredLabel.of(correction.base), correction.lang)
     }
 }
 
@@ -91,6 +90,7 @@ enum class OwnProductState { PENDING, SENT, ACCOUNT, REJECTED }
 @Serializable
 data class OwnProduct(
     val label: StoredLabel,
+    /** The package's language (or the product's main language on Open Food Facts): names and photos go under it. */
     val lang: String,
     /** Open Food Facts already had it: only the values (and photo) are sent, never the name or brand. */
     val existing: Boolean,
@@ -144,7 +144,7 @@ class OwnProductStore(private val prefs: SharedPreferences, private val photoDir
     @Synchronized
     fun save(
         product: NewProduct,
-        lang: FoodLang,
+        lang: String,
         existing: Boolean,
         photo: ByteArray?,
         correction: OffCorrection? = null,
@@ -158,7 +158,7 @@ class OwnProductStore(private val prefs: SharedPreferences, private val photoDir
         }
         val item = OwnProduct(
             label = StoredLabel.of(product),
-            lang = lang.code,
+            lang = lang,
             existing = previous?.existing ?: (existing || stored != null),
             hasPhoto = photo != null || previous?.hasPhoto == true,
             fieldsPending = true,
@@ -359,7 +359,7 @@ class OwnProducts(
 ) {
     private val mutex = Mutex()
 
-    fun save(product: NewProduct, lang: FoodLang, existing: Boolean, photo: ByteArray?, correction: OffCorrection? = null): OwnProduct =
+    fun save(product: NewProduct, lang: String, existing: Boolean, photo: ByteArray?, correction: OffCorrection? = null): OwnProduct =
         store.save(product, lang, existing, photo, correction).also { schedule() }
 
     /** Saves (or with null, forgets) the user's account; what it refused is tried again. */
@@ -381,7 +381,7 @@ class OwnProducts(
         val appUuid = account.installId()
         for (queued in store.products.value.filter { it.state == OwnProductState.PENDING }.reversed()) {
             val item = store.get(queued.code)?.takeIf { it.state == OwnProductState.PENDING } ?: continue
-            val lang = FoodLang.entries.firstOrNull { it.code == item.lang } ?: FoodLang.ES
+            val lang = item.lang
             val context = OffWriteContext(lang, userId, password, appVersion, appUuid, item.existing, item.offCorrection?.per)
             if (item.fieldsPending) {
                 val sent = item.label

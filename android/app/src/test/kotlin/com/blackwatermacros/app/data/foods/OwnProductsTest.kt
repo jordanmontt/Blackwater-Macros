@@ -2,7 +2,6 @@ package com.blackwatermacros.app.data.foods
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.blackwatermacros.app.core.FoodLang
 import com.blackwatermacros.app.core.LabelBasis
 import com.blackwatermacros.app.core.NewProduct
 import com.blackwatermacros.app.core.OffCorrection
@@ -82,7 +81,7 @@ class OwnProductsTest {
     @Test
     fun `values then the label photo go to Open Food Facts, and the photo leaves the phone`() = runBlocking {
         val products = products()
-        products.save(milk, FoodLang.ES, existing = false, photo = jpeg)
+        products.save(milk, "es", existing = false, photo = jpeg)
         assertThat(scheduled).isEqualTo(1)
         assertThat(File(photoDir, "7771234000123.jpg").readBytes()).isEqualTo(jpeg)
         server.enqueue(ok())
@@ -97,6 +96,8 @@ class OwnProductsTest {
         assertThat(sent["user_id"]).isEqualTo("blackwater-macros-app")
         assertThat(sent["password"]).isEqualTo("app-password")
         assertThat(sent["product_name_es"]).isEqualTo("Leche entera")
+        // The package's language is the product's main language there.
+        assertThat(sent["lang"]).isEqualTo("es")
         assertThat(sent["nutrition_data_per"]).isEqualTo("serving")
         assertThat(sent["serving_size"]).isEqualTo("200 ml")
         assertThat(sent["nutriment_energy-kcal"]).isEqualTo("124")
@@ -116,7 +117,7 @@ class OwnProductsTest {
 
     @Test
     fun `offline or a busy Open Food Facts waits, and the next run sends it`() = runBlocking {
-        products(at = unreachable).save(milk, FoodLang.ES, existing = false, photo = jpeg)
+        products(at = unreachable).save(milk, "es", existing = false, photo = jpeg)
         assertThat(products(at = unreachable).sendPending()).isFalse()
         assertThat(store.get(milk.code)!!.state).isEqualTo(OwnProductState.PENDING)
         val products = products()
@@ -136,7 +137,7 @@ class OwnProductsTest {
     fun `the user's own account is used, and one Open Food Facts refuses is tried again after changing it`() = runBlocking {
         val products = products()
         products.setAccount(OffAccount("maria", "wrong"))
-        products.save(milk, FoodLang.FR, existing = false, photo = null)
+        products.save(milk, "fr", existing = false, photo = null)
         server.enqueue(MockResponse().setResponseCode(403))
         assertThat(products.sendPending()).isTrue()
         val first = form(server.takeRequest().body.readUtf8())
@@ -155,7 +156,7 @@ class OwnProductsTest {
     @Test
     fun `what Open Food Facts refuses says so and is not retried`() = runBlocking {
         val products = products()
-        products.save(milk, FoodLang.ES, existing = false, photo = null)
+        products.save(milk, "es", existing = false, photo = null)
         server.enqueue(MockResponse().setBody("""{"status":0,"status_verbose":"no code or invalid code"}"""))
         assertThat(products.sendPending()).isTrue()
         val refused = store.get(milk.code)!!
@@ -168,12 +169,12 @@ class OwnProductsTest {
     @Test
     fun `a product Open Food Facts had keeps its name, and an edit is sent again`() = runBlocking {
         val products = products()
-        products.save(milk, FoodLang.ES, existing = true, photo = null)
+        products.save(milk, "es", existing = true, photo = null)
         server.enqueue(ok())
         products.sendPending()
         assertThat(form(server.takeRequest().body.readUtf8())).doesNotContainKey("product_name_es")
 
-        products.save(milk.copy(calories = 130.0), FoodLang.ES, existing = false, photo = null)
+        products.save(milk.copy(calories = 130.0), "es", existing = false, photo = null)
         assertThat(store.get(milk.code)!!.existing).isTrue()
         server.enqueue(ok())
         products.sendPending()
@@ -187,7 +188,7 @@ class OwnProductsTest {
     fun `a correction is sent in the basis Open Food Facts stores, keeps its name, and survives a restart and an edit`() = runBlocking {
         val onOff = OffCorrection(OffDataPer.PER_100G, milk.copy(basis = LabelBasis.PER_100G, calories = 64.0, protein = 3.2, carbs = 4.8, fat = null))
         val products = products()
-        products.save(milk, FoodLang.ES, existing = false, photo = null, correction = onOff)
+        products.save(milk, "es", existing = false, photo = null, correction = onOff)
         server.enqueue(ok())
         products.sendPending()
         val sent = form(server.takeRequest().body.readUtf8())
@@ -196,12 +197,13 @@ class OwnProductsTest {
         assertThat(sent["nutriment_fat"]).isEqualTo("3.3")
         assertThat(sent).doesNotContainKey("product_name_es")
         assertThat(sent).doesNotContainKey("add_brands")
+        assertThat(sent).doesNotContainKey("lang")
 
         val reopened = OwnProductStore(context.getSharedPreferences("own_products_test", Context.MODE_PRIVATE), photoDir)
         assertThat(reopened.get(milk.code)!!.offCorrection).isEqualTo(onOff)
         assertThat(reopened.get(milk.code)!!.existing).isTrue()
 
-        products.save(milk.copy(calories = 120.0), FoodLang.ES, existing = false, photo = null)
+        products.save(milk.copy(calories = 120.0), "es", existing = false, photo = null)
         assertThat(store.get(milk.code)!!.offCorrection).isEqualTo(onOff)
         server.enqueue(ok())
         products.sendPending()
@@ -211,7 +213,7 @@ class OwnProductsTest {
     @Test
     fun `without the app account's password nothing is sent`() = runBlocking {
         val products = products(appPassword = "")
-        products.save(milk, FoodLang.ES, existing = false, photo = null)
+        products.save(milk, "es", existing = false, photo = null)
         assertThat(products.sendPending()).isTrue()
         assertThat(server.requestCount).isEqualTo(0)
         assertThat(store.get(milk.code)!!.state).isEqualTo(OwnProductState.PENDING)
@@ -219,7 +221,7 @@ class OwnProductsTest {
 
     @Test
     fun `products survive a restart and become choices for the portion screen`() {
-        products().save(milk, FoodLang.ES, existing = false, photo = null)
+        products().save(milk, "es", existing = false, photo = null)
         val reopened = OwnProductStore(context.getSharedPreferences("own_products_test", Context.MODE_PRIVATE), photoDir)
         val choice = reopened.get(milk.code)!!.toChoice()
         assertThat(choice.code).isEqualTo(milk.code)

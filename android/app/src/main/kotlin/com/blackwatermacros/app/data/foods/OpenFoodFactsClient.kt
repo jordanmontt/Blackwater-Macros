@@ -115,7 +115,7 @@ class OpenFoodFactsClient(
     companion object {
         const val FIELDS =
             "code,product_name,product_name_es,product_name_en,product_name_fr,product_name_de,product_name_it," +
-                "generic_name,brands,serving_size,serving_quantity,nutriments"
+                "generic_name,brands,serving_size,serving_quantity,nutriments,lang"
 
         const val USER_AGENT_PREFIX = "BlackwaterMacros/"
 

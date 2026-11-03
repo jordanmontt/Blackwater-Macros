@@ -157,6 +157,8 @@
     "namePlaceholder": "Haferdrink",
     "brand": "Marke",
     "optional": "optional",
+    "packageLang": "Sprache der Verpackung",
+    "packageLangHint": "Open Food Facts speichert den Namen und das Foto der Tabelle in dieser Sprache.",
     "basisLabel": "Die Werte der Tabelle gelten für",
     "basis100g": "100 g",
     "basis100ml": "100 ml",

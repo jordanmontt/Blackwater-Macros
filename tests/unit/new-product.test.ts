@@ -13,6 +13,7 @@ import {
   offKnownProduct,
   offProductFields,
   parseLabelReading,
+  packageLang,
   parseOffCorrection,
   searchOwnProducts,
   servingAmount,
@@ -59,6 +60,7 @@ const CONTEXT: OffWriteContext = {
 /** Open Food Facts has the milk per 100 ml, with the old recipe's values. */
 const MILK_ON_OFF: OffCorrection = {
   per: "100g",
+  lang: "es",
   base: { ...MILK, name: "Leche entera", basis: "100g", servingSize: "200 ml", calories: 64, protein: 3.2, carbs: 4.8, fat: null },
 };
 
@@ -132,6 +134,7 @@ describe("offProductFields / offImageFields", () => {
       ["app_version", "1.4.0"],
       ["app_uuid", "0b4e1c52-7d1a-4f0e-9a7b-3c2d1e0f9a8b"],
       ["lc", "es"],
+      ["lang", "es"],
       ["product_name_es", "Leche entera"],
       ["add_brands", "PIL"],
       ["nutrition_data_per", "serving"],
@@ -159,11 +162,20 @@ describe("offProductFields / offImageFields", () => {
   it("only adds the nutrition to a product Open Food Facts already had", () => {
     const keys = offProductFields(MILK, { ...CONTEXT, existing: true }).map(([key]) => key);
     expect(keys).not.toContain("product_name_es");
+    // Its main language stays Open Food Facts'.
+    expect(keys).not.toContain("lang");
     expect(keys).not.toContain("add_brands");
     expect(keys).toContain("nutriment_energy-kcal");
   });
 
-  it("sends the photo as the nutrition label in the app language", () => {
+  it("names a new product in the package's language, whatever the app's", () => {
+    const fields = offProductFields(MILK, { ...CONTEXT, lang: "pt" });
+    expect(fields).toContainEqual(["lc", "pt"]);
+    expect(fields).toContainEqual(["lang", "pt"]);
+    expect(fields).toContainEqual(["product_name_pt", "Leche entera"]);
+  });
+
+  it("sends the photo as the nutrition label in the package's language", () => {
     expect(offImageFields("7771234000123", { ...CONTEXT, lang: "fr" })).toEqual([
       ["code", "7771234000123"],
       ["user_id", "blackwater-macros-app"],
@@ -197,10 +209,20 @@ describe("offFieldsOutcome / offImageOutcome", () => {
 
 describe("offKnownProduct", () => {
   it("starts the form from what Open Food Facts knows", () => {
-    const json = { status: 1, product: { product_name: "Galletas María", product_name_es: "Galletas María Oro", brands: "Fontaneda, Mondelez" } };
-    expect(offKnownProduct(json, "es")).toEqual({ name: "Galletas María Oro", brand: "Fontaneda" });
-    expect(offKnownProduct(json, "fr")).toEqual({ name: "Galletas María", brand: "Fontaneda" });
-    expect(offKnownProduct({ status: 0 }, "es")).toEqual({ name: null, brand: null });
+    const json = {
+      status: 1,
+      product: { product_name: "Galletas María", product_name_es: "Galletas María Oro", brands: "Fontaneda, Mondelez", lang: "es" },
+    };
+    expect(offKnownProduct(json, "es")).toEqual({ name: "Galletas María Oro", brand: "Fontaneda", lang: "es" });
+    expect(offKnownProduct(json, "fr")).toEqual({ name: "Galletas María", brand: "Fontaneda", lang: "es" });
+    expect(offKnownProduct({ status: 0 }, "es")).toEqual({ name: null, brand: null, lang: null });
+  });
+
+  it("reads the main language only as a two-letter code", () => {
+    expect(packageLang(" ES ")).toBe("es");
+    expect(packageLang("spanish")).toBeNull();
+    expect(packageLang(null)).toBeNull();
+    expect(offKnownProduct({ product: { lc: "pt" } }, "es").lang).toBe("pt");
   });
 });
 
@@ -223,9 +245,10 @@ describe("searchOwnProducts", () => {
 describe("parseLabelReading", () => {
   it("reads the model's JSON, also inside a fence", () => {
     const answer =
-      '```json\n{"name":"Leche entera","brand":"PIL","basis":"serving","servingSize":"200 ml","calories":124,"protein":"6,4 g","carbs":9.6,"fat":null}\n```';
+      '```json\n{"name":"Leche entera","brand":"PIL","language":"es","basis":"serving","servingSize":"200 ml","calories":124,"protein":"6,4 g","carbs":9.6,"fat":null}\n```';
     expect(parseLabelReading(answer)).toEqual({
       name: "Leche entera",
+      language: "es",
       brand: "PIL",
       basis: "serving",
       servingSize: "200 ml",
@@ -258,6 +281,7 @@ describe("buildLabelReadingSystemPrompt", () => {
     expect(prompt).toContain("Never estimate or invent a value");
     expect(prompt).toContain('"basis": "100g" | "100ml" | "serving"');
     expect(prompt).toContain("write it in Spanish");
+    expect(prompt).toContain("ISO 639-1 code of the language the label is written in");
   });
 });
 
@@ -309,6 +333,7 @@ describe("parseOffCorrection", () => {
       brands: "PIL",
       serving_size: "200 ml",
       nutrition_data_per: "100g",
+      lang: "es",
       nutriments: { "energy-kcal_100g": 64, proteins_100g: 3.2, carbohydrates_100g: 4.8, "energy-kcal_serving": 128 },
     },
   };
@@ -323,6 +348,7 @@ describe("parseOffCorrection", () => {
     };
     expect(parseOffCorrection(perServing, "7771234000123", "es")).toEqual({
       per: "serving",
+      lang: "es",
       base: { ...MILK_ON_OFF.base, basis: "serving", calories: 128, protein: 6.4, carbs: null, fat: null },
     });
     expect(parseOffCorrection({ status: 0 }, "1", "es")).toBeNull();

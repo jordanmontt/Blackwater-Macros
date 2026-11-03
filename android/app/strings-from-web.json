@@ -91,6 +91,8 @@
   "new_product_name_placeholder": "newProduct.namePlaceholder",
   "new_product_brand": "newProduct.brand",
   "new_product_optional": "newProduct.optional",
+  "new_product_package_lang": "newProduct.packageLang",
+  "new_product_package_lang_hint": "newProduct.packageLangHint",
   "new_product_basis_label": "newProduct.basisLabel",
   "new_product_basis_100g": "newProduct.basis100g",
   "new_product_basis_100ml": "newProduct.basis100ml",

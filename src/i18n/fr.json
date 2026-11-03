@@ -157,6 +157,8 @@
     "namePlaceholder": "Boisson à l'avoine",
     "brand": "Marque",
     "optional": "facultatif",
+    "packageLang": "Langue de l'emballage",
+    "packageLangHint": "Open Food Facts enregistre le nom et la photo du tableau dans cette langue.",
     "basisLabel": "Les valeurs du tableau sont pour",
     "basis100g": "100 g",
     "basis100ml": "100 ml",

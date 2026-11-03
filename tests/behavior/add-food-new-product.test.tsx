@@ -21,6 +21,8 @@ import { formatTemplate, t } from "@/i18n";
  *  - el siguiente escaneo y la búsqueda lo encuentran en este navegador,
  *  - «Editar» corrige los valores y vuelve a enviarlos,
  *  - con IA, la foto de la tabla rellena los valores,
+ *  - el nombre y la foto van en el idioma del envase (que la IA lee de la foto), no en
+ *    el de la app; un producto que Open Food Facts ya tiene conserva su idioma,
  *  - al editar se ve la foto de la tabla que espera en este navegador, y al corregir la
  *    que tiene Open Food Facts,
  *  - un producto que Open Food Facts tiene con valores que no coinciden con la tabla
@@ -91,7 +93,7 @@ function stubFetch() {
     if (url.endsWith("/foods/generic.json")) return new Response(JSON.stringify({ version: 1, foods: [] }));
     if (url.includes(`/api/v2/product/${KNOWN_WITHOUT_NUTRITION}`)) {
       return new Response(
-        JSON.stringify({ status: 1, product: { product_name: "Galletas María", brands: "Fontaneda", nutriments: {} } }),
+        JSON.stringify({ status: 1, product: { product_name: "Galletas María", brands: "Fontaneda", lang: "fr", nutriments: {} } }),
       );
     }
     if (url.includes(`/api/v2/product/${WRONG_VALUES}`)) {
@@ -101,6 +103,7 @@ function stubFetch() {
         brands: "PIL",
         serving_size: "200 ml",
         nutrition_data_per: "100g",
+        lang: "es",
         nutriments: { "energy-kcal_100g": 64, proteins_100g: 3.2, carbohydrates_100g: 4.8 },
         image_nutrition_url: `https://images.openfoodfacts.org/images/products/777/123/400/0222/nutrition_es.3.400.jpg`,
       };
@@ -114,7 +117,7 @@ function stubFetch() {
       return new Response("{}", { status: body.get("password") === "right" ? 200 : 403 });
     }
     if (url.includes("generativelanguage.googleapis.com")) {
-      const reading = { name: "Leche entera", brand: "PIL", basis: "serving", servingSize: "200 ml", calories: 124, protein: 6.4, carbs: 9.6, fat: 6.6 };
+      const reading = { name: "Leche entera", brand: "PIL", language: "pt", basis: "serving", servingSize: "200 ml", calories: 124, protein: 6.4, carbs: 9.6, fat: 6.6 };
       return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(reading) }] } }] }));
     }
     return new Response("not found", { status: 404 });
@@ -173,6 +176,8 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(await screen.findByRole("dialog", { name: t.newProduct.title })).toBeInTheDocument();
     expect(screen.getByText(formatTemplate(t.newProduct.barcode, { code: UNKNOWN }))).toBeInTheDocument();
     expect(screen.getByText(t.newProduct.consent)).toBeInTheDocument();
+    // The package's language starts as the app's.
+    expect(screen.getByLabelText(t.newProduct.packageLang)).toHaveValue("es");
 
     await fillMilk(user);
     expect(screen.getByTestId("per-100-line")).toHaveTextContent(
@@ -248,6 +253,10 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(sentFields().get("product_name_es")).toBeNull();
     expect(sentFields().get("add_brands")).toBeNull();
     expect(sentFields().get("nutrition_data_per")).toBe("100g");
+    // Its language stays Open Food Facts' (French here), not the app's.
+    expect(screen.queryByLabelText(t.newProduct.packageLang)).toBeNull();
+    expect(sentFields().get("lc")).toBe("fr");
+    expect(sentFields().get("lang")).toBeNull();
   });
 
   it("sin conexión queda pendiente y se envía al volver la conexión", async () => {
@@ -339,6 +348,8 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(screen.getByLabelText(t.newProduct.calories)).toHaveValue("124");
     expect(screen.getByLabelText(t.newProduct.protein)).toHaveValue("6,4");
     expect(screen.getByRole("button", { name: t.newProduct.basisServing })).toHaveAttribute("aria-pressed", "true");
+    // The label is in Portuguese: the name and the photo go under it, whatever the app's language.
+    expect(screen.getByLabelText(t.newProduct.packageLang)).toHaveValue("pt");
 
     await user.click(screen.getByRole("button", { name: t.newProduct.save }));
     await screen.findByText(t.newProduct.status.sent);
@@ -347,9 +358,11 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
       "https://world.openfoodfacts.org/cgi/product_jqm2.pl",
       "https://world.openfoodfacts.org/cgi/product_image_upload.pl",
     ]);
+    expect(sentFields().get("lang")).toBe("pt");
+    expect(sentFields().get("product_name_pt")).toBe("Leche entera");
     const photo = writes("/cgi/product_image_upload.pl")[0][1]!.body as FormData;
-    expect(photo.get("imagefield")).toBe("nutrition_es");
-    expect(photo.get("imgupload_nutrition_es")).toBeInstanceOf(Blob);
+    expect(photo.get("imagefield")).toBe("nutrition_pt");
+    expect(photo.get("imgupload_nutrition_pt")).toBeInstanceOf(Blob);
     // Once Open Food Facts has it, the photo leaves this browser.
     expect(JSON.parse(localStorage.getItem("bw:own-products")!)[0].photo).toBeNull();
   });
@@ -418,6 +431,8 @@ describe("Añadir comida: corregir los valores de un producto de Open Food Facts
     expect(fields.get("nutriment_fat")).toBe("3.3");
     expect(fields.get("product_name_es")).toBeNull();
     expect(fields.get("add_brands")).toBeNull();
+    expect(fields.get("lc")).toBe("es");
+    expect(fields.get("lang")).toBeNull();
   });
 
   it("sin conexión dice que no se pudo y no abre el formulario", async () => {

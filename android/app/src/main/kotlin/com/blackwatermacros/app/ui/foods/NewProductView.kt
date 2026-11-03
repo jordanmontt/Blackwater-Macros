@@ -89,6 +89,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.blackwatermacros.app.core.PACKAGE_LANGS
+import java.util.Locale
 
 /**
  * «Añadir este producto» (from a barcode miss), «Editar» or «Corregir valores»
@@ -102,6 +112,8 @@ data class ProductDraft(
     val correction: OffCorrection? = null,
     /** Open Food Facts' label photo (URL), when it was fetched with the correction. */
     val labelImage: String? = null,
+    /** The package's language when it is known (Open Food Facts' or the one saved before). */
+    val lang: String? = null,
 )
 
 class LabelPhoto(val image: AiImage, val preview: ImageBitmap)
@@ -126,13 +138,19 @@ data class NewProductFields(
     val protein: String = "",
     val carbs: String = "",
     val fat: String = "",
+    /** «Idioma del envase»: Open Food Facts keeps names and label photos per language. */
+    val lang: String = "",
     /** Save was tapped: show what is missing. */
     val tried: Boolean = false,
 ) {
-    /** What the AI read; a name or brand already typed stays. */
-    fun withReading(reading: LabelReading) = copy(
+    /**
+     * What the AI read; a name or brand already typed stays, and an existing
+     * product ([keepLang]) keeps the language Open Food Facts has for it.
+     */
+    fun withReading(reading: LabelReading, keepLang: Boolean = false) = copy(
         name = name.ifBlank { reading.name.orEmpty() },
         brand = brand.ifBlank { reading.brand.orEmpty() },
+        lang = if (keepLang) lang else reading.language ?: lang,
         basis = reading.basis,
         serving = reading.servingSize.orEmpty(),
         calories = text(reading.calories),
@@ -157,9 +175,12 @@ data class NewProductFields(
         private fun number(text: String): Double? = text.trim().replace(",", ".").toDoubleOrNull()?.takeIf { it.isFinite() }
         private fun text(value: Double?): String = value?.let(::toDecimalInput).orEmpty()
 
-        fun of(draft: ProductDraft): NewProductFields {
-            val initial = draft.initial ?: draft.correction?.base ?: return NewProductFields(name = draft.known.name.orEmpty(), brand = draft.known.brand.orEmpty())
+        fun of(draft: ProductDraft, appLang: String = currentFoodLang().code): NewProductFields {
+            val lang = draft.lang ?: appLang
+            val initial = draft.initial ?: draft.correction?.base
+                ?: return NewProductFields(name = draft.known.name.orEmpty(), brand = draft.known.brand.orEmpty(), lang = lang)
             return NewProductFields(
+                lang = lang,
                 name = initial.name,
                 brand = initial.brand.orEmpty(),
                 basis = initial.basis,
@@ -204,6 +225,7 @@ class NewProductViewModel(
     val savedPhoto: StateFlow<SavedLabelPhoto?> = _savedPhoto.asStateFlow()
 
     private var draftCode: String? = null
+    private var draftExisting = false
     private var job: Job? = null
     private var savedJob: Job? = null
 
@@ -211,6 +233,7 @@ class NewProductViewModel(
     fun start(draft: ProductDraft) {
         if (draftCode == draft.code && _fields.value != NewProductFields()) return
         draftCode = draft.code
+        draftExisting = draft.existing
         job?.cancel()
         _fields.value = NewProductFields.of(draft)
         _photo.value = null
@@ -255,7 +278,7 @@ class NewProductViewModel(
             _reading.value = LabelReadState.Reading
             _reading.value = try {
                 val read = reader.read(scaled.image, aiLanguageName(appLocale().language))
-                _fields.update { it.withReading(read) }
+                _fields.update { it.withReading(read, keepLang = draftExisting) }
                 LabelReadState.Done
             } catch (e: CancellationException) {
                 throw e
@@ -278,7 +301,8 @@ class NewProductViewModel(
      * A correction that changes nothing and brings no photo would only repeat
      * what Open Food Facts has.
      */
-    fun submit(code: String, correction: OffCorrection? = null): Pair<NewProduct, ByteArray?>? {
+    /** The product, the photo (JPEG) and the package's language to save, or null with the problems shown. */
+    fun submit(code: String, correction: OffCorrection? = null): Triple<NewProduct, ByteArray?, String>? {
         val product = _fields.value.toProduct(code)
         val unchanged = correction != null && correctionChanges(correction, product).isEmpty() && _photo.value == null
         if (newProductProblems(product, correction?.per).isNotEmpty() || unchanged || _reading.value == LabelReadState.Reading) {
@@ -287,7 +311,51 @@ class NewProductViewModel(
         }
         val jpeg = _photo.value?.image?.data?.let { Base64.decode(it, Base64.NO_WRAP) }
         draftCode = null
-        return product to jpeg
+        return Triple(product, jpeg, _fields.value.lang)
+    }
+}
+
+/** «Español», in the app's language. */
+private fun languageName(code: String): String =
+    Locale.forLanguageTag(code).getDisplayLanguage(appLocale()).replaceFirstChar { it.titlecase(appLocale()) }.ifBlank { code }
+
+/** «Idioma del envase»: the common languages, plus the current one if it is another. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PackageLangField(lang: String, onChange: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val langs = if (lang in PACKAGE_LANGS) PACKAGE_LANGS else listOf(lang) + PACKAGE_LANGS
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        FieldLabel(stringResource(R.string.new_product_package_lang))
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+            val label = languageName(lang)
+            CompactField(
+                value = label,
+                onValueChange = {},
+                placeholder = label,
+                readOnly = true,
+                trailingIcon = {
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                },
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                langs.forEach { code ->
+                    DropdownMenuItem(
+                        text = { Text(languageName(code)) },
+                        onClick = {
+                            onChange(code)
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        }
+        Text(
+            stringResource(R.string.new_product_package_lang_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -304,7 +372,7 @@ private fun decodePreview(bytes: ByteArray): ImageBitmap? {
 fun NewProductView(
     draft: ProductDraft,
     viewModel: NewProductViewModel,
-    onSave: (NewProduct, ByteArray?) -> Unit,
+    onSave: (NewProduct, ByteArray?, String) -> Unit,
 ) {
     val fields by viewModel.fields.collectAsStateWithLifecycle()
     val photo by viewModel.photo.collectAsStateWithLifecycle()
@@ -513,6 +581,7 @@ fun NewProductView(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+            if (!draft.existing) PackageLangField(fields.lang) { value -> viewModel.edit { it.copy(lang = value) } }
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -604,7 +673,7 @@ fun NewProductView(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Button(
-            onClick = { viewModel.submit(draft.code, correction)?.let { (saved, jpeg) -> onSave(saved, jpeg) } },
+            onClick = { viewModel.submit(draft.code, correction)?.let { (saved, jpeg, lang) -> onSave(saved, jpeg, lang) } },
             enabled = reading != LabelReadState.Reading,
             modifier = Modifier.fillMaxWidth(),
         ) {

@@ -10,7 +10,7 @@ import {
   type GenericFood,
   type Per100g,
 } from "@/lib/core/foods";
-import { offKnownProduct, parseOffCorrection, type OffCorrection } from "@/lib/core/new-product";
+import { offKnownProduct, parseOffCorrection, type OffCorrection, type OffKnown } from "@/lib/core/new-product";
 import { OFF_SERVER, ownChoice, ownProduct } from "@/lib/foods/own-products";
 
 /** A food the user picked from search or a barcode, before choosing the portion. */
@@ -29,7 +29,7 @@ export interface FoodChoice {
 
 const OFF_PRODUCT_URL = `${OFF_SERVER}/api/v2/product/`;
 const OFF_FIELDS =
-  "code,product_name,product_name_es,product_name_en,product_name_fr,product_name_de,product_name_it,generic_name,brands,serving_size,serving_quantity,nutriments";
+  "code,product_name,product_name_es,product_name_en,product_name_fr,product_name_de,product_name_it,generic_name,brands,serving_size,serving_quantity,nutriments,lang";
 
 let genericFoods: Promise<GenericFood[]> | null = null;
 
@@ -55,7 +55,7 @@ export function loadGenericFoods(): Promise<GenericFood[]> {
  */
 export type BarcodeResult =
   | { choice: FoodChoice; own: boolean }
-  | { miss: BarcodeMiss; known: { name: string | null; brand: string | null } };
+  | { miss: BarcodeMiss; known: OffKnown };
 
 /**
  * Looks a barcode up: first the products added in this browser (Open Food Facts
@@ -67,7 +67,7 @@ export async function lookupBarcode(code: string, lang: FoodLang = "es"): Promis
   if (own) return { choice: ownChoice(own), own: true };
   const url = `${OFF_PRODUCT_URL}${encodeURIComponent(code)}.json?fields=${OFF_FIELDS}`;
   const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (response.status === 404) return { miss: barcodeMiss(code, null), known: { name: null, brand: null } };
+  if (response.status === 404) return { miss: barcodeMiss(code, null), known: { name: null, brand: null, lang: null } };
   if (!response.ok) throw new Error(`Open Food Facts ${response.status}`);
   const json: unknown = await response.json();
   const product = parseOffProduct(json, lang);

@@ -157,6 +157,8 @@
     "namePlaceholder": "Bebida de avena",
     "brand": "Marca",
     "optional": "opcional",
+    "packageLang": "Idioma del envase",
+    "packageLangHint": "Open Food Facts guarda el nombre y la foto de la tabla en este idioma.",
     "basisLabel": "Los valores de la tabla son por",
     "basis100g": "100 g",
     "basis100ml": "100 ml",

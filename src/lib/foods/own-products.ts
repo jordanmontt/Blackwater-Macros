@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { FoodLang } from "@/lib/core/foods";
 import {
   OFF_APP_PASSWORD,
   OFF_APP_USER_ID,
@@ -34,7 +33,8 @@ export type OwnProductState = "pending" | "sent" | "account" | "rejected";
 
 export interface OwnProduct {
   product: NewProduct;
-  lang: FoodLang;
+  /** The package's language (or the product's main language on Open Food Facts): names and photos go under it. */
+  lang: string;
   /** Open Food Facts already had it: only the values (and photo) are sent, never the name or brand. */
   existing: boolean;
   /** «Corregir valores»: what Open Food Facts had, and the basis to send in (missing in older records). */
@@ -111,7 +111,7 @@ export function ownChoice(item: OwnProduct): FoodChoice {
  */
 export function saveOwnProduct(input: {
   product: NewProduct;
-  lang: FoodLang;
+  lang: string;
   existing: boolean;
   correction?: OffCorrection | null;
   photo: AiImage | null;

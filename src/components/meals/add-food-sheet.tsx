@@ -16,7 +16,7 @@ import { NewProductForm, type SavedLabelPhoto } from "@/components/foods/new-pro
 import { fetchCorrection, fetchLabelImage, rememberFood, type FoodChoice } from "@/lib/foods/foods-client";
 import { ownChoice, ownProduct, saveOwnProduct } from "@/lib/foods/own-products";
 import { foodToIngredient } from "@/lib/core/foods";
-import type { NewProduct, OffCorrection } from "@/lib/core/new-product";
+import type { NewProduct, OffCorrection, OffKnown } from "@/lib/core/new-product";
 import type { MealEstimate } from "@/lib/core/ai-schema";
 import { api } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
@@ -31,7 +31,9 @@ type View = "menu" | "copy" | "search" | "barcode" | "portion" | "photo" | "newP
 interface ProductDraft {
   code: string;
   existing: boolean;
-  known: { name: string | null; brand: string | null };
+  known: OffKnown;
+  /** The package's language when it is known (Open Food Facts' or the one saved before). */
+  lang: string | null;
   initial: NewProduct | null;
   correction: OffCorrection | null;
   /** The label photo already there, shown in the form (loaded after it opens when it comes from Open Food Facts). */
@@ -304,7 +306,7 @@ export function AddFoodSheet({
         <BarcodeScanner
           onFound={(found) => pick(found, "barcode")}
           onAddProduct={(code, existing, known) =>
-            openDraft({ code, existing, known, initial: null, correction: null, photo: null }, "barcode")
+            openDraft({ code, existing, known, lang: known.lang, initial: null, correction: null, photo: null }, "barcode")
           }
           onSearchByName={() => setView("search")}
           onPhoto={() => {
@@ -318,14 +320,15 @@ export function AddFoodSheet({
           code={draft.code}
           initial={draft.initial}
           known={draft.known}
+          lang={draft.lang}
           existing={draft.existing}
           correction={draft.correction}
           savedPhoto={draft.photo}
           editing={draft.initial !== null}
-          onSave={(product, photo) => {
+          onSave={(product, photo, lang) => {
             const saved = saveOwnProduct({
               product,
-              lang: currentLanguage(),
+              lang,
               existing: draft.existing,
               correction: draft.correction,
               photo,
@@ -348,7 +351,8 @@ export function AddFoodSheet({
               {
                 code,
                 existing: own.existing,
-                known: { name: null, brand: null },
+                known: { name: null, brand: null, lang: null },
+                lang: own.lang,
                 initial: own.product,
                 correction: own.correction ?? null,
                 photo: waiting,
@@ -372,7 +376,8 @@ export function AddFoodSheet({
                 {
                   code,
                   existing: true,
-                  known: { name: null, brand: null },
+                  known: { name: null, brand: null, lang: null },
+                  lang: found.correction.lang,
                   initial: null,
                   correction: found.correction,
                   photo: found.labelImage ? { src: found.labelImage, from: "off" } : null,

@@ -1274,6 +1274,17 @@ rest of the calorie profile.
     numbers as printed, never estimate, null when unreadable; web `lib/ai/label.ts`,
     Android `LabelReader`) and fills the form for the user to check. It also goes to Open
     Food Facts as the nutrition image, so its volunteers can check the values.
+  - **The package's language, not the app's** (`lang` in `OffWriteContext`): Open Food
+    Facts keeps names (`product_name_<lang>`) and label photos (`nutrition_<lang>`) per
+    language, and a product has one main language (`lang`). The first real test (app in
+    French, Bolivian milk in Spanish) saved the Spanish name as the French one and made the
+    product French. So a new product asks «Idioma del envase» (web `NativeSelect`, Android
+    dropdown; `PACKAGE_LANGS` first, names from `Intl.DisplayNames` / `Locale`), starting in
+    the app's language; reading the photo also fills it (`LabelReading.language`, the label's
+    ISO 639-1 code), and it is sent as `lc`, `lang` and the photo's field. A product Open
+    Food Facts already has keeps its main language (`offKnownProduct` / `parseOffCorrection`
+    read `lang`, or `lc`, through `packageLang`): no choice, no `lang` sent, the photo goes
+    under that language. Saved with the product (`OwnProduct.lang`), so «Editar» keeps it.
   - **Sent to Open Food Facts, not to us:** straight from the browser (their write
     endpoints allow any origin) or the phone, never through the Blackwater server, with or
     without a Blackwater account. `POST /cgi/product_jqm2.pl` with `offProductFields` (the
@@ -1667,7 +1678,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `profile-history.test.ts` | `withProfileChange`, `profileOn`, `weightOn`, `bodyFatOn`, `targetsOn`, `averageTargets` (each day with its week's measurement) | `ProfileHistoryTest.kt` |
 | `expenditure.test.ts` | `estimateExpenditure`, `measureExpenditure`, `fitWeightTrend`, `dailyMeans`, `checkExpenditure` (verdicts, confirmation, what is missing), `showsGapNotice`, `onlyWeighInsMissing`, `approximateGap`, `combineExpenditure`, `weeklyExpenditure` | `ExpenditureTest.kt` |
 | `foods.test.ts` | portions, Open Food Facts parsing, shop labels and why a barcode missed, `searchGenericFoods` | `FoodsTest.kt` |
-| `new-product.test.ts` | «Añadir este producto»: per serving → per 100, form problems, the Open Food Facts write fields and answers, `offKnownProduct`, `searchOwnProducts`, reading a label with AI; «Corregir valores»: `parseOffCorrection`, `newProductInBasis`, `correctionBaseline`/`correctionChanges`, the fields in the stored basis | `NewProductTest.kt` |
+| `new-product.test.ts` | «Añadir este producto»: per serving → per 100, form problems, the Open Food Facts write fields and answers (in the package's language; `lang` only for a new product), `offKnownProduct` (with its main language), `packageLang`, `searchOwnProducts`, reading a label with AI (and its language); «Corregir valores»: `parseOffCorrection`, `newProductInBasis`, `correctionBaseline`/`correctionChanges`, the fields in the stored basis | `NewProductTest.kt` |
 | `ai-providers.test.ts` | `buildAiRequest` (byte-identical bodies), answer and stream parsing, how a stream ended (`parseAiStreamEnd`), `aiErrorKind` | `AiProvidersTest.kt` |
 | `ai-models.test.ts` | `buildModelListRequest`, `parseModelList`, `naturalCompare` | `AiModelsTest.kt` |
 | `ai-schema.test.ts` | `parseMealEstimate`, prompts, `estimateToIngredients` | `AiSchemaTest.kt` |
@@ -1723,6 +1734,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period, each logged day's own target in the band and the average |
 | `data/local/MigrationTest.kt` | Updating the app keeps the phone's data: a version 1 database built from `app/schemas/…/1.json` opens with today's code through `MIGRATIONS` (the profile gets an empty history) |
 | `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
+| `ui/NewProductFieldsTest.kt` | «Idioma del envase»: a new product starts in the app's language and takes the one the AI read; one Open Food Facts has keeps its own |
 | `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, a past day's targets (its profile and weight), measured expenditure, the profile check and the formula inputs behind its «¿Por qué?», sync indicator states (red only for an expired session or a refused change), numbers edited with a decimal comma, when «Añadir comida» asks before closing, a meal saved as a template (its content, totals only for «Solo total») |
 | `ui/TranslationsTest.kt` | Every language has every Android-only string and plural with the same placeholders (shared texts: `i18n.test.ts` + the build) |
 | `data/NiceTicksTest.kt` | Chart axis ticks |

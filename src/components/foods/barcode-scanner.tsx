@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import type { BarcodeMiss } from "@/lib/core/foods";
 import { lookupBarcode, type FoodChoice } from "@/lib/foods/foods-client";
 import { currentLanguage, t } from "@/i18n";
+import type { OffKnown } from "@/lib/core/new-product";
 
 type Status = "starting" | "scanning" | "cameraError" | "lookingUp" | BarcodeMiss | "offline";
 
@@ -48,14 +49,14 @@ export function BarcodeScanner({
   onPhoto,
 }: {
   onFound: (choice: FoodChoice) => void;
-  onAddProduct: (code: string, existing: boolean, known: { name: string | null; brand: string | null }) => void;
+  onAddProduct: (code: string, existing: boolean, known: OffKnown) => void;
   onSearchByName: () => void;
   onPhoto: () => void;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState<Status>("starting");
   const [code, setCode] = useState("");
-  const [known, setKnown] = useState<{ name: string | null; brand: string | null }>({ name: null, brand: null });
+  const [known, setKnown] = useState<OffKnown>({ name: null, brand: null, lang: null });
   const [attempt, setAttempt] = useState(0);
 
   async function lookUp(value: string) {

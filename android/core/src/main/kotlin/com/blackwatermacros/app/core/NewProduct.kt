@@ -52,9 +52,21 @@ enum class OffDataPer(val id: String) {
 /**
  * «Corregir valores»: a product Open Food Facts has with values that don't
  * match its label. [base] is what Open Food Facts has, in the basis it stores
- * ([per]), to start the form from and to show what changed.
+ * ([per]), to start the form from and to show what changed; [lang] is the
+ * product's main language there (null when it doesn't say).
  */
-data class OffCorrection(val per: OffDataPer, val base: NewProduct)
+data class OffCorrection(val per: OffDataPer, val base: NewProduct, val lang: String? = null)
+
+/**
+ * Languages offered for «Idioma del envase», most common first; any other
+ * two-letter code (from Open Food Facts or the AI) is accepted too.
+ */
+val PACKAGE_LANGS = listOf("es", "en", "fr", "de", "it", "pt", "nl", "ca", "pl")
+
+private val TWO_LETTERS = Regex("^[a-z]{2}$")
+
+/** A two-letter language code (ISO 639-1, «es»), or null: what Open Food Facts keys names and photos by. */
+fun packageLang(value: String?): String? = value?.trim()?.lowercase()?.takeIf { TWO_LETTERS.matches(it) }
 
 /** The shared account products are sent with unless the user signs in with theirs (RELEASING.md). */
 const val OFF_APP_USER_ID = "blackwater-macros-app"
@@ -171,9 +183,14 @@ fun correctionChanges(correction: OffCorrection, form: NewProduct): List<LabelNu
     }
 }
 
-/** Who sends it and from which app install (`app_uuid`: a random id, so moderators can block one install). */
+/**
+ * Who sends it and from which app install (`app_uuid`: a random id, so
+ * moderators can block one install). [lang]: the language of the package (of a
+ * new product) or the product's main language on Open Food Facts, never simply
+ * the app's: names and label photos are kept per language there.
+ */
 data class OffWriteContext(
-    val lang: FoodLang,
+    val lang: String,
     val userId: String,
     val password: String,
     val appVersion: String,
@@ -197,8 +214,12 @@ fun offProductFields(label: NewProduct, context: OffWriteContext): List<Pair<Str
     val product = context.keepPer?.let { newProductInBasis(label, it) } ?: label
     val fields = mutableListOf("code" to product.code)
     fields += credentials(context)
-    fields += "lc" to context.lang.code
-    if (!context.existing) fields += "product_name_${context.lang.code}" to product.name.trim()
+    fields += "lc" to context.lang
+    if (!context.existing) {
+        // A new product's main language is the package's (an existing one keeps its own).
+        fields += "lang" to context.lang
+        fields += "product_name_${context.lang}" to product.name.trim()
+    }
     val brand = product.brand?.trim()
     if (!brand.isNullOrEmpty() && !context.existing) fields += "add_brands" to brand
     fields += "nutrition_data_per" to product.basis.id
@@ -219,8 +240,8 @@ fun offProductFields(label: NewProduct, context: OffWriteContext): List<Pair<Str
     return fields
 }
 
-/** The photo's field: the nutrition label in the app language («nutrition_es»). */
-fun offLabelImageField(lang: FoodLang): String = "nutrition_${lang.code}"
+/** The photo's field: the nutrition label in the package's language («nutrition_es»). */
+fun offLabelImageField(lang: String): String = "nutrition_$lang"
 
 /** The text fields of `POST /cgi/product_image_upload.pl`; the JPEG goes as `imgupload_<field>`. */
 fun offImageFields(code: String, context: OffWriteContext): List<Pair<String, String>> =
@@ -258,8 +279,8 @@ fun offImageOutcome(httpStatus: Int, json: JsonElement?): OffWriteOutcome {
     return if (ACCOUNT_WORDS.containsMatchIn(error)) OffWriteOutcome.ACCOUNT else OffWriteOutcome.REJECTED
 }
 
-/** Name and brand of a product Open Food Facts knows without nutrition, to start the form from. */
-data class OffKnownProduct(val name: String?, val brand: String?)
+/** Name (in the app's language if it has it), brand and main language of a product Open Food Facts knows. */
+data class OffKnownProduct(val name: String?, val brand: String?, val lang: String? = null)
 
 fun offKnownProduct(json: JsonElement?, lang: FoodLang): OffKnownProduct {
     val product = (json as? JsonObject)?.get("product") as? JsonObject ?: return OffKnownProduct(null, null)
@@ -268,6 +289,7 @@ fun offKnownProduct(json: JsonElement?, lang: FoodLang): OffKnownProduct {
     return OffKnownProduct(
         name = jsonText(product["product_name_${lang.code}"]) ?: jsonText(product["product_name"]) ?: jsonText(product["generic_name"]),
         brand = brands?.split(",")?.first()?.trim(),
+        lang = packageLang(jsonText(product["lang"])) ?: packageLang(jsonText(product["lc"])),
     )
 }
 
@@ -292,6 +314,7 @@ fun parseOffCorrection(json: JsonElement?, code: String, lang: FoodLang): OffCor
     val calories = nutrient(nutriments, "energy-kcal", suffix) ?: kj?.let { it / 4.184 }
     return OffCorrection(
         per = per,
+        lang = known.lang,
         base = NewProduct(
             code = code,
             name = known.name.orEmpty(),
@@ -321,6 +344,8 @@ fun searchOwnProducts(products: List<FoodProduct>, query: String, limit: Int = 5
 /** What the AI read from a photo of the label (null = not printed or unreadable). */
 data class LabelReading(
     val name: String?,
+    /** The language the label is written in («es»). */
+    val language: String?,
     val brand: String?,
     val basis: LabelBasis,
     val servingSize: String?,
@@ -331,7 +356,7 @@ data class LabelReading(
 )
 
 const val LABEL_READING_SHAPE =
-    "{\"name\": string | null, \"brand\": string | null, \"basis\": \"100g\" | \"100ml\" | \"serving\", \"servingSize\": string | null, " +
+    "{\"name\": string | null, \"brand\": string | null, \"language\": string | null, \"basis\": \"100g\" | \"100ml\" | \"serving\", \"servingSize\": string | null, " +
         "\"calories\": number | null, \"protein\": number | null, \"carbs\": number | null, \"fat\": number | null}"
 
 /** System prompt for reading a nutrition label (same text as the web). */
@@ -343,6 +368,7 @@ fun buildLabelReadingSystemPrompt(language: String): String = listOf(
     "calories is in kcal. If only kJ is printed, divide by 4.184.",
     "carbs is total carbohydrates (not only sugars), fat is total fat.",
     "name and brand as printed on the package when visible (do not translate them); if only a generic name shows, write it in $language.",
+    "language is the two-letter ISO 639-1 code of the language the label is written in (\"es\" for Spanish), or null if you can't tell.",
 ).joinToString("\n")
 
 const val LABEL_READING_USER_TEXT = "A photo of the nutrition label of a packaged food."
@@ -374,6 +400,7 @@ fun parseLabelReading(text: String): LabelReading? {
     val servingSize = jsonText(record["servingSize"]) ?: jsonText(record["serving_size"])
     val reading = LabelReading(
         name = jsonText(record["name"]),
+        language = packageLang(jsonText(record.firstOf("language", "lang"))),
         brand = jsonText(record["brand"]),
         basis = toBasis(record["basis"], servingSize),
         servingSize = servingSize,

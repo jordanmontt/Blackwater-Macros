@@ -16,6 +16,7 @@ import {
   type NewProduct,
   type NewProductProblem,
   type OffCorrection,
+  PACKAGE_LANGS,
 } from "@/lib/core/new-product";
 import { AiError } from "@/lib/ai/client";
 import { downscalePhoto } from "@/lib/ai/images";
@@ -23,7 +24,8 @@ import { readLabel } from "@/lib/ai/label";
 import { isAiReady, useAiSettings } from "@/lib/ai/settings";
 import { formatNumber } from "@/i18n/format";
 import { cn, normalizeDecimal, toDecimalInput } from "@/lib/utils";
-import { formatTemplate, t } from "@/i18n";
+import { NativeSelect } from "@/components/ui/native-select";
+import { currentLanguage, formatTemplate, t } from "@/i18n";
 
 const BASES: { value: LabelBasis; label: string }[] = [
   { value: "100g", label: t.newProduct.basis100g },
@@ -37,6 +39,16 @@ type Reading = "idle" | "reading" | "done" | "failed";
 export interface SavedLabelPhoto {
   src: string;
   from: "device" | "off";
+}
+
+/** «Español», in the app's language. */
+function languageName(code: string): string {
+  try {
+    const name = new Intl.DisplayNames([currentLanguage()], { type: "language" }).of(code) ?? code;
+    return name.charAt(0).toLocaleUpperCase() + name.slice(1);
+  } catch {
+    return code;
+  }
 }
 
 function numberText(value: number | null): string {
@@ -59,12 +71,16 @@ function parseNumber(text: string): number | null {
  * has it with values that don't match the label; the form starts from them,
  * keeps the name and brand, and shows what Open Food Facts had next to each
  * changed value. `savedPhoto`: the label photo already there (waiting to be sent,
- * or on Open Food Facts), shown until a new one replaces it.
+ * or on Open Food Facts), shown until a new one replaces it. `lang`: the
+ * package's language when known; a new product asks for it («Idioma del
+ * envase», the app's language to start, or what the AI read), since Open Food
+ * Facts keeps names and label photos per language.
  */
 export function NewProductForm({
   code,
   initial,
   known,
+  lang: knownLang = null,
   existing,
   correction = null,
   savedPhoto = null,
@@ -74,11 +90,12 @@ export function NewProductForm({
   code: string;
   initial: NewProduct | null;
   known: { name: string | null; brand: string | null };
+  lang?: string | null;
   existing: boolean;
   correction?: OffCorrection | null;
   savedPhoto?: SavedLabelPhoto | null;
   editing: boolean;
-  onSave: (product: NewProduct, photo: AiImage | null) => void;
+  onSave: (product: NewProduct, photo: AiImage | null, lang: string) => void;
 }) {
   const settings = useAiSettings();
   const aiReady = isAiReady(settings);
@@ -91,6 +108,8 @@ export function NewProductForm({
   const [protein, setProtein] = useState(numberText(start?.protein ?? null));
   const [carbs, setCarbs] = useState(numberText(start?.carbs ?? null));
   const [fat, setFat] = useState(numberText(start?.fat ?? null));
+  const [lang, setLang] = useState(knownLang ?? currentLanguage());
+  const langs = PACKAGE_LANGS.includes(lang as (typeof PACKAGE_LANGS)[number]) ? [...PACKAGE_LANGS] : [lang, ...PACKAGE_LANGS];
   const [photo, setPhoto] = useState<AiImage | null>(null);
   const [reading, setReading] = useState<Reading>("idle");
   const [readDetail, setReadDetail] = useState("");
@@ -143,6 +162,8 @@ export function NewProductForm({
       if (controller.signal.aborted) return;
       if (read.name && name.trim() === "") setName(read.name);
       if (read.brand && brand.trim() === "") setBrand(read.brand);
+      // An existing product keeps the language Open Food Facts has for it.
+      if (read.language && !existing) setLang(read.language);
       setBasis(read.basis);
       setServing(read.servingSize ?? "");
       setCalories(numberText(read.calories));
@@ -202,7 +223,7 @@ export function NewProductForm({
       onSubmit={(event) => {
         event.preventDefault();
         setTried(true);
-        if (problems.length === 0 && !unchanged && reading !== "reading") onSave(product, photo);
+        if (problems.length === 0 && !unchanged && reading !== "reading") onSave(product, photo, lang);
       }}
     >
       <div className="space-y-1">
@@ -319,6 +340,19 @@ export function NewProductForm({
             </Label>
             <Input id="product-brand" value={brand} onChange={(event) => setBrand(event.target.value)} />
           </div>
+          {existing ? null : (
+            <div className="space-y-1">
+              <Label htmlFor="product-lang">{t.newProduct.packageLang}</Label>
+              <NativeSelect id="product-lang" value={lang} onChange={(event) => setLang(event.target.value)}>
+                {langs.map((code) => (
+                  <option key={code} value={code}>
+                    {languageName(code)}
+                  </option>
+                ))}
+              </NativeSelect>
+              <p className="text-xs text-muted-foreground">{t.newProduct.packageLangHint}</p>
+            </div>
+          )}
         </>
       )}
 

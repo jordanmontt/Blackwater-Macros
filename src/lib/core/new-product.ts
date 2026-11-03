@@ -33,11 +33,26 @@ export type OffDataPer = "100g" | "serving";
 /**
  * «Corregir valores»: a product Open Food Facts has with values that don't
  * match its label. `base` is what Open Food Facts has, in the basis it stores
- * (`per`), to start the form from and to show what changed.
+ * (`per`), to start the form from and to show what changed; `lang` is the
+ * product's main language there (null when it doesn't say).
  */
 export interface OffCorrection {
   per: OffDataPer;
   base: NewProduct;
+  lang: string | null;
+}
+
+/**
+ * Languages offered for «Idioma del envase», most common first; any other
+ * two-letter code (from Open Food Facts or the AI) is accepted too.
+ */
+export const PACKAGE_LANGS = ["es", "en", "fr", "de", "it", "pt", "nl", "ca", "pl"] as const;
+
+/** A two-letter language code (ISO 639-1, «es»), or null: what Open Food Facts keys names and photos by. */
+export function packageLang(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const code = value.trim().toLowerCase();
+  return /^[a-z]{2}$/.test(code) ? code : null;
 }
 
 /** The shared account products are sent with unless the user signs in with theirs (RELEASING.md). */
@@ -160,9 +175,14 @@ export function correctionChanges(correction: OffCorrection, form: NewProduct): 
   });
 }
 
-/** Who sends it and from which app install (`app_uuid`: a random id, so moderators can block one install). */
+/**
+ * Who sends it and from which app install (`app_uuid`: a random id, so
+ * moderators can block one install). `lang`: the language of the package (of a
+ * new product) or the product's main language on Open Food Facts, never simply
+ * the app's: names and label photos are kept per language there.
+ */
 export interface OffWriteContext {
-  lang: FoodLang;
+  lang: string;
   userId: string;
   password: string;
   appVersion: string;
@@ -192,7 +212,10 @@ function credentials(context: OffWriteContext): [string, string][] {
 export function offProductFields(label: NewProduct, context: OffWriteContext): [string, string][] {
   const product = context.keepPer ? (newProductInBasis(label, context.keepPer) ?? label) : label;
   const fields: [string, string][] = [["code", product.code], ...credentials(context), ["lc", context.lang]];
-  if (!context.existing) fields.push([`product_name_${context.lang}`, product.name.trim()]);
+  if (!context.existing) {
+    // A new product's main language is the package's (an existing one keeps its own).
+    fields.push(["lang", context.lang], [`product_name_${context.lang}`, product.name.trim()]);
+  }
   const brand = product.brand?.trim();
   if (brand && !context.existing) fields.push(["add_brands", brand]);
   fields.push(["nutrition_data_per", product.basis]);
@@ -212,8 +235,8 @@ export function offProductFields(label: NewProduct, context: OffWriteContext): [
   return fields;
 }
 
-/** The photo's field: the nutrition label in the app language («nutrition_es»). */
-export function offLabelImageField(lang: FoodLang): string {
+/** The photo's field: the nutrition label in the package's language («nutrition_es»). */
+export function offLabelImageField(lang: string): string {
   return `nutrition_${lang}`;
 }
 
@@ -267,14 +290,22 @@ export function offImageOutcome(httpStatus: number, json: unknown): OffWriteOutc
   return /credentials|password|user/i.test(error) ? "account" : "rejected";
 }
 
-/** Name and brand of a product Open Food Facts knows without nutrition, to start the form from. */
-export function offKnownProduct(json: unknown, lang: FoodLang): { name: string | null; brand: string | null } {
+/** What Open Food Facts knows of a product: name (in `lang` if it has it), brand and its main language. */
+export interface OffKnown {
+  name: string | null;
+  brand: string | null;
+  lang: string | null;
+}
+
+/** Name, brand and main language of a product Open Food Facts knows without nutrition, to start the form from. */
+export function offKnownProduct(json: unknown, lang: FoodLang): OffKnown {
   const product = asRecord(asRecord(json)?.product);
-  if (!product) return { name: null, brand: null };
+  if (!product) return { name: null, brand: null, lang: null };
   const brands = Array.isArray(product.brands) ? toText(product.brands[0]) : toText(product.brands);
   return {
     name: toText(product[`product_name_${lang}`]) ?? toText(product.product_name) ?? toText(product.generic_name),
     brand: brands ? brands.split(",")[0].trim() : null,
+    lang: packageLang(product.lang) ?? packageLang(product.lc),
   };
 }
 
@@ -301,6 +332,7 @@ export function parseOffCorrection(json: unknown, code: string, lang: FoodLang):
   const round = (value: number | null) => (value === null ? null : round1(value));
   return {
     per,
+    lang: known.lang,
     base: {
       code,
       name: known.name ?? "",
@@ -330,6 +362,8 @@ export function searchOwnProducts(products: FoodProduct[], query: string, limit 
 /** What the AI read from a photo of the label (null = not printed or unreadable). */
 export interface LabelReading {
   name: string | null;
+  /** The language the label is written in («es»). */
+  language: string | null;
   brand: string | null;
   basis: LabelBasis;
   servingSize: string | null;
@@ -340,7 +374,7 @@ export interface LabelReading {
 }
 
 export const LABEL_READING_SHAPE =
-  '{"name": string | null, "brand": string | null, "basis": "100g" | "100ml" | "serving", "servingSize": string | null, ' +
+  '{"name": string | null, "brand": string | null, "language": string | null, "basis": "100g" | "100ml" | "serving", "servingSize": string | null, ' +
   '"calories": number | null, "protein": number | null, "carbs": number | null, "fat": number | null}';
 
 /** System prompt for reading a nutrition label. `language` in English («Spanish»), only for names it must describe. */
@@ -353,6 +387,7 @@ export function buildLabelReadingSystemPrompt(language: string): string {
     "calories is in kcal. If only kJ is printed, divide by 4.184.",
     "carbs is total carbohydrates (not only sugars), fat is total fat.",
     `name and brand as printed on the package when visible (do not translate them); if only a generic name shows, write it in ${language}.`,
+    'language is the two-letter ISO 639-1 code of the language the label is written in ("es" for Spanish), or null if you can\'t tell.',
   ].join("\n");
 }
 
@@ -382,6 +417,7 @@ export function parseLabelReading(text: string): LabelReading | null {
   const servingSize = toText(record.servingSize) ?? toText(record.serving_size);
   const reading: LabelReading = {
     name: toText(record.name),
+    language: packageLang(record.language ?? record.lang),
     brand: toText(record.brand),
     basis: toBasis(record.basis, servingSize),
     servingSize,
