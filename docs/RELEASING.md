@@ -72,10 +72,12 @@ The two are signed with different keys, so an app from one can't update an app f
 - [ ] **Google and Bing** (so the website shows up in searches). The website already has
   `robots.txt` and `sitemap.xml`; nothing to change in the repository.
   1. **Google:** https://search.google.com/search-console → Add property → **Domain** →
-     `blackwater-macros.jordanmontt.fr`. Google shows a `TXT` record (`google-site-verification=…`):
-     add it in the OVH DNS zone of `jordanmontt.fr` (Web Cloud → Domain names → DNS zone → Add an
-     entry → `TXT`, subdomain `blackwater-macros`, value as shown). Wait a few minutes, click
-     **Verify** (DNS can take up to a day; retry later if it fails).
+     `jordanmontt.fr` (the whole domain, which covers `blackwater-macros.jordanmontt.fr`: that
+     name is a `CNAME` to GitHub Pages, and DNS allows no `TXT` record next to a `CNAME`).
+     Google shows a `TXT` record (`google-site-verification=…`): add it in the OVH DNS zone of
+     `jordanmontt.fr` (Web Cloud → Domain names → DNS zone → Add an entry → `TXT`, subdomain
+     **empty**, value as shown). Wait a few minutes, click **Verify** (DNS can take up to a day;
+     retry later if it fails).
   2. In that property: **Sitemaps** → submit `https://blackwater-macros.jordanmontt.fr/sitemap.xml`.
      Then **URL inspection** → `https://blackwater-macros.jordanmontt.fr/` → **Request indexing**.
   3. **Bing:** https://www.bing.com/webmasters → sign in → **Import from Google Search Console**
