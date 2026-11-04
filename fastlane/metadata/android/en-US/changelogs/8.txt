@@ -1,0 +1,3 @@
+• Scanned a product Open Food Facts doesn't have? Add it from its nutrition label (per 100 g, 100 ml or per serving; AI can read it). You log it right away, and it's shared with Open Food Facts.
+• Values don't match the label? Fix them from the «How much?» screen.
+• Products go straight to Open Food Facts, never to us. Optional: your own Open Food Facts account in Settings, to get the credit.

@@ -1,0 +1,3 @@
+• Ein gescanntes Produkt fehlt bei Open Food Facts? Füge es mit seiner Nährwerttabelle hinzu (pro 100 g, 100 ml oder pro Portion; die KI kann sie lesen). Du erfasst es sofort, und es wird mit Open Food Facts geteilt.
+• Die Werte stimmen nicht mit der Tabelle überein? Korrigiere sie unter „Wie viel?“.
+• Produkte gehen direkt an Open Food Facts, nie an uns. Optional: dein eigenes Open-Food-Facts-Konto in den Einstellungen, damit es dir angerechnet wird.

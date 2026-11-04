@@ -1,0 +1,3 @@
+• Un produit scanné est absent d'Open Food Facts ? Ajoutez-le avec son tableau nutritionnel (pour 100 g, 100 ml ou par portion ; l'IA peut le lire). Vous l'enregistrez tout de suite, et il est partagé avec Open Food Facts.
+• Les valeurs ne correspondent pas au tableau ? Corrigez-les depuis « Combien ? ».
+• Les produits vont directement à Open Food Facts, jamais chez nous. En option : votre propre compte Open Food Facts dans Réglages, pour être crédité.
