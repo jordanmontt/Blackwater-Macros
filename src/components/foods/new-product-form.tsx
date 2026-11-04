@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CameraIcon, Loader2Icon, RefreshCwIcon, XIcon } from "lucide-react";
+import { CameraIcon, ImageIcon, Loader2Icon, RefreshCwIcon, SparklesIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +51,25 @@ function languageName(code: string): string {
   }
 }
 
+/** Where Save takes the cursor when a value is missing or wrong (the fields' order). */
+const PROBLEM_FIELD: Record<NewProductProblem, string> = {
+  name: "product-name",
+  serving: "product-serving",
+  calories: "product-kcal",
+  protein: "product-protein",
+  tooHigh: "product-kcal",
+};
+
+/** The saved photo as the AI takes it: the one waiting here is a data URL; Open Food Facts' is downloaded. */
+async function savedPhotoImage(src: string, signal: AbortSignal): Promise<AiImage> {
+  const inline = /^data:([^;,]+);base64,(.+)$/.exec(src);
+  if (inline) return { mimeType: inline[1], data: inline[2] };
+  const response = await fetch(src, { signal });
+  if (!response.ok) throw new Error(`label photo: ${response.status}`);
+  const blob = await response.blob();
+  return downscalePhoto(new File([blob], "label.jpg", { type: blob.type || "image/jpeg" }));
+}
+
 function numberText(value: number | null): string {
   return value === null ? "" : toDecimalInput(value);
 }
@@ -64,8 +83,10 @@ function parseNumber(text: string): number | null {
 
 /**
  * «Nuevo producto»: the label copied by hand, or read by the AI from a photo
- * (when AI is set up; the photo also goes to Open Food Facts so its volunteers
- * can check the values). `initial`: editing a product added before;
+ * when asked («Rellenar con la IA», since an AI on the device can take a
+ * while). The photo also goes to Open Food Facts so its volunteers can check
+ * the values, so the form asks for it, and Save asks once more without one
+ * (not when editing). `initial`: editing a product added before;
  * `existing`: Open Food Facts already has it without nutrition, so the text says
  * only the values are added. `correction` («Corregir valores»): Open Food Facts
  * has it with values that don't match the label; the form starts from them,
@@ -114,10 +135,19 @@ export function NewProductForm({
   const [reading, setReading] = useState<Reading>("idle");
   const [readDetail, setReadDetail] = useState("");
   const [tried, setTried] = useState(false);
+  const [askPhoto, setAskPhoto] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const galleryInput = useRef<HTMLInputElement>(null);
+  const photoReminder = useRef<HTMLDivElement>(null);
   const abort = useRef<AbortController | null>(null);
 
   useEffect(() => () => abort.current?.abort(), []);
+  // The reminder is taller than the Save button it replaces: bring its buttons into view.
+  useEffect(() => {
+    if (!askPhoto) return;
+    const frame = requestAnimationFrame(() => photoReminder.current?.scrollIntoView?.({ block: "nearest" }));
+    return () => cancelAnimationFrame(frame);
+  }, [askPhoto]);
 
   const product: NewProduct = {
     code,
@@ -143,6 +173,7 @@ export function NewProductForm({
   async function addPhoto(file: File | undefined) {
     if (!file) return;
     abort.current?.abort();
+    setReading("idle");
     let image: AiImage;
     try {
       image = await downscalePhoto(file);
@@ -152,12 +183,18 @@ export function NewProductForm({
       return;
     }
     setPhoto(image);
-    if (!aiReady) return;
+    setAskPhoto(false);
+  }
+
+  /** «Rellenar con la IA»: the new photo, or else the saved one. */
+  async function fillWithAi() {
+    abort.current?.abort();
     const controller = new AbortController();
     abort.current = controller;
     setReading("reading");
     setReadDetail("");
     try {
+      const image = photo ?? (await savedPhotoImage(savedPhoto!.src, controller.signal));
       const read = await readLabel(image, controller.signal);
       if (controller.signal.aborted) return;
       if (read.name && name.trim() === "") setName(read.name);
@@ -176,6 +213,28 @@ export function NewProductForm({
       setReading("failed");
       setReadDetail(error instanceof AiError ? t.ai.errors[error.kind] : "");
     }
+  }
+
+  function cancelReading() {
+    abort.current?.abort();
+    setReading("idle");
+  }
+
+  /** Save, or show what is missing and take the cursor to the first one. */
+  function save(withoutPhoto: boolean) {
+    setTried(true);
+    if (problems.length > 0) {
+      const field = document.getElementById(PROBLEM_FIELD[problems[0]]);
+      field?.focus();
+      field?.scrollIntoView?.({ block: "center" });
+      return;
+    }
+    if (unchanged || reading === "reading") return;
+    if (!withoutPhoto && !editing && photo === null && savedPhoto === null) {
+      setAskPhoto(true);
+      return;
+    }
+    onSave(product, photo, lang);
   }
 
   function error(problem: NewProductProblem) {
@@ -222,8 +281,7 @@ export function NewProductForm({
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        setTried(true);
-        if (problems.length === 0 && !unchanged && reading !== "reading") onSave(product, photo, lang);
+        save(false);
       }}
     >
       <div className="space-y-1">
@@ -238,13 +296,14 @@ export function NewProductForm({
       </div>
 
       <div className="space-y-2">
-        {photo ? (
+        {photo || savedPhoto ? (
           <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element -- in-memory data URL */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- an in-memory data URL or Open Food Facts' image */}
             <img
-              src={`data:${photo.mimeType};base64,${photo.data}`}
+              src={photo ? `data:${photo.mimeType};base64,${photo.data}` : savedPhoto!.src}
               alt={t.newProduct.labelPhotoAlt}
               className="size-16 shrink-0 rounded-lg border object-cover"
+              data-testid={photo ? undefined : "saved-label-photo"}
             />
             <div className="min-w-0 space-y-1 text-sm">
               <p className={cn("text-muted-foreground", reading === "failed" && "text-destructive")} role="status">
@@ -256,56 +315,75 @@ export function NewProductForm({
                   t.newProduct.readDone
                 ) : reading === "failed" ? (
                   `${t.newProduct.readFailed}${readDetail ? ` ${readDetail}` : ""}`
-                ) : (
+                ) : photo ? (
                   t.newProduct.labelPhotoHint
+                ) : savedPhoto!.from === "device" ? (
+                  t.newProduct.photoWaiting
+                ) : (
+                  t.newProduct.photoOnOff
                 )}
               </p>
-              <div className="flex gap-1">
+              <div className="flex flex-wrap gap-1">
+                {aiReady && reading === "reading" ? (
+                  <Button type="button" variant="ghost" size="sm" onClick={cancelReading}>
+                    <XIcon /> {t.meal.cancel}
+                  </Button>
+                ) : aiReady && reading !== "done" ? (
+                  <Button type="button" variant="secondary" size="sm" onClick={() => void fillWithAi()}>
+                    <SparklesIcon /> {reading === "failed" ? t.common.retry : t.newProduct.fillWithAi}
+                  </Button>
+                ) : null}
                 <Button type="button" variant="ghost" size="sm" onClick={() => fileInput.current?.click()}>
                   <RefreshCwIcon /> {t.newProduct.retake}
                 </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    abort.current?.abort();
-                    setPhoto(null);
-                    setReading("idle");
-                  }}
-                >
-                  <XIcon /> {t.newProduct.removePhoto}
-                </Button>
+                {photo ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      abort.current?.abort();
+                      setPhoto(null);
+                      setReading("idle");
+                    }}
+                  >
+                    <XIcon /> {t.newProduct.removePhoto}
+                  </Button>
+                ) : null}
               </div>
             </div>
           </div>
-        ) : savedPhoto ? (
-          <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element -- a data URL or Open Food Facts' image */}
-            <img
-              src={savedPhoto.src}
-              alt={t.newProduct.labelPhotoAlt}
-              className="size-16 shrink-0 rounded-lg border object-cover"
-              data-testid="saved-label-photo"
-            />
-            <div className="min-w-0 space-y-1 text-sm">
-              <p className="text-muted-foreground">
-                {savedPhoto.from === "device" ? t.newProduct.photoWaiting : t.newProduct.photoOnOff}
-              </p>
-              <Button type="button" variant="ghost" size="sm" onClick={() => fileInput.current?.click()}>
-                <RefreshCwIcon /> {t.newProduct.retake}
+        ) : (
+          <div className="space-y-3 rounded-xl border border-dashed border-primary/50 bg-primary/5 p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <CameraIcon className="size-5" />
+              </span>
+              <div className="min-w-0 space-y-0.5">
+                <p className="text-sm font-medium">
+                  {t.newProduct.photoTitle}{" "}
+                  <span className="ml-0.5 inline-block rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                    {t.newProduct.recommended}
+                  </span>
+                </p>
+                <p className={cn("text-xs text-muted-foreground", reading === "failed" && "text-destructive")}>
+                  {reading === "failed"
+                    ? t.newProduct.readFailed
+                    : aiReady
+                      ? t.newProduct.labelPhotoHintAi
+                      : t.newProduct.labelPhotoHint}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button type="button" className="flex-1" onClick={() => fileInput.current?.click()}>
+                <CameraIcon /> {t.photo.camera}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => galleryInput.current?.click()}>
+                <ImageIcon /> {t.photo.gallery}
               </Button>
             </div>
           </div>
-        ) : (
-          <>
-            <Button type="button" variant="outline" className="w-full" onClick={() => fileInput.current?.click()}>
-              <CameraIcon /> {t.newProduct.labelPhoto}
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              {aiReady ? t.newProduct.labelPhotoHintAi : t.newProduct.labelPhotoHint}
-            </p>
-          </>
         )}
         <input
           ref={fileInput}
@@ -314,6 +392,17 @@ export function NewProductForm({
           capture="environment"
           hidden
           data-testid="label-photo-input"
+          onChange={(event) => {
+            void addPhoto(event.target.files?.[0]);
+            event.target.value = "";
+          }}
+        />
+        <input
+          ref={galleryInput}
+          type="file"
+          accept="image/*"
+          hidden
+          data-testid="label-photo-gallery"
           onChange={(event) => {
             void addPhoto(event.target.files?.[0]);
             event.target.value = "";
@@ -427,9 +516,25 @@ export function NewProductForm({
       <p className="border-t pt-3 text-xs text-muted-foreground">
         {correction ? t.newProduct.consentCorrection : existing ? t.newProduct.consentExisting : t.newProduct.consent}
       </p>
-      <Button type="submit" className="w-full" disabled={reading === "reading"}>
-        {editing ? t.newProduct.saveEdit : t.newProduct.save}
-      </Button>
+      {askPhoto ? (
+        <div ref={photoReminder} className="space-y-3 rounded-xl border border-primary/50 bg-primary/5 p-3">
+          <p className="text-sm" role="alert">
+            {t.newProduct.noPhoto}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" className="flex-1" onClick={() => fileInput.current?.click()}>
+              <CameraIcon /> {t.newProduct.addPhoto}
+            </Button>
+            <Button type="button" variant="ghost" className="flex-1" onClick={() => save(true)}>
+              {t.newProduct.saveWithoutPhoto}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button type="submit" className="w-full" disabled={reading === "reading"}>
+          {editing ? t.newProduct.saveEdit : t.newProduct.save}
+        </Button>
+      )}
     </form>
   );
 }

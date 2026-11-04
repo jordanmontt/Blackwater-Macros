@@ -1269,11 +1269,27 @@ rest of the calorie profile.
     `newProductPer100g` converts a serving to per 100 (Bolivian milk is labelled per
     200 ml); `newProductProblems` refuses what is impossible for 100 g (> 900 kcal or
     > 100 g of nutrients: a misplaced digit or the wrong basis).
-  - **Photo of the label:** optional, one, downscaled like «Foto o texto». With AI set up
-    for photos it is read (`buildLabelReadingSystemPrompt`, `parseLabelReading`: copy the
+  - **Photo of the label:** optional but asked for, one, downscaled like «Foto o texto»
+    (camera or gallery). It goes to Open Food Facts as the nutrition image, so its
+    volunteers can check the values; without it they can't. So the form opens with it as
+    a highlighted card («Añade una foto de la tabla nutricional · Recomendada», before the
+    name), and Save without any label photo (none taken, none waiting, none on Open Food
+    Facts) asks once, in place of the button: «Sin foto, los voluntarios…» with «Añadir
+    foto» / «Guardar sin foto». Not when editing: the user already answered.
+  - **Read by AI only when asked:** with AI set up for photos, «Rellenar con la IA» next
+    to the photo reads it (`buildLabelReadingSystemPrompt`, `parseLabelReading`: copy the
     numbers as printed, never estimate, null when unreadable; web `lib/ai/label.ts`,
-    Android `LabelReader`) and fills the form for the user to check. It also goes to Open
-    Food Facts as the nutrition image, so its volunteers can check the values.
+    Android `LabelReader`) and fills the form for the user to check; a name or brand
+    already typed stays. Not on taking the photo: the model on the phone can take a while,
+    and the user may prefer to type. While it reads, «Cancelar» stops it (Save waits);
+    after a failure the button says «Reintentar». It also reads the saved photo (the one
+    waiting on the device, or Open Food Facts' one when editing or correcting, downloaded
+    from their image server).
+  - **What Save refuses** (`newProductProblems`), each with its message under the field:
+    no name, no kcal, no protein, no serving size when the values are per serving, values
+    impossible for 100 g, and for a correction nothing changed and no photo. Save takes the
+    cursor to the first of them, in the fields' order (web `PROBLEM_FIELD` + `focus()`,
+    Android `FocusRequester`s), since the form is longer than the screen.
   - **The package's language, not the app's** (`lang` in `OffWriteContext`): Open Food
     Facts keeps names (`product_name_<lang>`) and label photos (`nutrition_<lang>`) per
     language, and a product has one main language (`lang`). The first real test (app in
@@ -1735,6 +1751,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/local/MigrationTest.kt` | Updating the app keeps the phone's data: a version 1 database built from `app/schemas/…/1.json` opens with today's code through `MIGRATIONS` (the profile gets an empty history) |
 | `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
 | `ui/NewProductFieldsTest.kt` | «Idioma del envase»: a new product starts in the app's language and takes the one the AI read; one Open Food Facts has keeps its own |
+| `ui/NewProductViewModelTest.kt` | «Nuevo producto» (mirrors `add-food-new-product.test.tsx`): a photo alone reads nothing until «Rellenar con la IA»; Save without a label photo asks once and «Guardar sin foto» saves; editing doesn't ask; the AI reads the photo waiting on the phone |
 | `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, a past day's targets (its profile and weight), measured expenditure, the profile check and the formula inputs behind its «¿Por qué?», sync indicator states (red only for an expired session or a refused change), numbers edited with a decimal comma, when «Añadir comida» asks before closing, a meal saved as a template (its content, totals only for «Solo total») |
 | `ui/TranslationsTest.kt` | Every language has every Android-only string and plural with the same placeholders (shared texts: `i18n.test.ts` + the build) |
 | `data/NiceTicksTest.kt` | Chart axis ticks |
@@ -1755,7 +1772,7 @@ Web behavior tests describe user requirements; when one exists on both platforms
 | `progreso-page` | `ProgressLogicTest` |
 | `recommendations-card`, `perfil-page` | `ValidationTest` (`recommend`) |
 | `coach-page`, `add-food-photo`, `ai-settings`, `onboarding` | `CoachTest`, `MealEstimatorTest`, `AiClientTest` + `ModelListStoreTest`, `OnboardingTest` |
-| `add-food-new-product` | `OwnProductsTest` (the form itself: not automated, checked on a device) |
+| `add-food-new-product` | `OwnProductsTest`, `NewProductViewModelTest` (the form's layout and focus: not automated, checked on a device) |
 | `unit/local-models-catalog` | `LocalModelCatalogTest` |
 | other `*-page.test.tsx` (screens) | not automated — Compose UI tests are a known gap; screens are checked on a device |
 

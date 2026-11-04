@@ -116,6 +116,7 @@ function stubFetch() {
       const body = init?.body as URLSearchParams;
       return new Response("{}", { status: body.get("password") === "right" ? 200 : 403 });
     }
+    if (url.startsWith("https://images.openfoodfacts.org/")) return new Response(new Blob(["jpeg"], { type: "image/jpeg" }));
     if (url.includes("generativelanguage.googleapis.com")) {
       const reading = { name: "Leche entera", brand: "PIL", language: "pt", basis: "serving", servingSize: "200 ml", calories: 124, protein: 6.4, carbs: 9.6, fat: 6.6 };
       return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(reading) }] } }] }));
@@ -139,6 +140,13 @@ async function lookUp(user: ReturnType<typeof userEvent.setup>, code: string) {
   await user.click(within(sheet).getByRole("button", { name: new RegExp(`^${t.addFood.barcode}`) }));
   await user.type(await screen.findByLabelText(t.addFood.manualCode), code);
   await user.click(screen.getByRole("button", { name: t.addFood.lookUp }));
+}
+
+/** Save, then «Guardar sin foto» when the form asks for the label photo. */
+async function saveWithoutPhoto(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+  expect(await screen.findByText(t.newProduct.noPhoto)).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: t.newProduct.saveWithoutPhoto }));
 }
 
 async function fillMilk(user: ReturnType<typeof userEvent.setup>) {
@@ -176,6 +184,8 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(await screen.findByRole("dialog", { name: t.newProduct.title })).toBeInTheDocument();
     expect(screen.getByText(formatTemplate(t.newProduct.barcode, { code: UNKNOWN }))).toBeInTheDocument();
     expect(screen.getByText(t.newProduct.consent)).toBeInTheDocument();
+    expect(screen.getByText(t.newProduct.photoTitle)).toBeInTheDocument();
+    expect(screen.getByText(t.newProduct.labelPhotoHint)).toBeInTheDocument();
     // The package's language starts as the app's.
     expect(screen.getByLabelText(t.newProduct.packageLang)).toHaveValue("es");
 
@@ -183,7 +193,12 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(screen.getByTestId("per-100-line")).toHaveTextContent(
       formatTemplate(t.newProduct.per100, { kcal: "62", p: "3,2", unit: "ml" }),
     );
+    // Without the label photo, Save asks for it once before saving.
     await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+    expect(screen.getByText(t.newProduct.noPhoto)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t.newProduct.addPhoto })).toBeInTheDocument();
+    expect(writes("/cgi/product_jqm2.pl")).toHaveLength(0);
+    await user.click(screen.getByRole("button", { name: t.newProduct.saveWithoutPhoto }));
 
     // The amount screen, like a found product: one serving (200 ml) to start with.
     expect(await screen.findByLabelText(t.addFood.gramsLabel)).toHaveValue("200");
@@ -201,6 +216,7 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(fields.get("nutriment_energy-kcal")).toBe("124");
     expect(fields.get("nutriment_proteins")).toBe("6.4");
     expect(fields.get("app_uuid")).toMatch(/^[0-9a-f-]{36}$/);
+    expect(writes("/cgi/product_image_upload.pl")).toHaveLength(0);
     // Only Open Food Facts is written to: nothing goes to our server.
     for (const [url] of fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")) {
       expect(String(url)).toMatch(/^https:\/\/world\.openfoodfacts\.org\/cgi\//);
@@ -211,7 +227,7 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(within(form).getAllByDisplayValue("Leche entera").length).toBeGreaterThan(0);
   });
 
-  it("sin nombre, kcal o proteína no se guarda y dice qué falta", async () => {
+  it("sin nombre, kcal o proteína no se guarda, dice qué falta y lleva el cursor al primero", async () => {
     const user = userEvent.setup();
     render(<HoyPage />);
     await lookUp(user, UNKNOWN);
@@ -221,8 +237,17 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(screen.getByText(t.newProduct.errors.name)).toBeInTheDocument();
     expect(screen.getByText(t.newProduct.errors.calories)).toBeInTheDocument();
     expect(screen.getByText(t.newProduct.errors.protein)).toBeInTheDocument();
+    expect(screen.getByLabelText(t.newProduct.name)).toHaveFocus();
+    // Missing values come before the photo: no reminder yet.
+    expect(screen.queryByText(t.newProduct.noPhoto)).toBeNull();
+
+    await user.type(screen.getByLabelText(t.newProduct.name), "Leche entera");
+    await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+    expect(screen.getByLabelText(t.newProduct.calories)).toHaveFocus();
     await user.click(screen.getByRole("button", { name: t.newProduct.basisServing }));
     expect(screen.getByText(t.newProduct.errors.serving)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+    expect(screen.getByLabelText(t.newProduct.servingSize)).toHaveFocus();
     expect(writes("/cgi/product_jqm2.pl")).toHaveLength(0);
     expect(localStorage.getItem("bw:own-products")).toBeNull();
   });
@@ -247,7 +272,7 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(screen.getByText(t.newProduct.consentExisting)).toBeInTheDocument();
     await user.type(screen.getByLabelText(t.newProduct.calories), "440");
     await user.type(screen.getByLabelText(t.newProduct.protein), "7");
-    await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+    await saveWithoutPhoto(user);
 
     await screen.findByText(t.newProduct.status.sent);
     expect(sentFields().get("product_name_es")).toBeNull();
@@ -271,7 +296,7 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     await user.click(await screen.findByRole("button", { name: t.addFood.addProduct }));
     await fillMilk(user);
     offline = true;
-    await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+    await saveWithoutPhoto(user);
 
     expect(await screen.findByText(t.newProduct.yourProduct)).toBeInTheDocument();
     expect(screen.queryByText(t.newProduct.status.sent)).toBeNull();
@@ -288,7 +313,7 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     await lookUp(user, UNKNOWN);
     await user.click(await screen.findByRole("button", { name: t.addFood.addProduct }));
     await fillMilk(user);
-    await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+    await saveWithoutPhoto(user);
     await screen.findByText(t.newProduct.status.sent);
     unmount();
 
@@ -301,7 +326,9 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     const kcal = await screen.findByLabelText(t.newProduct.calories);
     await user.clear(kcal);
     await user.type(kcal, "130");
+    // Editing doesn't ask for the photo again.
     await user.click(screen.getByRole("button", { name: t.newProduct.saveEdit }));
+    expect(screen.queryByText(t.newProduct.noPhoto)).toBeNull();
 
     await waitFor(() => expect(writes("/cgi/product_jqm2.pl")).toHaveLength(2));
     expect(sentFields(1).get("nutriment_energy-kcal")).toBe("130");
@@ -333,7 +360,7 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(screen.getByLabelText(t.newProduct.calories)).toHaveValue("124");
   });
 
-  it("con IA, la foto de la tabla rellena los valores y se envía después de ellos", async () => {
+  it("con IA, «Rellenar con la IA» lee la foto de la tabla y la foto se envía después de los valores", async () => {
     localStorage.setItem("bw:ai", JSON.stringify({ provider: "gemini", apiKeys: { gemini: "fake-key" } }));
     const user = userEvent.setup();
     render(<HoyPage />);
@@ -341,8 +368,15 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     await user.click(await screen.findByRole("button", { name: t.addFood.addProduct }));
     expect(await screen.findByText(t.newProduct.labelPhotoHintAi)).toBeInTheDocument();
 
-    await user.upload(screen.getByTestId("label-photo-input"), new File(["x"], "label.jpg", { type: "image/jpeg" }));
+    // From the gallery too; the photo alone reads nothing (an AI on the device can take a while).
+    await user.upload(screen.getByTestId("label-photo-gallery"), new File(["x"], "label.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByText(t.newProduct.labelPhotoHint)).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("generativelanguage"))).toBe(false);
+    expect(screen.getByLabelText(t.newProduct.name)).toHaveValue("");
+
+    await user.click(screen.getByRole("button", { name: t.newProduct.fillWithAi }));
     expect(await screen.findByText(t.newProduct.readDone)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: t.newProduct.fillWithAi })).toBeNull();
     expect(screen.getByLabelText(t.newProduct.name)).toHaveValue("Leche entera");
     expect(screen.getByLabelText(t.newProduct.servingSize)).toHaveValue("200 ml");
     expect(screen.getByLabelText(t.newProduct.calories)).toHaveValue("124");
@@ -433,6 +467,31 @@ describe("Añadir comida: corregir los valores de un producto de Open Food Facts
     expect(fields.get("add_brands")).toBeNull();
     expect(fields.get("lc")).toBe("es");
     expect(fields.get("lang")).toBeNull();
+  });
+
+  it("con IA, «Rellenar con la IA» lee la foto que tiene Open Food Facts", async () => {
+    localStorage.setItem("bw:ai", JSON.stringify({ provider: "gemini", apiKeys: { gemini: "fake-key" } }));
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await lookUp(user, WRONG_VALUES);
+    await screen.findByLabelText(t.addFood.gramsLabel);
+    await user.click(screen.getByRole("button", { name: t.newProduct.correctLink }));
+    await screen.findByTestId("saved-label-photo");
+
+    await user.click(screen.getByRole("button", { name: t.newProduct.fillWithAi }));
+    expect(await screen.findByText(t.newProduct.readDone)).toBeInTheDocument();
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toContain(
+      "https://images.openfoodfacts.org/images/products/777/123/400/0222/nutrition_es.3.400.jpg",
+    );
+    expect(screen.getByRole("button", { name: t.newProduct.basisServing })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText(t.newProduct.calories)).toHaveValue("124");
+    expect(screen.getByLabelText(t.newProduct.fat)).toHaveValue("6,6");
+
+    // Open Food Facts already has the photo: no reminder, and no photo is sent again.
+    await user.click(screen.getByRole("button", { name: t.newProduct.save }));
+    expect(await screen.findByText(t.newProduct.status.sentCorrection)).toBeInTheDocument();
+    expect(sentFields().get("nutriment_energy-kcal")).toBe("62");
+    expect(writes("/cgi/product_image_upload.pl")).toHaveLength(0);
   });
 
   it("sin conexión dice que no se pudo y no abre el formulario", async () => {

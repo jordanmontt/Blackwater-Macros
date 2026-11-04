@@ -9,7 +9,31 @@ import com.blackwatermacros.app.data.foods.OpenFoodFactsClient
 import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -196,8 +220,10 @@ data class NewProductFields(
 
 /**
  * «Nuevo producto» (web `NewProductForm`): the label typed by hand, or read by
- * the AI from a photo when AI is set up for photos. The photo lives in memory
- * until saving, then waits on the phone only until Open Food Facts has it.
+ * the AI from a photo when asked («Rellenar con la IA», since the model on the
+ * phone can take a while). The photo lives in memory until saving, then waits
+ * on the phone only until Open Food Facts has it; Save asks once for it when
+ * there is none ([askPhoto]).
  */
 class NewProductViewModel(
     private val reader: LabelReader = AppGraph.labelReader,
@@ -224,6 +250,13 @@ class NewProductViewModel(
     private val _savedPhoto = MutableStateFlow<SavedLabelPhoto?>(null)
     val savedPhoto: StateFlow<SavedLabelPhoto?> = _savedPhoto.asStateFlow()
 
+    /** The saved photo as the AI takes it (its JPEG is already small). */
+    private var savedImage: AiImage? = null
+
+    /** Save was tapped without a label photo: «Sin foto…» with «Añadir foto» / «Guardar sin foto». */
+    private val _askPhoto = MutableStateFlow(false)
+    val askPhoto: StateFlow<Boolean> = _askPhoto.asStateFlow()
+
     private var draftCode: String? = null
     private var draftExisting = false
     private var job: Job? = null
@@ -238,6 +271,7 @@ class NewProductViewModel(
         _fields.value = NewProductFields.of(draft)
         _photo.value = null
         _reading.value = LabelReadState.Idle
+        _askPhoto.value = false
         loadSavedPhoto(draft)
     }
 
@@ -248,6 +282,7 @@ class NewProductViewModel(
     private fun loadSavedPhoto(draft: ProductDraft) {
         savedJob?.cancel()
         _savedPhoto.value = null
+        savedImage = null
         savedJob = viewModelScope.launch {
             val waiting = withContext(Dispatchers.IO) { ownProducts.photo(draft.code) }
             val bytes = waiting ?: run {
@@ -256,6 +291,7 @@ class NewProductViewModel(
                 openFoodFacts.image(url)
             } ?: return@launch
             val preview = withContext(Dispatchers.Default) { decodePreview(bytes) } ?: return@launch
+            savedImage = AiImage("image/jpeg", Base64.encodeToString(bytes, Base64.NO_WRAP))
             _savedPhoto.value = SavedLabelPhoto(preview, fromDevice = waiting != null)
         }
     }
@@ -264,6 +300,7 @@ class NewProductViewModel(
 
     fun addPhoto(context: Context, uri: Uri, deleteAfter: File? = null) {
         job?.cancel()
+        _reading.value = LabelReadState.Idle
         job = viewModelScope.launch {
             val scaled = PhotoCodec.read(context, uri, deleteAfter)
             if (scaled == null) {
@@ -271,13 +308,18 @@ class NewProductViewModel(
                 return@launch
             }
             _photo.value = LabelPhoto(scaled.image, scaled.preview.asImageBitmap())
-            if (!aiReady.value) {
-                _reading.value = LabelReadState.Idle
-                return@launch
-            }
+            _askPhoto.value = false
+        }
+    }
+
+    /** «Rellenar con la IA»: the new photo, or else the saved one. */
+    fun fillWithAi() {
+        val image = _photo.value?.image ?: savedImage ?: return
+        job?.cancel()
+        job = viewModelScope.launch {
             _reading.value = LabelReadState.Reading
             _reading.value = try {
-                val read = reader.read(scaled.image, aiLanguageName(appLocale().language))
+                val read = reader.read(image, aiLanguageName(appLocale().language))
                 _fields.update { it.withReading(read, keepLang = draftExisting) }
                 LabelReadState.Done
             } catch (e: CancellationException) {
@@ -290,6 +332,11 @@ class NewProductViewModel(
         }
     }
 
+    fun cancelReading() {
+        job?.cancel()
+        _reading.value = LabelReadState.Idle
+    }
+
     fun removePhoto() {
         job?.cancel()
         _photo.value = null
@@ -297,16 +344,26 @@ class NewProductViewModel(
     }
 
     /**
-     * The product and the photo (JPEG) to save, or null with the problems shown.
-     * A correction that changes nothing and brings no photo would only repeat
-     * what Open Food Facts has.
+     * The product, the photo (JPEG) and the package's language to save, or null
+     * with the problems shown. A correction that changes nothing and brings no
+     * photo would only repeat what Open Food Facts has. Without any label photo
+     * it asks once ([askPhoto]) unless [askForPhoto] is false (editing) or the
+     * answer was «Guardar sin foto» ([withoutPhoto]).
      */
-    /** The product, the photo (JPEG) and the package's language to save, or null with the problems shown. */
-    fun submit(code: String, correction: OffCorrection? = null): Triple<NewProduct, ByteArray?, String>? {
+    fun submit(
+        code: String,
+        correction: OffCorrection? = null,
+        askForPhoto: Boolean = true,
+        withoutPhoto: Boolean = false,
+    ): Triple<NewProduct, ByteArray?, String>? {
         val product = _fields.value.toProduct(code)
         val unchanged = correction != null && correctionChanges(correction, product).isEmpty() && _photo.value == null
         if (newProductProblems(product, correction?.per).isNotEmpty() || unchanged || _reading.value == LabelReadState.Reading) {
             _fields.update { it.copy(tried = true) }
+            return null
+        }
+        if (askForPhoto && !withoutPhoto && _photo.value == null && _savedPhoto.value == null) {
+            _askPhoto.value = true
             return null
         }
         val jpeg = _photo.value?.image?.data?.let { Base64.decode(it, Base64.NO_WRAP) }
@@ -368,6 +425,19 @@ private fun decodePreview(bytes: ByteArray): ImageBitmap? {
     return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
 }
 
+/** The dashed outline of the label-photo card: a place waiting for the photo. */
+private fun Modifier.dashedBorder(color: Color, radius: Dp): Modifier = drawBehind {
+    val stroke = 1.dp.toPx()
+    drawRoundRect(
+        color = color,
+        topLeft = Offset(stroke / 2, stroke / 2),
+        size = Size(size.width - stroke, size.height - stroke),
+        cornerRadius = CornerRadius(radius.toPx()),
+        style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))),
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NewProductView(
     draft: ProductDraft,
@@ -379,6 +449,7 @@ fun NewProductView(
     val reading by viewModel.reading.collectAsStateWithLifecycle()
     val aiReady by viewModel.aiReady.collectAsStateWithLifecycle()
     val savedPhoto by viewModel.savedPhoto.collectAsStateWithLifecycle()
+    val askPhoto by viewModel.askPhoto.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
     val pickers = rememberPhotoPickers(
         onCameraFile = { file -> viewModel.addPhoto(context, Uri.fromFile(file), deleteAfter = file) },
@@ -391,6 +462,27 @@ fun NewProductView(
     val unchanged = correction != null && changes.isEmpty() && photo == null
     val problems = newProductProblems(product, correction?.per)
     val shown = if (fields.tried) problems else emptyList()
+    // Save takes the cursor to the first value missing or wrong (the fields' order).
+    val nameFocus = remember { FocusRequester() }
+    val servingFocus = remember { FocusRequester() }
+    val caloriesFocus = remember { FocusRequester() }
+    val proteinFocus = remember { FocusRequester() }
+    fun save(withoutPhoto: Boolean) {
+        val result = viewModel.submit(draft.code, correction, askForPhoto = draft.initial == null, withoutPhoto = withoutPhoto)
+        if (result != null) {
+            val (saved, jpeg, lang) = result
+            onSave(saved, jpeg, lang)
+            return
+        }
+        val focus = when (problems.firstOrNull()) {
+            NewProductProblem.NAME -> nameFocus
+            NewProductProblem.SERVING -> servingFocus
+            NewProductProblem.CALORIES, NewProductProblem.TOO_HIGH -> caloriesFocus
+            NewProductProblem.PROTEIN -> proteinFocus
+            null -> null
+        }
+        runCatching { focus?.requestFocus() }
+    }
 
     @Composable
     fun Error(problem: NewProductProblem) {
@@ -417,6 +509,7 @@ fun NewProductView(
         nutrient: LabelNutrient,
         problem: NewProductProblem?,
         modifier: Modifier,
+        focus: FocusRequester? = null,
         onChange: (String) -> Unit,
     ) {
         Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -427,7 +520,7 @@ fun NewProductView(
                 placeholder = "",
                 decimal = true,
                 isError = problem != null && problem in shown,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().then(if (focus != null) Modifier.focusRequester(focus) else Modifier),
             )
             if (problem != null) Error(problem)
             val before = baseline?.value(nutrient)
@@ -465,55 +558,11 @@ fun NewProductView(
 
         val current = photo
         val saved = savedPhoto
-        if (current == null && saved != null) {
+        val failed = reading as? LabelReadState.Failed
+        if (current != null || saved != null) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
-                    saved.preview,
-                    contentDescription = stringResource(R.string.new_product_label_photo_alt),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp)),
-                )
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        stringResource(if (saved.fromDevice) R.string.new_product_photo_waiting else R.string.new_product_photo_on_off),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    TextButton(onClick = pickers.openCamera) {
-                        Icon(Icons.Filled.Refresh, contentDescription = null, Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text(stringResource(R.string.new_product_retake))
-                    }
-                }
-            }
-        } else if (current == null) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(onClick = pickers.openCamera, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.PhotoCamera, contentDescription = null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.new_product_label_photo), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-                Spacer(Modifier.width(8.dp))
-                OutlinedButton(onClick = pickers.openGallery) {
-                    Icon(Icons.Filled.PhotoLibrary, contentDescription = stringResource(R.string.photo_gallery), Modifier.size(18.dp))
-                }
-            }
-            Text(
-                stringResource(
-                    if (reading is LabelReadState.Failed) R.string.new_product_read_failed
-                    else if (aiReady) R.string.new_product_label_photo_hint_ai else R.string.new_product_label_photo_hint,
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = if (reading is LabelReadState.Failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    current.preview,
+                    current?.preview ?: saved!!.preview,
                     contentDescription = stringResource(R.string.new_product_label_photo_alt),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -528,30 +577,102 @@ fun NewProductView(
                             CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
                             Spacer(Modifier.width(6.dp))
                         }
-                        val failed = reading as? LabelReadState.Failed
                         Text(
                             when {
                                 reading == LabelReadState.Reading -> stringResource(R.string.new_product_reading)
                                 reading == LabelReadState.Done -> stringResource(R.string.new_product_read_done)
                                 failed != null -> stringResource(R.string.new_product_read_failed) +
                                     (failed.failure?.let { " " + stringResource(it.messageRes()) } ?: "")
-                                else -> stringResource(R.string.new_product_label_photo_hint)
+                                current != null -> stringResource(R.string.new_product_label_photo_hint)
+                                saved!!.fromDevice -> stringResource(R.string.new_product_photo_waiting)
+                                else -> stringResource(R.string.new_product_photo_on_off)
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = if (failed != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Row {
+                    FlowRow {
+                        if (aiReady && reading == LabelReadState.Reading) {
+                            TextButton(onClick = viewModel::cancelReading) {
+                                Icon(Icons.Filled.Close, contentDescription = null, Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text(stringResource(R.string.action_cancel))
+                            }
+                        } else if (aiReady && reading != LabelReadState.Done) {
+                            FilledTonalButton(onClick = viewModel::fillWithAi) {
+                                Icon(Icons.Filled.AutoAwesome, contentDescription = null, Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text(stringResource(if (failed != null) R.string.common_retry else R.string.new_product_fill_with_ai))
+                            }
+                        }
                         TextButton(onClick = pickers.openCamera) {
                             Icon(Icons.Filled.Refresh, contentDescription = null, Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
                             Text(stringResource(R.string.new_product_retake))
                         }
-                        TextButton(onClick = viewModel::removePhoto) {
-                            Icon(Icons.Filled.Close, contentDescription = null, Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text(stringResource(R.string.new_product_remove_photo))
+                        if (current != null) {
+                            TextButton(onClick = viewModel::removePhoto) {
+                                Icon(Icons.Filled.Close, contentDescription = null, Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text(stringResource(R.string.new_product_remove_photo))
+                            }
                         }
+                    }
+                }
+            }
+        } else {
+            val primary = MaterialTheme.colorScheme.primary
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(primary.copy(alpha = 0.06f))
+                    .dashedBorder(primary.copy(alpha = 0.5f), 12.dp)
+                    .padding(16.dp),
+            ) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(40.dp).clip(CircleShape).background(primary.copy(alpha = 0.12f)),
+                    ) {
+                        Icon(Icons.Filled.PhotoCamera, contentDescription = null, tint = primary, modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        FlowRow(verticalArrangement = Arrangement.Center, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(stringResource(R.string.new_product_photo_title), style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                stringResource(R.string.new_product_recommended),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = primary,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(primary.copy(alpha = 0.15f))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                            )
+                        }
+                        Text(
+                            stringResource(
+                                if (failed != null) R.string.new_product_read_failed
+                                else if (aiReady) R.string.new_product_label_photo_hint_ai else R.string.new_product_label_photo_hint,
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (failed != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = pickers.openCamera, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Filled.PhotoCamera, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.photo_camera), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(onClick = pickers.openGallery) {
+                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.photo_gallery), maxLines = 1)
                     }
                 }
             }
@@ -567,7 +688,7 @@ fun NewProductView(
                     placeholder = stringResource(R.string.new_product_name_placeholder),
                     capitalize = true,
                     isError = NewProductProblem.NAME in shown,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().focusRequester(nameFocus),
                 )
                 Error(NewProductProblem.NAME)
             }
@@ -615,16 +736,16 @@ fun NewProductView(
                 onValueChange = { value -> viewModel.edit { it.copy(serving = value) } },
                 placeholder = stringResource(R.string.new_product_serving_placeholder),
                 isError = NewProductProblem.SERVING in shown,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().focusRequester(servingFocus),
             )
             Error(NewProductProblem.SERVING)
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            NumberField(stringResource(R.string.new_product_calories), fields.calories, LabelNutrient.CALORIES, NewProductProblem.CALORIES, Modifier.weight(1f)) { value ->
+            NumberField(stringResource(R.string.new_product_calories), fields.calories, LabelNutrient.CALORIES, NewProductProblem.CALORIES, Modifier.weight(1f), caloriesFocus) { value ->
                 viewModel.edit { it.copy(calories = value) }
             }
-            NumberField(stringResource(R.string.new_product_protein), fields.protein, LabelNutrient.PROTEIN, NewProductProblem.PROTEIN, Modifier.weight(1f)) { value ->
+            NumberField(stringResource(R.string.new_product_protein), fields.protein, LabelNutrient.PROTEIN, NewProductProblem.PROTEIN, Modifier.weight(1f), proteinFocus) { value ->
                 viewModel.edit { it.copy(protein = value) }
             }
         }
@@ -672,12 +793,45 @@ fun NewProductView(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Button(
-            onClick = { viewModel.submit(draft.code, correction)?.let { (saved, jpeg, lang) -> onSave(saved, jpeg, lang) } },
-            enabled = reading != LabelReadState.Reading,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(stringResource(if (draft.initial != null) R.string.new_product_save_edit else R.string.new_product_save))
+        if (askPhoto) {
+            val primary = MaterialTheme.colorScheme.primary
+            // Taller than the Save button it replaces: bring its buttons into view.
+            val reminder = remember { BringIntoViewRequester() }
+            LaunchedEffect(Unit) { reminder.bringIntoView() }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .bringIntoViewRequester(reminder)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(primary.copy(alpha = 0.06f))
+                    .border(1.dp, primary.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .padding(12.dp),
+            ) {
+                Text(
+                    stringResource(R.string.new_product_no_photo),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = pickers.openCamera, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Filled.PhotoCamera, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.new_product_add_photo), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    TextButton(onClick = { save(withoutPhoto = true) }, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.new_product_save_without_photo), maxLines = 2)
+                    }
+                }
+            }
+        } else {
+            Button(
+                onClick = { save(withoutPhoto = false) },
+                enabled = reading != LabelReadState.Reading,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(if (draft.initial != null) R.string.new_product_save_edit else R.string.new_product_save))
+            }
         }
         Spacer(Modifier.height(4.dp))
     }
