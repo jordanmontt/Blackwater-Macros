@@ -1,0 +1,3 @@
+• Beim Hinzufügen oder Korrigieren eines Produkts liest die KI die Tabelle nur, wenn du auf „Mit KI ausfüllen“ tippst – kein Warten. Sie kann auch das Foto lesen, das Open Food Facts schon hat.
+• Das Foto der Nährwerttabelle steht oben und wird empfohlen: Damit prüfen die Freiwilligen von Open Food Facts die Werte.
+• Speichern führt dich zum fehlenden Feld.

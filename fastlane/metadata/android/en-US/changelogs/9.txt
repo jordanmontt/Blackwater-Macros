@@ -1,0 +1,3 @@
+• Adding or correcting a product: AI reads the label only when you tap «Fill in with AI», so you don't wait for it. It can also read the photo already on Open Food Facts.
+• The label photo comes first and is recommended: it's how Open Food Facts volunteers check the values.
+• Save takes you to the field that's missing.

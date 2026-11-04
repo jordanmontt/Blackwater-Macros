@@ -1,0 +1,3 @@
+• Aggiungendo o correggendo un prodotto, l'IA legge la tabella solo quando tocchi «Compila con l'IA», così non aspetti. Può anche leggere la foto che Open Food Facts ha già.
+• La foto della tabella viene per prima ed è consigliata: serve ai volontari di Open Food Facts per verificare i valori.
+• Salva ti porta al campo mancante.

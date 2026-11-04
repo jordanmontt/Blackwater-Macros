@@ -1,0 +1,3 @@
+• En ajoutant ou corrigeant un produit, l'IA ne lit le tableau que lorsque vous touchez « Remplir avec l'IA » : pas d'attente. Elle peut aussi lire la photo déjà sur Open Food Facts.
+• La photo du tableau vient en premier et est recommandée : elle permet aux bénévoles d'Open Food Facts de vérifier les valeurs.
+• Enregistrer vous amène au champ manquant.
