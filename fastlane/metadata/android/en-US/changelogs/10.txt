@@ -1,0 +1,1 @@
+• Settings now end with who made the app, with a link to the author's website.
