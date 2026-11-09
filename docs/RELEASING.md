@@ -80,11 +80,16 @@ The two are signed with different keys, so an app from one can't update an app f
      retry later if it fails).
   2. In that property: **Sitemaps** → submit `https://blackwater-macros.jordanmontt.fr/sitemap.xml`.
      Then **URL inspection** → `https://blackwater-macros.jordanmontt.fr/` → **Request indexing**.
-  3. **Bing:** https://www.bing.com/webmasters → sign in → **Import from Google Search Console**
-     (it takes the site and the sitemap, no second verification). Bing also feeds DuckDuckGo
-     and Ecosia.
+  3. **Bing** (also feeds DuckDuckGo and Ecosia): https://www.bing.com/webmasters → sign in →
+     add the site **manually** (not the import from Google) →
+     `https://blackwater-macros.jordanmontt.fr/` → verify with the **CNAME** option (no change to
+     the website). In the OVH DNS zone of `jordanmontt.fr`: Add an entry → `CNAME`, subdomain =
+     the name Bing shows without `.jordanmontt.fr`, target `verify.bing.com.` (with the final
+     dot). It's a different name from `blackwater-macros`, so its `CNAME` isn't in the way. Click
+     **Verify**, then **Sitemaps** → submit `https://blackwater-macros.jordanmontt.fr/sitemap.xml`,
+     and **URL Submission** → the home page.
   4. A few days later, check **Pages** (Google) and **Site Explorer** (Bing) show the page as
-     indexed. Leave the TXT record in place: removing it un-verifies the site.
+     indexed. Leave the TXT and CNAME records in place: removing them un-verifies the site.
 - [x] **Merge request to F-Droid:** [fdroid/fdroiddata!53565](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53565)
       (from the fork https://gitlab.com/jordanmontt/fdroiddata, branch `com.blackwatermacros.app`;
       text in [fdroid/merge-request.md](./fdroid/merge-request.md)). GitLab emails you when a
