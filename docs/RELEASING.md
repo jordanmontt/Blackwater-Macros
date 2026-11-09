@@ -80,11 +80,12 @@ The two are signed with different keys, so an app from one can't update an app f
      retry later if it fails).
   2. In that property: **Sitemaps** → submit `https://blackwater-macros.jordanmontt.fr/sitemap.xml`.
      Then **URL inspection** → `https://blackwater-macros.jordanmontt.fr/` → **Request indexing**.
-  3. **Bing** (also feeds DuckDuckGo and Ecosia): https://www.bing.com/webmasters → sign in →
+  3. **Bing** (done on 2026-11-08; also feeds DuckDuckGo and Ecosia): https://www.bing.com/webmasters → sign in →
      add the site **manually** (not the import from Google) →
      `https://blackwater-macros.jordanmontt.fr/` → verify with the **CNAME** option (no change to
      the website). In the OVH DNS zone of `jordanmontt.fr`: Add an entry → `CNAME`, subdomain =
-     the name Bing shows without `.jordanmontt.fr`, target `verify.bing.com.` (with the final
+     `<code Bing shows>.blackwater-macros` (Bing shows only the code; directly under
+     `jordanmontt.fr` it isn't found), target `verify.bing.com.` (with the final
      dot). It's a different name from `blackwater-macros`, so its `CNAME` isn't in the way. Click
      **Verify**, then **Sitemaps** → submit `https://blackwater-macros.jordanmontt.fr/sitemap.xml`,
      and **URL Submission** → the home page.
