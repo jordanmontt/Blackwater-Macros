@@ -765,6 +765,7 @@
     "walking_out_of_range": "Le temps de marche doit être compris entre 0 et 480 minutes"
   },
   "about": {
+    "createdBy": "Créé par",
     "sourceCode": "Code source",
     "sourceCodeHint": "Blackwater Macros est un logiciel libre (AGPL-3.0)",
     "website": "Site web",

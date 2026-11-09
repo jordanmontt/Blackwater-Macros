@@ -415,6 +415,7 @@
   "ai_model_limits": "ai.modelLimits",
   "ai_model_list_error": ["ai.modelListError", "message:s"],
   "ai_model_list_needs_key": "ai.modelListNeedsKey",
+  "created_by": "about.createdBy",
   "source_code": "about.sourceCode",
   "source_code_hint": "about.sourceCodeHint",
   "website": "about.website",

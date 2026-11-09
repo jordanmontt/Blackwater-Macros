@@ -765,6 +765,7 @@
     "walking_out_of_range": "Die Gehzeit muss zwischen 0 und 480 Minuten liegen"
   },
   "about": {
+    "createdBy": "Erstellt von",
     "sourceCode": "Quellcode",
     "sourceCodeHint": "Blackwater Macros ist freie Software (AGPL-3.0)",
     "website": "Website",

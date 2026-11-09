@@ -29,6 +29,7 @@ class NetworkHostsTest {
         "github.com" to "source link and the Open Food Facts User-Agent text",
         "ko-fi.com" to "donation link opened in the browser (Settings)",
         "blackwater-macros.jordanmontt.fr" to "the website, opened in the browser to download a new version",
+        "www.jordanmontt.fr" to "the author's website, opened in the browser (Settings)",
         "example.com" to "placeholder text in a field",
     )
 

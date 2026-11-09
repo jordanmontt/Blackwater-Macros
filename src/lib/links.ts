@@ -3,3 +3,7 @@ export const SOURCE_CODE_URL = "https://github.com/jordanmontt/Blackwater-Macros
 
 /** The project's website (what the app is, the Android download); the web app lives on app.… */
 export const WEBSITE_URL = "https://blackwater-macros.jordanmontt.fr/";
+
+/** Who made the app: its name in the last line of Ajustes. */
+export const AUTHOR_NAME = "jordanmontt";
+export const AUTHOR_URL = "https://www.jordanmontt.fr/";

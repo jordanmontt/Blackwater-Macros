@@ -765,6 +765,7 @@
     "walking_out_of_range": "Walking time must be between 0 and 480 minutes"
   },
   "about": {
+    "createdBy": "Created by",
     "sourceCode": "Source code",
     "sourceCodeHint": "Blackwater Macros is free software (AGPL-3.0)",
     "website": "Website",

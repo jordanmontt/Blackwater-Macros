@@ -765,6 +765,7 @@
     "walking_out_of_range": "El tiempo de caminata debe ser entre 0 y 480 minutos"
   },
   "about": {
+    "createdBy": "Creado por",
     "sourceCode": "Código fuente",
     "sourceCodeHint": "Blackwater Macros es software libre (AGPL-3.0)",
     "website": "Sitio web",

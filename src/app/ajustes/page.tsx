@@ -1,6 +1,6 @@
 "use client";
 
-import { SOURCE_CODE_URL, WEBSITE_URL } from "@/lib/links";
+import { AUTHOR_NAME, AUTHOR_URL, SOURCE_CODE_URL, WEBSITE_URL } from "@/lib/links";
 import { useState } from "react";
 import { formatNumber } from "@/i18n/format";
 import { useRouter } from "next/navigation";
@@ -286,6 +286,13 @@ export default function AjustesPage() {
           <SettingsRow icon={ShieldIcon} title={t.ajustes.administration} description={t.ajustes.administrationDescription} href="/admin" />
         ) : null}
       </SettingsGroup>
+
+      <p className="text-center text-xs text-muted-foreground">
+        {t.about.createdBy}{" "}
+        <a href={AUTHOR_URL} target="_blank" rel="noreferrer" className="inline-block py-1.5 font-medium text-foreground underline-offset-4 hover:underline">
+          {AUTHOR_NAME}
+        </a>
+      </p>
 
       <ConfirmDialog
         open={deletingTemplate !== null}

@@ -17,7 +17,8 @@ import { emptyCalorieProfile, templateDto } from "../helpers/repos";
  *    (la importación es de Android sin cuenta),
  *  - crea, edita y borra plantillas (el formulario es "@/components/meals/template-form"),
  *    en una sección plegada por defecto (con muchas plantillas la lista sería enorme),
- *  - cierra la sesión de forma explícita.
+ *  - cierra la sesión de forma explícita,
+ *  - la última línea dice quién la creó y enlaza a su web.
  */
 
 const routerMock = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }));
@@ -153,6 +154,13 @@ describe("pantalla Ajustes", () => {
     ]);
     const about = screen.getByRole("region", { name: t.ajustes.groupAbout });
     expect(within(about).getByRole("link", { name: new RegExp(`^${t.metodologia.title}`) })).toHaveAttribute("href", "/metodologia");
+  });
+
+  it("termina con quién la creó, enlazando a su web", async () => {
+    render(<AjustesPage />);
+    const link = await screen.findByRole("link", { name: "jordanmontt" });
+    expect(link).toHaveAttribute("href", "https://www.jordanmontt.fr/");
+    expect(link.parentElement).toHaveTextContent(`${t.about.createdBy} jordanmontt`);
   });
 
   it("cambia el tema al pulsar 'Oscuro'", async () => {

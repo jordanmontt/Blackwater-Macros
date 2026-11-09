@@ -85,7 +85,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -111,6 +114,10 @@ const val SOURCE_CODE_URL = "https://github.com/jordanmontt/Blackwater-Macros"
 
 /** Donations (Android only: the app people install; F-Droid lists it too). */
 const val DONATE_URL = "https://ko-fi.com/jordanmontt"
+
+/** Who made the app: its name in the last line of Settings. */
+const val AUTHOR_NAME = "jordanmontt"
+const val AUTHOR_URL = "https://www.jordanmontt.fr/"
 
 @Composable
 fun SettingsScreen(
@@ -272,7 +279,21 @@ fun SettingsScreen(
                     )
                 }
             }
-            Spacer(Modifier.height(24.dp))
+            TextButton(
+                onClick = { open(AUTHOR_URL) },
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 4.dp),
+            ) {
+                Text(
+                    buildAnnotatedString {
+                        append(stringResource(R.string.created_by))
+                        append(" ")
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)) { append(AUTHOR_NAME) }
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.height(16.dp))
         }
     }
 
