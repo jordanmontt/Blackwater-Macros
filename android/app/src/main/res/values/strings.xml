@@ -320,6 +320,11 @@
     <string name="update_download">Download</string>
     <string name="update_check_title">Check for updates</string>
     <string name="update_check_hint">Once a day. Nothing about you is sent.</string>
+    <string name="update_check_now">Check now</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_up_to_date">You have the latest version (%1$s).</string>
+    <string name="update_check_failed">Couldn\'t check. Check your connection and try again.</string>
+    <string name="update_last_checked">Last checked: %1$s.</string>
     <string name="data_import">Import data</string>
     <string name="data_import_hint_local">Replaces this phone\'s data with a file\'s.</string>
     <string name="data_import_hint_account">Your data is in your account and already backed up. Import is for using the app without an account.</string>

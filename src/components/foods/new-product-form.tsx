@@ -1,8 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CameraIcon, ImageIcon, Loader2Icon, RefreshCwIcon, SparklesIcon, XIcon } from "lucide-react";
+import {
+  CameraIcon,
+  ChevronDownIcon,
+  ImageIcon,
+  ImagePlusIcon,
+  Loader2Icon,
+  Maximize2Icon,
+  SparklesIcon,
+  XIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AiImage } from "@/lib/core/ai-providers";
@@ -25,6 +35,7 @@ import { isAiReady, useAiSettings } from "@/lib/ai/settings";
 import { formatNumber } from "@/i18n/format";
 import { cn, normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { NativeSelect } from "@/components/ui/native-select";
+import { LabelPhotoViewer } from "@/components/foods/label-photo-viewer";
 import { currentLanguage, formatTemplate, t } from "@/i18n";
 
 const BASES: { value: LabelBasis; label: string }[] = [
@@ -139,6 +150,7 @@ export function NewProductForm({
   const fileInput = useRef<HTMLInputElement>(null);
   const galleryInput = useRef<HTMLInputElement>(null);
   const photoReminder = useRef<HTMLDivElement>(null);
+  const [viewing, setViewing] = useState(false);
   const abort = useRef<AbortController | null>(null);
 
   useEffect(() => () => abort.current?.abort(), []);
@@ -169,6 +181,23 @@ export function NewProductForm({
   const per100 = newProductPer100g(product);
   const canShowPer100 =
     product.calories !== null && product.protein !== null && !problems.includes("serving") && basis === "serving";
+
+  // The photo shown: a new one, or else the one already there; and what it is.
+  const shownPhoto = photo ? `data:${photo.mimeType};base64,${photo.data}` : (savedPhoto?.src ?? null);
+  const photoSource = photo
+    ? t.newProduct.photoSentOnSave
+    : savedPhoto?.from === "device"
+      ? t.newProduct.photoWaiting
+      : t.newProduct.photoOnOff;
+
+  const openCamera = () => fileInput.current?.click();
+  const openGallery = () => galleryInput.current?.click();
+
+  function removePhoto() {
+    abort.current?.abort();
+    setPhoto(null);
+    setReading("idle");
+  }
 
   async function addPhoto(file: File | undefined) {
     if (!file) return;
@@ -296,62 +325,81 @@ export function NewProductForm({
       </div>
 
       <div className="space-y-2">
-        {photo || savedPhoto ? (
-          <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element -- an in-memory data URL or Open Food Facts' image */}
-            <img
-              src={photo ? `data:${photo.mimeType};base64,${photo.data}` : savedPhoto!.src}
-              alt={t.newProduct.labelPhotoAlt}
-              className="size-16 shrink-0 rounded-lg border object-cover"
-              data-testid={photo ? undefined : "saved-label-photo"}
-            />
-            <div className="min-w-0 space-y-1 text-sm">
-              <p className={cn("text-muted-foreground", reading === "failed" && "text-destructive")} role="status">
-                {reading === "reading" ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Loader2Icon className="size-3.5 animate-spin" /> {t.newProduct.reading}
-                  </span>
-                ) : reading === "done" ? (
-                  t.newProduct.readDone
-                ) : reading === "failed" ? (
-                  `${t.newProduct.readFailed}${readDetail ? ` ${readDetail}` : ""}`
-                ) : photo ? (
-                  t.newProduct.labelPhotoHint
-                ) : savedPhoto!.from === "device" ? (
-                  t.newProduct.photoWaiting
-                ) : (
-                  t.newProduct.photoOnOff
-                )}
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {aiReady && reading === "reading" ? (
-                  <Button type="button" variant="ghost" size="sm" onClick={cancelReading}>
-                    <XIcon /> {t.meal.cancel}
-                  </Button>
-                ) : aiReady && reading !== "done" ? (
-                  <Button type="button" variant="secondary" size="sm" onClick={() => void fillWithAi()}>
-                    <SparklesIcon /> {reading === "failed" ? t.common.retry : t.newProduct.fillWithAi}
-                  </Button>
-                ) : null}
-                <Button type="button" variant="ghost" size="sm" onClick={() => fileInput.current?.click()}>
-                  <RefreshCwIcon /> {t.newProduct.retake}
-                </Button>
-                {photo ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      abort.current?.abort();
-                      setPhoto(null);
-                      setReading("idle");
-                    }}
-                  >
-                    <XIcon /> {t.newProduct.removePhoto}
-                  </Button>
-                ) : null}
+        {shownPhoto ? (
+          <div className="space-y-2">
+            <div className="flex items-start gap-3">
+              <button
+                type="button"
+                onClick={() => setViewing(true)}
+                aria-label={t.newProduct.viewPhoto}
+                className="relative size-19 shrink-0 overflow-hidden rounded-lg border outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- an in-memory data URL or Open Food Facts' image */}
+                <img
+                  src={shownPhoto}
+                  alt=""
+                  className="size-full object-cover"
+                  data-testid={photo ? undefined : "saved-label-photo"}
+                />
+                <span className="absolute right-1 bottom-1 flex size-6 items-center justify-center rounded-full border bg-background/90 text-foreground">
+                  <Maximize2Icon className="size-3.5" />
+                </span>
+              </button>
+              <div className="min-w-0 space-y-0.5 text-sm">
+                <p className="font-medium">{photo || savedPhoto?.from === "device" ? t.newProduct.yourPhoto : t.newProduct.offPhoto}</p>
+                <p className={cn("text-xs text-muted-foreground", reading === "failed" && "text-destructive")} role="status">
+                  {reading === "reading" ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Loader2Icon className="size-3.5 animate-spin" /> {t.newProduct.reading}
+                    </span>
+                  ) : reading === "done" ? (
+                    t.newProduct.readDone
+                  ) : reading === "failed" ? (
+                    `${t.newProduct.readFailed}${readDetail ? ` ${readDetail}` : ""}`
+                  ) : (
+                    photoSource
+                  )}
+                </p>
               </div>
             </div>
+            <div className="flex flex-wrap gap-1">
+              {aiReady && reading === "reading" ? (
+                <Button type="button" variant="ghost" onClick={cancelReading}>
+                  <XIcon /> {t.meal.cancel}
+                </Button>
+              ) : aiReady && reading !== "done" ? (
+                <Button type="button" variant="secondary" onClick={() => void fillWithAi()}>
+                  <SparklesIcon /> {reading === "failed" ? t.common.retry : t.newProduct.fillWithAi}
+                </Button>
+              ) : null}
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button type="button" variant="ghost" />}>
+                  <ImagePlusIcon /> {t.newProduct.changePhoto} <ChevronDownIcon />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={openCamera}>
+                    <CameraIcon /> {t.photo.camera}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openGallery}>
+                    <ImageIcon /> {t.newProduct.chooseFromGallery}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {photo ? (
+                <Button type="button" variant="ghost" className="text-muted-foreground" onClick={removePhoto}>
+                  <XIcon /> {t.newProduct.removePhoto}
+                </Button>
+              ) : null}
+            </div>
+            <LabelPhotoViewer
+              open={viewing}
+              onOpenChange={setViewing}
+              src={shownPhoto}
+              source={photo || savedPhoto?.from === "device" ? photoSource : t.newProduct.fromOff}
+              onCamera={openCamera}
+              onGallery={openGallery}
+              onRemove={photo ? removePhoto : undefined}
+            />
           </div>
         ) : (
           <div className="space-y-3 rounded-xl border border-dashed border-primary/50 bg-primary/5 p-4">
@@ -376,10 +424,10 @@ export function NewProductForm({
               </div>
             </div>
             <div className="flex gap-2">
-              <Button type="button" className="flex-1" onClick={() => fileInput.current?.click()}>
+              <Button type="button" className="flex-1" onClick={openCamera}>
                 <CameraIcon /> {t.photo.camera}
               </Button>
-              <Button type="button" variant="outline" onClick={() => galleryInput.current?.click()}>
+              <Button type="button" variant="outline" onClick={openGallery}>
                 <ImageIcon /> {t.photo.gallery}
               </Button>
             </div>
@@ -521,14 +569,17 @@ export function NewProductForm({
           <p className="text-sm" role="alert">
             {t.newProduct.noPhoto}
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" className="flex-1" onClick={() => fileInput.current?.click()}>
-              <CameraIcon /> {t.newProduct.addPhoto}
+          <div className="flex gap-2">
+            <Button type="button" className="flex-1" onClick={openCamera}>
+              <CameraIcon /> {t.photo.camera}
             </Button>
-            <Button type="button" variant="ghost" className="flex-1" onClick={() => save(true)}>
-              {t.newProduct.saveWithoutPhoto}
+            <Button type="button" variant="outline" className="flex-1" onClick={openGallery}>
+              <ImageIcon /> {t.photo.gallery}
             </Button>
           </div>
+          <Button type="button" variant="ghost" className="w-full text-muted-foreground" onClick={() => save(true)}>
+            {t.newProduct.saveWithoutPhoto}
+          </Button>
         </div>
       ) : (
         <Button type="submit" className="w-full" disabled={reading === "reading"}>

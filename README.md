@@ -115,7 +115,7 @@ every number on screen can be checked by hand.
   | You open Settings → AI (list of phone models) | GitHub (this repository) |
   | You download a phone AI model | Hugging Face |
   | You use AI with your own key | the provider you chose (Google, OpenAI, Anthropic, OpenRouter, your server) |
-  | Once a day, only in the APK from the website (not F-Droid's), to check for a new version; can be turned off in Settings | GitHub |
+  | Once a day, only in the APK from the website (not F-Droid's), to check for a new version, and when you tap «Check now» in Settings; the daily check can be turned off | GitHub |
 
   A test (`NetworkHostsTest`) fails if the code ever learns another address.
 - **Products you add or correct are shared, never your data.** They go straight from your phone (or

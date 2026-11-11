@@ -21,6 +21,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.CornerRadius
@@ -113,14 +124,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.blackwatermacros.app.core.PACKAGE_LANGS
 import java.util.Locale
 
@@ -337,6 +344,10 @@ class NewProductViewModel(
         _reading.value = LabelReadState.Idle
     }
 
+    /** The shown photo's JPEG (≤ 1024 px), for the viewer: the new one, or else the saved one. */
+    fun photoJpeg(): ByteArray? =
+        (_photo.value?.image ?: savedImage)?.data?.let { Base64.decode(it, Base64.NO_WRAP) }
+
     fun removePhoto() {
         job?.cancel()
         _photo.value = null
@@ -416,7 +427,7 @@ private fun PackageLangField(lang: String, onChange: (String) -> Unit) {
     }
 }
 
-/** A small bitmap for the 64 dp thumbnail. */
+/** A small bitmap for the thumbnail (the viewer decodes the photo itself). */
 private fun decodePreview(bytes: ByteArray): ImageBitmap? {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
@@ -560,65 +571,132 @@ fun NewProductView(
         val saved = savedPhoto
         val failed = reading as? LabelReadState.Failed
         if (current != null || saved != null) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    current?.preview ?: saved!!.preview,
-                    contentDescription = stringResource(R.string.new_product_label_photo_alt),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp)),
-                )
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (reading == LabelReadState.Reading) {
-                            CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.width(6.dp))
-                        }
-                        Text(
-                            when {
-                                reading == LabelReadState.Reading -> stringResource(R.string.new_product_reading)
-                                reading == LabelReadState.Done -> stringResource(R.string.new_product_read_done)
-                                failed != null -> stringResource(R.string.new_product_read_failed) +
-                                    (failed.failure?.let { " " + stringResource(it.messageRes()) } ?: "")
-                                current != null -> stringResource(R.string.new_product_label_photo_hint)
-                                saved!!.fromDevice -> stringResource(R.string.new_product_photo_waiting)
-                                else -> stringResource(R.string.new_product_photo_on_off)
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (failed != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            val yours = current != null || saved!!.fromDevice
+            val source = when {
+                current != null -> stringResource(R.string.new_product_photo_sent_on_save)
+                saved!!.fromDevice -> stringResource(R.string.new_product_photo_waiting)
+                else -> stringResource(R.string.new_product_photo_on_off)
+            }
+            var viewing by remember { mutableStateOf(false) }
+            var changeMenu by remember { mutableStateOf(false) }
+            val viewLabel = stringResource(R.string.new_product_view_photo)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Box(
+                        Modifier
+                            .size(76.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
+                            .clickable(onClickLabel = viewLabel) { viewing = true }
+                            .semantics { contentDescription = viewLabel },
+                    ) {
+                        Image(
+                            current?.preview ?: saved!!.preview,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.matchParentSize(),
                         )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(4.dp)
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
+                        ) {
+                            Icon(Icons.Filled.OpenInFull, contentDescription = null, Modifier.size(14.dp))
+                        }
                     }
-                    FlowRow {
-                        if (aiReady && reading == LabelReadState.Reading) {
-                            TextButton(onClick = viewModel::cancelReading) {
-                                Icon(Icons.Filled.Close, contentDescription = null, Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text(stringResource(R.string.action_cancel))
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            stringResource(if (yours) R.string.new_product_your_photo else R.string.new_product_off_photo),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (reading == LabelReadState.Reading) {
+                                CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                                Spacer(Modifier.width(6.dp))
                             }
-                        } else if (aiReady && reading != LabelReadState.Done) {
-                            FilledTonalButton(onClick = viewModel::fillWithAi) {
-                                Icon(Icons.Filled.AutoAwesome, contentDescription = null, Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text(stringResource(if (failed != null) R.string.common_retry else R.string.new_product_fill_with_ai))
-                            }
-                        }
-                        TextButton(onClick = pickers.openCamera) {
-                            Icon(Icons.Filled.Refresh, contentDescription = null, Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text(stringResource(R.string.new_product_retake))
-                        }
-                        if (current != null) {
-                            TextButton(onClick = viewModel::removePhoto) {
-                                Icon(Icons.Filled.Close, contentDescription = null, Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text(stringResource(R.string.new_product_remove_photo))
-                            }
+                            Text(
+                                when {
+                                    reading == LabelReadState.Reading -> stringResource(R.string.new_product_reading)
+                                    reading == LabelReadState.Done -> stringResource(R.string.new_product_read_done)
+                                    failed != null -> stringResource(R.string.new_product_read_failed) +
+                                        (failed.failure?.let { " " + stringResource(it.messageRes()) } ?: "")
+                                    else -> source
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (failed != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                            )
                         }
                     }
                 }
+                FlowRow(verticalArrangement = Arrangement.Center, modifier = Modifier.offset(x = (-12).dp)) {
+                    if (aiReady && reading == LabelReadState.Reading) {
+                        TextButton(onClick = viewModel::cancelReading) {
+                            Icon(Icons.Filled.Close, contentDescription = null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    } else if (aiReady && reading != LabelReadState.Done) {
+                        FilledTonalButton(onClick = viewModel::fillWithAi, modifier = Modifier.padding(start = 12.dp, end = 4.dp)) {
+                            Icon(Icons.Filled.AutoAwesome, contentDescription = null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(stringResource(if (failed != null) R.string.common_retry else R.string.new_product_fill_with_ai))
+                        }
+                    }
+                    Box {
+                        TextButton(onClick = { changeMenu = true }) {
+                            Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(stringResource(R.string.new_product_change_photo))
+                            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, Modifier.size(18.dp))
+                        }
+                        DropdownMenu(expanded = changeMenu, onDismissRequest = { changeMenu = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.photo_camera)) },
+                                leadingIcon = { Icon(Icons.Filled.PhotoCamera, contentDescription = null) },
+                                onClick = {
+                                    changeMenu = false
+                                    pickers.openCamera()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.new_product_choose_from_gallery)) },
+                                leadingIcon = { Icon(Icons.Filled.PhotoLibrary, contentDescription = null) },
+                                onClick = {
+                                    changeMenu = false
+                                    pickers.openGallery()
+                                },
+                            )
+                        }
+                    }
+                    if (current != null) {
+                        TextButton(
+                            onClick = viewModel::removePhoto,
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                        ) {
+                            Icon(Icons.Filled.Close, contentDescription = null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(stringResource(R.string.new_product_remove_photo))
+                        }
+                    }
+                }
+            }
+            if (viewing) {
+                val jpeg = remember(current, saved) { viewModel.photoJpeg() }
+                LabelPhotoViewer(
+                    jpeg = jpeg,
+                    preview = current?.preview ?: saved!!.preview,
+                    source = if (yours) source else stringResource(R.string.new_product_from_off),
+                    onDismiss = { viewing = false },
+                    onCamera = pickers.openCamera,
+                    onGallery = pickers.openGallery,
+                    onRemove = if (current != null) viewModel::removePhoto else null,
+                )
             }
         } else {
             val primary = MaterialTheme.colorScheme.primary
@@ -817,11 +895,20 @@ fun NewProductView(
                     Button(onClick = pickers.openCamera, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Filled.PhotoCamera, contentDescription = null, Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.new_product_add_photo), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(stringResource(R.string.photo_camera), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    TextButton(onClick = { save(withoutPhoto = true) }, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.new_product_save_without_photo), maxLines = 2)
+                    OutlinedButton(onClick = pickers.openGallery, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.photo_gallery), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
+                }
+                TextButton(
+                    onClick = { save(withoutPhoto = true) },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.new_product_save_without_photo))
                 }
             }
         } else {

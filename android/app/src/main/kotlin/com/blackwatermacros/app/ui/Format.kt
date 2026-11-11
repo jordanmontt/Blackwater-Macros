@@ -54,6 +54,10 @@ fun formatDateShort(key: String): String = pattern("dMMM").format(LocalDate.pars
 /** "Jun 15, 2026" / "15 jun 2026". */
 fun formatDateWithYear(key: String): String = pattern("dMMMy").format(LocalDate.parse(key))
 
+/** A moment as "Nov 11, 10:32" / "11 nov, 10:32", in the phone's time zone. */
+fun formatDateTimeShort(epochMillis: Long): String =
+    pattern("dMMMjm").format(Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()))
+
 /** Local wall-clock time of an ISO instant in the language's usual hour cycle: "14:05" / "2:05 PM". */
 fun formatTime(iso: String): String = pattern("jm").format(Instant.parse(iso).atZone(ZoneId.systemDefault()))
 

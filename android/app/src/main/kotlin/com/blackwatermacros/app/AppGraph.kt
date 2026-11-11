@@ -107,6 +107,11 @@ object AppGraph {
         if (ownProducts.store.products.value.any { it.state == OwnProductState.PENDING }) scheduleOwnProducts()
     }
 
+    /** Ajustes → «Check now»: outlives the screen, so leaving it doesn't cut the answer short. */
+    fun checkForUpdatesNow() {
+        backgroundScope.launch { updates.checkNow() }
+    }
+
     private lateinit var scheduleOwnProducts: () -> Unit
 
     fun init(context: Context) {

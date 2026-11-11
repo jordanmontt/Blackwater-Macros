@@ -12,7 +12,8 @@ import org.robolectric.annotation.Config
 /**
  * «A new version is available» (website APK only): GitHub is asked at most once
  * a day, never by an F-Droid build (another key) or with the switch off, and
- * «Not now» hides that version but not the next one.
+ * «Not now» hides that version but not the next one. «Check now» (Ajustes) asks
+ * right away, also with the switch off, and says what it found.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class)
@@ -98,6 +99,63 @@ class UpdateCheckerTest {
         val updates = UpdateChecker(prefs, "1.0.1", true, fetchLatestVersion = { error("offline") }, now = { clock })
         updates.checkIfDue()
         assertThat(updates.available.value).isNull()
+    }
+
+    @Test
+    fun `check now asks right away, even with the daily check off`() = runBlocking {
+        val updates = checker()
+        updates.setEnabled(false)
+        updates.checkNow()
+        assertThat(calls).isEqualTo(1)
+        assertThat(updates.newer.value).isEqualTo("1.1.0")
+        assertThat(updates.check.value).isEqualTo(CheckState.IDLE)
+        assertThat(updates.lastChecked.value).isEqualTo(clock)
+        // The switch stays off, so the Today notice stays quiet.
+        assertThat(updates.available.value).isNull()
+        updates.checkNow()
+        assertThat(calls).isEqualTo(2)
+    }
+
+    @Test
+    fun `check now says when this is the latest version`() = runBlocking {
+        latest = "1.0.1"
+        val updates = checker()
+        updates.checkNow()
+        assertThat(updates.check.value).isEqualTo(CheckState.UP_TO_DATE)
+        assertThat(updates.newer.value).isNull()
+    }
+
+    @Test
+    fun `check now says when it couldn't check, keeping what it knew`() = runBlocking {
+        checker().checkNow()
+        val offline = UpdateChecker(prefs, "1.0.1", true, fetchLatestVersion = { error("offline") }, now = { clock })
+        offline.checkNow()
+        assertThat(offline.check.value).isEqualTo(CheckState.FAILED)
+        assertThat(offline.newer.value).isEqualTo("1.1.0")
+        latest = null
+        val badAnswer = checker()
+        badAnswer.checkNow()
+        assertThat(badAnswer.check.value).isEqualTo(CheckState.FAILED)
+    }
+
+    @Test
+    fun `check now brings back a version hidden with not now, and shows the newest`() = runBlocking {
+        val updates = checker()
+        updates.checkIfDue()
+        updates.dismiss()
+        assertThat(updates.newer.value).isEqualTo("1.1.0")
+        latest = "1.2.0"
+        updates.checkNow()
+        assertThat(updates.newer.value).isEqualTo("1.2.0")
+        assertThat(updates.available.value).isEqualTo("1.2.0")
+    }
+
+    @Test
+    fun `an F-Droid build never checks, not even when asked`() = runBlocking {
+        val updates = checker(ownBuild = false)
+        updates.checkNow()
+        assertThat(calls).isEqualTo(0)
+        assertThat(updates.newer.value).isNull()
     }
 
     @Test

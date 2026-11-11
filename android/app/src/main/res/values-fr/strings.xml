@@ -328,6 +328,11 @@
     <string name="update_download">Télécharger</string>
     <string name="update_check_title">Rechercher des mises à jour</string>
     <string name="update_check_hint">Une fois par jour. Rien sur vous n\'est envoyé.</string>
+    <string name="update_check_now">Rechercher maintenant</string>
+    <string name="update_checking">Recherche en cours…</string>
+    <string name="update_up_to_date">Vous avez la dernière version (%1$s).</string>
+    <string name="update_check_failed">Impossible de vérifier. Vérifiez votre connexion et réessayez.</string>
+    <string name="update_last_checked">Dernière vérification : %1$s.</string>
     <string name="data_import">Importer des données</string>
     <string name="data_import_hint_local">Remplace les données de ce téléphone par celles d\'un fichier.</string>
     <string name="data_import_hint_account">Vos données sont dans votre compte et déjà sauvegardées. L\'import sert à utiliser l\'app sans compte.</string>

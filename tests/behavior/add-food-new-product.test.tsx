@@ -25,6 +25,9 @@ import { formatTemplate, t } from "@/i18n";
  *    el de la app; un producto que Open Food Facts ya tiene conserva su idioma,
  *  - al editar se ve la foto de la tabla que espera en este navegador, y al corregir la
  *    que tiene Open Food Facts,
+ *  - la foto de la tabla (la nueva o la que ya hay) se ve en grande con zoom antes de
+ *    guardar, y se cambia con la cámara o con una foto de la galería (también desde el
+ *    aviso de «sin foto»); la propia se puede quitar, la de Open Food Facts solo cambiar,
  *  - un producto que Open Food Facts tiene con valores que no coinciden con la tabla
  *    se corrige desde la cantidad («Corregir valores»): el formulario parte de sus
  *    valores, muestra lo que tenía junto a cada valor cambiado, no guarda sin cambios
@@ -196,7 +199,9 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     // Without the label photo, Save asks for it once before saving.
     await user.click(screen.getByRole("button", { name: t.newProduct.save }));
     expect(screen.getByText(t.newProduct.noPhoto)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: t.newProduct.addPhoto })).toBeInTheDocument();
+    // The reminder offers the camera and a photo already taken (next to the card's own two).
+    expect(screen.getAllByRole("button", { name: t.photo.camera })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: t.photo.gallery })).toHaveLength(2);
     expect(writes("/cgi/product_jqm2.pl")).toHaveLength(0);
     await user.click(screen.getByRole("button", { name: t.newProduct.saveWithoutPhoto }));
 
@@ -370,7 +375,8 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
 
     // From the gallery too; the photo alone reads nothing (an AI on the device can take a while).
     await user.upload(screen.getByTestId("label-photo-gallery"), new File(["x"], "label.jpg", { type: "image/jpeg" }));
-    expect(await screen.findByText(t.newProduct.labelPhotoHint)).toBeInTheDocument();
+    expect(await screen.findByText(t.newProduct.yourPhoto)).toBeInTheDocument();
+    expect(screen.getByText(t.newProduct.photoSentOnSave)).toBeInTheDocument();
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes("generativelanguage"))).toBe(false);
     expect(screen.getByLabelText(t.newProduct.name)).toHaveValue("");
 
@@ -399,6 +405,41 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     expect(photo.get("imgupload_nutrition_pt")).toBeInstanceOf(Blob);
     // Once Open Food Facts has it, the photo leaves this browser.
     expect(JSON.parse(localStorage.getItem("bw:own-products")!)[0].photo).toBeNull();
+  });
+  it("la foto de la tabla se puede ver en grande, cambiar desde la cámara o la galería, y quitar", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await lookUp(user, UNKNOWN);
+    await user.click(await screen.findByRole("button", { name: t.addFood.addProduct }));
+    await user.upload(screen.getByTestId("label-photo-input"), new File(["x"], "label.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByText(t.newProduct.yourPhoto)).toBeInTheDocument();
+
+    // Before saving, the photo can be checked at full size, and zoomed (labels are small print).
+    await user.click(screen.getByRole("button", { name: t.newProduct.viewPhoto }));
+    const viewer = await screen.findByRole("dialog", { name: t.newProduct.viewerTitle });
+    expect(within(viewer).getByRole("img", { name: t.newProduct.labelPhotoAlt })).toHaveAttribute(
+      "src",
+      "data:image/jpeg;base64,TEFCRUw=",
+    );
+    expect(within(viewer).getByText(t.newProduct.photoSentOnSave)).toBeInTheDocument();
+    await user.click(within(viewer).getByRole("button", { name: t.newProduct.zoomIn }));
+    expect(within(viewer).getByRole("button", { name: t.newProduct.zoomOut })).toHaveAttribute("aria-pressed", "true");
+    await user.click(within(viewer).getByRole("button", { name: t.newProduct.done }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: t.newProduct.viewerTitle })).toBeNull());
+
+    // «Cambiar foto»: the camera or a photo already taken, not only the camera.
+    await user.click(screen.getByRole("button", { name: new RegExp(t.newProduct.changePhoto) }));
+    expect(await screen.findByRole("menuitem", { name: t.photo.camera })).toBeInTheDocument();
+    await user.click(screen.getByRole("menuitem", { name: t.newProduct.chooseFromGallery }));
+    await user.upload(screen.getByTestId("label-photo-gallery"), new File(["y"], "other.jpg", { type: "image/jpeg" }));
+    expect(screen.getByText(t.newProduct.yourPhoto)).toBeInTheDocument();
+
+    // Removed from the viewer, the form asks for one again.
+    await user.click(screen.getByRole("button", { name: t.newProduct.viewPhoto }));
+    const again = await screen.findByRole("dialog", { name: t.newProduct.viewerTitle });
+    await user.click(within(again).getByRole("button", { name: t.newProduct.removePhoto }));
+    expect(await screen.findByText(t.newProduct.photoTitle)).toBeInTheDocument();
+    expect(screen.queryByText(t.newProduct.yourPhoto)).toBeNull();
   });
 });
 
@@ -430,6 +471,7 @@ describe("Añadir comida: corregir los valores de un producto de Open Food Facts
     expect(screen.getByText(t.newProduct.consentCorrection)).toBeInTheDocument();
     // Its label photo, to compare with the package in hand.
     expect(screen.getByTestId("saved-label-photo")).toHaveAttribute("src", expect.stringContaining("nutrition_es.3.400.jpg"));
+    expect(screen.getByText(t.newProduct.offPhoto)).toBeInTheDocument();
     expect(screen.getByText(t.newProduct.photoOnOff)).toBeInTheDocument();
     // The name and brand stay Open Food Facts'; the values start from what it has.
     expect(screen.queryByLabelText(t.newProduct.name)).toBeNull();
@@ -492,6 +534,26 @@ describe("Añadir comida: corregir los valores de un producto de Open Food Facts
     expect(await screen.findByText(t.newProduct.status.sentCorrection)).toBeInTheDocument();
     expect(sentFields().get("nutriment_energy-kcal")).toBe("62");
     expect(writes("/cgi/product_image_upload.pl")).toHaveLength(0);
+  });
+
+  it("la foto que tiene Open Food Facts se ve en grande y se puede cambiar por una de la galería", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await lookUp(user, WRONG_VALUES);
+    await screen.findByLabelText(t.addFood.gramsLabel);
+    await user.click(screen.getByRole("button", { name: t.newProduct.correctLink }));
+    await screen.findByTestId("saved-label-photo");
+
+    await user.click(screen.getByRole("button", { name: t.newProduct.viewPhoto }));
+    const viewer = await screen.findByRole("dialog", { name: t.newProduct.viewerTitle });
+    expect(within(viewer).getByText(t.newProduct.fromOff)).toBeInTheDocument();
+    // Open Food Facts' photo isn't the user's to remove: only to replace.
+    expect(within(viewer).queryByRole("button", { name: t.newProduct.removePhoto })).toBeNull();
+    await user.click(within(viewer).getByRole("button", { name: t.photo.gallery }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: t.newProduct.viewerTitle })).toBeNull());
+    await user.upload(screen.getByTestId("label-photo-gallery"), new File(["y"], "label.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByText(t.newProduct.yourPhoto)).toBeInTheDocument();
+    expect(screen.queryByText(t.newProduct.offPhoto)).toBeNull();
   });
 
   it("sin conexión dice que no se pudo y no abre el formulario", async () => {

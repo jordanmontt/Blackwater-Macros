@@ -56,7 +56,8 @@ src/
     meals/*                 # DayNavigator, MealCard, MealForm (review form), AddFoodSheet («Añadir comida»)
     ui/sheet.tsx            # Bottom sheet on phones (drag down / outside / Esc closes), dialog from sm
     foods/*                 # FoodSearch, PortionPicker, BarcodeScanner (search / barcode in «Añadir comida»),
-                            #   NewProductForm («Añadir este producto» / «Corregir valores» from the label, §8.5)
+                            #   NewProductForm («Añadir este producto» / «Corregir valores» from the label, §8.5),
+                            #   LabelPhotoViewer (the label photo at full size, with zoom)
     own-product-uploads.tsx # Sends the products added from a label when the app opens / comes back online
     nutrition-recommendations.tsx  # Merged calorie + protein recommendations card (Comidas page)
     weight-fat-chart.tsx          # Combined weight (kg) + body fat (%) chart with trend line
@@ -1273,9 +1274,24 @@ rest of the calorie profile.
     (camera or gallery). It goes to Open Food Facts as the nutrition image, so its
     volunteers can check the values; without it they can't. So the form opens with it as
     a highlighted card («Añade una foto de la tabla nutricional · Recomendada», before the
-    name), and Save without any label photo (none taken, none waiting, none on Open Food
-    Facts) asks once, in place of the button: «Sin foto, los voluntarios…» with «Añadir
-    foto» / «Guardar sin foto». Not when editing: the user already answered.
+    name, with «Hacer foto» and «Galería»), and Save without any label photo (none taken,
+    none waiting, none on Open Food Facts) asks once, in place of the button: «Sin foto, los
+    voluntarios…» with «Hacer foto» / «Galería» and «Guardar sin foto» under them. Not when
+    editing: the user already answered.
+  - **Checking the photo:** once there is one, the card says whose it is («Tu foto de la
+    tabla» / «La foto de la tabla de Open Food Facts») and what happens to it («Se envía con
+    los valores al guardar», waiting on the device, or «Comprueba que coincide con el envase.
+    Si no, cámbiala»). The 76 px thumbnail, with an expand badge, opens a full-screen viewer
+    (web `components/foods/label-photo-viewer.tsx` on the dialog, Android
+    `ui/foods/LabelPhotoViewer.kt`): labels are small print, so it zooms (web: the zoom button
+    or a double click, panning by scrolling; Android: pinch, a double tap or the button) and
+    shows the photo itself, not the thumbnail. It is optional: a new photo doesn't open it,
+    since the camera app already asks to confirm the shot. «Cambiar foto» (a menu: «Hacer
+    foto» / «Elegir de la galería»; web `components/ui/dropdown-menu.tsx`, Android
+    `DropdownMenu`) and the viewer's own buttons replace it from the camera or a photo
+    already taken; only the user's own photo can be removed (Open Food Facts' one is only
+    replaced). The words follow the state: no photo → «Hacer foto» / «Galería»; a photo →
+    «Cambiar foto».
   - **Read by AI only when asked:** with AI set up for photos, «Rellenar con la IA» next
     to the photo reads it (`buildLabelReadingSystemPrompt`, `parseLabelReading`: copy the
     numbers as printed, never estimate, null when unreadable; web `lib/ai/label.ts`,
@@ -1371,7 +1387,7 @@ rest of the calorie profile.
     then needs the serving size: `newProductProblems(product, keepPer)`).
   - **Its label photo is shown** («La foto de la tabla que tiene Open Food Facts»), to
     compare with the package in hand: `image_nutrition_url` asked with `lc=<lang>` in the
-    same request; «Repetir» replaces it with a new one.
+    same request; it opens in the viewer and «Cambiar foto» replaces it (camera or gallery).
   - **Then like an added product:** kept on the device with its `correction` (so «Editar»
     shows the same hints and keeps the basis), «Tu corrección · Editar», «Corregido en Open
     Food Facts», sent and retried the same way.
@@ -1746,7 +1762,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», copying a whole message (also one still being written), failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; they open on the welcome page, also from «Ver tutorial» with an account (which neither syncs nor skips ahead); ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
-| `data/update/UpdateCheckerTest.kt` | New version notice: versions compare by number, GitHub asked at most once a day and never by another key's build (F-Droid) or with the switch off, «Not now» hides only that version, errors stay silent |
+| `data/update/UpdateCheckerTest.kt` | New version notice: versions compare by number, GitHub asked at most once a day and never by another key's build (F-Droid) or with the switch off, «Not now» hides only that version, errors stay silent; «Check now» asks right away even with the switch off, says up to date / failed (keeping what it knew), shows the newest version and brings back one hidden with «Not now» |
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period, each logged day's own target in the band and the average |
 | `data/local/MigrationTest.kt` | Updating the app keeps the phone's data: a version 1 database built from `app/schemas/…/1.json` opens with today's code through `MIGRATIONS` (the profile gets an empty history) |
 | `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
@@ -1772,7 +1788,7 @@ Web behavior tests describe user requirements; when one exists on both platforms
 | `progreso-page` | `ProgressLogicTest` |
 | `recommendations-card`, `perfil-page` | `ValidationTest` (`recommend`) |
 | `coach-page`, `add-food-photo`, `ai-settings`, `onboarding` | `CoachTest`, `MealEstimatorTest`, `AiClientTest` + `ModelListStoreTest`, `OnboardingTest` |
-| `add-food-new-product` | `OwnProductsTest`, `NewProductViewModelTest` (the form's layout and focus: not automated, checked on a device) |
+| `add-food-new-product` | `OwnProductsTest`, `NewProductViewModelTest` (the form's layout and focus, the photo viewer and «Cambiar foto» menu: not automated, checked on a device) |
 | `unit/local-models-catalog` | `LocalModelCatalogTest` |
 | other `*-page.test.tsx` (screens) | not automated — Compose UI tests are a known gap; screens are checked on a device |
 
@@ -1873,10 +1889,17 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
   signed with the release certificate (`releaseCertSha256` in `android/gradle.properties` →
   `BuildConfig.RELEASE_CERT_SHA256`, compared with the installed signature), the app reads the
   latest GitHub release at most once a day on open; a newer version shows a card under the
-  date in Comidas (Download opens the website, «Not now» hides that version) and Ajustes shows
-  «Check for updates» (on by default). F-Droid signs with its own key, so its build never asks
-  GitHub and shows neither (NewPipe's way; `UpdateCheckerTest`). To try it with a debug build:
-  `-PreleaseCertSha256=<debug cert>` and write `latest` into the `updates` prefs.
+  date in Comidas (Download opens the website, «Not now» hides that version). Ajustes has one
+  row for it (`UpdateCheckRow`): the switch is the daily check (on by default) and «Check now»
+  asks right away (`checkNow`, with the switch on or off, run in `AppGraph`'s background scope
+  so leaving the screen doesn't cut it). Under the hint the row says «Last checked: …», then
+  «Checking…» in the button, «You have the latest version (x)», «Version x is available» with
+  Download (and «Check now» to refresh: it always shows the newest version known, and the
+  website always serves the newest APK), or «Couldn't check…» with «Retry»; the status is a
+  TalkBack live region. A manual check forgets «Not now», since the user asked. F-Droid signs
+  with its own key, so its build never asks GitHub and shows neither (NewPipe's way;
+  `UpdateCheckerTest`). To try it with a debug build: `-PreleaseCertSha256=<debug cert>`, and a
+  lower `versionName` to see a newer version.
 - **Offline.** A save is on disk before the UI returns; with an account the row is
   flagged `pending` and uploaded by the next sync (app start/resume, 2 s after any
   edit, when the network comes back, or «Sincronizar»).
@@ -2008,6 +2031,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     AddFoodSheet.kt                         # «Añadir comida»: search, barcode, manual, copy, templates (hold: edit/delete)
     foods/AddFoodViewModel.kt, FoodViews.kt # search (generic + Open Food Facts), portion, CameraX + zxing-cpp scanner
     foods/NewProductView.kt                 # «Nuevo producto»: the label typed or read by AI (§8.5)
+    foods/LabelPhotoViewer.kt               # the label photo at full size: pinch / double-tap zoom, change or remove
     OffAccountScreen.kt                     # Ajustes → Open Food Facts (the user's own account)
     MealForm.kt, FormFields.kt              # one meal/template form (MealFormValue, toCopyRequest) +
                                             #   validation, in a GuardedBottomSheet (asks before losing edits)
@@ -2016,7 +2040,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
     chart/*                                     # Canvas charts (text sizes in sp; TrendChart has a per-point target band;
                                                 #   TrendChart.kt also holds what both share: drawDateLabels, drawSelection, LegendDot)
     SettingsScreen/ViewModel, SettingsComponents.kt  # Ajustes: grouped rows (SettingsGroup, SettingsRow)
-    UpdateNotice.kt                         # the new version card (Comidas) and «Check for updates» (Ajustes)
+    UpdateNotice.kt                         # the new version card (Comidas) and the updates row: switch + «Check now» (Ajustes)
     ProfileScreen/ViewModel                 # Perfil: goal, body data, recommendations
     LoginScreen/ViewModel, AdminScreen/ViewModel, MethodologyScreen
     SyncIndicator.kt                        # cloud in the Comidas header (logged in only)
