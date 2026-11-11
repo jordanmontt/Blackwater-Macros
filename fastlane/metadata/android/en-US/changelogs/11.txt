@@ -1,0 +1,2 @@
+• Settings: «Check now» looks for a new version right away (website APK).
+• Adding a product to Open Food Facts: take the label photo or pick one you already took, and open it full screen with zoom to check it before saving.

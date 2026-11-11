@@ -1,0 +1,2 @@
+• Einstellungen: „Jetzt suchen“ sucht sofort nach einer neuen Version (APK von der Website).
+• Beim Hinzufügen eines Produkts zu Open Food Facts: Foto der Tabelle aufnehmen oder ein vorhandenes wählen und es vor dem Speichern groß mit Zoom prüfen.

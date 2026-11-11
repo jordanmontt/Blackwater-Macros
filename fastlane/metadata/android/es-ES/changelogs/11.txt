@@ -1,0 +1,2 @@
+• Ajustes: «Buscar ahora» busca una versión nueva al momento (APK de la web).
+• Al añadir un producto a Open Food Facts: haz la foto de la tabla o elige una que ya tengas, y ábrela en grande con zoom para comprobarla antes de guardar.
