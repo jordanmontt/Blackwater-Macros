@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { TOOLTIP_STYLE } from "@/components/chart-style";
 import { WeightFatChart, type WeightChartSeries, type WeightFatRow } from "@/components/weight-fat-chart";
 import { ChartLegend } from "@/components/chart-legend";
+import { FatShareNotice } from "@/components/fat-share";
 import { WeightFormDialog } from "@/components/weight-form-dialog";
 import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
@@ -32,7 +33,7 @@ import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import { datedWeights, useRecommendations } from "@/lib/use-recommendations";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import { round1 } from "@/lib/core/nutrition";
-import { macroAverages } from "@/lib/core/progress";
+import { checkFatShare, macroAverages } from "@/lib/core/progress";
 import { averageTargets, targetsOn, type TargetRange } from "@/lib/core/profile-history";
 import { movingAverageByDays, rangeToDays } from "@/lib/core/stats";
 import type { StatsRange, StatsSummary, WeightDTO } from "@/lib/core/types";
@@ -441,6 +442,7 @@ function MacrosCard({
     );
   }
 
+  const fatShare = checkFatShare(averages);
   const rows: { label: string; value: string; target: { min: number; max: number } | null }[] = [
     { label: t.hoy.calories, value: `${formatNumber(averages.calories)} kcal`, target: calorieRange },
     { label: t.hoy.protein, value: `${formatNumber(averages.protein)} g`, target: proteinRange },
@@ -492,6 +494,7 @@ function MacrosCard({
           </div>
         ) : null}
         <p className="text-xs text-muted-foreground">{t.progreso.perLoggedDay}</p>
+        {fatShare ? <FatShareNotice check={fatShare} /> : null}
         {measured ? (
           <p className="text-sm">
             {formatTemplate(t.progreso.measured, {

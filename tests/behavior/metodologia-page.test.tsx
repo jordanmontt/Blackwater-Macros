@@ -42,4 +42,15 @@ describe("Metodología", () => {
     expect(section!.textContent).toContain(t.metodologia.pastDaysTitle);
     expect(section!.textContent).toContain(t.metodologia.pastDaysScale);
   });
+
+  it("explica en /metodologia#fat el rango de grasa del 20–35 %, con sus fuentes", () => {
+    const { container } = render(<MetodologiaPage />);
+    const section = container.querySelector("#fat");
+    expect(section).not.toBeNull();
+    expect(section!.textContent).toContain(t.metodologia.fatTitle);
+    expect(section!.textContent).toContain(t.metodologia.fatRange);
+    for (const source of ["Institute of Medicine", "Hall KD, Guo J", "Gardner CD", "Whittaker J", "World Health Organization", "Hooper L"]) {
+      expect(screen.getByText((content) => content.startsWith(source))).toBeInTheDocument();
+    }
+  });
 });

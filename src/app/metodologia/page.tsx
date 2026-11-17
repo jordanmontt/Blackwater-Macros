@@ -1,7 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
-import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DropletIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -100,6 +100,15 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.checkWhyStrict}</p>
         <p>{t.metodologia.checkCauses}</p>
         <p>{t.metodologia.checkShown}</p>
+      </MethodologyCard>
+
+      {/* Linked from the fat line in Progreso (/metodologia#fat). */}
+      <MethodologyCard id="fat" icon={<DropletIcon />} title={t.metodologia.fatTitle}>
+        <p>{t.metodologia.fatBody}</p>
+        <FormulaLines text={t.metodologia.fatFormula} />
+        <p>{t.metodologia.fatRange}</p>
+        <p>{t.metodologia.fatCarbs}</p>
+        <p>{t.metodologia.fatShown}</p>
       </MethodologyCard>
 
       <MethodologyCard icon={<SparklesIcon />} title={t.metodologia.aiTitle}>
@@ -369,6 +378,47 @@ const REFERENCES: { authors: string; title: string; source: string; details: str
     source: "Nat Food",
     details: "2025;6(1):58–71.",
     doi: "10.1038/s43016-024-01089-5",
+  },
+  {
+    authors: "Institute of Medicine",
+    title: "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids",
+    source: "National Academies Press",
+    details: "Washington, DC; 2005.",
+    doi: "10.17226/10490",
+  },
+  {
+    authors: "Hall KD, Guo J",
+    title: "Obesity energetics: body weight regulation and the effects of diet composition",
+    source: "Gastroenterology",
+    details: "2017;152(7):1718–1727.e3.",
+    doi: "10.1053/j.gastro.2017.01.052",
+  },
+  {
+    authors: "Gardner CD, Trepanowski JF, Del Gobbo LC, et al.",
+    title: "Effect of low-fat vs low-carbohydrate diet on 12-month weight loss in overweight adults and the association with genotype pattern or insulin secretion: the DIETFITS randomized clinical trial",
+    source: "JAMA",
+    details: "2018;319(7):667–679.",
+    doi: "10.1001/jama.2018.0245",
+  },
+  {
+    authors: "Whittaker J, Wu K",
+    title: "Low-fat diets and testosterone in men: systematic review and meta-analysis of intervention studies",
+    source: "J Steroid Biochem Mol Biol",
+    details: "2021;210:105878.",
+    doi: "10.1016/j.jsbmb.2021.105878",
+  },
+  {
+    authors: "World Health Organization",
+    title: "Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline",
+    source: "WHO",
+    details: "Geneva; 2023.",
+  },
+  {
+    authors: "Hooper L, Martin N, Jimoh OF, Kirk C, Foster E, Abdelhamid AS",
+    title: "Reduction in saturated fat intake for cardiovascular disease",
+    source: "Cochrane Database Syst Rev",
+    details: "2020;8:CD011737.",
+    doi: "10.1002/14651858.CD011737.pub3",
   },
 ];
 

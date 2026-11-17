@@ -178,6 +178,27 @@ describe("pantalla Progreso", () => {
     // Perfil completo → objetivos de calorías y proteína junto a la media.
     expect(await screen.findAllByText(/^objetivo \S+–\S+$/)).toHaveLength(2);
     expect(screen.getByTestId("calories-chart")).toBeInTheDocument();
+    // Fat at 29 % and only 2 logged days: nothing to say about it.
+    expect(screen.queryByRole("button", { name: t.expenditureCheck.why })).toBeNull();
+  });
+
+  it("con la grasa por debajo del 20 % durante 7 días lo dice, con los números y el método", async () => {
+    weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(1)), weightKg: 80 })];
+    // 135 g protein, 265 g carbs, 35 g fat: 315 of 1915 kcal = 16 %.
+    meals = Array.from({ length: 7 }, (_, i) => meal(daysAgo(i + 1), 1915, 135, 265, 35));
+    const user = userEvent.setup();
+    render(<ProgresoPage />);
+
+    // Testing Library collapses the non-breaking space before «%» in the page, so the expected text does too.
+    const text = (value: string) => value.replace(/\s+/g, " ");
+    expect(await screen.findByText(text(formatTemplateText(t.progreso.fatLow, { share: 16 })))).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.expenditureCheck.why }));
+    const dialog = await screen.findByRole("dialog");
+    expect(
+      within(dialog).getByText(text(formatTemplateText(t.progreso.fatNumbers, { fat: 35, fatKcal: 315, macroKcal: formatNumber(1915), share: 16 }))),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText(text(t.progreso.fatLowWhy))).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: t.progreso.fatHowItWorks })).toHaveAttribute("href", "/metodologia#fat");
   });
 
   it("compara la media con los objetivos que tuvo cada día", async () => {

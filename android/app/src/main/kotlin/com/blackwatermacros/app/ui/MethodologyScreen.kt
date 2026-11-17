@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.layout.Spacer
@@ -57,9 +58,12 @@ const val PAST_DAYS_SECTION = "past-days"
 /** The section «Your target adjusts to your data», opened from the line saying what the target uses. */
 const val ADAPTIVE_SECTION = "adaptive"
 
+/** The section «Fat: between 20 and 35 % of calories», opened from the fat line in Progreso. */
+const val FAT_SECTION = "fat"
+
 /**
- * [section] opens the page on that section: [CHECK_SECTION], [PAST_DAYS_SECTION] or
- * [ADAPTIVE_SECTION] (web `/metodologia#check`, `#past-days`, `#adaptive`).
+ * [section] opens the page on that section: [CHECK_SECTION], [PAST_DAYS_SECTION],
+ * [ADAPTIVE_SECTION] or [FAT_SECTION] (web `/metodologia#check`, `#past-days`, `#adaptive`, `#fat`).
  */
 @Composable
 fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
@@ -192,6 +196,20 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     sectionTops[CHECK_SECTION] = it.positionInParent().y.toInt()
                 },
             )
+            MethodCard(
+                Icons.Filled.WaterDrop,
+                R.string.meth_fat_title,
+                R.string.meth_fat_body,
+                formula = stringResource(R.string.meth_fat_formula).split("\n"),
+                afterTexts = listOf(
+                    stringResource(R.string.meth_fat_range),
+                    stringResource(R.string.meth_fat_carbs),
+                    stringResource(R.string.meth_fat_shown),
+                ),
+                modifier = Modifier.onGloballyPositioned {
+                    sectionTops[FAT_SECTION] = it.positionInParent().y.toInt()
+                },
+            )
             MethodCard(Icons.Filled.AutoAwesome, R.string.meth_ai_title, R.string.meth_ai_body)
             MethodCard(Icons.Filled.Storage, R.string.meth_sources_title, R.string.meth_sources_body)
             ReferencesCard()
@@ -315,6 +333,12 @@ private fun ReferencesCard() {
                 "Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. Int J Obes. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184",
                 "Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. Am J Clin Nutr. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S",
                 "Bajunaid R, Niu C, Hambly C, et al. Predictive equation derived from 6,497 doubly labelled water measurements enables the detection of erroneous self-reported energy intake. Nat Food. 2025;6(1):58–71. doi:10.1038/s43016-024-01089-5",
+                "Institute of Medicine. Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. National Academies Press. Washington, DC; 2005. doi:10.17226/10490",
+                "Hall KD, Guo J. Obesity energetics: body weight regulation and the effects of diet composition. Gastroenterology. 2017;152(7):1718–1727.e3. doi:10.1053/j.gastro.2017.01.052",
+                "Gardner CD, Trepanowski JF, Del Gobbo LC, et al. Effect of low-fat vs low-carbohydrate diet on 12-month weight loss in overweight adults and the association with genotype pattern or insulin secretion: the DIETFITS randomized clinical trial. JAMA. 2018;319(7):667–679. doi:10.1001/jama.2018.0245",
+                "Whittaker J, Wu K. Low-fat diets and testosterone in men: systematic review and meta-analysis of intervention studies. J Steroid Biochem Mol Biol. 2021;210:105878. doi:10.1016/j.jsbmb.2021.105878",
+                "World Health Organization. Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline. WHO. Geneva; 2023.",
+                "Hooper L, Martin N, Jimoh OF, Kirk C, Foster E, Abdelhamid AS. Reduction in saturated fat intake for cardiovascular disease. Cochrane Database Syst Rev. 2020;8:CD011737. doi:10.1002/14651858.CD011737.pub3",
             )
             Column {
                 refs.forEachIndexed { i, ref ->

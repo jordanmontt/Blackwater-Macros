@@ -57,6 +57,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.DataPoint
 import com.blackwatermacros.app.core.MacroAverages
+import com.blackwatermacros.app.core.checkFatShare
 import com.blackwatermacros.app.data.WeightDTO
 import com.blackwatermacros.app.ui.chart.TrendChart
 import com.blackwatermacros.app.ui.chart.WeightChartSeries
@@ -76,7 +77,7 @@ import androidx.compose.runtime.setValue
 @Composable
 fun ProgressScreen(
     modifier: Modifier = Modifier,
-    onOpenMetodologia: () -> Unit = {},
+    onOpenMethodology: (section: String?) -> Unit = {},
     viewModel: ProgressViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -104,7 +105,7 @@ fun ProgressScreen(
                 title = stringResource(R.string.tab_progress),
                 leading = { AccountSwitcherButton() },
                 trailing = {
-                    IconButton(onClick = onOpenMetodologia) {
+                    IconButton(onClick = { onOpenMethodology(null) }) {
                         Icon(
                             Icons.Filled.Info,
                             contentDescription = stringResource(R.string.methodology),
@@ -136,6 +137,7 @@ fun ProgressScreen(
                     onAdd = { openForm(null) },
                     onEdit = { openForm(it) },
                     onDelete = { deletingWeight = it },
+                    onOpenMethodology = onOpenMethodology,
                 )
             }
         }
@@ -192,6 +194,7 @@ private fun ProgressContent(
     onAdd: () -> Unit,
     onEdit: (WeightDTO) -> Unit,
     onDelete: (WeightDTO) -> Unit,
+    onOpenMethodology: (String?) -> Unit,
 ) {
     Column(
         Modifier
@@ -210,7 +213,7 @@ private fun ProgressContent(
         if (averages == null) {
             DashedMessage(stringResource(R.string.progress_no_meals))
         } else {
-            MacrosCard(progress, averages)
+            MacrosCard(progress, averages, onOpenMethodology)
         }
         if (progress.hasAnyWeight) {
             WeighInList(progress.groupedWeights, onEdit, onDelete)
@@ -348,7 +351,7 @@ private fun CaloriesCard(progress: Progress) {
 }
 
 @Composable
-private fun MacrosCard(progress: Progress, averages: MacroAverages) {
+private fun MacrosCard(progress: Progress, averages: MacroAverages, onOpenMethodology: (String?) -> Unit) {
     AppCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
             CardTitle(
@@ -410,6 +413,10 @@ private fun MacrosCard(progress: Progress, averages: MacroAverages) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            checkFatShare(averages)?.let {
+                Spacer(Modifier.height(10.dp))
+                FatShareNotice(it, onOpenMethodology)
+            }
             progress.expenditure?.let {
                 Spacer(Modifier.height(6.dp))
                 Text(

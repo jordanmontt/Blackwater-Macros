@@ -273,7 +273,7 @@ private fun AppNavHost(
         }
         composable(AppTab.PROGRESO.route) {
             ProgressScreen(
-                onOpenMetodologia = { navController.navigate("metodologia") },
+                onOpenMethodology = { section -> navController.navigate("metodologia?section=${section.orEmpty()}") },
                 modifier = Modifier.padding(innerPadding),
             )
         }

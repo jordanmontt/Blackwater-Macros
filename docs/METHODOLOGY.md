@@ -52,6 +52,7 @@ need individual guidance.
 | Weekly rate | Least-squares slope × 7 | Montgomery 2021 |
 | Coach projection | Trend line extended 30 days with its 95 % confidence band | Montgomery 2021 |
 | Macro energy split | 4 / 4 / 9 kcal per g | Atwater general factors |
+| Fat share | Period's average outside 20–35 % of calories, ≥ 7 logged days: one line in Progreso, no target | IOM 2005; WHO 2023; Hooper 2020; Whittaker & Wu 2021; Hall & Guo 2017; Gardner 2018 |
 
 ---
 
@@ -581,6 +582,37 @@ so the measured value comes out somewhat low (§2.4): the target errs on the low
   protein, 4 carbs, 9 fat. Alcohol and fibre are not separated, so the split is
   approximate.
 
+### 4.1 Fat as a share of calories (`checkFatShare`)
+
+The app recommends only calories and protein; carbs and fat share the rest. That is a
+deliberate choice: for **weight**, the split matters little. In controlled feeding
+studies, diets with the same calories and different carb/fat ratios change body fat by
+amounts too small to matter (Hall & Guo 2017), and in DIETFITS 609 adults lost about the
+same over 12 months on a healthy low-fat or a healthy low-carb diet (Gardner et al. 2018).
+
+For **health** there are limits, and fat's are the useful ones:
+
+| Limit | Why | Source |
+|---|---|---|
+| Fat ≥ 20 % of calories | Below it, essential fatty acids (omega-3, omega-6) and the fat-soluble vitamins A, D, E and K are hard to cover; in men, low-fat diets lower testosterone | Institute of Medicine 2005 (AMDR 20–35 %); Whittaker & Wu 2021 |
+| Fat ≤ 35 % of calories | Above it, saturated fat tends to be high; WHO advises < 10 % of calories, and replacing it with unsaturated fat lowers cardiovascular events | Institute of Medicine 2005; WHO 2023; Hooper et al. 2020 |
+
+Carbs get no line of their own: with calories and protein fixed, they are the remainder,
+so they move opposite to fat. The app records totals only, not saturated fat, sugar or
+fibre, so the high case cannot tell good fat from bad and says what to favour instead
+of warning.
+
+**Rule.** Over the Progreso period, with **≥ 7 logged days** (a single heavy or light day
+says nothing), the share `fat g × 9 ÷ (protein × 4 + carbs × 4 + fat × 9)` is compared
+with 20–35 %. It uses the rounded share the card shows, so «20 %» is never called low.
+Outside the band, one line under the split («¿Por qué?» → the user's numbers, the band on
+a 0–100 % bar, the reasons and what to change → Metodología `#fat`). Information only:
+no target changes, nothing to dismiss, and it goes away when the average is back inside.
+
+**Worked example.** 7 days averaging 135 g protein, 265 g carbs and 35 g fat:
+540 + 1060 + 315 = 1915 kcal from macros; 315 ÷ 1915 = 16 % → «low». A tablespoon of olive
+oil a day instead of a portion of bread (~+14 g fat, −25 g carbs) brings it to about 23 %.
+
 ## 5. Coach weight projection (`coach.ts`)
 
 - **Fit:** a least-squares line through the daily-mean weights of the last 28 days,
@@ -661,6 +693,15 @@ margin(x) = 1.96 × σ × √(1/n + (x − x̄)² / Sxx)        (σ floored at 0
   - *Kept:* the check's thresholds (±10 %, whole 95 % range, two weeks), now only for the
     profile.
 
+- **2026-11-17, no cut-off on the measured margin (§3, §3.2); fat share (§4.1).**
+  - *Changed:* the measured expenditure no longer needs a margin of ±300 or less; a wide
+    margin only counts less. Progreso says when fat is outside 20–35 % of calories.
+  - *Why:* a user's target fell ~480 kcal overnight when her margin crossed ±300 (§3.2).
+    The fat line answers «do carbs and fat matter?» without adding a target. Sources:
+    IOM 2005, WHO 2023, Hooper 2020, Whittaker & Wu 2021, Hall & Guo 2017, Gardner 2018,
+    checked against Crossref.
+  - *Kept:* calories and protein as the only targets; z for the margin.
+
 ## 9. References
 
 1. Antonio J, Ellerbroek A, Silver T, et al. A high protein diet (3.4 g/kg/d) combined with a heavy resistance training program improves body composition in healthy trained men and women – a follow-up investigation. *J Int Soc Sports Nutr*. 2015;12:39. doi:10.1186/s12970-015-0100-0
@@ -672,24 +713,30 @@ margin(x) = 1.96 × σ × √(1/n + (x − x̄)² / Sxx)        (σ floored at 0
 7. FAO/WHO/UNU. Human energy requirements: report of a joint FAO/WHO/UNU expert consultation. *FAO Food and Nutrition Technical Report Series 1*. Rome: FAO; 2004.
 8. Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. *J Am Diet Assoc*. 2005;105(5):775–789. doi:10.1016/j.jada.2005.02.005
 9. Gallagher D, Heymsfield SB, Heo M, Jebb SA, Murgatroyd PR, Sakamoto Y. Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. *Am J Clin Nutr*. 2000;72(3):694–701. doi:10.1093/ajcn/72.3.694
-10. Garthe I, Raastad T, Refsnes PE, Koivisto A, Sundgot-Borgen J. Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes. *Int J Sport Nutr Exerc Metab*. 2011;21(2):97–104. doi:10.1123/ijsnem.21.2.97
-11. Hall KD. What is the required energy deficit per unit weight loss? *Int J Obes*. 2008;32(3):573–576. doi:10.1038/sj.ijo.0803720
-12. Helms ER, Aragon AA, Fitschen PJ. Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation. *J Int Soc Sports Nutr*. 2014;11:20. doi:10.1186/1550-2783-11-20
-13. Helms ER, Zinn C, Rowlands DS, Brown SR. A systematic review of dietary protein during caloric restriction in resistance trained lean athletes: a case for higher intakes. *Int J Sport Nutr Exerc Metab*. 2014;24(2):127–138. doi:10.1123/ijsnem.2013-0054
-14. Herrmann SD, Willis EA, Ainsworth BE, et al. 2024 Adult Compendium of Physical Activities: a third update of the energy costs of human activities. *J Sport Health Sci*. 2024;13(1):6–12. doi:10.1016/j.jshs.2023.10.010
-15. Iraki J, Fitschen P, Espinar S, Helms E. Nutrition recommendations for bodybuilders in the off-season: a narrative review. *Sports*. 2019;7(7):154. doi:10.3390/sports7070154
-16. Jäger R, Kerksick CM, Campbell BI, et al. International Society of Sports Nutrition Position Stand: protein and exercise. *J Int Soc Sports Nutr*. 2017;14:20. doi:10.1186/s12970-017-0177-8
-17. Kokura Y, Ueshima J, Saino Y, Maeda K. Enhanced protein intake on maintaining muscle mass, strength, and physical function in adults with overweight/obesity: a systematic review and meta-analysis. *Clin Nutr ESPEN*. 2024;63:417–426. doi:10.1016/j.clnesp.2024.06.030
-18. Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. *Am J Clin Nutr*. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S
-19. Lichtman SW, Pisarska K, Berman ER, et al. Discrepancy between self-reported and actual caloric intake and exercise in obese subjects. *N Engl J Med*. 1992;327(27):1893–1898. doi:10.1056/NEJM199212313272701
-20. McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). *JPEN J Parenter Enteral Nutr*. 2016;40(2):159–211. doi:10.1177/0148607115621863
-21. Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. *Am J Clin Nutr*. 1990;51(2):241–247. doi:10.1093/ajcn/51.2.241
-22. Montgomery DC, Peck EA, Vining GG. *Introduction to Linear Regression Analysis*. 6th ed. Wiley; 2021.
-23. Morton RW, Murphy KT, McKellar SR, et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults. *Br J Sports Med*. 2018;52(6):376–384. doi:10.1136/bjsports-2017-097608
-24. Murphy C, Koehler K. Energy deficiency impairs resistance training gains in lean mass but not strength: a meta-analysis and meta-regression. *Scand J Med Sci Sports*. 2022;32(1):125–137. doi:10.1111/sms.14075
-25. Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. *J Cachexia Sarcopenia Muscle*. 2022;13(2):795–810. doi:10.1002/jcsm.12922
-26. Prince SA, Adamo KB, Hamel ME, Hardt J, Connor Gorber S, Tremblay M. A comparison of direct versus self-report measures for assessing physical activity in adults: a systematic review. *Int J Behav Nutr Phys Act*. 2008;5:56. doi:10.1186/1479-5868-5-56
-27. Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. *Int J Obes*. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184
-28. Schoeller DA. Limitations in the assessment of dietary energy intake by self-report. *Metabolism*. 1995;44(2 Suppl 2):18–22. doi:10.1016/0026-0495(95)90204-X
-29. Walker J. *The Hacker's Diet: how to lose weight and hair through stress and poor nutrition*. fourmilab.ch; 2005.
-30. Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE. Self-weighing in weight management: a systematic literature review. *Obesity*. 2015;23(2):256–265. doi:10.1002/oby.20946
+10. Gardner CD, Trepanowski JF, Del Gobbo LC, et al. Effect of low-fat vs low-carbohydrate diet on 12-month weight loss in overweight adults and the association with genotype pattern or insulin secretion: the DIETFITS randomized clinical trial. *JAMA*. 2018;319(7):667–679. doi:10.1001/jama.2018.0245
+11. Garthe I, Raastad T, Refsnes PE, Koivisto A, Sundgot-Borgen J. Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes. *Int J Sport Nutr Exerc Metab*. 2011;21(2):97–104. doi:10.1123/ijsnem.21.2.97
+12. Hall KD, Guo J. Obesity energetics: body weight regulation and the effects of diet composition. *Gastroenterology*. 2017;152(7):1718–1727.e3. doi:10.1053/j.gastro.2017.01.052
+13. Hall KD. What is the required energy deficit per unit weight loss? *Int J Obes*. 2008;32(3):573–576. doi:10.1038/sj.ijo.0803720
+14. Helms ER, Aragon AA, Fitschen PJ. Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation. *J Int Soc Sports Nutr*. 2014;11:20. doi:10.1186/1550-2783-11-20
+15. Helms ER, Zinn C, Rowlands DS, Brown SR. A systematic review of dietary protein during caloric restriction in resistance trained lean athletes: a case for higher intakes. *Int J Sport Nutr Exerc Metab*. 2014;24(2):127–138. doi:10.1123/ijsnem.2013-0054
+16. Herrmann SD, Willis EA, Ainsworth BE, et al. 2024 Adult Compendium of Physical Activities: a third update of the energy costs of human activities. *J Sport Health Sci*. 2024;13(1):6–12. doi:10.1016/j.jshs.2023.10.010
+17. Hooper L, Martin N, Jimoh OF, Kirk C, Foster E, Abdelhamid AS. Reduction in saturated fat intake for cardiovascular disease. *Cochrane Database Syst Rev*. 2020;8:CD011737. doi:10.1002/14651858.CD011737.pub3
+18. Institute of Medicine. *Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids*. Washington, DC: National Academies Press; 2005. doi:10.17226/10490
+19. Iraki J, Fitschen P, Espinar S, Helms E. Nutrition recommendations for bodybuilders in the off-season: a narrative review. *Sports*. 2019;7(7):154. doi:10.3390/sports7070154
+20. Jäger R, Kerksick CM, Campbell BI, et al. International Society of Sports Nutrition Position Stand: protein and exercise. *J Int Soc Sports Nutr*. 2017;14:20. doi:10.1186/s12970-017-0177-8
+21. Kokura Y, Ueshima J, Saino Y, Maeda K. Enhanced protein intake on maintaining muscle mass, strength, and physical function in adults with overweight/obesity: a systematic review and meta-analysis. *Clin Nutr ESPEN*. 2024;63:417–426. doi:10.1016/j.clnesp.2024.06.030
+22. Kreitzman SN, Coxon AY, Szaz KF. Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition. *Am J Clin Nutr*. 1992;56(1 Suppl):292S–293S. doi:10.1093/ajcn/56.1.292S
+23. Lichtman SW, Pisarska K, Berman ER, et al. Discrepancy between self-reported and actual caloric intake and exercise in obese subjects. *N Engl J Med*. 1992;327(27):1893–1898. doi:10.1056/NEJM199212313272701
+24. McClave SA, Taylor BE, Martindale RG, et al. Guidelines for the provision and assessment of nutrition support therapy in the adult critically ill patient (SCCM and A.S.P.E.N.). *JPEN J Parenter Enteral Nutr*. 2016;40(2):159–211. doi:10.1177/0148607115621863
+25. Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. *Am J Clin Nutr*. 1990;51(2):241–247. doi:10.1093/ajcn/51.2.241
+26. Montgomery DC, Peck EA, Vining GG. *Introduction to Linear Regression Analysis*. 6th ed. Wiley; 2021.
+27. Morton RW, Murphy KT, McKellar SR, et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults. *Br J Sports Med*. 2018;52(6):376–384. doi:10.1136/bjsports-2017-097608
+28. Murphy C, Koehler K. Energy deficiency impairs resistance training gains in lean mass but not strength: a meta-analysis and meta-regression. *Scand J Med Sci Sports*. 2022;32(1):125–137. doi:10.1111/sms.14075
+29. Nunes EA, Colenso-Semple L, McKellar SR, et al. Systematic review and meta-analysis of protein intake to support muscle mass and function in healthy adults. *J Cachexia Sarcopenia Muscle*. 2022;13(2):795–810. doi:10.1002/jcsm.12922
+30. Prince SA, Adamo KB, Hamel ME, Hardt J, Connor Gorber S, Tremblay M. A comparison of direct versus self-report measures for assessing physical activity in adults: a systematic review. *Int J Behav Nutr Phys Act*. 2008;5:56. doi:10.1186/1479-5868-5-56
+31. Rosenbaum M, Leibel RL. Adaptive thermogenesis in humans. *Int J Obes*. 2010;34(Suppl 1):S47–S55. doi:10.1038/ijo.2010.184
+32. Schoeller DA. Limitations in the assessment of dietary energy intake by self-report. *Metabolism*. 1995;44(2 Suppl 2):18–22. doi:10.1016/0026-0495(95)90204-X
+33. Walker J. *The Hacker's Diet: how to lose weight and hair through stress and poor nutrition*. fourmilab.ch; 2005.
+34. Whittaker J, Wu K. Low-fat diets and testosterone in men: systematic review and meta-analysis of intervention studies. *J Steroid Biochem Mol Biol*. 2021;210:105878. doi:10.1016/j.jsbmb.2021.105878
+35. World Health Organization. *Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline*. Geneva: WHO; 2023.
+36. Zheng Y, Klem ML, Sereika SM, Danford CA, Ewing LJ, Burke LE. Self-weighing in weight management: a systematic literature review. *Obesity*. 2015;23(2):256–265. doi:10.1002/oby.20946
