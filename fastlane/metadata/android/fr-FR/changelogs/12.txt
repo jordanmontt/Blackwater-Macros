@@ -1,0 +1,5 @@
+• Aujourd'hui : un résumé avec ce que vous avez mangé en grand, et « Pourquoi ces chiffres ? » pour le calcul de vos objectifs.
+• Progrès : la tendance du poids en évidence, la masse grasse à part et des graphiques de calories plus clairs.
+• Les modèles d'abord en ajoutant un repas, avec « Gérer » pour les modifier.
+• Le coach montre ce qu'il fait avant de configurer l'IA.
+• Couleurs plus lisibles et boutons plus grands.

@@ -1,0 +1,5 @@
+• Hoy: un resumen con lo que comiste como número grande, y «¿Por qué estos números?» con cómo se calculan tus objetivos.
+• Progreso: la tendencia del peso destacada, la grasa en su propia vista y gráficos de calorías más claros.
+• Las plantillas salen primero al añadir comida, con «Gestionar» para editarlas.
+• El coach muestra lo que hace antes de configurar la IA.
+• Colores más legibles y botones más grandes.
