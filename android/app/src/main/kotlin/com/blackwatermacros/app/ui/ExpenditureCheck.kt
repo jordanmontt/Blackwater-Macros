@@ -460,8 +460,8 @@ private fun RangeComparison(check: ExpenditureCheck.Measured, low: Double, high:
     fun frac(v: Double) = ((v - (from - pad)) / (to - from + 2 * pad)).toFloat().coerceIn(0f, 1f)
     val normalLegend = stringResource(R.string.check_normal_legend)
     val measuredLegend = stringResource(R.string.check_measured_legend)
-    val normalText = "$normalLegend: ${formatNumber(check.normalMin)}–${formatNumber(check.normalMax)} $kcalDay"
-    val measuredText = "$measuredLegend: ${formatNumber(low)}–${formatNumber(high)} $kcalDay"
+    val normalText = stringResource(R.string.label_value, normalLegend, "${formatNumber(check.normalMin)}–${formatNumber(check.normalMax)} $kcalDay")
+    val measuredText = stringResource(R.string.label_value, measuredLegend, "${formatNumber(low)}–${formatNumber(high)} $kcalDay")
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         BoxWithConstraints(
             Modifier

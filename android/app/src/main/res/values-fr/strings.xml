@@ -50,7 +50,6 @@
     <string name="day_totals">Totaux du jour</string>
     <string name="macro_protein">Protéines</string>
     <string name="range_all">Tout</string>
-    <string name="chart_value">Valeur</string>
     <string name="chart_average">Moyenne</string>
     <string name="chart_fat_axis">Graisse (%)</string>
     <string name="weight_add">Enregistrer le poids</string>
@@ -214,7 +213,7 @@
     <string name="ai_base_url_hint">L\'adresse https compatible OpenAI, terminée par /v1.</string>
     <string name="ai_local_hint">Le téléphone ne se connecte qu\'à des serveurs sécurisés (https) : un ordinateur à la maison avec une adresse http n\'est pas accessible d\'ici.</string>
     <string name="ai_test_ok">Ça marche. Vous pouvez utiliser les photos et le coach.</string>
-    <string name="ai_free_key_steps">1. Ouvrez aistudio.google.com/api-keys et connectez-vous avec votre compte Google.\n2. Appuyez sur «Create API key».\n3. Copiez-la et collez-la ici.</string>
+    <string name="ai_free_key_steps">1. Ouvrez aistudio.google.com/api-keys et connectez-vous avec votre compte Google.\n2. Appuyez sur « Create API key ».\n3. Copiez-la et collez-la ici.</string>
     <string name="ai_free_key_privacy">Avec la clé gratuite, Google peut utiliser vos photos et questions pour améliorer ses produits, sauf dans l\'EEE, en Suisse et au Royaume-Uni.</string>
     <string name="ai_coach_sees_data_hint">Chaque question envoie un résumé : profil, repas des 14 derniers jours et poids.</string>
     <string name="ai_error_not_configured">Configurez l\'IA dans Réglages.</string>
@@ -266,7 +265,7 @@
     <string name="onboarding_not_now">Plus tard</string>
     <string name="onboarding_done_title">C\'est prêt !</string>
     <string name="onboarding_done_body">Ajoutez votre premier repas avec le bouton +. Notez votre poids tous les quelques jours pour voir vos progrès.</string>
-    <string name="onboarding_done_ai">L\'IA est prête : essayez «Photo ou texte» en ajoutant un repas, et le coach.</string>
+    <string name="onboarding_done_ai">L\'IA est prête : essayez « Photo ou texte » en ajoutant un repas, et le coach.</string>
     <string name="donate">Offrez-moi un yaourt</string>
     <string name="donate_hint">L\'application est gratuite et sans publicité. Si elle vous aide, vous pouvez la soutenir sur Ko-fi.</string>
     <string name="onboarding_replay">Voir le tutoriel</string>
@@ -304,7 +303,7 @@
         <item quantity="other">%d modèles</item>
     </plurals>
     <string name="meth_ai_title">Estimations par l\'IA</string>
-    <string name="meth_ai_body" formatted="false">Les photos et le texte («3 bananes») deviennent des aliments, des grammes et des macros grâce à un modèle de langage : le fournisseur choisi dans Réglages → IA, ou le modèle de votre téléphone. C\'est une estimation : le modèle ne pèse pas le repas, il le juge d\'après la photo, les repères de taille (assiette, couverts, votre main), l\'étiquette nutritionnelle si vous la photographiez et ce que vous décrivez.\n\nL\'app demande une réponse dans un format fixe, vérifie qu\'elle contient des aliments et des macros valides et ouvre toujours le formulaire de vérification avant d\'enregistrer : rien de ce que dit l\'IA n\'est enregistré sans votre confirmation. Les modèles sur l\'appareil sont plus petits que ceux du cloud et se trompent davantage.\n\nLe coach utilise les chiffres calculés par l\'app (vos objectifs, la dépense mesurée et la projection de poids) au lieu de calculer les siens. La projection à 30 jours prolonge la droite de tendance des 4 dernières semaines avec sa marge de 95 % ; elle ne tient pas compte des changements futurs de votre alimentation. Ce n\'est pas un avis médical.</string>
+    <string name="meth_ai_body" formatted="false">Les photos et le texte (« 3 bananes ») deviennent des aliments, des grammes et des macros grâce à un modèle de langage : le fournisseur choisi dans Réglages → IA, ou le modèle de votre téléphone. C\'est une estimation : le modèle ne pèse pas le repas, il le juge d\'après la photo, les repères de taille (assiette, couverts, votre main), l\'étiquette nutritionnelle si vous la photographiez et ce que vous décrivez.\n\nL\'app demande une réponse dans un format fixe, vérifie qu\'elle contient des aliments et des macros valides et ouvre toujours le formulaire de vérification avant d\'enregistrer : rien de ce que dit l\'IA n\'est enregistré sans votre confirmation. Les modèles sur l\'appareil sont plus petits que ceux du cloud et se trompent davantage.\n\nLe coach utilise les chiffres calculés par l\'app (vos objectifs, la dépense mesurée et la projection de poids) au lieu de calculer les siens. La projection à 30 jours prolonge la droite de tendance des 4 dernières semaines avec sa marge de 95 % ; elle ne tient pas compte des changements futurs de votre alimentation. Ce n\'est pas un avis médical.</string>
     <string name="meth_sources_body">Aliments génériques (hors ligne) : Swiss Food Composition Database de l\'Office fédéral de la sécurité alimentaire et des affaires vétérinaires (OSAV, Suisse) et table Ciqual 2020 de l\'Anses (France, Licence Ouverte / Etalab 2.0). Les noms en espagnol sont ajoutés par ce projet.\n\nProduits et codes-barres : Open Food Facts, base de données ouverte sous Open Database License (ODbL). Les données de chaque produit viennent de ses contributeurs et peuvent contenir des erreurs. Les valeurs sont pour 100 g de l\'aliment tel que décrit par la source.</string>
     <string name="ai_error_unavailable">Le service d\'IA est saturé ou indisponible pour le moment. Réessayez dans un instant.</string>
     <string name="ai_error_local">Le modèle du téléphone n\'a pas pu répondre. Réessayez ou utilisez le cloud dans Réglages → IA.</string>
@@ -321,7 +320,7 @@
         <item quantity="other">%d modèles disponibles avec votre clé.</item>
         <item quantity="many">%d modèles disponibles avec votre clé.</item>
     </plurals>
-    <!-- «A new version is available» (website APK only, data/update/UpdateChecker.kt) -->
+    <!-- « A new version is available » (website APK only, data/update/UpdateChecker.kt) -->
     <string name="update_available">La version %1$s est disponible.</string>
     <string name="update_download">Télécharger</string>
     <string name="update_check_title">Rechercher des mises à jour</string>

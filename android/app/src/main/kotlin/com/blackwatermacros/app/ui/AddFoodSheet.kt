@@ -1,5 +1,11 @@
 package com.blackwatermacros.app.ui
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.DropdownMenu
@@ -147,6 +153,8 @@ fun AddFoodSheet(
     newProduct: NewProductViewModel = viewModel(),
 ) {
     var view by rememberSaveable { mutableStateOf(AddFoodView.MENU) }
+    // «Gestionar»: the templates show their edit and delete buttons instead of adding a meal.
+    var managing by rememberSaveable { mutableStateOf(false) }
     var back by rememberSaveable { mutableStateOf(AddFoodView.MENU) }
     var choice by remember { mutableStateOf<FoodChoice?>(null) }
     var draft by remember { mutableStateOf<ProductDraft?>(null) }
@@ -259,23 +267,20 @@ fun AddFoodSheet(
                         view = AddFoodView.BARCODE
                     }
                 }
-                if (!pickOnly) {
-                Spacer(Modifier.height(8.dp))
-                SourceRow(Icons.Filled.EditNote, stringResource(R.string.add_food_manual), stringResource(R.string.add_food_manual_hint)) {
-                    onDismiss()
-                    onManual()
-                }
-                Spacer(Modifier.height(8.dp))
-                SourceRow(Icons.Filled.ContentCopy, stringResource(R.string.add_food_copy), stringResource(R.string.add_food_copy_hint)) {
-                    view = AddFoodView.COPY
-                }
-                if (templates.isNotEmpty()) {
-                    Spacer(Modifier.height(16.dp))
-                    Text(
-                        stringResource(R.string.add_food_templates),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                // Right under the three sources: repeating a meal is the fastest way to log (web: the same).
+                if (!pickOnly && templates.isNotEmpty()) {
+                    Spacer(Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(R.string.add_food_templates),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = { managing = !managing }) {
+                            Text(stringResource(if (managing) R.string.add_food_done_managing else R.string.add_food_manage_templates))
+                        }
+                    }
                     Text(
                         stringResource(R.string.add_food_templates_hint),
                         style = MaterialTheme.typography.bodySmall,
@@ -286,6 +291,7 @@ fun AddFoodSheet(
                         templates.forEach { template ->
                             TemplateChip(
                                 name = template.name,
+                                managing = managing,
                                 onApply = {
                                     onDismiss()
                                     onAdd(listOf(template.toFormValue()), templateAppliedMessage.format(template.name))
@@ -301,6 +307,16 @@ fun AddFoodSheet(
                             )
                         }
                     }
+                }
+                if (!pickOnly) {
+                Spacer(Modifier.height(8.dp))
+                SourceRow(Icons.Filled.EditNote, stringResource(R.string.add_food_manual), stringResource(R.string.add_food_manual_hint)) {
+                    onDismiss()
+                    onManual()
+                }
+                Spacer(Modifier.height(8.dp))
+                SourceRow(Icons.Filled.ContentCopy, stringResource(R.string.add_food_copy), stringResource(R.string.add_food_copy_hint)) {
+                    view = AddFoodView.COPY
                 }
                 }
             }
@@ -578,12 +594,45 @@ private fun CopyFromDay(
     }
 }
 
-/** A template in «Añadir comida»: a tap adds it to the day; holding it offers Edit and Delete. */
+/**
+ * A template in «Añadir comida»: a tap adds it to the day; holding it offers Edit and
+ * Delete. While [managing] («Gestionar»), edit and delete are in plain sight instead.
+ */
 @Composable
-private fun TemplateChip(name: String, onApply: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+private fun TemplateChip(name: String, managing: Boolean, onApply: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     var menu by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
     val shape = RoundedCornerShape(50)
+    if (managing) {
+        Row(
+            Modifier.clip(shape).border(1.dp, MaterialTheme.colorScheme.outline, shape),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val editLabel = stringResource(R.string.add_food_edit_template, name)
+            TextButton(
+                onClick = onEdit,
+                contentPadding = PaddingValues(start = 14.dp, end = 4.dp),
+                // Read as «Edit Oats», not just the name.
+                modifier = Modifier.clearAndSetSemantics {
+                    contentDescription = editLabel
+                    role = Role.Button
+                },
+            ) {
+                Icon(Icons.Filled.Edit, contentDescription = null, Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(name, style = MaterialTheme.typography.labelMedium)
+            }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.add_food_delete_template, name),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        }
+        return
+    }
     Box {
         Box(
             Modifier

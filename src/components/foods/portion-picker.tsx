@@ -158,7 +158,7 @@ function OwnProductStatus({ own }: { own: OwnProduct }) {
   const online = useOnline();
   if (own.state === "sent") {
     return (
-      <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400" role="status">
+      <p className="flex items-center gap-1 text-xs text-green-700 dark:text-green-400" role="status">
         <CheckIcon className="size-3.5" /> {own.correction ? t.newProduct.status.sentCorrection : t.newProduct.status.sent}
       </p>
     );

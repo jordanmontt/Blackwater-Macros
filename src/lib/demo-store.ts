@@ -8,6 +8,7 @@ import type {
 } from "./core/types";
 import type { MealPayload, WeightPayload, TemplatePayload } from "./api";
 import { storedMealContent } from "./meal-payload";
+import { t } from "@/i18n";
 
 export const DEMO_COOKIE_NAME = "bw_demo";
 const STORAGE_KEY = "blackwater_demo_store_v1";
@@ -116,147 +117,153 @@ interface MealSeed {
 }
 
 /**
- * Portions for the demo person (84 kg man who lifts 3×/week, cutting): about
- * 2 200 kcal a day on average, his cut target, so that the measured
+ * The demo person's meals, in the app's language (the texts are `t.demoData`, so
+ * a French visitor sees «Dîner», not «Cena»). Portions for the demo person (84 kg
+ * man who lifts 3×/week, cutting): about 2 200 kcal a day on average, his cut
+ * target, so that the measured
  * expenditure lands near the formula (≈ 2 600) as it would for a real user
  * who logs everything.
  */
-const breakfasts: MealSeed[] = [
-  {
-    title: "Desayuno",
-    mode: "per_ingredient",
-    probability: 0.95,
-    ingredients: [
-      { name: "4 huevos", quantity: "240 g", calories: 280, protein: 24, carbs: 2, fat: 20 },
-      { name: "2 cucharillas de aceite de oliva", calories: 80, protein: 0, carbs: 0, fat: 9 },
-      { name: "30-40 gramos queso Gouda", quantity: "35 g", calories: 115, protein: 8.4, carbs: 1, fat: 9 },
-      { name: "Pan de centeno", quantity: "60 g", calories: 150, protein: 5, carbs: 28, fat: 1 },
-    ],
-  },
-  {
-    title: "Desayuno",
-    mode: "per_ingredient",
-    probability: 1,
-    ingredients: [
-      { name: "2 tostadas integrales", quantity: "120 g", calories: 300, protein: 12, carbs: 52, fat: 4 },
-      { name: "Aguacate", quantity: "½ unidad", calories: 120, protein: 1.5, carbs: 6, fat: 11 },
-      { name: "Jamón serrano", quantity: "40 g", calories: 90, protein: 12, carbs: 0, fat: 5 },
-      { name: "Café con leche", calories: 40, protein: 2, carbs: 4, fat: 2 },
-    ],
-  },
-  {
-    title: "Desayuno dulce",
-    mode: "per_ingredient",
-    probability: 1,
-    ingredients: [
-      { name: "Yogur griego", quantity: "170 g", calories: 100, protein: 17, carbs: 6, fat: 1 },
-      { name: "Copos de avena", quantity: "60 g", calories: 225, protein: 8, carbs: 38, fat: 4 },
-      { name: "Plátano", calories: 90, protein: 1, carbs: 22, fat: 0 },
-      { name: "Crema de cacahuete", quantity: "15 g", calories: 90, protein: 4, carbs: 3, fat: 8 },
-    ],
-  },
-];
+function mealSeeds() {
+  const d = t.demoData;
+  const breakfasts: MealSeed[] = [
+    {
+      title: d.breakfast,
+      mode: "per_ingredient",
+      probability: 0.95,
+      ingredients: [
+        { name: d.eggs4, quantity: "240 g", calories: 280, protein: 24, carbs: 2, fat: 20 },
+        { name: d.oliveOil2tsp, calories: 80, protein: 0, carbs: 0, fat: 9 },
+        { name: d.gouda, quantity: "35 g", calories: 115, protein: 8.4, carbs: 1, fat: 9 },
+        { name: d.ryeBread, quantity: "60 g", calories: 150, protein: 5, carbs: 28, fat: 1 },
+      ],
+    },
+    {
+      title: d.breakfast,
+      mode: "per_ingredient",
+      probability: 1,
+      ingredients: [
+        { name: d.wholeToast2, quantity: "120 g", calories: 300, protein: 12, carbs: 52, fat: 4 },
+        { name: d.avocado, quantity: d.halfUnit, calories: 120, protein: 1.5, carbs: 6, fat: 11 },
+        { name: d.serranoHam, quantity: "40 g", calories: 90, protein: 12, carbs: 0, fat: 5 },
+        { name: d.coffeeMilk, calories: 40, protein: 2, carbs: 4, fat: 2 },
+      ],
+    },
+    {
+      title: d.sweetBreakfast,
+      mode: "per_ingredient",
+      probability: 1,
+      ingredients: [
+        { name: d.greekYogurt, quantity: "170 g", calories: 100, protein: 17, carbs: 6, fat: 1 },
+        { name: d.oats, quantity: "60 g", calories: 225, protein: 8, carbs: 38, fat: 4 },
+        { name: d.banana, calories: 90, protein: 1, carbs: 22, fat: 0 },
+        { name: d.peanutButter, quantity: "15 g", calories: 90, protein: 4, carbs: 3, fat: 8 },
+      ],
+    },
+  ];
 
-const lunches: MealSeed[] = [
-  {
-    title: "Comida",
-    mode: "total_only",
-    probability: 1,
-    ingredients: [{ name: "Menú del día (sin detallar)" }],
-    totalCalories: 950,
-    totalProtein: 50,
-    totalCarbs: 95,
-    totalFat: 38,
-  },
-  {
-    title: "Comida",
-    mode: "per_ingredient",
-    probability: 1,
-    ingredients: [
-      { name: "Pechuga de pollo a la plancha", quantity: "200 g", calories: 330, protein: 61, carbs: 0, fat: 8 },
-      { name: "Arroz blanco cocido", quantity: "250 g", calories: 325, protein: 7, carbs: 70, fat: 1 },
-      { name: "Ensalada verde", calories: 50, protein: 1, carbs: 6, fat: 3 },
-      { name: "Aceite de oliva", quantity: "1 cucharada", calories: 90, protein: 0, carbs: 0, fat: 10 },
-    ],
-  },
-  {
-    title: "Comida",
-    mode: "per_ingredient",
-    probability: 1,
-    ingredients: [
-      { name: "Lentejas guisadas", quantity: "400 g", calories: 480, protein: 31, carbs: 63, fat: 9 },
-      { name: "Pan", quantity: "80 g", calories: 210, protein: 7, carbs: 40, fat: 2 },
-      { name: "Naranja", calories: 70, protein: 1, carbs: 15, fat: 0 },
-    ],
-  },
-];
+  const lunches: MealSeed[] = [
+    {
+      title: d.lunch,
+      mode: "total_only",
+      probability: 1,
+      ingredients: [{ name: d.setMenu }],
+      totalCalories: 950,
+      totalProtein: 50,
+      totalCarbs: 95,
+      totalFat: 38,
+    },
+    {
+      title: d.lunch,
+      mode: "per_ingredient",
+      probability: 1,
+      ingredients: [
+        { name: d.chickenBreast, quantity: "200 g", calories: 330, protein: 61, carbs: 0, fat: 8 },
+        { name: d.whiteRice, quantity: "250 g", calories: 325, protein: 7, carbs: 70, fat: 1 },
+        { name: d.greenSalad, calories: 50, protein: 1, carbs: 6, fat: 3 },
+        { name: d.oliveOil, quantity: d.tablespoon1, calories: 90, protein: 0, carbs: 0, fat: 10 },
+      ],
+    },
+    {
+      title: d.lunch,
+      mode: "per_ingredient",
+      probability: 1,
+      ingredients: [
+        { name: d.stewedLentils, quantity: "400 g", calories: 480, protein: 31, carbs: 63, fat: 9 },
+        { name: d.bread, quantity: "80 g", calories: 210, protein: 7, carbs: 40, fat: 2 },
+        { name: d.orange, calories: 70, protein: 1, carbs: 15, fat: 0 },
+      ],
+    },
+  ];
 
-const dinners: MealSeed[] = [
-  {
-    title: "Cena",
-    mode: "per_ingredient",
-    probability: 1,
-    ingredients: [
-      { name: "Salmón al horno", quantity: "180 g", calories: 370, protein: 41, carbs: 0, fat: 24 },
-      { name: "Verduras asadas", calories: 90, protein: 3, carbs: 10, fat: 5 },
-      { name: "Patata cocida", quantity: "200 g", calories: 170, protein: 4, carbs: 37, fat: 0 },
-    ],
-  },
-  {
-    title: "Cena",
-    mode: "per_ingredient",
-    probability: 1,
-    ingredients: [
-      { name: "Tortilla francesa", quantity: "3 huevos", calories: 210, protein: 18, carbs: 2, fat: 15 },
-      { name: "Ensalada de tomate", calories: 60, protein: 1, carbs: 8, fat: 3 },
-      { name: "Queso fresco", quantity: "100 g", calories: 90, protein: 12, carbs: 3, fat: 4 },
-      { name: "Pan", quantity: "60 g", calories: 160, protein: 5, carbs: 30, fat: 2 },
-    ],
-  },
-  {
-    title: "Cena ligera",
-    mode: "total_only",
-    probability: 1,
-    ingredients: [],
-    totalCalories: 380,
-    totalProtein: 30,
-    totalCarbs: 30,
-    totalFat: 15,
-  },
-];
+  const dinners: MealSeed[] = [
+    {
+      title: d.dinner,
+      mode: "per_ingredient",
+      probability: 1,
+      ingredients: [
+        { name: d.bakedSalmon, quantity: "180 g", calories: 370, protein: 41, carbs: 0, fat: 24 },
+        { name: d.roastVeg, calories: 90, protein: 3, carbs: 10, fat: 5 },
+        { name: d.boiledPotato, quantity: "200 g", calories: 170, protein: 4, carbs: 37, fat: 0 },
+      ],
+    },
+    {
+      title: d.dinner,
+      mode: "per_ingredient",
+      probability: 1,
+      ingredients: [
+        { name: d.omelette, quantity: d.eggs3, calories: 210, protein: 18, carbs: 2, fat: 15 },
+        { name: d.tomatoSalad, calories: 60, protein: 1, carbs: 8, fat: 3 },
+        { name: d.freshCheese, quantity: "100 g", calories: 90, protein: 12, carbs: 3, fat: 4 },
+        { name: d.bread, quantity: "60 g", calories: 160, protein: 5, carbs: 30, fat: 2 },
+      ],
+    },
+    {
+      title: d.lightDinner,
+      mode: "total_only",
+      probability: 1,
+      ingredients: [],
+      totalCalories: 380,
+      totalProtein: 30,
+      totalCarbs: 30,
+      totalFat: 15,
+    },
+  ];
 
-const snacks: MealSeed[] = [
-  {
-    title: "Merienda",
-    mode: "total_only",
-    probability: 1,
-    ingredients: [],
-    totalCalories: 300,
-    totalProtein: 20,
-    totalCarbs: 32,
-    totalFat: 10,
-  },
-  {
-    title: "Merienda",
+  const snacks: MealSeed[] = [
+    {
+      title: d.snack,
+      mode: "total_only",
+      probability: 1,
+      ingredients: [],
+      totalCalories: 300,
+      totalProtein: 20,
+      totalCarbs: 32,
+      totalFat: 10,
+    },
+    {
+      title: d.snack,
+      mode: "per_ingredient",
+      probability: 1,
+      ingredients: [
+        { name: d.almonds, quantity: "30 g", calories: 175, protein: 6, carbs: 6, fat: 15 },
+        { name: d.apple, calories: 80, protein: 0, carbs: 18, fat: 0 },
+      ],
+    },
+  ];
+
+  /** On gym days (3 of 7). */
+  const shake: MealSeed = {
+    title: d.shake,
     mode: "per_ingredient",
     probability: 1,
     ingredients: [
-      { name: "Puñado de almendras", quantity: "30 g", calories: 175, protein: 6, carbs: 6, fat: 15 },
-      { name: "Manzana", calories: 80, protein: 0, carbs: 18, fat: 0 },
+      { name: d.whey, quantity: "30 g", calories: 120, protein: 24, carbs: 3, fat: 2 },
+      { name: d.semiSkimmedMilk, quantity: "300 ml", calories: 140, protein: 10, carbs: 14, fat: 5 },
     ],
-  },
-];
-
-/** On gym days (3 of 7). */
-const shake: MealSeed = {
-  title: "Batido post-entreno",
-  mode: "per_ingredient",
-  probability: 1,
-  ingredients: [
-    { name: "Proteína whey", quantity: "30 g", calories: 120, protein: 24, carbs: 3, fat: 2 },
-    { name: "Leche semidesnatada", quantity: "300 ml", calories: 140, protein: 10, carbs: 14, fat: 5 },
-  ],
-};
+  };
+  return { breakfasts, lunches, dinners, snacks, shake };
+}
 
 const DAYS = 45;
 const SEED = 20260823;
@@ -289,6 +296,7 @@ function buildTemplateDto(input: { id: string; payload: TemplatePayload }): Meal
 
 /** Generates the full demo dataset relative to the browser's local today. */
 export function buildDemoStore(today: string = todayKey()): DemoStore {
+  const { breakfasts, lunches, dinners, snacks, shake } = mealSeeds();
   const rand = mulberry32(SEED);
   const jitter = (value: number, spread: number) =>
     Math.round(value + (rand() - 0.5) * spread);
@@ -377,7 +385,7 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
           measuredAt: new Date(`${logDate}T21:30:00`).toISOString(),
           weightKg: eveningWeight,
           bodyFatPct: null,
-          note: "tras entrenar",
+          note: t.demoData.afterTraining,
           updatedAt: new Date().toISOString(),
         });
       }
@@ -388,8 +396,8 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
     buildTemplateDto({
       id: newId(),
       payload: {
-        name: "Desayuno",
-        title: "Desayuno",
+        name: t.demoData.breakfast,
+        title: t.demoData.breakfast,
         notes: null,
         entryMode: "per_ingredient",
         ingredients: breakfasts[0].ingredients,
@@ -398,8 +406,8 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
     buildTemplateDto({
       id: newId(),
       payload: {
-        name: "Cena ligera",
-        title: "Cena ligera",
+        name: t.demoData.lightDinner,
+        title: t.demoData.lightDinner,
         notes: null,
         entryMode: "total_only",
         ingredients: [],

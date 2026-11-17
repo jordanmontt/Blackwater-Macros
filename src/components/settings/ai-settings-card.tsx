@@ -162,7 +162,7 @@ export function AiSettingsCard({ embedded = false }: { embedded?: boolean }) {
           </Button>
           <p role="status" className="min-w-0 flex-1 text-sm">
             {test.status === "ok" ? (
-              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                 <CheckCircle2Icon className="size-4" /> {t.ai.testOk}
               </span>
             ) : test.status === "error" ? (

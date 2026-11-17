@@ -24,18 +24,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.ui.ChartClay
-import com.blackwatermacros.app.ui.ChartForest
-import com.blackwatermacros.app.ui.ChartSage
+import com.blackwatermacros.app.ui.ChartBlue
 import com.blackwatermacros.app.ui.WeightFatRow
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -43,9 +40,7 @@ import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-private val Chart1 = ChartForest
 private val Chart2 = ChartClay
-private val Chart3 = ChartSage
 
 /** Nice round step covering [min, max] with roughly [targetTicks] divisions. */
 internal fun niceTickStep(min: Double, max: Double, targetTicks: Int): Double {
@@ -80,42 +75,44 @@ internal fun niceTicks(min: Double, max: Double, step: Double): List<Double> {
 /** Whole-number-ish label in the app's number format: «72», «72,5». */
 private fun axisLabel(v: Double): String = formatNumber(v, 1)
 
+/** Which measurement the weight chart draws: one axis at a time (web `WeightChartSeries`). */
+enum class WeightChartSeries { WEIGHT, BODY_FAT }
+
 /**
- * Dual-Y line chart matching the web `WeightFatChart`:
- * Peso (solid, left Y kg), Tendencia (dashed 6-4, left Y), Grasa (dotted, right Y %).
+ * Progreso's weight chart, like the web `WeightFatChart`. [WeightChartSeries.WEIGHT]:
+ * the 7-day trend, the line that says where the weight is going, bold; each weigh-in
+ * a light dot with no line between them (day-to-day water and food make it zig-zag).
+ * [WeightChartSeries.BODY_FAT]: the body fat measurements on their own axis. One axis
+ * at a time: kg and % on two axes with overlapping ranges were hard to read.
  */
 @Composable
 fun WeightFatChart(
     data: List<WeightFatRow>,
     modifier: Modifier = Modifier,
+    series: WeightChartSeries = WeightChartSeries.WEIGHT,
 ) {
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val axisColor = MaterialTheme.colorScheme.outlineVariant
     val surfaceColor = MaterialTheme.colorScheme.surface
-    val weightLabel = stringResource(R.string.tab_weight)
+    val weighInColor = labelColor.copy(alpha = 0.7f)
+    val weightLabel = stringResource(R.string.chart_weigh_ins)
     val trendLabel = stringResource(R.string.chart_trend)
-    val fatLabel = stringResource(R.string.macro_fat)
-    val bodyFatLabel = stringResource(R.string.body_fat)
-    val weightAxis = stringResource(R.string.chart_weight_axis)
-    val fatAxis = stringResource(R.string.chart_fat_axis)
+    val bodyFatLabel = stringResource(R.string.chart_body_fat)
+    val isWeight = series == WeightChartSeries.WEIGHT
+    // «Label: value» in the language's own punctuation, for the tooltip.
+    val labelValue = stringResource(R.string.label_value)
+    val axisTitle = stringResource(if (isWeight) R.string.chart_weight_axis else R.string.chart_fat_axis)
 
-    val weightRows = data.mapIndexedNotNull { i, r -> r.weight?.let { i to it } }
-    val pctRows = data.mapIndexedNotNull { i, r -> r.bodyFatPct?.let { i to it } }
-    val trendRows = data.mapIndexedNotNull { i, r -> r.weightTrend?.let { i to it } }
-    if (weightRows.isEmpty()) return
-
-    val weights = weightRows.map { it.second }
-    val trends = trendRows.map { it.second }
-    val weightMinRaw = (weights + trends).min()
-    val weightMaxRaw = (weights + trends).max()
-    val pctMinRaw = pctRows.minOfOrNull { it.second } ?: 0.0
-    val pctMaxRaw = pctRows.maxOfOrNull { it.second } ?: 1.0
-    val weightPad = if (weightMaxRaw > weightMinRaw) (weightMaxRaw - weightMinRaw) * 0.12 else 1.0
-    val weightMin = weightMinRaw - weightPad
-    val weightMax = weightMaxRaw + weightPad
-    val pctPad = if (pctMaxRaw > pctMinRaw) (pctMaxRaw - pctMinRaw) * 0.12 else 1.0
-    val pctMin = pctMinRaw - pctPad
-    val pctMax = pctMaxRaw + pctPad
+    // The points drawn as dots, and the line (the trend for weight; the measurements themselves for fat).
+    val dots = if (isWeight) data.mapIndexed { i, r -> i to r.weight } else data.mapIndexedNotNull { i, r -> r.bodyFatPct?.let { i to it } }
+    val line = if (isWeight) data.mapIndexedNotNull { i, r -> r.weightTrend?.let { i to it } } else dots
+    if (dots.isEmpty()) return
+    val values = dots.map { it.second } + line.map { it.second }
+    val minRaw = values.min()
+    val maxRaw = values.max()
+    val pad = if (maxRaw > minRaw) (maxRaw - minRaw) * 0.12 else 1.0
+    val vMin = minRaw - pad
+    val vMax = maxRaw + pad
 
     Column(modifier) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
@@ -125,7 +122,7 @@ fun WeightFatChart(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(220.dp)
-                .pointerInput(data) {
+                .pointerInput(data, series) {
                     detectTapGestures { offset ->
                         val n = data.size
                         if (n > 0) {
@@ -153,27 +150,18 @@ fun WeightFatChart(
                 textSize = AxisTextSize.toPx()
                 textAlign = android.graphics.Paint.Align.LEFT
             }
-            val weightStep = niceTickStep(weightMin, weightMax, 4)
-            val weightTicks = niceTicks(weightMin, weightMax, weightStep)
-            val pctStep = niceTickStep(pctMin, pctMax, 4)
-            val pctTicks = niceTicks(pctMin, pctMax, pctStep)
-            val leftAxisWidth = axisRoom(axisPaint, weightTicks.map(::axisLabel), 44.dp.toPx(), 8.dp.toPx())
-            val rightAxisWidth =
-                if (pctRows.isNotEmpty()) axisRoom(axisPaint, pctTicks.map(::axisLabel), 40.dp.toPx(), 8.dp.toPx()) else 6.dp.toPx()
+            val step = niceTickStep(vMin, vMax, 4)
+            val ticks = niceTicks(vMin, vMax, step)
+            val leftAxisWidth = axisRoom(axisPaint, ticks.map(::axisLabel), 44.dp.toPx(), 8.dp.toPx())
             val plotLeft = leftAxisWidth
-            val plotRight = chartWidth - rightAxisWidth
+            val plotRight = chartWidth - 8.dp.toPx()
             val plotWidth = plotRight - plotLeft
             val plotBottom = plotHeight - 24.dp.toPx()
             plotEdges[0] = plotLeft
             plotEdges[1] = plotRight
 
-            fun yWeight(v: Double): Float {
-                val t = if (weightMax > weightMin) (v - weightMin) / (weightMax - weightMin) else 0.5
-                return (plotBottom - (t * (plotBottom - plotTop)).toFloat())
-            }
-
-            fun yPct(v: Double): Float {
-                val t = if (pctMax > pctMin) (v - pctMin) / (pctMax - pctMin) else 0.5
+            fun y(v: Double): Float {
+                val t = if (vMax > vMin) (v - vMin) / (vMax - vMin) else 0.5
                 return (plotBottom - (t * (plotBottom - plotTop)).toFloat())
             }
 
@@ -183,85 +171,28 @@ fun WeightFatChart(
                 else plotLeft + (plotWidth * i / (n - 1)).toFloat()
             }
 
-            fun drawSeries(rows: List<Pair<Int, Double>>, color: Color, dash: FloatArray?, yFn: (Double) -> Float) {
-                val path = Path()
-                rows.forEachIndexed { idx, (i, v) ->
-                    val x = xIndex(i)
-                    val y = yFn(v)
-                    if (idx == 0) path.moveTo(x, y) else path.lineTo(x, y)
-                }
-                if (rows.isNotEmpty()) {
-                    drawPath(
-                        path = path,
-                        color = color,
-                        style = if (dash != null) {
-                            Stroke(width = 2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(dash))
-                        } else {
-                            Stroke(width = 2.dp.toPx())
-                        },
-                    )
-                }
-            }
-
-            val rightTickPaint = android.graphics.Paint().apply {
-                color = fillArgb
-                textSize = AxisTextSize.toPx()
-                textAlign = android.graphics.Paint.Align.LEFT
-            }
-            weightTicks.forEach { w ->
-                val y = yWeight(w)
-                drawLine(
-                    color = axisColor,
-                    start = Offset(plotLeft, y),
-                    end = Offset(plotRight, y),
-                    strokeWidth = 1.dp.toPx(),
-                )
-                drawContext.canvas.nativeCanvas.drawText(
-                    axisLabel(w),
-                    leftAxisWidth - 4.dp.toPx(),
-                    y + 5.dp.toPx(),
-                    axisPaint,
-                )
-            }
-            if (pctRows.isNotEmpty()) {
-                pctTicks.forEach { p ->
-                    val y = yPct(p)
-                    drawContext.canvas.nativeCanvas.drawText(
-                        axisLabel(p),
-                        plotRight + 5.dp.toPx(),
-                        y + 5.dp.toPx(),
-                        rightTickPaint,
-                    )
-                }
+            ticks.forEach { v ->
+                val ty = y(v)
+                drawLine(color = axisColor, start = Offset(plotLeft, ty), end = Offset(plotRight, ty), strokeWidth = 1.dp.toPx())
+                drawContext.canvas.nativeCanvas.drawText(axisLabel(v), leftAxisWidth - 4.dp.toPx(), ty + 5.dp.toPx(), axisPaint)
             }
             // From the left edge, so a long title or a large font never runs off the card.
-            drawContext.canvas.nativeCanvas.drawText(weightAxis, 0f, 24.dp.toPx(), axisTitlePaint)
-            if (pctRows.isNotEmpty()) {
-                // Right-aligned to the edge so the title never runs off the card.
-                drawContext.canvas.nativeCanvas.drawText(
-                    fatAxis,
-                    chartWidth,
-                    24.dp.toPx(),
-                    android.graphics.Paint(rightTickPaint).apply { textAlign = android.graphics.Paint.Align.RIGHT },
+            drawContext.canvas.nativeCanvas.drawText(axisTitle, 0f, 24.dp.toPx(), axisTitlePaint)
+
+            if (line.isNotEmpty()) {
+                val path = Path()
+                line.forEachIndexed { idx, (i, v) -> if (idx == 0) path.moveTo(xIndex(i), y(v)) else path.lineTo(xIndex(i), y(v)) }
+                drawPath(
+                    path = path,
+                    color = if (isWeight) ChartBlue else Chart2,
+                    style = Stroke(width = (if (isWeight) 3 else 2).dp.toPx()),
                 )
             }
-
-            drawSeries(weightRows, Chart1, null, ::yWeight)
-            drawSeries(trendRows, Chart3, floatArrayOf(6f, 4f), ::yWeight)
-            drawSeries(pctRows, Chart2, floatArrayOf(3f, 3f), ::yPct)
-
-            weightRows.forEach { (i, v) ->
+            dots.forEach { (i, v) ->
                 drawCircle(
-                    color = Chart1,
-                    radius = 2.dp.toPx(),
-                    center = Offset(xIndex(i), yWeight(v)),
-                )
-            }
-            pctRows.forEach { (i, v) ->
-                drawCircle(
-                    color = Chart2,
-                    radius = 2.dp.toPx(),
-                    center = Offset(xIndex(i), yPct(v)),
+                    color = if (isWeight) weighInColor else Chart2,
+                    radius = 2.5.dp.toPx(),
+                    center = Offset(xIndex(i), y(v)),
                 )
             }
             drawDateLabels(data.map { it.date }, ::xIndex, axisPaint, chartWidth, plotHeight)
@@ -270,21 +201,26 @@ fun WeightFatChart(
                 val row = data[si]
                 val lines = buildList {
                     add(formatDateShort(row.date))
-                    row.weight?.let { add("$weightLabel: ${formatNumber(it, 1)} kg") }
-                    row.weightTrend?.let { add("$trendLabel: ${formatNumber(it, 1)} kg") }
-                    row.bodyFatPct?.let { add("$fatLabel: ${formatNumber(it, 1)}%") }
+                    if (isWeight) {
+                        add(labelValue.format(weightLabel, "${formatNumber(row.weight, 1)} kg"))
+                        row.weightTrend?.let { add(labelValue.format(trendLabel, "${formatNumber(it, 1)} kg")) }
+                    } else {
+                        row.bodyFatPct?.let { add(labelValue.format(bodyFatLabel, "${formatNumber(it, 1)}%")) }
+                    }
                 }
                 drawSelection(xIndex(si), plotTop, plotBottom, chartWidth, lines, labelColor, surfaceColor)
             }
         }
         Spacer(Modifier.height(4.dp))
-        Box(Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center) {
-                LegendDot(Chart1, weightLabel)
-                Spacer(Modifier.width(10.dp))
-                LegendDot(Chart3, trendLabel)
-                Spacer(Modifier.width(10.dp))
-                LegendDot(Chart2, bodyFatLabel)
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Row {
+                if (isWeight) {
+                    LegendDot(ChartBlue, trendLabel)
+                    Spacer(Modifier.width(12.dp))
+                    LegendDot(weighInColor, weightLabel)
+                } else {
+                    LegendDot(Chart2, bodyFatLabel)
+                }
             }
         }
     }

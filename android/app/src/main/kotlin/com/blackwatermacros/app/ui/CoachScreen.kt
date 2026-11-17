@@ -10,6 +10,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -125,6 +130,15 @@ fun CoachScreen(
         onPauseOrDispose { viewModel.onScreen(false) }
     }
 
+    // A question tapped before the setup waits in the box once the coach is ready.
+    LaunchedEffect(engine) {
+        val pending = viewModel.pendingQuestion
+        if (engine != null && pending != null) {
+            if (draft.isEmpty()) draft = pending
+            viewModel.pendingQuestion = null
+        }
+    }
+
     LaunchedEffect(state.messages.size, lastLength) {
         if (state.messages.isNotEmpty()) listState.scrollToItem(state.messages.size - 1, Int.MAX_VALUE / 2)
     }
@@ -179,15 +193,13 @@ fun CoachScreen(
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
             if (engine == null) {
-                SettingsCard(null) {
-                    Text(stringResource(R.string.coach_not_configured), style = MaterialTheme.typography.bodyMedium)
-                    Spacer(Modifier.height(12.dp))
-                    Button(onClick = onOpenAiSettings) {
-                        Icon(Icons.Filled.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.photo_configure))
-                    }
-                }
+                CoachSetupInvite(
+                    onExample = { example ->
+                        viewModel.pendingQuestion = example
+                        onOpenAiSettings()
+                    },
+                    onOpenAiSettings = onOpenAiSettings,
+                )
                 return@Column
             }
 
@@ -436,5 +448,69 @@ internal fun simpleMarkdown(text: String): AnnotatedString = buildAnnotatedStrin
             if (i % 2 == 1 && i < parts.size - 1) withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(part) } else append(part)
         }
         if (index < lines.size - 1) append('\n')
+    }
+}
+
+
+/**
+ * The Coach before AI is set up (web: the same): what it does, three example
+ * questions (tapping one opens the setup and keeps it for the box) and the setup.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CoachSetupInvite(onExample: (String) -> Unit, onOpenAiSettings: () -> Unit) {
+    val primary = MaterialTheme.colorScheme.primary
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            Modifier.size(48.dp).clip(CircleShape).background(primary.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, tint = primary)
+        }
+        Text(
+            stringResource(R.string.coach_empty_title),
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            stringResource(R.string.coach_empty_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        stringArrayResource(R.array.coach_examples).take(3).forEach { example ->
+            OutlinedButton(
+                onClick = { onExample(example) },
+                shape = RoundedCornerShape(50),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+            ) {
+                Text(example, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center)
+            }
+        }
+        Text(
+            stringResource(R.string.coach_examples_not_ready),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Button(onClick = onOpenAiSettings) {
+            Icon(Icons.Filled.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.photo_configure))
+        }
+        Text(
+            stringResource(R.string.coach_not_configured),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }

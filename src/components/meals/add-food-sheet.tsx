@@ -82,6 +82,8 @@ export function AddFoodSheet({
   pickOnly?: boolean;
 }) {
   const [view, setView] = useState<View>("menu");
+  // «Gestionar»: the templates show their edit and delete buttons instead of adding a meal.
+  const [managing, setManaging] = useState(false);
   const [choice, setChoice] = useState<FoodChoice | null>(null);
   const [back, setBack] = useState<View>("menu");
   /** Set when the photo view was opened by «Estimar “…” con IA» from search. */
@@ -111,6 +113,7 @@ export function AddFoodSheet({
       setChoice(null);
       setDraft(null);
       setEstimateQuery(null);
+      setManaging(false);
     }
     onOpenChange(next);
   }
@@ -203,6 +206,102 @@ export function AddFoodSheet({
               onClick={() => setView("barcode")}
             />
           </div>
+          {/* Right under the three sources: repeating a meal is the fastest way to log. */}
+          {!pickOnly && templates.length > 0 ? (
+            <section aria-label={t.addFood.templates}>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-xs font-medium text-muted-foreground">{t.addFood.templates}</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="-my-1 -mr-2 text-primary"
+                  aria-pressed={managing}
+                  onClick={() => setManaging((current) => !current)}
+                >
+                  {managing ? t.addFood.doneManaging : t.addFood.manageTemplates}
+                </Button>
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">{t.addFood.templatesHint}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {templates.map((template) =>
+                  managing ? (
+                    // Managing: edit and delete in plain sight (holding a template stays a shortcut).
+                    <span key={template.id} className="inline-flex items-center rounded-full border">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-l-full rounded-r-none"
+                        aria-label={formatTemplate(t.addFood.editTemplate, { name: template.name })}
+                        onClick={() => {
+                          changeOpen(false);
+                          onEditTemplate?.(template);
+                        }}
+                      >
+                        <PencilIcon /> {template.name}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="rounded-l-none rounded-r-full text-muted-foreground"
+                        aria-label={formatTemplate(t.addFood.deleteTemplate, { name: template.name })}
+                        onClick={() => {
+                          changeOpen(false);
+                          onDeleteTemplate?.(template);
+                        }}
+                      >
+                        <Trash2Icon />
+                      </Button>
+                    </span>
+                  ) : (
+                      <ContextMenu.Root key={template.id}>
+                        <ContextMenu.Trigger
+                          render={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="rounded-full select-none"
+                              disabled={busy}
+                              onClick={() =>
+                                void addMeals([template], formatTemplate(t.hoy.templateApplied, { name: template.name }))
+                              }
+                            />
+                          }
+                        >
+                          {template.name}
+                        </ContextMenu.Trigger>
+                        <ContextMenu.Portal>
+                          <ContextMenu.Positioner className="z-50 outline-none">
+                            <ContextMenu.Popup
+                              aria-label={t.addFood.templateOptions}
+                              className="min-w-36 rounded-lg bg-popover p-1 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none"
+                            >
+                              <ContextMenu.Item
+                                className={templateMenuItem}
+                                onClick={() => {
+                                  changeOpen(false);
+                                  onEditTemplate?.(template);
+                                }}
+                              >
+                                <PencilIcon /> {t.meal.edit}
+                              </ContextMenu.Item>
+                              <ContextMenu.Item
+                                className={templateMenuItem}
+                                onClick={() => {
+                                  changeOpen(false);
+                                  onDeleteTemplate?.(template);
+                                }}
+                              >
+                                <Trash2Icon /> {t.meal.delete}
+                              </ContextMenu.Item>
+                            </ContextMenu.Popup>
+                          </ContextMenu.Positioner>
+                        </ContextMenu.Portal>
+                      </ContextMenu.Root>
+                  ),
+                )}
+              </div>
+            </section>
+          ) : null}
           {pickOnly ? null : (
           <div className="grid gap-2">
             <SourceButton
@@ -222,60 +321,6 @@ export function AddFoodSheet({
             />
           </div>
           )}
-          {!pickOnly && templates.length > 0 ? (
-            <section aria-label={t.addFood.templates}>
-              <h3 className="text-xs font-medium text-muted-foreground">{t.addFood.templates}</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">{t.addFood.templatesHint}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {templates.map((template) => (
-                  <ContextMenu.Root key={template.id}>
-                    <ContextMenu.Trigger
-                      render={
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="rounded-full select-none"
-                          disabled={busy}
-                          onClick={() =>
-                            void addMeals([template], formatTemplate(t.hoy.templateApplied, { name: template.name }))
-                          }
-                        />
-                      }
-                    >
-                      {template.name}
-                    </ContextMenu.Trigger>
-                    <ContextMenu.Portal>
-                      <ContextMenu.Positioner className="z-50 outline-none">
-                        <ContextMenu.Popup
-                          aria-label={t.addFood.templateOptions}
-                          className="min-w-36 rounded-lg bg-popover p-1 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none"
-                        >
-                          <ContextMenu.Item
-                            className={templateMenuItem}
-                            onClick={() => {
-                              changeOpen(false);
-                              onEditTemplate?.(template);
-                            }}
-                          >
-                            <PencilIcon /> {t.meal.edit}
-                          </ContextMenu.Item>
-                          <ContextMenu.Item
-                            className={templateMenuItem}
-                            onClick={() => {
-                              changeOpen(false);
-                              onDeleteTemplate?.(template);
-                            }}
-                          >
-                            <Trash2Icon /> {t.meal.delete}
-                          </ContextMenu.Item>
-                        </ContextMenu.Popup>
-                      </ContextMenu.Positioner>
-                    </ContextMenu.Portal>
-                  </ContextMenu.Root>
-                ))}
-              </div>
-            </section>
-          ) : null}
         </div>
       ) : view === "search" ? (
         <FoodSearch

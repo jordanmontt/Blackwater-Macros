@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import {
   Card,
@@ -13,10 +14,7 @@ import { t } from "@/i18n";
 export default function MetodologiaPage() {
   return (
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 pb-12 md:pt-6">
-      <header className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">{t.metodologia.title}</h1>
-        <ClosePageButton />
-      </header>
+      <PageHeader title={t.metodologia.title} end={<ClosePageButton />} />
 
       <p className="text-sm text-muted-foreground">{t.metodologia.intro}</p>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import { useMemo, useState } from "react";
 import { formatDateKeyLong, formatDateKeyShort, formatNumber } from "@/i18n/format";
 import Link from "next/link";
@@ -20,8 +21,10 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { TOOLTIP_STYLE } from "@/components/chart-style";
-import { WeightFatChart, type WeightFatRow } from "@/components/weight-fat-chart";
+import { WeightFatChart, type WeightChartSeries, type WeightFatRow } from "@/components/weight-fat-chart";
+import { ChartLegend } from "@/components/chart-legend";
 import { WeightFormDialog } from "@/components/weight-form-dialog";
 import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
@@ -108,19 +111,20 @@ export default function ProgresoPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 pt-4 pb-24 md:pt-6">
-      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <div />
-        <h1 className="text-center text-lg font-semibold">{t.progreso.title}</h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          nativeButton={false}
-          render={<Link href="/metodologia" aria-label={t.metodologia.title} />}
-          className="justify-self-end"
-        >
-          <InfoIcon />
-        </Button>
-      </header>
+      <PageHeader
+        title={t.progreso.title}
+        end={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="-mr-2 size-11"
+            nativeButton={false}
+            render={<Link href="/metodologia" aria-label={t.metodologia.title} />}
+          >
+            <InfoIcon />
+          </Button>
+        }
+      />
 
       <div role="tablist" aria-label={t.progreso.title} className="mt-3 grid grid-cols-4 gap-1 rounded-lg border p-1">
         {ranges.map((item) => (
@@ -179,7 +183,7 @@ export default function ProgresoPage() {
       {/* Labelled: a bare «+» here did not say it logs a weigh-in. */}
       <Button
         onClick={() => openForm(null)}
-        className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 h-14 gap-2 rounded-full bg-tertiary px-5 text-base text-tertiary-foreground shadow-lg hover:bg-tertiary/90 md:bottom-6"
+        className="fixed right-[max(1rem,calc(50%-21rem+1rem))] bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 h-14 gap-2 rounded-full bg-tertiary px-5 text-base text-tertiary-foreground shadow-lg hover:bg-tertiary/90 md:bottom-6"
       >
         <WeightIcon className="size-5" />
         {t.peso.addTitle}
@@ -190,6 +194,8 @@ export default function ProgresoPage() {
 
 function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () => void }) {
   const w = summary.weight;
+  const [series, setSeries] = useState<WeightChartSeries>("weight");
+  const hasBodyFat = summary.bodyFat.length > 0;
   const rows = useMemo<WeightFatRow[]>(() => {
     const map = new Map<string, WeightFatRow>();
     for (const point of summary.weights) {
@@ -229,9 +235,35 @@ function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () =>
           <MiniStat label={t.progreso.bodyFat} value={w.currentBodyFatPct} unit="%" decimals={1} />
         </div>
         {summary.weights.length > 1 ? (
-          <div className="h-56 sm:h-64">
-            <WeightFatChart data={rows} />
-          </div>
+          <>
+            {hasBodyFat ? (
+              <div role="radiogroup" aria-label={t.progreso.weightTitle} className="flex gap-1.5">
+                {(
+                  [
+                    ["weight", t.stats.legendWeight],
+                    ["bodyFat", t.stats.legendBodyFat],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={series === value}
+                    onClick={() => setSeries(value)}
+                    className={cn(
+                      "min-h-9 rounded-full border px-3 text-xs font-medium transition-colors",
+                      series === value ? "border-transparent bg-primary/15 text-primary" : "text-muted-foreground hover:bg-accent",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="h-60 sm:h-72">
+              <WeightFatChart data={rows} series={hasBodyFat ? series : "weight"} />
+            </div>
+          </>
         ) : null}
       </CardContent>
     </Card>
@@ -261,6 +293,9 @@ function MiniStat({
     </div>
   );
 }
+
+const INTAKE_COLOR = "var(--chart-1)";
+const TREND_COLOR = "var(--chart-4)";
 
 function CaloriesSection({
   summary,
@@ -298,7 +333,8 @@ function CaloriesSection({
       <CardHeader className="pb-0">
         <CardTitle className="text-base">{t.progreso.caloriesTitle}</CardTitle>
       </CardHeader>
-      <CardContent className="h-56 px-2 sm:h-64" data-testid="calories-chart">
+      <CardContent className="space-y-1 px-2" data-testid="calories-chart">
+        <div className="h-56 sm:h-64">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={rows} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -311,7 +347,16 @@ function CaloriesSection({
               tickLine={false}
               axisLine={false}
             />
-            <YAxis domain={[0, "auto"]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={(value: number) => formatNumber(value)} />
+            {/* Fitted to the days and the range (the band extends it), not from 0:
+                from 0 the days filled only the top fifth of the chart. */}
+            <YAxis
+              domain={[(min: number) => Math.max(0, Math.floor((min - 150) / 100) * 100), (max: number) => Math.ceil((max + 150) / 100) * 100]}
+              tick={{ fontSize: 10 }}
+              tickLine={false}
+              axisLine={false}
+              width={44}
+              tickFormatter={(value: number) => formatNumber(value)}
+            />
             {bands.length > 0 && sameBand ? (
               <ReferenceArea
                 y1={bands[0][0]}
@@ -320,7 +365,6 @@ function CaloriesSection({
                 fillOpacity={0.12}
                 stroke="none"
                 ifOverflow="extendDomain"
-                label={{ value: t.progreso.targetBand, position: "insideTopLeft", fontSize: 10, fill: "var(--muted-foreground)" }}
               />
             ) : null}
             {bands.length > 0 && !sameBand ? (
@@ -346,18 +390,26 @@ function CaloriesSection({
               }
               labelFormatter={(value) => formatDateKeyShort(String(value))}
             />
-            <Line type="monotone" dataKey="calories" name={t.stats.dailyIntake} stroke="var(--chart-1)" strokeWidth={1.5} dot={{ r: 2 }} />
+            <Line type="monotone" dataKey="calories" name={t.stats.dailyIntake} stroke={INTAKE_COLOR} strokeWidth={1.5} dot={{ r: 2 }} />
             <Line
               type="monotone"
               dataKey="tendencia"
               name={t.stats.trendLine}
-              stroke="var(--chart-4)"
+              stroke={TREND_COLOR}
               strokeWidth={2.5}
               dot={false}
               connectNulls
             />
           </ComposedChart>
         </ResponsiveContainer>
+        </div>
+        <ChartLegend
+          items={[
+            { label: t.stats.dailyIntake, color: INTAKE_COLOR, shape: "dot" },
+            { label: t.stats.trendLine, color: TREND_COLOR, shape: "line" },
+            ...(bands.length > 0 ? [{ label: t.progreso.targetBand, color: "var(--primary)", shape: "band" as const }] : []),
+          ]}
+        />
       </CardContent>
     </Card>
   );

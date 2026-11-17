@@ -1,20 +1,24 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
 
-/** The title of a page opened from Ajustes, with the arrow back to it. */
+/** The title of a page opened from Ajustes, with the arrow back to it at the start, where Back always is. */
 export function SubpageHeader({ title, backLabel }: { title: string; backLabel: string }) {
   return (
-    <header className="flex items-center justify-between gap-2">
-      <h1 className="text-lg font-semibold">{title}</h1>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        nativeButton={false}
-        render={<Link href="/ajustes" aria-label={backLabel} />}
-      >
-        <ArrowLeftIcon />
-      </Button>
-    </header>
+    <PageHeader
+      title={title}
+      start={
+        <Button
+          variant="ghost"
+          size="icon"
+          className="-ml-2 size-11"
+          nativeButton={false}
+          render={<Link href="/ajustes" aria-label={backLabel} />}
+        >
+          <ArrowLeftIcon />
+        </Button>
+      }
+    />
   );
 }

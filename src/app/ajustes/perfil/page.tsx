@@ -356,21 +356,23 @@ export default function PerfilPage() {
                     {formatNumber(calorieRec.targetMin)} – {formatNumber(calorieRec.targetMax)} {t.calorias.perDay}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {t.calorias.bmr}: {formatNumber(calorieRec.bmr)}
+                    {formatTemplate(t.common.labelValue, { label: t.calorias.bmr, value: formatNumber(calorieRec.bmr) })}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatTemplate(t.calorias.activityFactor, { n: formatNumber(calorieRec.activityFactor, 2) })}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {t.calorias.tdee}: {formatNumber(calorieRec.tdee)}
+                    {formatTemplate(t.common.labelValue, { label: t.calorias.tdee, value: formatNumber(calorieRec.tdee) })}
                   </p>
                   {measured ? (
                     <>
                       <p className="text-xs text-muted-foreground">
-                        {t.calorias.measuredTdee}:{" "}
-                        {formatTemplate(t.calorias.measuredTdeeValue, {
-                          n: formatNumber(measured.tdee),
-                          margin: formatNumber(measured.margin),
+                        {formatTemplate(t.common.labelValue, {
+                          label: t.calorias.measuredTdee,
+                          value: formatTemplate(t.calorias.measuredTdeeValue, {
+                            n: formatNumber(measured.tdee),
+                            margin: formatNumber(measured.margin),
+                          }),
                         })}
                       </p>
                       <p className="text-xs text-muted-foreground">

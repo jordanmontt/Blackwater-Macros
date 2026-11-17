@@ -417,7 +417,15 @@ function RangeComparison({ check, low, high }: { check: Measured; low: number; h
   const to = Math.max(check.normalMax, high);
   const pad = (to - from) * 0.08;
   const pct = (v: number) => ((v - (from - pad)) / (to - from + 2 * pad)) * 100;
-  const label = `${t.expenditureCheck.normalLegend}: ${formatNumber(check.normalMin)}–${formatNumber(check.normalMax)}. ${t.expenditureCheck.measuredLegend}: ${formatNumber(low)}–${formatNumber(high)}.`;
+  const normal = formatTemplate(t.common.labelValue, {
+    label: t.expenditureCheck.normalLegend,
+    value: `${formatNumber(check.normalMin)}–${formatNumber(check.normalMax)}`,
+  });
+  const measured = formatTemplate(t.common.labelValue, {
+    label: t.expenditureCheck.measuredLegend,
+    value: `${formatNumber(low)}–${formatNumber(high)}`,
+  });
+  const label = `${normal}. ${measured}.`;
   return (
     <div className="space-y-2">
       <div role="img" aria-label={label} className="relative h-9">
@@ -439,13 +447,13 @@ function RangeComparison({ check, low, high }: { check: Measured; low: number; h
       <ul className="space-y-0.5">
         <li className="flex items-center gap-2">
           <span aria-hidden className="h-2.5 w-4 rounded-sm bg-primary/25 ring-1 ring-primary/60" />
-          {t.expenditureCheck.normalLegend}: {formatNumber(check.normalMin)}–{formatNumber(check.normalMax)} {t.calorias.perDay}
+          {normal} {t.calorias.perDay}
         </li>
         <li className="flex items-center gap-2">
           <span aria-hidden className="flex h-2.5 w-4 items-center">
             <span className="h-1.5 w-full rounded-full bg-foreground/70" />
           </span>
-          {t.expenditureCheck.measuredLegend}: {formatNumber(low)}–{formatNumber(high)} {t.calorias.perDay}
+          {measured} {t.calorias.perDay}
         </li>
       </ul>
     </div>

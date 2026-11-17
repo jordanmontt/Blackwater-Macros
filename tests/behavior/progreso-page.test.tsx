@@ -12,7 +12,10 @@ import { t } from "@/i18n";
 /**
  * Requisitos visibles en la pantalla "Progreso" (Peso + Estadísticas en una):
  *  - un selector de periodo que manda sobre toda la pantalla,
- *  - resumen de peso (actual, tendencia, cambio, ritmo, grasa) y su gráfico,
+ *  - resumen de peso (actual, tendencia, cambio, ritmo, grasa) y su gráfico: un eje
+ *    a la vez, el peso o (si hay medidas) la grasa corporal, a elegir,
+ *  - el gráfico de calorías dice qué es cada cosa: cada día, la media de 7 días y
+ *    el rango objetivo,
  *  - gráfico de calorías y «Promedio de macros» solo sobre los días registrados
  *    («N de M días registrados»), con el reparto de calorías y los objetivos
  *    (la media de los de cada día: cambiar el perfil no reescribe el pasado),
@@ -72,8 +75,8 @@ vi.mock("@/lib/api", () => ({
 vi.mock("@/components/weight-fat-chart", async () => {
   const React = await import("react");
   return {
-    WeightFatChart: ({ data }: { data: unknown[] }) =>
-      React.createElement("div", { "data-testid": "grafico-peso", "data-puntos": String(data.length) }),
+    WeightFatChart: ({ data, series }: { data: unknown[]; series?: string }) =>
+      React.createElement("div", { "data-testid": "grafico-peso", "data-puntos": String(data.length), "data-serie": series ?? "weight" }),
   };
 });
 
@@ -124,6 +127,41 @@ describe("pantalla Progreso", () => {
     expect(screen.getByText(`-${formatNumber(0.5, 1)}`)).toBeInTheDocument(); // cambio
     expect(screen.getByText(formatNumber(18.5, 1))).toBeInTheDocument(); // grasa
     expect(screen.getByTestId("grafico-peso")).toHaveAttribute("data-puntos", "2");
+  });
+
+  it("con medidas de grasa, el gráfico pasa del peso a la grasa; sin ellas no hay que elegir", async () => {
+    const user = userEvent.setup();
+    weights = [
+      weightDto({ id: "w-1", measuredAt: at(daysAgo(5)), weightKg: 80 }),
+      weightDto({ id: "w-2", measuredAt: at(daysAgo(1)), weightKg: 79.5, bodyFatPct: 18.5 }),
+    ];
+    render(<ProgresoPage />);
+
+    expect(await screen.findByTestId("grafico-peso")).toHaveAttribute("data-serie", "weight");
+    expect(screen.getByRole("radio", { name: t.stats.legendWeight })).toHaveAttribute("aria-checked", "true");
+    await user.click(screen.getByRole("radio", { name: t.stats.legendBodyFat }));
+    expect(screen.getByTestId("grafico-peso")).toHaveAttribute("data-serie", "bodyFat");
+  });
+
+  it("sin medidas de grasa no ofrece elegir", async () => {
+    weights = [
+      weightDto({ id: "w-1", measuredAt: at(daysAgo(5)), weightKg: 80 }),
+      weightDto({ id: "w-2", measuredAt: at(daysAgo(1)), weightKg: 79.5 }),
+    ];
+    render(<ProgresoPage />);
+    await screen.findByTestId("grafico-peso");
+    expect(screen.queryByRole("radio", { name: t.stats.legendBodyFat })).toBeNull();
+  });
+
+  it("el gráfico de calorías nombra cada día, la media de 7 días y el rango objetivo", async () => {
+    weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(1)), weightKg: 80 })];
+    meals = [meal(daysAgo(1), 2000, 150, 200, 60), meal(daysAgo(3), 2200, 130, 250, 70)];
+    render(<ProgresoPage />);
+
+    const legend = within(await screen.findByTestId("calories-chart")).getByTestId("chart-legend");
+    expect(legend).toHaveTextContent(t.stats.dailyIntake);
+    expect(legend).toHaveTextContent(t.stats.trendLine);
+    expect(legend).toHaveTextContent(t.progreso.targetBand);
   });
 
   it("promedia solo los días registrados y muestra reparto y objetivos", async () => {

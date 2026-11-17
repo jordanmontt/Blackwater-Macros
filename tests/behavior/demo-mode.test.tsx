@@ -15,9 +15,11 @@ import {
   getDemoSettings,
 } from "@/lib/demo-store";
 import type { MealPayload } from "@/lib/api";
+import { applyLanguage, currentLanguage, dictionaryFor } from "@/i18n";
 
 /**
  * Requisitos del modo demo local:
+ *  - las comidas de ejemplo van en el idioma de la app (un francés no ve «Cena»),
  *  - se entra solo con el navegador (cookie + sessionStorage), sin credenciales,
  *  - el dataset de ejemplo está poblado y anclado al día actual (el día de hoy
  *    no está vacío),
@@ -78,6 +80,21 @@ describe("modo demo local", () => {
     expect(desayuno!.entryMode).toBe("per_ingredient");
     expect(desayuno!.resolvedCalories).toBeGreaterThan(0);
     expect(desayuno!.resolvedProtein).toBeGreaterThan(0);
+  });
+
+  it("las comidas de ejemplo van en el idioma de la app, con las mismas cantidades", () => {
+    const spanish = buildDemoStore(TODAY);
+    const before = currentLanguage();
+    applyLanguage("fr");
+    try {
+      const french = buildDemoStore(TODAY);
+      const fr = dictionaryFor("fr").demoData;
+      expect(french.templates.map((template) => template.name)).toEqual([fr.breakfast, fr.lightDinner]);
+      expect(french.meals.map((meal) => meal.title)).not.toContain("Cena");
+      expect(french.meals.map((meal) => meal.resolvedCalories)).toEqual(spanish.meals.map((meal) => meal.resolvedCalories));
+    } finally {
+      applyLanguage(before);
+    }
   });
 
   it("el dataset es reproducible con la misma semilla", () => {

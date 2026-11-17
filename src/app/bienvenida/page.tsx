@@ -355,7 +355,7 @@ function AiStep({ onBack, onDone }: { onBack: () => void; onDone: () => void }) 
           </div>
           <p role="status" className="min-h-5">
             {test === "ok" ? (
-              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                 <CheckCircle2Icon className="size-4" /> {t.ai.testOk}
               </span>
             ) : typeof test === "object" ? (

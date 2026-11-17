@@ -51,7 +51,6 @@
     <string name="day_totals">Daily totals</string>
     <string name="macro_protein">Protein</string>
     <string name="range_all">All</string>
-    <string name="chart_value">Value</string>
     <string name="chart_average">Average</string>
     <string name="chart_fat_axis">Fat (%)</string>
     <string name="weight_add">Log weight</string>

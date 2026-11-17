@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { DumbbellIcon, FlameIcon } from "lucide-react";
+import { ChevronRightIcon, DumbbellIcon, FlameIcon } from "lucide-react";
 import { formatNumber } from "@/i18n/format";
 import { Card, CardContent } from "@/components/ui/card";
+import { Sheet } from "@/components/ui/sheet";
 import { ExpenditureNotices, formulaInputs } from "@/components/expenditure-check";
 import { useExpenditureCheck } from "@/lib/use-measured-expenditure";
 import { useRecommendations } from "@/lib/use-recommendations";
@@ -34,21 +36,21 @@ function intakeStatus(
   overIsFine = false,
 ): { statusLabel: string; statusColor: string; overIsFine: boolean } {
   if (current >= rangeMin && current <= rangeMax) {
-    return { statusLabel: inRangeLabel, statusColor: "text-green-600 dark:text-green-400", overIsFine };
+    return { statusLabel: inRangeLabel, statusColor: "text-green-700 dark:text-green-400", overIsFine };
   }
   if (current < rangeMin) {
     const missingMin = formatNumber(Math.round(rangeMin - current), 0);
     const missingMax = formatNumber(Math.round(rangeMax - current), 0);
     return {
       statusLabel: formatTemplate(missingTemplate, { min: missingMin, max: missingMax }),
-      statusColor: "text-yellow-600 dark:text-yellow-400",
+      statusColor: "text-amber-700 dark:text-yellow-400",
       overIsFine,
     };
   }
   const exceeded = formatNumber(Math.round(current - rangeMax), 0);
   return {
     statusLabel: formatTemplate(exceededTemplate, { min: exceeded }),
-    statusColor: overIsFine ? "text-muted-foreground" : "text-orange-600 dark:text-orange-400",
+    statusColor: overIsFine ? "text-muted-foreground" : "text-orange-700 dark:text-orange-400",
     overIsFine,
   };
 }
@@ -61,6 +63,7 @@ function intakeStatus(
  * words: eaten / target.
  */
 function IntakeBar({
+  title,
   current,
   rangeMin,
   rangeMax,
@@ -69,6 +72,8 @@ function IntakeBar({
   statusColor,
   overIsFine,
 }: {
+  /** «Calorías · Definición»: what is measured, left of the numbers. */
+  title: ReactNode;
   current: number;
   rangeMin: number;
   rangeMax: number;
@@ -82,11 +87,11 @@ function IntakeBar({
   const toPct = (v: number) => Math.min(Math.max((v / scaleMax) * 100, 0), 100);
   const over = current > rangeMax && !overIsFine;
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-baseline justify-between gap-2 text-xs">
-        <span className={statusColor}>{statusLabel}</span>
-        <span className="shrink-0 tabular-nums text-muted-foreground">
-          <span className="font-semibold text-foreground">{formatNumber(Math.round(current), 0)}</span>
+    <div className="space-y-1">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-sm font-medium">{title}</span>
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+          <span className="text-sm font-semibold text-foreground">{formatNumber(Math.round(current), 0)}</span>
           {" / "}
           {formatNumber(rangeMin, 0)}–{formatNumber(rangeMax, 0)} {unit}
         </span>
@@ -114,24 +119,47 @@ function IntakeBar({
           />
         ))}
       </div>
+      <p className={cn("text-xs", statusColor)}>{statusLabel}</p>
+    </div>
+  );
+}
+
+/** One total with no target to compare with (carbs, fat; or anything before there is a weight). */
+function PlainTotal({ label, value, unit }: { label: string; value: string; unit: string }) {
+  return (
+    <span className="whitespace-nowrap">
+      {label} <span className="font-semibold tabular-nums text-foreground">{value}</span> {unit}
+    </span>
+  );
+}
+
+/** A label and its value on one line of «¿Por qué estos números?» (no colon: each language punctuates its own). */
+function DetailRow({ label, children }: { label: ReactNode; children: ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-1.5">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="shrink-0 text-right tabular-nums">{children}</dd>
     </div>
   );
 }
 
 /**
- * Collapsed calorie + protein recommendation card: both ranges in a single card,
- * with the intake bars for the selected day.
+ * Comidas' summary of the day: calories and protein against their ranges (a bar
+ * each, with what is missing or over in words), carbs and fat as plain totals,
+ * and the expenditure check's notices. Where the ranges come from (BMR, TDEE,
+ * measured expenditure, protein per kg) is one tap away in «¿Por qué estos
+ * números?», so the day's meals start on the first screen: message first, then
+ * the user's numbers, then the methodology. A past `day` keeps the targets it had.
  */
-export function NutritionRecommendationsCard({
+export function DaySummaryCard({
   day,
-  dailyCalories,
-  dailyProtein,
+  totals,
 }: {
-  /** The day shown (today when omitted): a past day keeps the targets it had. */
+  /** The day shown (today when omitted). */
   day?: string;
-  dailyCalories: number;
-  dailyProtein: number;
+  totals: { calories: number; protein: number; carbs: number; fat: number };
 }) {
+  const [whyOpen, setWhyOpen] = useState(false);
   const today = useRecommendations();
   const { profile, latestWeight } = today;
   const { calorieRec, proteinRec, measuredOn } = useRecommendations(day);
@@ -146,133 +174,157 @@ export function NutritionRecommendationsCard({
       calorieRec?.targetMax !== today.calorieRec?.targetMax ||
       proteinRec?.range.min !== today.proteinRec?.range.min ||
       proteinRec?.range.max !== today.proteinRec?.range.max);
-
-  if (!latestWeight) {
-    return (
-      <Card>
-        <CardContent className="px-4 py-3 text-center text-sm text-muted-foreground">
-          {t.protein.noWeight}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!calorieRec && !proteinRec) return null;
+  const hasTargets = latestWeight !== null && (calorieRec !== null || proteinRec !== null);
 
   return (
-    <Card>
-      <CardContent className="grid gap-4 px-4 pb-4 sm:grid-cols-2">
-        {calorieRec ? (
-          <section className="flex flex-col gap-2.5">
-            <div className="flex items-center gap-1.5 text-sm font-medium">
-              <FlameIcon className="size-4" /> {t.calorias.recommendationTitle}
-              <span className="text-xs font-normal text-muted-foreground">
-                · {GOAL_LABELS[calorieRec.goal]}
-              </span>
-            </div>
-            <p className="text-2xl font-semibold tabular-nums">
-              {formatNumber(calorieRec.targetMin)} – {formatNumber(calorieRec.targetMax)}{" "}
-              <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {formatTemplate(t.calorias.estimatedAverageValue, {
-                n: formatNumber(calorieRec.target),
-              })}{" "}
-              {t.calorias.perDay}
-            </p>
-            {/* Where the target comes from (same breakdown as Ajustes → Perfil). */}
-            <div className="space-y-0.5 text-xs text-muted-foreground">
-              <p>
-                {t.calorias.bmr}:{" "}
-                <span className="whitespace-nowrap">{formatNumber(calorieRec.bmr)} {t.calorias.perDay}</span>
-              </p>
-              <p>
-                {t.calorias.tdee}:{" "}
-                <span className="whitespace-nowrap">{formatNumber(calorieRec.tdee)} {t.calorias.perDay}</span>
-              </p>
-              {measured ? (
-                <p>
-                  {t.calorias.measuredTdee}:{" "}
-                  <span className="whitespace-nowrap">
-                    {formatTemplate(t.calorias.measuredTdeeValue, {
-                      n: formatNumber(measured.tdee),
-                      margin: formatNumber(measured.margin),
-                    })}
-                  </span>
-                </p>
-              ) : null}
-              {calorieRec.dataShare > 0 ? <TargetExpenditure rec={calorieRec} /> : null}
-            </div>
-            {isToday ? (
-              <ExpenditureNotices
-                check={check}
-                inputs={formulaInputs(profile, latestWeight.weightKg, new Date().getFullYear())}
-              />
-            ) : null}
-            {/* mt-auto: both columns' bars sit at the bottom, aligned side by side on desktop. */}
-            <div className="mt-auto pt-1">
-              <IntakeBar
-                current={dailyCalories}
-                rangeMin={calorieRec.targetMin}
-                rangeMax={calorieRec.targetMax}
-                unit={t.hoy.kcalUnit}
-                {...intakeStatus(
-                  dailyCalories,
-                  calorieRec.targetMin,
-                  calorieRec.targetMax,
-                  t.calorias.missingCalories,
-                  t.calorias.exceededCalories,
-                  t.calorias.inRange,
-                )}
-              />
-            </div>
-          </section>
+    <Card className="py-3">
+      <CardContent className="space-y-3 px-4">
+        {latestWeight && calorieRec ? (
+          <IntakeBar
+            title={
+              <>
+                {t.hoy.calories}
+                <span className="font-normal text-muted-foreground"> · {GOAL_LABELS[calorieRec.goal]}</span>
+              </>
+            }
+            current={totals.calories}
+            rangeMin={calorieRec.targetMin}
+            rangeMax={calorieRec.targetMax}
+            unit={t.hoy.kcalUnit}
+            {...intakeStatus(
+              totals.calories,
+              calorieRec.targetMin,
+              calorieRec.targetMax,
+              t.calorias.missingCalories,
+              t.calorias.exceededCalories,
+              t.calorias.inRange,
+            )}
+          />
         ) : null}
-
-        {proteinRec ? (
-          <section className="flex flex-col gap-2.5">
-            <div className="flex items-center gap-1.5 text-sm font-medium">
-              <DumbbellIcon className="size-4" /> {t.protein.recommendationTitle}
-              <span className="text-xs font-normal text-muted-foreground">
-                · {GOAL_LABELS[proteinRec.goal]}
-              </span>
-            </div>
-            <p className="text-2xl font-semibold tabular-nums">
-              {proteinRec.range.min} – {proteinRec.range.max}{" "}
-              <span className="text-sm font-normal text-muted-foreground">{t.calorias.gPerDay}</span>
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} {t.calorias.gPerDay}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {proteinPerKgText(proteinRec)}
-            </p>
-            <div className="mt-auto pt-1">
-              <IntakeBar
-                current={dailyProtein}
-                rangeMin={proteinRec.range.min}
-                rangeMax={proteinRec.range.max}
-                unit="g"
-                {...intakeStatus(
-                  dailyProtein,
-                  proteinRec.range.min,
-                  proteinRec.range.max,
-                  t.protein.missingProtein,
-                  t.protein.aboveRangeBy,
-                  t.protein.inRange,
-                  true,
-                )}
-              />
-            </div>
-          </section>
+        {latestWeight && proteinRec ? (
+          <IntakeBar
+            title={t.hoy.protein}
+            current={totals.protein}
+            rangeMin={proteinRec.range.min}
+            rangeMax={proteinRec.range.max}
+            unit={t.hoy.proteinUnit}
+            {...intakeStatus(
+              totals.protein,
+              proteinRec.range.min,
+              proteinRec.range.max,
+              t.protein.missingProtein,
+              t.protein.aboveRangeBy,
+              t.protein.inRange,
+              true,
+            )}
+          />
         ) : null}
-
+        {isToday && latestWeight && calorieRec ? (
+          <ExpenditureNotices
+            check={check}
+            inputs={formulaInputs(profile, latestWeight.weightKg, new Date().getFullYear())}
+          />
+        ) : null}
+        <div
+          className={cn(
+            "flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-muted-foreground",
+            hasTargets && "border-t pt-2",
+          )}
+        >
+          <span className="flex flex-wrap gap-x-3 gap-y-1">
+            {hasTargets ? null : (
+              <>
+                <PlainTotal label={t.hoy.calories} value={formatNumber(totals.calories)} unit={t.hoy.kcalUnit} />
+                <PlainTotal label={t.hoy.protein} value={formatNumber(totals.protein, 1)} unit={t.hoy.proteinUnit} />
+              </>
+            )}
+            <PlainTotal label={t.hoy.carbs} value={formatNumber(totals.carbs, 1)} unit={t.hoy.gramUnit} />
+            <PlainTotal label={t.hoy.fat} value={formatNumber(totals.fat, 1)} unit={t.hoy.gramUnit} />
+          </span>
+          {hasTargets ? (
+            <button
+              type="button"
+              onClick={() => setWhyOpen(true)}
+              className="-my-2 inline-flex min-h-11 items-center gap-0.5 font-medium text-primary hover:underline"
+            >
+              {t.hoy.whyNumbers}
+              <ChevronRightIcon className="size-3.5" />
+            </button>
+          ) : null}
+        </div>
+        {latestWeight ? null : <p className="text-xs text-muted-foreground">{t.protein.noWeight}</p>}
         {differsFromToday ? (
-          <p className="text-xs text-muted-foreground sm:col-span-2" data-testid="past-day-targets">
+          <p className="text-xs text-muted-foreground" data-testid="past-day-targets">
             {t.calorias.pastDayTargets}
           </p>
         ) : null}
       </CardContent>
+      {hasTargets ? (
+        <Sheet open={whyOpen} onOpenChange={setWhyOpen} title={t.hoy.whyNumbers}>
+          <div className="space-y-5 pb-2 text-sm">
+            {calorieRec ? (
+              <section className="space-y-1">
+                <h3 className="flex items-center gap-1.5 font-medium">
+                  <FlameIcon className="size-4" /> {t.calorias.recommendationTitle}
+                  <span className="text-xs font-normal text-muted-foreground">· {GOAL_LABELS[calorieRec.goal]}</span>
+                </h3>
+                <p className="text-2xl font-semibold tabular-nums">
+                  {formatNumber(calorieRec.targetMin)} – {formatNumber(calorieRec.targetMax)}{" "}
+                  <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatTemplate(t.calorias.estimatedAverageValue, { n: formatNumber(calorieRec.target) })}{" "}
+                  {t.calorias.perDay}
+                </p>
+                <dl className="mt-2 divide-y rounded-lg border px-3 text-xs">
+                  {calorieRec.dataShare > 0 ? (
+                    <DetailRow label={<TargetExpenditure rec={calorieRec} labelOnly />}>
+                      {formatTemplate(t.calorias.targetExpenditureValue, {
+                        n: formatNumber(calorieRec.expenditure),
+                        share: formatNumber(Math.round(calorieRec.dataShare * 100)),
+                      })}
+                    </DetailRow>
+                  ) : null}
+                  {measured ? (
+                    <DetailRow label={t.calorias.measuredTdee}>
+                      {formatTemplate(t.calorias.measuredTdeeValue, {
+                        n: formatNumber(measured.tdee),
+                        margin: formatNumber(measured.margin),
+                      })}
+                    </DetailRow>
+                  ) : null}
+                  <DetailRow label={t.calorias.tdee}>
+                    {formatNumber(calorieRec.tdee)} {t.calorias.perDay}
+                  </DetailRow>
+                  <DetailRow label={t.calorias.bmr}>
+                    {formatNumber(calorieRec.bmr)} {t.calorias.perDay}
+                  </DetailRow>
+                </dl>
+              </section>
+            ) : null}
+            {proteinRec ? (
+              <section className="space-y-1">
+                <h3 className="flex items-center gap-1.5 font-medium">
+                  <DumbbellIcon className="size-4" /> {t.protein.recommendationTitle}
+                </h3>
+                <p className="text-2xl font-semibold tabular-nums">
+                  {proteinRec.range.min} – {proteinRec.range.max}{" "}
+                  <span className="text-sm font-normal text-muted-foreground">{t.calorias.gPerDay}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} {t.calorias.gPerDay}
+                </p>
+                <p className="text-xs text-muted-foreground">{proteinPerKgText(proteinRec)}</p>
+              </section>
+            ) : null}
+            {differsFromToday ? <p className="text-xs text-muted-foreground">{t.calorias.pastDayTargets}</p> : null}
+            <Link href="/metodologia" className="inline-flex min-h-11 items-center gap-0.5 font-medium text-primary hover:underline">
+              {t.hoy.fullMethodology}
+              <ChevronRightIcon className="size-4" />
+            </Link>
+          </div>
+        </Sheet>
+      ) : null}
     </Card>
   );
 }
@@ -282,17 +334,24 @@ export function NutritionRecommendationsCard({
  * target is built on, once the measured expenditure counts (`combineExpenditure`).
  * It opens how (`/metodologia#adaptive`).
  */
-export function TargetExpenditure({ rec }: { rec: CalorieRecommendation }) {
+export function TargetExpenditure({ rec, labelOnly = false }: { rec: CalorieRecommendation; labelOnly?: boolean }) {
+  if (labelOnly) {
+    return (
+      <Link href="/metodologia#adaptive" className="underline-offset-2 hover:underline">
+        {t.calorias.targetExpenditure}
+      </Link>
+    );
+  }
   return (
     <p>
       <Link href="/metodologia#adaptive" className="hover:underline">
-        {t.calorias.targetExpenditure}:{" "}
-        <span className="whitespace-nowrap">
-          {formatTemplate(t.calorias.targetExpenditureValue, {
+        {formatTemplate(t.common.labelValue, {
+          label: t.calorias.targetExpenditure,
+          value: formatTemplate(t.calorias.targetExpenditureValue, {
             n: formatNumber(rec.expenditure),
             share: formatNumber(Math.round(rec.dataShare * 100)),
-          })}
-        </span>
+          }),
+        })}
       </Link>
     </p>
   );

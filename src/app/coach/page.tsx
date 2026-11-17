@@ -1,11 +1,11 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { PageHeader } from "@/components/page-header";
+import { Fragment, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { ArrowUpIcon, CopyIcon, ImagePlusIcon, MessageSquarePlusIcon, SparklesIcon, SquareIcon, XIcon } from "lucide-react";
+import { ArrowUpIcon, CopyIcon, ImagePlusIcon, MessageCircleIcon, MessageSquarePlusIcon, SparklesIcon, SquareIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { resetCoach, sendCoachMessage, stopCoach, useCoachChat, type ChatMessage } from "@/lib/ai/coach-chat";
 import { isCoachReady, useAiSettings } from "@/lib/ai/settings";
@@ -20,10 +20,41 @@ import { formatTemplate, t } from "@/i18n";
  * The conversation lives in memory only; each question carries a fresh
  * summary of the user's data when «El coach puede ver mis datos» is on.
  */
+/** A question tapped before AI was set up: it waits in the box when the coach is ready (never sent by itself). */
+const PENDING_QUESTION_KEY = "bw:coach-pending-question";
+
+function savePendingQuestion(question: string) {
+  try {
+    sessionStorage.setItem(PENDING_QUESTION_KEY, question);
+  } catch {
+    // Storage blocked: the question is simply not kept.
+  }
+}
+
+function readPendingQuestion(): string | null {
+  try {
+    return sessionStorage.getItem(PENDING_QUESTION_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function clearPendingQuestion() {
+  try {
+    sessionStorage.removeItem(PENDING_QUESTION_KEY);
+  } catch {
+    // Storage blocked: nothing was kept.
+  }
+}
+
+/** Only this page writes the pending question, and it re-renders itself when it does. */
+const subscribeNever = () => () => {};
+
 export default function CoachPage() {
   const settings = useAiSettings();
   const chat = useCoachChat();
-  const [draft, setDraft] = useState("");
+  // null until the user types: then a question waiting from before the setup no longer shows.
+  const [draft, setDraft] = useState<string | null>(null);
   // Photos for the next question: in memory only, dropped once sent or removed.
   const [photos, setPhotos] = useState<AiImage[]>([]);
   const photoInput = useRef<HTMLInputElement>(null);
@@ -31,6 +62,9 @@ export default function CoachPage() {
   const browserModel = useBrowserModel();
   const ready = isCoachReady(settings, browserModel.status === "ready");
   const onBrowser = settings.coachEngine === "browser";
+  // Once the coach is ready, a question tapped before setup waits in the box until edited or sent.
+  const pending = useSyncExternalStore(subscribeNever, readPendingQuestion, () => null);
+  const text = draft ?? (ready ? (pending ?? "") : "");
 
   useEffect(() => {
     if (onBrowser) void checkBrowserModel();
@@ -44,6 +78,7 @@ export default function CoachPage() {
   function send(text: string) {
     if ((text.trim() === "" && photos.length === 0) || chat.streaming) return;
     setDraft("");
+    clearPendingQuestion();
     setPhotos([]);
     void sendCoachMessage(text, photos);
   }
@@ -68,24 +103,45 @@ export default function CoachPage() {
 
   return (
     <main className="mx-auto flex min-h-[calc(100dvh-5.5rem)] w-full max-w-2xl flex-col gap-4 px-4 pt-4 md:min-h-[calc(100dvh-5rem)] md:pt-6">
-      <header className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">{t.coach.title}</h1>
-        {chat.messages.length > 0 ? (
-          <Button variant="outline" size="sm" onClick={resetCoach}>
-            <MessageSquarePlusIcon /> {t.coach.newChat}
-          </Button>
-        ) : null}
-      </header>
+      <PageHeader
+        title={t.coach.title}
+        end={
+          chat.messages.length > 0 ? (
+            <Button variant="outline" size="sm" onClick={resetCoach}>
+              <MessageSquarePlusIcon /> {t.coach.newChat}
+            </Button>
+          ) : null
+        }
+      />
 
       {!ready ? (
-        <Card>
-          <CardContent className="space-y-3 pt-4 text-sm">
-            <p>{t.coach.notConfigured}</p>
-            <Button nativeButton={false} render={<Link href="/ajustes/ia" />}>
-              <SparklesIcon /> {t.coach.configure}
-            </Button>
-          </CardContent>
-        </Card>
+        <section className="flex flex-col items-center gap-3 px-2 pt-6 text-center">
+          <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <MessageCircleIcon className="size-6" />
+          </span>
+          <h2 className="text-base font-semibold">{t.coach.emptyTitle}</h2>
+          <p className="max-w-sm text-sm text-muted-foreground">{t.coach.emptyBody}</p>
+          <ul className="flex flex-col items-center gap-2" aria-label={t.coach.examplesNotReady}>
+            {t.coach.examples.slice(0, 3).map((example) => (
+              <li key={example}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-auto rounded-full py-1.5 whitespace-normal"
+                  nativeButton={false}
+                  render={<Link href="/ajustes/ia" onClick={() => savePendingQuestion(example)} />}
+                >
+                  {example}
+                </Button>
+              </li>
+            ))}
+          </ul>
+          <p className="max-w-sm text-xs text-muted-foreground">{t.coach.examplesNotReady}</p>
+          <Button nativeButton={false} render={<Link href="/ajustes/ia" />}>
+            <SparklesIcon /> {t.coach.configure}
+          </Button>
+          <p className="max-w-sm text-xs text-muted-foreground">{t.coach.notConfigured}</p>
+        </section>
       ) : (
         <>
           <div className="flex-1">
@@ -124,7 +180,7 @@ export default function CoachPage() {
             className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-10 -mx-4 space-y-1.5 border-t bg-background/95 px-4 pt-2 pb-2 backdrop-blur md:bottom-0"
             onSubmit={(event) => {
               event.preventDefault();
-              send(draft);
+              send(text);
             }}
           >
             {photos.length > 0 ? (
@@ -182,12 +238,15 @@ export default function CoachPage() {
                 placeholder={t.coach.placeholder}
                 rows={1}
                 className="max-h-40 min-h-10 resize-none"
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
+                value={text}
+                onChange={(event) => {
+                  clearPendingQuestion();
+                  setDraft(event.target.value);
+                }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
                     event.preventDefault();
-                    send(draft);
+                    send(text);
                   }
                 }}
               />
@@ -196,7 +255,7 @@ export default function CoachPage() {
                   <SquareIcon />
                 </Button>
               ) : (
-                <Button type="submit" size="icon" aria-label={t.coach.send} disabled={draft.trim() === "" && photos.length === 0}>
+                <Button type="submit" size="icon" aria-label={t.coach.send} disabled={text.trim() === "" && photos.length === 0}>
                   <ArrowUpIcon />
                 </Button>
               )}

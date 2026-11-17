@@ -144,6 +144,13 @@ class CoachViewModel(
     /** For «Gemma 4 E2B · teléfono» under the chat. */
     val localModelSpec: StateFlow<LocalModelSpec> = AppGraph.localModels.selected,
 ) : ViewModel() {
+    /**
+     * A question tapped before AI was set up: the Coach screen puts it in the box once
+     * the coach is ready (never sent by itself). The model is the activity's, so it
+     * survives the trip to Ajustes → IA and back.
+     */
+    var pendingQuestion: String? = null
+
 
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()

@@ -59,7 +59,13 @@ import com.blackwatermacros.app.core.DataPoint
 import com.blackwatermacros.app.core.MacroAverages
 import com.blackwatermacros.app.data.WeightDTO
 import com.blackwatermacros.app.ui.chart.TrendChart
+import com.blackwatermacros.app.ui.chart.WeightChartSeries
 import com.blackwatermacros.app.ui.chart.WeightFatChart
+import androidx.compose.material3.FilterChip
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 /**
  * Progreso: one period selector for the whole screen; weight summary and chart,
@@ -268,8 +274,26 @@ private fun WeightCard(progress: Progress) {
                 MiniStat(stringResource(R.string.progress_body_fat), w.currentBodyFatPct, "%", 1, signed = false, Modifier.weight(1f))
             }
             if (progress.weightRows.size > 1) {
+                // One axis at a time: weight, or body fat when there are measurements (web: the same chips).
+                val hasBodyFat = progress.weightRows.any { it.bodyFatPct != null }
+                var series by rememberSaveable { mutableStateOf(WeightChartSeries.WEIGHT) }
                 Spacer(Modifier.height(12.dp))
-                WeightFatChart(progress.weightRows, Modifier.fillMaxWidth())
+                if (hasBodyFat) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(
+                            WeightChartSeries.WEIGHT to R.string.chart_weigh_ins,
+                            WeightChartSeries.BODY_FAT to R.string.chart_body_fat,
+                        ).forEach { (value, label) ->
+                            FilterChip(
+                                selected = series == value,
+                                onClick = { series = value },
+                                label = { Text(stringResource(label)) },
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+                WeightFatChart(progress.weightRows, Modifier.fillMaxWidth(), if (hasBodyFat) series else WeightChartSeries.WEIGHT)
             }
         }
     }

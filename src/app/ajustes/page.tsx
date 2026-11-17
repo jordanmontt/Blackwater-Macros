@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import { AUTHOR_NAME, AUTHOR_URL, SOURCE_CODE_URL, WEBSITE_URL } from "@/lib/links";
 import { useState } from "react";
 import { formatNumber } from "@/i18n/format";
@@ -64,10 +65,11 @@ export default function AjustesPage() {
   const isAdmin = session?.isAdmin ?? false;
   const templates = templatesRes.data ?? [];
 
+  // The default first, in Android's order.
   const themeOptions = [
+    { value: "system", label: t.ajustes.themeSystem },
     { value: "light", label: t.ajustes.themeLight },
     { value: "dark", label: t.ajustes.themeDark },
-    { value: "system", label: t.ajustes.themeSystem },
   ];
 
   async function handleLogout() {
@@ -113,15 +115,12 @@ export default function AjustesPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pt-4 pb-6 md:pt-6">
-      <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t.ajustes.title}</h1>
-        </div>
-      </header>
+      <PageHeader title={t.ajustes.title} />
 
       <SettingsGroup title={t.ajustes.groupAccount}>
         <SettingsRow icon={CircleUserRoundIcon} title={demoMode ? t.demo.mode : `${t.ajustes.loggedInAs} ${username || "…"}`} />
-        <SettingsRow icon={LogOutIcon} title={t.auth.logout} onClick={() => void handleLogout()} />
+        {/* In the demo there is no account to log out of: the row leaves the demo. */}
+        <SettingsRow icon={LogOutIcon} title={demoMode ? t.demo.leave : t.auth.logout} onClick={() => void handleLogout()} />
       </SettingsGroup>
 
       <SettingsGroup title={t.ajustes.groupPersonal}>
@@ -235,16 +234,15 @@ export default function AjustesPage() {
       <SettingsGroup
         title={t.ajustes.exportSection}
         footer={
-          <>
-            <p>{t.ajustes.exportHint}</p>
-            {demoMode ? <p>{t.ajustes.exportDemoDisabled}</p> : null}
-          </>
+          <p>{t.ajustes.exportHint}</p>
         }
       >
         {/* One file with everything (core/backup.ts); `day` names it after the browser's date. */}
         <SettingsRow
           icon={DownloadIcon}
           title={t.ajustes.exportData}
+          // Why it is off, on the row itself rather than under the group.
+          description={demoMode ? t.ajustes.exportDemoDisabled : undefined}
           href={`/api/export?day=${todayKey()}`}
           download
           disabled={demoMode}

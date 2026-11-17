@@ -93,6 +93,7 @@ describe("Coach", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    sessionStorage.clear();
     resetCoach();
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
@@ -102,10 +103,31 @@ describe("Coach", () => {
     vi.unstubAllGlobals();
   });
 
-  it("sin IA configurada lleva a Ajustes", () => {
+  it("sin IA configurada dice qué hace el coach, con ejemplos, y lleva a Ajustes", () => {
     render(<CoachPage />);
+    expect(screen.getByRole("heading", { name: t.coach.emptyTitle })).toBeInTheDocument();
+    expect(screen.getByText(t.coach.emptyBody)).toBeInTheDocument();
     expect(screen.getByText(t.coach.notConfigured)).toBeInTheDocument();
     expect(screen.getByText(t.coach.configure).closest("a")).toHaveAttribute("href", "/ajustes/ia");
+    // Each example also leads to the setup.
+    expect(screen.getByText(t.coach.examples[0]).closest("a")).toHaveAttribute("href", "/ajustes/ia");
+  });
+
+  it("una pregunta tocada antes de configurar la IA espera en el cuadro, sin enviarse sola", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<CoachPage />);
+    const example = screen.getByText(t.coach.examples[1]).closest("a")!;
+    example.addEventListener("click", (event) => event.preventDefault()); // happy-dom: stay on the page
+    await user.click(example);
+    unmount();
+
+    configure();
+    render(<CoachPage />);
+    expect(screen.getByLabelText(t.coach.placeholder)).toHaveValue(t.coach.examples[1]);
+    expect(fetchMock).not.toHaveBeenCalled();
+    // Editing it makes it the user's own text; it doesn't come back.
+    await user.clear(screen.getByLabelText(t.coach.placeholder));
+    expect(screen.getByLabelText(t.coach.placeholder)).toHaveValue("");
   });
 
   it("envía una pregunta de ejemplo con tus datos y muestra la respuesta por trozos", async () => {

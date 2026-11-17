@@ -47,7 +47,8 @@ export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardP
           <div className="flex min-w-0 items-center gap-1.5">
             <button
               type="button"
-              className="shrink-0 touch-none text-muted-foreground hover:text-foreground"
+              // A 44 px target around the 16 px grip; the negative margin keeps the card's layout.
+              className="-m-3.5 flex size-11 shrink-0 touch-none items-center justify-center text-muted-foreground hover:text-foreground"
               aria-label={t.meal.reorder}
               {...attributes}
               {...listeners}

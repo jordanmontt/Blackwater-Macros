@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.sp
 import com.blackwatermacros.app.core.DataPoint
 import com.blackwatermacros.app.core.movingAverageByDays
 import com.blackwatermacros.app.core.round1
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
 /**
@@ -65,9 +67,11 @@ fun TrendChart(
     val ringColor = MaterialTheme.colorScheme.background
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val surfaceColor = MaterialTheme.colorScheme.surface
-    val valueLabel = stringResource(R.string.chart_value)
+    val valueLabel = stringResource(R.string.chart_daily)
     val averageLabel = stringResource(R.string.chart_average)
-    val trendLabel = stringResource(R.string.chart_trend)
+    val trendLabel = stringResource(R.string.chart_trend_line)
+    // «Label: value» in the language's own punctuation («Valeur : 2100»), for the tooltip.
+    val labelValue = stringResource(R.string.label_value)
 
     val trend = movingAverageByDays(points, 7)
     val trendRows = points.mapIndexedNotNull { i, p ->
@@ -76,11 +80,12 @@ fun TrendChart(
 
     if (points.isEmpty()) return
 
-    val allValues = points.map { it.value }
-    val trendVals = trendRows.map { it.second }
-    val vMin = 0.0
-    val bandTops = bands.orEmpty().mapNotNull { it?.second }
-    val vMax = (allValues + trendVals + bandTops).maxOrNull()?.let { it * 1.15 } ?: 1.0
+    // Fitted to the days and the target band, not from 0: from 0 the days filled only the top
+    // fifth of the chart (web: the same rule on `YAxis domain`).
+    val allValues = points.map { it.value } + trendRows.map { it.second } +
+        bands.orEmpty().filterNotNull().flatMap { listOf(it.first, it.second) }
+    val vMin = maxOf(0.0, floor((allValues.min() - 150) / 100) * 100)
+    val vMax = ceil((allValues.max() + 150) / 100) * 100
 
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
     // Plot edges from the last draw (they follow the font size), for mapping taps.
@@ -225,8 +230,8 @@ fun TrendChart(
                 val row = points[si]
                 val lines = buildList {
                     add(formatDateShort(row.date))
-                    add("$valueLabel: ${formatNumber(row.value, 1)} $unit")
-                    trendRows.getOrNull(si)?.let { add("$averageLabel: ${formatNumber(it.second, 1)} $unit") }
+                    add(labelValue.format(valueLabel, "${formatNumber(row.value, 1)} $unit"))
+                    trendRows.getOrNull(si)?.let { add(labelValue.format(averageLabel, "${formatNumber(it.second, 1)} $unit")) }
                 }
                 drawSelection(x(si), plotTop, plotBottom, chartWidth, lines, labelColor, surfaceColor)
             }
@@ -240,6 +245,10 @@ fun TrendChart(
             LegendDot(color, valueLabel)
             Spacer(Modifier.width(12.dp))
             LegendDot(trendColor, trendLabel)
+            if (bands.orEmpty().any { it != null }) {
+                Spacer(Modifier.width(12.dp))
+                LegendDot(bandColor.copy(alpha = 0.45f), stringResource(R.string.chart_target_band))
+            }
         }
     }
 }

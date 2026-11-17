@@ -85,7 +85,8 @@ export function buildStatsFromData(
   const weightSeries = weightPoints.map((point, i) => ({
     date: point.date,
     weight: round2(point.value),
-    trend: trendValues[i] === null ? null : round1(trendValues[i] as number),
+    // Two decimals like the weight: at 0.1 kg the chart's bold trend line drew stairs.
+    trend: trendValues[i] === null ? null : round2(trendValues[i] as number),
   }));
 
   // --- Body fat % series (only entries with valid body fat data) ---

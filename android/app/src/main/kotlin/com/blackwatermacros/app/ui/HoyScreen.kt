@@ -69,7 +69,7 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 /** Number of fixed non-meal items emitted at the top of the meal LazyColumn. */
-private const val HEADER_COUNT = 2
+private const val HEADER_COUNT = 1
 
 /**
  * "Comidas/Hoy" screen matching the web `today` page: day navigator, daily
@@ -346,7 +346,7 @@ fun HoyScreen(
 private fun MealList(
     day: String,
     meals: List<MealDTO>,
-    totals: Totals,
+    totals: DayTotals,
     onEdit: (MealDTO) -> Unit,
     onSaveAsTemplate: (MealDTO) -> Unit,
     onDelete: (MealDTO) -> Unit,
@@ -368,10 +368,7 @@ private fun MealList(
         state = lazyListState,
         contentPadding = PaddingValues(bottom = 16.dp),
     ) {
-        item(key = "totals") { DailyTotalsCard(totals) }
-        item(key = "recommendations") {
-            NutritionRecommendationsCard(day, totals.calories, totals.protein, onOpenProfile, onOpenWeight, onOpenMethodology)
-        }
+        item(key = "summary") { DaySummaryCard(day, totals, onOpenProfile, onOpenWeight, onOpenMethodology) }
         items(meals, key = { it.id }) { meal ->
             ReorderableItem(reorderableState, key = meal.id) { isDragging ->
                 Surface(
@@ -397,7 +394,7 @@ private fun MealList(
 @Composable
 private fun EmptyDayContent(
     day: String,
-    totals: Totals,
+    totals: DayTotals,
     onOpenProfile: () -> Unit,
     onOpenWeight: () -> Unit,
     onOpenMethodology: (section: String?) -> Unit,
@@ -408,8 +405,7 @@ private fun EmptyDayContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        DailyTotalsCard(totals)
-        NutritionRecommendationsCard(day, totals.calories, totals.protein, onOpenProfile, onOpenWeight, onOpenMethodology)
+        DaySummaryCard(day, totals, onOpenProfile, onOpenWeight, onOpenMethodology)
         Spacer(Modifier.height(12.dp))
         Surface(
             onClick = onAdd,
@@ -511,58 +507,9 @@ internal fun DayNavigator(
     }
 }
 
-@Composable
-private fun DailyTotalsCard(totals: Totals) {
-    AppCard(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.day_totals),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Spacer(Modifier.height(12.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TotalCell(stringResource(R.string.total_calories), "${totals.calories.roundToLong()} kcal", Modifier.weight(1f))
-                TotalCell(stringResource(R.string.macro_protein), "${formatNumber(totals.protein, 1)} g", Modifier.weight(1f))
-            }
-            Spacer(Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TotalCell(stringResource(R.string.macro_carbs), "${formatNumber(totals.carbs, 1)} g", Modifier.weight(1f))
-                TotalCell(stringResource(R.string.macro_fat), "${formatNumber(totals.fat, 1)} g", Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-@Composable
-private fun TotalCell(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-        )
-    }
-}
-
-private data class Totals(
-    val calories: Double = 0.0,
-    val protein: Double = 0.0,
-    val carbs: Double = 0.0,
-    val fat: Double = 0.0,
-)
-
-private fun Totals(meals: List<MealDTO>): Totals =
-    meals.fold(Totals()) { acc, meal ->
-        Totals(
+private fun Totals(meals: List<MealDTO>): DayTotals =
+    meals.fold(DayTotals()) { acc, meal ->
+        DayTotals(
             calories = acc.calories + meal.resolvedCalories,
             protein = acc.protein + meal.resolvedProtein,
             carbs = acc.carbs + meal.resolvedCarbs,

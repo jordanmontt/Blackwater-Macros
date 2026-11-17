@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import AjustesPage from "@/app/ajustes/page";
 import { t } from "@/i18n";
 import { clearCache } from "@/lib/client-cache";
+import { enterDemoMode, exitDemoMode } from "@/lib/demo-store";
 import type { CalorieProfile, MealTemplateDTO } from "@/lib/core/types";
 import { emptyCalorieProfile, templateDto } from "../helpers/repos";
 
@@ -139,6 +140,18 @@ describe("pantalla Ajustes", () => {
     render(<AjustesPage />);
     expect(await screen.findByText("Sesión iniciada como ana")).toBeInTheDocument();
     expect(vi.mocked(api.listTemplates)).toHaveBeenCalledTimes(1);
+  });
+
+  it("en la demo, la fila de la cuenta sale de la demo y la exportación dice por qué está apagada", async () => {
+    enterDemoMode();
+    try {
+      render(<AjustesPage />);
+      expect(await screen.findByRole("button", { name: t.demo.leave })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: t.auth.logout })).toBeNull();
+      expect(screen.getByText(t.ajustes.exportData).closest("a")).toHaveTextContent(t.ajustes.exportDemoDisabled);
+    } finally {
+      exitDemoMode();
+    }
   });
 
   it("agrupa los ajustes, como en Android", async () => {

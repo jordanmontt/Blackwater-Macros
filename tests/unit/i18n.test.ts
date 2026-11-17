@@ -10,6 +10,8 @@ import { languageFromAcceptLanguage, resolveLanguage } from "@/i18n/languages";
  * Requisitos de los idiomas de la web (como los strings de Android):
  *  - cada idioma tiene las mismas claves y listas del mismo largo que el español,
  *  - y los mismos marcadores «{n}», para que ningún número desaparezca de una frase,
+ *  - el francés lleva espacio antes de «: ; ? !» y dentro de las comillas « … »
+ *    (las etiquetas con su valor usan `common.labelValue`, nunca «: » en el código),
  *  - la cookie manda; sin ella, el primer idioma soportado del navegador; si no, español.
  */
 
@@ -26,6 +28,18 @@ function flatten(value: unknown, path = ""): Entry[] {
 const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
 
 const reference = flatten(es);
+
+describe("tipografía francesa", () => {
+  // Links and clock times (10:32) are not punctuation.
+  const text = (value: string) => value.replace(/https?:\/\/\S+/g, "").replace(/\d:\d/g, "");
+
+  it("pone un espacio antes de : ; ? ! y dentro de « »", () => {
+    const wrong = flatten(fr).filter(
+      ({ value }) => /[^\s][:;?!]/.test(text(value)) || /«[^\s]|[^\s]»/.test(value),
+    );
+    expect(wrong).toEqual([]);
+  });
+});
 
 describe.each([
   ["en", en],

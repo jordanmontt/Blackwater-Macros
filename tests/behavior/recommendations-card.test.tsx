@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { formatTemplate, t } from "@/i18n";
-import { NutritionRecommendationsCard } from "@/components/nutrition-recommendations";
+import { DaySummaryCard } from "@/components/nutrition-recommendations";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import type { CalorieProfile, MealDTO, WeightDTO } from "@/lib/core/types";
 import { calculateCalorieRecommendation } from "@/lib/core/calories";
@@ -14,7 +14,9 @@ import { formatNumber } from "@/i18n/format";
  * de la pantalla "Hoy":
  *  - la cantidad que falta para alcanzar el objetivo se muestra como un rango
  *    ("te faltan X–Y"), no como un número exacto,
- *  - el número grande es el promedio estimado del rango, no un objetivo exacto,
+ *  - la tarjeta dice lo esencial (barras, lo que falta, hidratos y grasa); de dónde
+ *    sale el objetivo (TMB, TDEE, gasto medido, proteína por kg) está en «¿Por qué
+ *    estos números?», donde el número grande es el promedio estimado del rango,
  *  - si la ingesta está dentro del rango se indica "en rango",
  *  - si se excede se muestra un valor ("te pasaste de X"); en proteína, pasarse
  *    no es un problema: se dice en gris y la barra no cambia de color,
@@ -47,6 +49,17 @@ vi.mock("@/lib/api", () => ({
 import { api } from "@/lib/api";
 import { clearCache } from "@/lib/client-cache";
 
+/** The Comidas summary with the day's totals (carbs and fat don't matter here). */
+function card(calories: number, protein: number, day?: string) {
+  return <DaySummaryCard day={day} totals={{ calories, protein, carbs: 0, fat: 0 }} />;
+}
+
+/** «¿Por qué estos números?»: the sheet with where the ranges come from. */
+async function openWhy(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("button", { name: t.hoy.whyNumbers }));
+  return screen.findByRole("dialog", { name: t.hoy.whyNumbers });
+}
+
 const weight: WeightDTO = {
   id: "w1",
   measuredAt: "2026-01-01T00:00:00.000Z",
@@ -72,7 +85,7 @@ function logMeals(meals: MealDTO[]) {
   vi.mocked(api.stats).mockImplementation(async (range, today) => buildStatsFromData(sorted, [], range, today));
 }
 
-describe("tarjetas de recomendación", () => {
+describe("resumen del día (Comidas)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clearCache();
@@ -95,65 +108,72 @@ describe("tarjetas de recomendación", () => {
 
   it("muestra la cantidad que falta como un rango, no un número exacto", async () => {
     // Ingesta 2000 kcal, objetivo rango (p. ej. 2200–2400) → "te faltan 200–400 kcal"
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    render(card(2000, 50));
 
     const missing = await screen.findByText(/te faltan \d+–\d+ kcal/);
     expect(missing.textContent).toMatch(/te faltan \d+–\d+ kcal/);
     expect(missing.textContent).not.toMatch(/te faltan \d+ kcal/);
   });
 
-  it("acompaña el número grande con la etiqueta de promedio estimado", async () => {
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+  it("en «¿Por qué estos números?» el número grande va con la etiqueta de promedio estimado", async () => {
+    const user = userEvent.setup();
+    render(card(2000, 50));
 
     // la etiqueta aparece dentro de un párrafo con el rango → matcher de substring
-    const labels = await screen.findAllByText((content) => content.includes("Promedio estimado"));
+    const why = await openWhy(user);
+    const labels = within(why).getAllByText((content) => content.includes("Promedio estimado"));
     expect(labels.length).toBeGreaterThanOrEqual(2);
   });
 
   it("indica 'en rango' cuando la ingesta está dentro del objetivo", async () => {
-    render(<NutritionRecommendationsCard dailyCalories={2700} dailyProtein={110} />);
+    render(card(2700, 110));
 
     expect(await screen.findAllByText("en rango")).not.toHaveLength(0);
   });
 
   it("indica cuánto se ha pasado como un único valor (diferencia con el máximo)", async () => {
-    render(<NutritionRecommendationsCard dailyCalories={3000} dailyProtein={140} />);
+    render(card(3000, 140));
 
     const exceeded = await screen.findByText(/te pasaste de \d+ kcal/);
     expect(exceeded.textContent).toMatch(/te pasaste de \d+ kcal/);
     expect(exceeded.textContent).not.toMatch(/te pasaste de \d+–\d+ kcal/);
   });
 
-  it("explica de dónde sale el objetivo: metabolismo basal y gasto diario (TDEE)", async () => {
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+  it("la tarjeta dice lo esencial; de dónde sale el objetivo (TMB, TDEE) está a un toque", async () => {
+    const user = userEvent.setup();
+    render(card(2000, 50));
 
-    expect(await screen.findByText((content) => content.startsWith("Metabolismo basal (TMB):"))).toBeInTheDocument();
-    expect(screen.getByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"))).toBeInTheDocument();
+    // Message first: the bars and what is missing; the day's meals start on the first screen.
+    await screen.findByText(/te faltan \d+–\d+ kcal/);
+    expect(screen.queryByText(t.calorias.bmr)).toBeNull();
+    const why = await openWhy(user);
+    expect(within(why).getByText(t.calorias.bmr)).toBeInTheDocument();
+    expect(within(why).getByText(t.calorias.tdee)).toBeInTheDocument();
+    expect(within(why).getByRole("link", { name: t.hoy.fullMethodology })).toHaveAttribute("href", "/metodologia");
   });
 
-  it("muestra promedio, TMB y TDEE antes de la barra de progreso", async () => {
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
-    const tdee = await screen.findByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"));
-    const missing = screen.getByText(/te faltan \d+–\d+ kcal/);
-    // TDEE aparece antes que el estado de la barra en el orden del documento.
-    expect(tdee.compareDocumentPosition(missing) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  it("los hidratos y la grasa del día se ven como totales, sin objetivo", async () => {
+    render(<DaySummaryCard totals={{ calories: 2000, protein: 50, carbs: 217, fat: 89.5 }} />);
+    await screen.findByText(/te faltan \d+–\d+ kcal/);
+    expect(screen.getByText((_, el) => el?.tagName === "SPAN" && el.textContent === `${t.hoy.carbs} 217 g`)).toBeInTheDocument();
+    expect(screen.getByText((_, el) => el?.tagName === "SPAN" && el.textContent === `${t.hoy.fat} 89,5 g`)).toBeInTheDocument();
   });
 
   it("la barra muestra lo consumido frente al objetivo y cambia de color al pasarse", async () => {
-    const { rerender } = render(<NutritionRecommendationsCard dailyCalories={1200} dailyProtein={50} />);
+    const { rerender } = render(card(1200, 50));
     const bars = await screen.findAllByRole("progressbar");
     expect(bars[0]).toHaveAttribute("aria-valuenow", "1200");
     expect(screen.getAllByTestId("intake-fill")[0].className).toContain("bg-primary");
     // "consumido / mínimo–máximo kcal" en palabras, además de la barra
     expect(screen.getByText((_, el) => el?.tagName === "SPAN" && /^1\.?200 \/ [\d.]+–[\d.]+ kcal$/.test(el.textContent ?? ""))).toBeInTheDocument();
 
-    rerender(<NutritionRecommendationsCard dailyCalories={4000} dailyProtein={50} />);
+    rerender(card(4000, 50));
     expect(screen.getAllByTestId("intake-fill")[0].className).toContain("bg-tertiary");
   });
 
   it("pasarse de proteína no es un aviso: se dice en gris y la barra no cambia de color", async () => {
     // Mantenimiento con gimnasio, 80 kg: 1,6–2,2 g/kg → 128–176 g; 200 g son 24 g por encima.
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={200} />);
+    render(card(2000, 200));
 
     const above = await screen.findByText(formatTemplate(t.protein.aboveRangeBy, { min: "24" }));
     expect(above.className).toContain("text-muted-foreground");
@@ -194,20 +214,24 @@ describe("tarjetas de recomendación", () => {
   it("con 4 semanas de datos muestra el gasto medido junto al estimado", async () => {
     vi.mocked(api.listWeights).mockResolvedValue(weighIns(1));
     logMeals(mealsEveryDay(2500));
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    const user = userEvent.setup();
+    render(card(2000, 50));
 
     // Peso estable → gasto = ingesta media; pesaje diario → margen ±177
-    const measured = await screen.findByText((content) => content.startsWith("Gasto medido:"));
-    expect(measured.textContent).toMatch(/2\.?500 ± 177 kcal\/día/);
+    const why = await openWhy(user);
+    expect(within(why).getByText(t.calorias.measuredTdee)).toBeInTheDocument();
+    expect(within(why).getByText(/2\.?500 ± 177 kcal\/día/)).toBeInTheDocument();
   });
 
   it("con pesajes semanales el margen es demasiado grande y no lo muestra", async () => {
     vi.mocked(api.listWeights).mockResolvedValue(weighIns(7));
     logMeals(mealsEveryDay(2500));
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    const user = userEvent.setup();
+    render(card(2000, 50));
 
-    await screen.findByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"));
-    expect(screen.queryByText((content) => content.startsWith("Gasto medido:"))).toBeNull();
+    const why = await openWhy(user);
+    expect(within(why).getByText(t.calorias.tdee)).toBeInTheDocument();
+    expect(within(why).queryByText(t.calorias.measuredTdee)).toBeNull();
   });
 
   it("en definición con % de grasa, la proteína va por kg de masa magra", async () => {
@@ -217,11 +241,13 @@ describe("tarjetas de recomendación", () => {
       isAdmin: false,
       calorieProfile: { ...profile, calorieGoal: "cut" },
     });
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    const user = userEvent.setup();
+    render(card(2000, 50));
 
     // 80 kg al 20 % → 64 kg de masa magra × 2,3–3,1 → 147–198 g
-    expect(await screen.findByText("(2,3 – 3,1 g/kg de masa magra: 64 kg)")).toBeInTheDocument();
-    expect(screen.getByText((_, el) => el?.tagName === "P" && /^147 – 198\s/.test(el.textContent ?? ""))).toBeInTheDocument();
+    const why = await openWhy(user);
+    expect(within(why).getByText("(2,3 – 3,1 g/kg de masa magra: 64 kg)")).toBeInTheDocument();
+    expect(within(why).getByText((_, el) => el?.tagName === "P" && /^147 – 198\s/.test(el.textContent ?? ""))).toBeInTheDocument();
   });
 
   // Profile: man, 36 years, 180 cm, 80 kg → BMR 1750; 3 × 60 min of gym, 30 min walking → PAL 1,49;
@@ -245,7 +271,7 @@ describe("tarjetas de recomendación", () => {
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, -0.7));
     logMeals(meals(35, 2600));
     const user = userEvent.setup();
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    render(card(2000, 50));
 
     const notice = formatTemplate(t.expenditureCheck.noticeHigher, { gap: "750" });
     expect(await screen.findByText(notice)).toBeInTheDocument();
@@ -266,20 +292,23 @@ describe("tarjetas de recomendación", () => {
     // Perfil 2608 ± 10 %, medido 3370 ± 177: los datos pesan un 89 % → 3288; mantenimiento 3188–3388.
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, -0.7));
     logMeals(meals(35, 2600));
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    const user = userEvent.setup();
+    render(card(2000, 50));
 
-    const used = await screen.findByRole("link", { name: (name) => name.startsWith(t.calorias.targetExpenditure) });
-    expect(used).toHaveTextContent(formatTemplate(t.calorias.targetExpenditureValue, { n: "3288", share: "89" }));
+    const why = await openWhy(user);
+    const used = within(why).getByRole("link", { name: t.calorias.targetExpenditure });
     expect(used).toHaveAttribute("href", "/metodologia#adaptive");
-    expect(screen.getByText((_, el) => el?.tagName === "P" && /^3188 – 3388\s/.test(el.textContent ?? ""))).toBeInTheDocument();
+    expect(used.closest("div")).toHaveTextContent(formatTemplate(t.calorias.targetExpenditureValue, { n: "3288", share: "89" }));
+    expect(within(why).getByText((_, el) => el?.tagName === "P" && /^3188 – 3388\s/.test(el.textContent ?? ""))).toBeInTheDocument();
     // The profile's own expenditure is still shown next to it.
-    expect(screen.getByText((content) => content.startsWith("Gasto calórico diario estimado (TDEE):"))).toHaveTextContent("2608");
+    expect(within(why).getByText(t.calorias.tdee).closest("div")).toHaveTextContent("2608");
   });
 
   it("sin gasto medido, el objetivo sale solo del perfil y no hay línea de gasto usado", async () => {
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
-    await screen.findByText(/te faltan \d+–\d+ kcal/);
-    expect(screen.queryByText((content) => content.startsWith(t.calorias.targetExpenditure))).toBeNull();
+    const user = userEvent.setup();
+    render(card(2000, 50));
+    const why = await openWhy(user);
+    expect(within(why).queryByText(t.calorias.targetExpenditure)).toBeNull();
   });
 
   it("si gastas claramente menos, enumera las causas empezando por la comida sin registrar", async () => {
@@ -287,7 +316,7 @@ describe("tarjetas de recomendación", () => {
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
     logMeals(meals(35, 1800));
     const user = userEvent.setup();
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    render(card(2000, 50));
 
     // He trains: part of the gap can be muscle gained while losing fat.
     const notice = `${formatTemplate(t.expenditureCheck.noticeLower, { gap: "800" })} ${t.expenditureCheck.noticeLowerTraining}`;
@@ -307,7 +336,7 @@ describe("tarjetas de recomendación", () => {
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
     logMeals(meals(35, 1800));
     const user = userEvent.setup();
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    render(card(2000, 50));
 
     expect(await screen.findByText(formatTemplate(t.expenditureCheck.noticeLower, { gap: "750" }))).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: t.expenditureCheck.why }));
@@ -319,7 +348,7 @@ describe("tarjetas de recomendación", () => {
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
     logMeals(meals(35, 1800));
     const user = userEvent.setup();
-    const { unmount } = render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    const { unmount } = render(card(2000, 50));
 
     const notice = `${formatTemplate(t.expenditureCheck.noticeLower, { gap: "800" })} ${t.expenditureCheck.noticeLowerTraining}`;
     await screen.findByText(notice);
@@ -327,17 +356,20 @@ describe("tarjetas de recomendación", () => {
     expect(screen.queryByText(notice)).toBeNull();
 
     unmount();
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
-    await screen.findByText((content) => content.startsWith("Gasto medido:"));
+    render(card(2000, 50));
+    await screen.findByRole("button", { name: t.hoy.whyNumbers });
     expect(screen.queryByText(notice)).toBeNull();
   });
 
   it("si el gasto medido cabe en el ±10 % del perfil, no dice nada", async () => {
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, 0));
     logMeals(meals(35, 2500));
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    const user = userEvent.setup();
+    render(card(2000, 50));
 
-    await screen.findByText((content) => content.startsWith("Gasto medido:"));
+    // The measurement is there (in «¿Por qué estos números?»), and the card says nothing about it.
+    const why = await openWhy(user);
+    expect(within(why).getByText(t.calorias.measuredTdee)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: t.expenditureCheck.why })).toBeNull();
   });
 
@@ -345,7 +377,7 @@ describe("tarjetas de recomendación", () => {
     vi.mocked(api.listWeights).mockResolvedValue(weighIns(7));
     logMeals(mealsEveryDay(2500));
     const user = userEvent.setup();
-    render(<NutritionRecommendationsCard dailyCalories={2000} dailyProtein={50} />);
+    render(card(2000, 50));
 
     expect(await screen.findByText(t.expenditureCheck.weighInHint)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: t.expenditureCheck.why }));
@@ -366,26 +398,28 @@ describe("tarjetas de recomendación", () => {
       profileHistory: [{ ...before, until: yesterday }],
     });
     const year = Number(todayKey().slice(0, 4));
+    // The bar's «eaten / min–max kcal».
     const range = (p: CalorieProfile) => {
       const rec = calculateCalorieRecommendation(p, 80, year)!;
-      return `${formatNumber(rec.targetMin)} – ${formatNumber(rec.targetMax)}`;
+      return `2000 / ${formatNumber(rec.targetMin)}–${formatNumber(rec.targetMax)} kcal`;
     };
+    const bar = (text: string) => (_: string, el: Element | null) => el?.tagName === "SPAN" && el.textContent === text;
 
     const { unmount } = render(
-      <NutritionRecommendationsCard day={yesterday} dailyCalories={2000} dailyProtein={50} />,
+      card(2000, 50, yesterday),
     );
-    expect(await screen.findByText((content) => content.startsWith(range(before)))).toBeInTheDocument();
+    expect(await screen.findByText(bar(range(before)))).toBeInTheDocument();
     expect(screen.getByTestId("past-day-targets")).toHaveTextContent(t.calorias.pastDayTargets);
     unmount();
 
-    render(<NutritionRecommendationsCard day={todayKey()} dailyCalories={2000} dailyProtein={50} />);
-    expect(await screen.findByText((content) => content.startsWith(range(profile)))).toBeInTheDocument();
+    render(card(2000, 50, todayKey()));
+    expect(await screen.findByText(bar(range(profile)))).toBeInTheDocument();
     expect(screen.queryByTestId("past-day-targets")).toBeNull();
   });
 
   it("sin historial, un día pasado usa el perfil actual y no dice nada más", async () => {
     render(
-      <NutritionRecommendationsCard day={addDaysToKey(todayKey(), -3)} dailyCalories={2000} dailyProtein={50} />,
+      card(2000, 50, addDaysToKey(todayKey(), -3)),
     );
     await screen.findByText(/te faltan \d+–\d+ kcal/);
     expect(screen.queryByTestId("past-day-targets")).toBeNull();

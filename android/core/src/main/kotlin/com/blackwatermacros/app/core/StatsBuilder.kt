@@ -79,7 +79,8 @@ fun buildStatsFromData(
         WeightPoint(
             date = point.date,
             weight = round2(point.value),
-            trend = trendValues[i]?.let { round1(it) },
+            // Two decimals like the weight: at 0.1 kg the chart's bold trend line drew stairs.
+            trend = trendValues[i]?.let { round2(it) },
         )
     }
 

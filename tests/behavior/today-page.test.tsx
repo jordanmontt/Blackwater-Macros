@@ -272,6 +272,21 @@ describe("pantalla Hoy", () => {
     expect(vi.mocked(api.createMeal)).not.toHaveBeenCalled();
   });
 
+  it("«Gestionar» muestra editar y borrar en cada plantilla, sin tener que mantenerla pulsada", async () => {
+    vi.mocked(api.listTemplates).mockResolvedValue([template({ name: "Avena" })]);
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await user.click((await screen.findAllByRole("button", { name: t.hoy.addMeal }))[0]);
+    const sheet = await screen.findByRole("dialog", { name: t.addFood.title });
+
+    await user.click(within(sheet).getByRole("button", { name: t.addFood.manageTemplates }));
+    expect(within(sheet).getByRole("button", { name: formatTemplate(t.addFood.deleteTemplate, { name: "Avena" }) })).toBeInTheDocument();
+    await user.click(within(sheet).getByRole("button", { name: formatTemplate(t.addFood.editTemplate, { name: "Avena" }) }));
+    // Editing opens the template's form, and nothing was added as a meal.
+    expect(await screen.findByRole("dialog", { name: t.ajustes.editTemplate })).toBeInTheDocument();
+    expect(api.createMeal).not.toHaveBeenCalled();
+  });
+
   it("borrar una plantilla desde «Añadir comida» pregunta antes y «Deshacer» la devuelve", async () => {
     const user = userEvent.setup();
     const held = template({ name: "Desayuno salvaje" });
