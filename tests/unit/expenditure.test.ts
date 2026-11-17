@@ -101,9 +101,10 @@ describe("estimateExpenditure", () => {
     expect(estimateExpenditure(meals(28, 2500), enough, TODAY)).not.toBeNull();
   });
 
-  it("weekly weigh-ins are too uncertain to show (margin over ±300 kcal)", () => {
-    // Days 28, 21, 14, 7: 1.96 × 0.5 / √245 × 7700 = 482
-    expect(estimateExpenditure(meals(28, 2500), weighIns(80, -0.5, 7), TODAY)).toBeNull();
+  it("weekly weigh-ins are measured too, with a wide margin: no margin is too wide", () => {
+    // Days 28, 21, 14, 7: 1.96 × 0.5 / √245 × 7700 = 482. It counts less in the target
+    // (combineExpenditure) instead of being dropped, so the target never jumps at a cut-off.
+    expect(estimateExpenditure(meals(28, 2500), weighIns(80, -0.5, 7), TODAY)).toMatchObject({ tdee: 3050, margin: 482 });
   });
 
   it("daily weigh-ins narrow the margin", () => {
@@ -114,7 +115,7 @@ describe("estimateExpenditure", () => {
   it("noisy weigh-ins widen the margin beyond the floor", () => {
     // Every 2 days alternating ±1.2 kg around a stable 80 kg.
     const noisy = weighIns(80, 0, 2).map((p, i) => ({ ...p, value: p.value + (i % 2 === 0 ? 1.2 : -1.2) }));
-    expect(estimateExpenditure(meals(28, 2500), noisy, TODAY)).toBeNull();
+    expect(estimateExpenditure(meals(28, 2500), noisy, TODAY)!.margin).toBe(643); // σ ≈ 1.24 kg
     const calm = weighIns(80, 0, 2).map((p, i) => ({ ...p, value: p.value + (i % 2 === 0 ? 0.3 : -0.3) }));
     expect(estimateExpenditure(meals(28, 2500), calm, TODAY)!.margin).toBe(250);
   });
@@ -237,8 +238,9 @@ describe("checkExpenditure", () => {
     const three = [daysAgo(28), daysAgo(20), daysAgo(2)].map((date) => ({ date, value: 80 }));
     expect(missing(meals(28, 2400), three)).toEqual(["weighIns"]);
     expect(missing(meals(28, 2400), weighIns(80, 0, 1, 13))).toEqual(["weightSpan"]);
-    expect(missing(meals(28, 2400), weighIns(80, 0, 7))).toEqual(["margin"]);
-    expect(missing(meals(10, 2400), weighIns(80, 0, 7))).toEqual(["meals", "margin"]);
+    // A wide margin is never what is missing: weekly weigh-ins are enough to measure.
+    expect(missing(meals(10, 2400), weighIns(80, 0, 7))).toEqual(["meals"]);
+    expect(missing(meals(10, 2400), three)).toEqual(["meals", "weighIns"]);
   });
 });
 
@@ -265,8 +267,15 @@ describe("combineExpenditure", () => {
   it("the narrower the margin, the more the data count", () => {
     expect(combineExpenditure(2600, measured(2600, 177)).dataShare).toBe(0.89); // daily weigh-ins
     expect(combineExpenditure(2600, measured(2600, 272)).dataShare).toBe(0.78); // 3 a week
-    expect(combineExpenditure(2600, measured(2600, 300)).dataShare).toBe(0.74); // the widest shown
+    expect(combineExpenditure(2600, measured(2600, 482)).dataShare).toBe(0.53); // weekly
     expect(combineExpenditure(2600, measured(3000, 0))).toEqual({ expenditure: 3000, dataShare: 1 });
+  });
+
+  it("a slightly wider margin counts slightly less: no jump from one week to the next", () => {
+    // A real case: profile 1972, measured 2711 ± 287 one Monday and 2506 ± 317 the next.
+    // With a ±300 cut-off the target fell from 2453 to 1972; now it moves to 2291.
+    expect(combineExpenditure(1980, measured(2711, 287))).toEqual({ expenditure: 2453, dataShare: 0.65 });
+    expect(combineExpenditure(1972, measured(2506, 317))).toEqual({ expenditure: 2291, dataShare: 0.6 });
   });
 });
 
@@ -305,8 +314,10 @@ describe("Today card notices", () => {
   });
 
   it("the weigh-in hint shows when meals are logged well and only the weigh-ins are missing", () => {
-    expect(onlyWeighInsMissing(checkExpenditure(meals(28, 2400), weighIns(80, 0, 7), FORMULA, TODAY))).toBe(true);
-    expect(onlyWeighInsMissing(checkExpenditure(meals(10, 2400), weighIns(80, 0, 7), FORMULA, TODAY))).toBe(false);
+    const few = weighIns(80, 0, 10); // days 28, 18, 8
+    expect(onlyWeighInsMissing(checkExpenditure(meals(28, 2400), few, FORMULA, TODAY))).toBe(true);
+    expect(onlyWeighInsMissing(checkExpenditure(meals(10, 2400), few, FORMULA, TODAY))).toBe(false);
+    expect(onlyWeighInsMissing(checkExpenditure(meals(28, 2400), weighIns(80, 0, 7), FORMULA, TODAY))).toBe(false);
     expect(onlyWeighInsMissing(higher)).toBe(false);
     expect(onlyWeighInsMissing(null)).toBe(false);
   });

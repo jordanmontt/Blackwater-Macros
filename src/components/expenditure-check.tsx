@@ -189,8 +189,6 @@ function MissingList({ check }: { check: Extract<ExpenditureCheck, { status: "no
         return formatTemplate(t.expenditureCheck.missingWeighIns, { n: check.data.weighInDays });
       case "weightSpan":
         return formatTemplate(t.expenditureCheck.missingWeightSpan, { days: check.data.weightSpanDays });
-      case "margin":
-        return formatTemplate(t.expenditureCheck.missingMargin, { margin: formatNumber(check.data.margin ?? 0) });
     }
   };
   return (

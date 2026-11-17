@@ -199,7 +199,7 @@ export interface ExpenditureData {
 }
 
 /** Why the measured expenditure is not there yet, in the order the user should fix it. */
-export type MissingExpenditureData = "meals" | "weighIns" | "weightSpan" | "margin";
+export type MissingExpenditureData = "meals" | "weighIns" | "weightSpan";
 
 /** The measured expenditure is above, inside or below the formula's normal range. */
 export type ExpenditureVerdict = "higher" | "matches" | "lower";

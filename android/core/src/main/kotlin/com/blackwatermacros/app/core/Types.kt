@@ -196,7 +196,7 @@ data class ExpenditureData(
 )
 
 /** Why the measured expenditure is not there yet, in the order the user should fix it. */
-enum class MissingExpenditureData { MEALS, WEIGH_INS, WEIGHT_SPAN, MARGIN }
+enum class MissingExpenditureData { MEALS, WEIGH_INS, WEIGHT_SPAN }
 
 /** The measured expenditure is above, inside or below the formula's normal range. */
 enum class ExpenditureVerdict { HIGHER, MATCHES, LOWER }

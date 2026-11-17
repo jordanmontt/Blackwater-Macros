@@ -157,9 +157,11 @@ class ValidationTest {
         assertThat(ready.calorie!!.expenditure).isEqualTo(2517.0)
         assertThat(ready.calorie!!.dataShare).isEqualTo(0.8)
 
-        // Weekly weigh-ins are too uncertain: no measured value.
-        val weekly = weights.filterIndexed { i, _ -> i % 4 == 0 }
-        assertThat((recommend(weekly, profile, meals, today) as RecommendationsUiState.Ready).expenditure).isNull()
+        // Weekly weigh-ins (days 28, 20, 12, 4) are measured too, with a wider margin, and count less.
+        val weekly = recommend(weights.filterIndexed { i, _ -> i % 4 == 0 }, profile, meals, today) as RecommendationsUiState.Ready
+        assertThat(weekly.expenditure!!.margin).isEqualTo(422.0)
+        assertThat(weekly.calorie!!.dataShare).isEqualTo(0.59)
+        assertThat(weekly.calorie!!.expenditure).isEqualTo(2536.0)
     }
 
     @Test

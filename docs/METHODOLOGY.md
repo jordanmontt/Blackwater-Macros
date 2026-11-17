@@ -388,7 +388,7 @@ margin = 1.96 × σ / √Σ(xᵢ − x̄)² × 7700          [kcal/day, 95 %]
 | Days without meals are excluded, never 0 kcal | Counting them as zero would make you look like you burn far less. |
 | ≥ 4 weigh-in days spanning ≥ 14 days | A slope over a few days is dominated by water and glycogen swings. |
 | One point per day (the mean of that day's weigh-ins) | Morning and evening weigh-ins can differ by a kilo. They are not independent measurements of the trend, so counting them twice would shrink the error falsely. |
-| Shown only when margin ≤ ±300 kcal/day | Beyond that the number would not be useful as a check. |
+| No largest margin | A wide margin is shown with its ±, counts less in the target (§3.2) and needs a bigger gap before the check speaks (§3.1). A cut-off made the target jump (§3.2, «Why no cut-off»). |
 
 **The error model.**
 - The slope's standard error is `σ / √Sxx`, from ordinary least squares (Montgomery et
@@ -400,21 +400,22 @@ margin = 1.96 × σ / √Σ(xᵢ − x̄)² × 7700          [kcal/day, 95 %]
 
 Worked margins, at the 0.5 kg floor and 28-day window:
 
-| Weighing | Sxx | Margin | Shown? |
+| Weighing | Sxx | Margin | Data's share, 2600 kcal profile (§3.2) |
 |---|---|---|---|
-| Daily | 1827 | ± 177 kcal/day | yes |
-| 3 × a week | 767 | ± 272 | yes |
-| 2 × a week | 508 | ± 335 | no |
-| Weekly | 245 | ± 482 | no |
+| Daily | 1827 | ± 177 kcal/day | 89 % |
+| 3 × a week | 767 | ± 272 | 78 % |
+| 2 × a week | 508 | ± 335 | 70 % |
+| Weekly | 245 | ± 482 | 53 % |
 
 **z (1.96) rather than Student's t.**
 - With the noise floored, σ is treated as a known lower bound of the scale's noise, and
   for a known σ the normal quantile is the right one.
 - When the residual scatter is *above* the floor, σ is estimated. Then t(n − 2) would be
   stricter: 2.06 instead of 1.96 for daily weighing (+5 %), and 2.23 for 3 weigh-ins a
-  week (+14 %). The 3-a-week example would read ±310 and be hidden.
-- We keep z so that ~3 weigh-ins a week is enough. The floor already makes the typical
-  case conservative, and the margin is shown as an approximate 95 %.
+  week (+14 %), which would lower the data's share by a few points.
+- We keep z: the floor already makes the typical case conservative, and the margin is
+  shown as an approximate 95 %. (Until 2026-11, z also kept 3 weigh-ins a week under the
+  ±300 cut-off; there is no cut-off now.)
 
 **What the margin does not cover.**
 - *Logging error:* under-logging makes expenditure look lower, one for one.
@@ -479,7 +480,7 @@ data correspond to. It is only a reference: it assumes the basal formula is righ
 person, which is exactly one of the things the check cannot know.
 
 **When there is not enough data,** Perfil lists what is missing (logged days out of 21,
-weigh-in days out of 4, span out of 14 days, or the margin against ±300). When meals are
+weigh-in days out of 4, or span out of 14 days). When meals are
 logged but weigh-ins are what is missing, Today says so once.
 
 **Worked example.** Profile: man, 36, 180 cm, 80 kg → BMR 1750; 3 × 60 min of gym and
@@ -524,7 +525,7 @@ Carbon adjusts each week from logged intake and the weight trend.
 non-obese adults (Frankenfield 2005), an SD of ≈ 7.5 % if the errors are normal; the
 activity factor adds its own error, so 10 % for BMR × PAL. Resulting shares for a
 2600 kcal profile: daily weigh-ins (±177) → 89 %; 3 a week (±272) → 78 %; the widest
-margin shown (±300) → 74 %. The share is shown on screen («85 % from your data»).
+weekly weigh-ins (±482) → 53 %. The share is shown on screen («85 % from your data»).
 
 **Why weekly.** The measurement is taken on Monday from the 4 weeks before
 (`weekStartOf`), and every day of that week uses it: the target changes once a week, not
@@ -533,8 +534,19 @@ with every weigh-in (MacroFactor and Carbon update at a weekly check-in too). Th
 the target of its own week, computed from the data before that Monday.
 
 **Safeguards kept.** The measurement's rules (21 logged days of 28, ≥ 4 weigh-in days
-over ≥ 14 days, margin ≤ ±300) and the BMR floor. Without a measurement the target is
-exactly the formula's.
+over ≥ 14 days) and the BMR floor. Without a measurement the target is exactly the
+formula's.
+
+**Why no cut-off on the margin.** Until 2026-11 a measurement only counted with a margin of
+±300 or less. A real case showed the cost: a woman on «maintain», weighing 4–5 times a
+week at varying times of day, measured 2711 ± 287 one Monday and 2506 ± 317 the next,
+against a profile of about 1975. The second was dropped for being 17 kcal over the cut-off,
+and her target fell from 2453 to 1972 overnight, although her data still said she burned
+about 500 kcal/day more than the profile. The weighting already gives a noisy measurement
+less say (60 % at ±317, 53 % at ±482 for a 2600 kcal profile); the cut-off only turned that
+gradual decline into a jump. Without it her target went 2453 → 2291. The same holds for
+the check (§3.1): it needs the whole 95 % range outside the profile's ± 10 %, so a wide
+margin already makes it harder to trigger.
 
 **Worked example (the case above).** Profile 2608 (BMR 1671 × 1.56). On Monday
 2026-10-26 the measurement was 3060 ± 214: share = 260.8² ÷ (260.8² + 109.2²) = 0.85,
@@ -604,9 +616,8 @@ margin(x) = 1.96 × σ × √(1/n + (x − x̄)² / Sxx)        (σ floored at 0
   kcal.
 - **Protein:** grams are rounded to whole grams, and g/kg factors to 0.1.
 - **Weights:** 2 decimals, and trends 1 decimal.
-- **Where rounding meets a rule:** the BMR floor is the rounded BMR. The ±300 kcal check
-  uses the rounded margin, so a margin of 300.4 is shown. Both are well below the
-  precision of the estimates.
+- **Where rounding meets a rule:** the BMR floor is the rounded BMR, and the check's
+  verdict uses the rounded margin. Both are well below the precision of the estimates.
 
 ---
 

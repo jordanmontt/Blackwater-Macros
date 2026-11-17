@@ -1145,10 +1145,14 @@ on **this week's Monday** (`weekStartOf(today)`, `dates.ts`):
 - Days without meals (or summing to 0 kcal) are **excluded**, never counted as 0.
 - Weigh-ins are reduced to **one point per day** (`dailyMeans`) before the fit: same-day
   weigh-ins are not independent measurements (also for the coach's weight projection).
-- Shown only when: ≥ 21 logged days, ≥ 4 weigh-in days spanning ≥ 14 days, and the 95 %
-  margin `1.96 × SE(β) × 7700 ≤ 300 kcal/day`, with `SE(β) = σ / √Σ(x − x̄)²` and σ the
-  residual SD (n − 2 df), floored at 0.5 kg so a few aligned weigh-ins can't look precise.
-  Weekly weigh-ins never qualify; ~3/week do; daily gives ≈ ±180.
+- Measured when ≥ 21 logged days and ≥ 4 weigh-in days spanning ≥ 14 days, always with its
+  95 % margin `1.96 × SE(β) × 7700`, with `SE(β) = σ / √Σ(x − x̄)²` and σ the residual SD
+  (n − 2 df), floored at 0.5 kg so a few aligned weigh-ins can't look precise. Weekly
+  weigh-ins give ≈ ±480, ~3/week ≈ ±270, daily ≈ ±180.
+- **No largest margin** (until 2026-11 it had to be ≤ ±300): a wide margin counts less in
+  the target (§8.3.2) and needs a bigger gap for the check (§8.3.1), both gradually. The
+  cut-off dropped a ±317 measurement the data weighed 60 % in, and a real target fell
+  ~480 kcal from Sunday to Monday ([METHODOLOGY.md](./METHODOLOGY.md) §3.2).
 - It is displayed next to the formula TDEE (home card and Perfil, `± margin`) and the
   target is built on both combined (§8.3.2). Perfil explains what is missing when it isn't available.
 - Web: `lib/use-measured-expenditure.ts`: every day's kcal from the all-time stats
@@ -1167,7 +1171,7 @@ verdict is «higher»/«lower» only when the whole 95 % range of the measured v
 outside the profile's TDEE ± 10 % (`FORMULA_TOLERANCE`), and it is `confirmed` only if the
 measurement of the previous Monday says the same (callers pass `weekStartOf(today)`, so the
 check reads the 35 days before Monday). Otherwise «matches», or `notEnoughData` with `missing` in fixing order (meals,
-weigh-ins, span, margin).
+weigh-ins, span).
 
 - **Layers** (the app's transparency rule: show only when needed, explain all of it):
   1. *Comidas card* (`ExpenditureNotices`): one line, only when `showsGapNotice` (confirmed

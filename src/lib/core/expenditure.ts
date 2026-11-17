@@ -29,8 +29,6 @@ export const KCAL_PER_KG = 7700;
  * keeps them from looking more precise than a scale can be.
  */
 export const WEIGHT_NOISE_FLOOR_KG = 0.5;
-/** Largest 95 % margin (kcal/day) at which the measured value is shown. */
-export const MAX_MARGIN_KCAL = 300;
 /** Two-sided 95 % normal quantile. */
 export const Z_95 = 1.96;
 
@@ -111,9 +109,12 @@ export function fitWeightTrend(points: DataPoint[]): WeightTrend | null {
  * no meals are unlogged and left out, never counted as 0 kcal. `weights` holds
  * one point per weigh-in. Both are restricted to the 28 days before `today`.
  *
- * The estimate is null until the data can support it: ≥21 logged days, ≥4
- * weigh-in days spanning ≥14 days, and a 95 % margin (1.96 × slope SE × 7700)
- * of at most ±300 kcal/day. In practice that means weighing in ~3 times a week.
+ * The estimate is null until the data can support it: ≥21 logged days and ≥4
+ * weigh-in days spanning ≥14 days. It always carries its 95 % margin
+ * (1.96 × slope SE × 7700) and there is no largest one: a wide margin makes the
+ * data count less in the target (`combineExpenditure`) and makes the profile
+ * check harder to trigger (`verdictOf`), both gradually. A cut-off would turn a
+ * margin a few kcal over it into a target that jumps from one week to the next.
  * The counts come back either way, so the app can say what is missing.
  */
 export function measureExpenditure(intake: DataPoint[], weights: DataPoint[], today: string): ExpenditureData {
@@ -140,8 +141,7 @@ export function measureExpenditure(intake: DataPoint[], weights: DataPoint[], to
     weighInDays < MIN_WEIGH_INS ||
     weightSpanDays < MIN_WEIGHT_SPAN_DAYS ||
     trend === null ||
-    margin === null ||
-    margin > MAX_MARGIN_KCAL
+    margin === null
   ) {
     return data;
   }
@@ -248,7 +248,6 @@ export function missingExpenditureData(data: ExpenditureData): MissingExpenditur
   if (data.loggedDays < MIN_LOGGED_DAYS) missing.push("meals");
   if (data.weighInDays < MIN_WEIGH_INS) missing.push("weighIns");
   else if (data.weightSpanDays < MIN_WEIGHT_SPAN_DAYS) missing.push("weightSpan");
-  else if (data.margin === null || data.margin > MAX_MARGIN_KCAL) missing.push("margin");
   return missing;
 }
 

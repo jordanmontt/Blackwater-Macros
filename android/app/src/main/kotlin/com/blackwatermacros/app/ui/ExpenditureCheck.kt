@@ -258,7 +258,6 @@ private fun MissingList(check: ExpenditureCheck.NotEnoughData) {
                 MissingExpenditureData.MEALS -> stringResource(R.string.check_missing_meals, check.data.loggedDays)
                 MissingExpenditureData.WEIGH_INS -> stringResource(R.string.check_missing_weigh_ins, check.data.weighInDays)
                 MissingExpenditureData.WEIGHT_SPAN -> stringResource(R.string.check_missing_weight_span, check.data.weightSpanDays)
-                MissingExpenditureData.MARGIN -> stringResource(R.string.check_missing_margin, formatNumber(check.data.margin ?: 0.0))
             }
             Bullet(text)
         }

@@ -229,15 +229,17 @@ describe("resumen del día (Comidas)", () => {
     expect(within(why).getByText(/2\.?500 ± 177 kcal\/día/)).toBeInTheDocument();
   });
 
-  it("con pesajes semanales el margen es demasiado grande y no lo muestra", async () => {
+  it("con pesajes semanales lo muestra con un margen amplio, y tus datos cuentan menos", async () => {
     vi.mocked(api.listWeights).mockResolvedValue(weighIns(7));
     logMeals(mealsEveryDay(2500));
     const user = userEvent.setup();
     render(card(2000, 50));
 
+    // Days 28, 21, 14, 7: 1,96 × 0,5 / √245 × 7700 = ±482. Against the profile's 2608 ± 10 %,
+    // the data weigh 260,8² / (260,8² + 245,9²) = 53 %: 2608 − 0,53 × 108 = 2551.
     const why = await openWhy(user);
-    expect(within(why).getByText(t.calorias.tdee)).toBeInTheDocument();
-    expect(within(why).queryByText(t.calorias.measuredTdee)).toBeNull();
+    expect(within(why).getByText(/2\.?500 ± 482 kcal\/día/)).toBeInTheDocument();
+    expect(within(why).getByText(/2\.?551 kcal\/día \(53 %/)).toBeInTheDocument();
   });
 
   it("en definición con % de grasa, la proteína va por kg de masa magra", async () => {
@@ -380,15 +382,15 @@ describe("resumen del día (Comidas)", () => {
   });
 
   it("si registras las comidas pero faltan pesajes, lo dice una vez", async () => {
-    vi.mocked(api.listWeights).mockResolvedValue(weighIns(7));
+    // Days 28, 18 and 8: 3 weigh-in days, one short of a trend.
+    vi.mocked(api.listWeights).mockResolvedValue(weighIns(10));
     logMeals(mealsEveryDay(2500));
     const user = userEvent.setup();
     render(card(2000, 50));
 
     expect(await screen.findByText(t.expenditureCheck.weighInHint)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: t.expenditureCheck.why }));
-    // Weekly weigh-ins: 1,96 × 0,5 / √245 × 7700 = ±482, above the ±300 needed.
-    expect(within(await screen.findByRole("dialog")).getByText(formatTemplate(t.expenditureCheck.missingMargin, { margin: "482" }))).toBeInTheDocument();
+    expect(within(await screen.findByRole("dialog")).getByText(formatTemplate(t.expenditureCheck.missingWeighIns, { n: 3 }))).toBeInTheDocument();
     await user.keyboard("{Escape}");
     await user.click(screen.getByRole("button", { name: t.expenditureCheck.notNow }));
     expect(screen.queryByText(t.expenditureCheck.weighInHint)).toBeNull();

@@ -278,7 +278,6 @@
   "check_missing_meals": ["expenditureCheck.missingMeals", "days:d"],
   "check_missing_weigh_ins": ["expenditureCheck.missingWeighIns", "n:d"],
   "check_missing_weight_span": ["expenditureCheck.missingWeightSpan", "days:d"],
-  "check_missing_margin": ["expenditureCheck.missingMargin", "margin:s"],
   "meth_check_title": "metodologia.checkTitle",
   "meth_check_body": "metodologia.checkBody",
   "meth_check_formula": "metodologia.checkFormula",

@@ -10,8 +10,10 @@ import kotlin.math.sqrt
  *   TDEE = average daily intake - (weight slope in kg/day x 7700 kcal/kg)
  *
  * over the 28 days before today. Unlogged days are left out, never counted as
- * 0 kcal. Null until the data can support it: >= 21 logged days, >= 4 weigh-in
- * days spanning >= 14 days, and a 95 % margin of at most +-300 kcal/day.
+ * 0 kcal. Null until the data can support it: >= 21 logged days and >= 4
+ * weigh-in days spanning >= 14 days. There is no largest margin: a wide one
+ * makes the data count less (`combineExpenditure`) and the check harder to
+ * trigger, both gradually, so the target never jumps at a cut-off.
  */
 
 const val EXPENDITURE_WINDOW_DAYS = 28
@@ -24,9 +26,6 @@ const val KCAL_PER_KG = 7700.0
 
 /** Smallest day-to-day scatter assumed for a weigh-in around the trend. */
 const val WEIGHT_NOISE_FLOOR_KG = 0.5
-
-/** Largest 95 % margin (kcal/day) at which the measured value is shown. */
-const val MAX_MARGIN_KCAL = 300.0
 
 /** Two-sided 95 % normal quantile. */
 const val Z_95 = 1.96
@@ -111,7 +110,7 @@ fun measureExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today:
 
     val data = ExpenditureData(loggedDays, weighInDays, weightSpanDays, margin, estimate = null)
     if (loggedDays < MIN_LOGGED_DAYS || weighInDays < MIN_WEIGH_INS || weightSpanDays < MIN_WEIGHT_SPAN_DAYS) return data
-    if (trend == null || margin == null || margin > MAX_MARGIN_KCAL) return data
+    if (trend == null || margin == null) return data
 
     val avgIntake = loggedTotals.sum() / loggedDays
     val tdee = mathRound(avgIntake - trend.slopePerDay * KCAL_PER_KG)
@@ -205,7 +204,6 @@ fun missingExpenditureData(data: ExpenditureData): List<MissingExpenditureData> 
     when {
         data.weighInDays < MIN_WEIGH_INS -> add(MissingExpenditureData.WEIGH_INS)
         data.weightSpanDays < MIN_WEIGHT_SPAN_DAYS -> add(MissingExpenditureData.WEIGHT_SPAN)
-        data.margin == null || data.margin > MAX_MARGIN_KCAL -> add(MissingExpenditureData.MARGIN)
     }
 }
 

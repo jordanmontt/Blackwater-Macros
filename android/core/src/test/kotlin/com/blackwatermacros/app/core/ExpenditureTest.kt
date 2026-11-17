@@ -99,9 +99,12 @@ class ExpenditureTest {
     }
 
     @Test
-    fun weeklyWeighInsAreTooUncertainToShow() {
-        // Days 28, 21, 14, 7: 1.96 x 0.5 / sqrt(245) x 7700 = 482
-        assertThat(estimateExpenditure(meals(28, 2500.0), weighIns(80.0, -0.5, 7), TODAY)).isNull()
+    fun weeklyWeighInsAreMeasuredTooWithAWideMargin() {
+        // Days 28, 21, 14, 7: 1.96 x 0.5 / sqrt(245) x 7700 = 482. It counts less in the target
+        // (combineExpenditure) instead of being dropped, so the target never jumps at a cut-off.
+        val est = estimateExpenditure(meals(28, 2500.0), weighIns(80.0, -0.5, 7), TODAY)!!
+        assertThat(est.tdee).isEqualTo(3050.0)
+        assertThat(est.margin).isEqualTo(482.0)
     }
 
     @Test
@@ -114,7 +117,7 @@ class ExpenditureTest {
     fun noisyWeighInsWidenTheMarginBeyondTheFloor() {
         // Every 2 days alternating +-1.2 kg around a stable 80 kg.
         val noisy = weighIns(80.0, 0.0, 2).mapIndexed { i, p -> p.copy(value = p.value + if (i % 2 == 0) 1.2 else -1.2) }
-        assertThat(estimateExpenditure(meals(28, 2500.0), noisy, TODAY)).isNull()
+        assertThat(estimateExpenditure(meals(28, 2500.0), noisy, TODAY)!!.margin).isEqualTo(643.0) // σ ≈ 1.24 kg
         val calm = weighIns(80.0, 0.0, 2).mapIndexed { i, p -> p.copy(value = p.value + if (i % 2 == 0) 0.3 else -0.3) }
         assertThat(estimateExpenditure(meals(28, 2500.0), calm, TODAY)!!.margin).isEqualTo(250.0)
     }
@@ -234,9 +237,10 @@ class ExpenditureTest {
         val three = listOf(daysAgo(28), daysAgo(20), daysAgo(2)).map { DataPoint(it, 80.0) }
         assertThat(missing(meals(28, 2400.0), three)).containsExactly(MissingExpenditureData.WEIGH_INS)
         assertThat(missing(meals(28, 2400.0), weighIns(80.0, 0.0, 1, 13))).containsExactly(MissingExpenditureData.WEIGHT_SPAN)
-        assertThat(missing(meals(28, 2400.0), weighIns(80.0, 0.0, 7))).containsExactly(MissingExpenditureData.MARGIN)
-        assertThat(missing(meals(10, 2400.0), weighIns(80.0, 0.0, 7)))
-            .containsExactly(MissingExpenditureData.MEALS, MissingExpenditureData.MARGIN).inOrder()
+        // A wide margin is never what is missing: weekly weigh-ins are enough to measure.
+        assertThat(missing(meals(10, 2400.0), weighIns(80.0, 0.0, 7))).containsExactly(MissingExpenditureData.MEALS)
+        assertThat(missing(meals(10, 2400.0), three))
+            .containsExactly(MissingExpenditureData.MEALS, MissingExpenditureData.WEIGH_INS).inOrder()
     }
 
     @Test
@@ -256,8 +260,10 @@ class ExpenditureTest {
 
     @Test
     fun weighInHint_whenMealsAreLoggedAndOnlyWeighInsAreMissing() {
-        assertThat(onlyWeighInsMissing(checkExpenditure(meals(28, 2400.0), weighIns(80.0, 0.0, 7), FORMULA, TODAY))).isTrue()
-        assertThat(onlyWeighInsMissing(checkExpenditure(meals(10, 2400.0), weighIns(80.0, 0.0, 7), FORMULA, TODAY))).isFalse()
+        val few = weighIns(80.0, 0.0, 10) // days 28, 18, 8
+        assertThat(onlyWeighInsMissing(checkExpenditure(meals(28, 2400.0), few, FORMULA, TODAY))).isTrue()
+        assertThat(onlyWeighInsMissing(checkExpenditure(meals(10, 2400.0), few, FORMULA, TODAY))).isFalse()
+        assertThat(onlyWeighInsMissing(checkExpenditure(meals(28, 2400.0), weighIns(80.0, 0.0, 7), FORMULA, TODAY))).isFalse()
         assertThat(onlyWeighInsMissing(checkExpenditure(meals(35, 2400.0), weighIns(80.0, -0.7, 1, 35), FORMULA, TODAY))).isFalse()
         assertThat(onlyWeighInsMissing(null)).isFalse()
     }
@@ -288,8 +294,16 @@ class ExpenditureTest {
     fun combineExpenditure_theNarrowerTheMarginTheMoreTheDataCount() {
         assertThat(combineExpenditure(2600.0, measured(2600.0, 177.0)).dataShare).isEqualTo(0.89)
         assertThat(combineExpenditure(2600.0, measured(2600.0, 272.0)).dataShare).isEqualTo(0.78)
-        assertThat(combineExpenditure(2600.0, measured(2600.0, 300.0)).dataShare).isEqualTo(0.74)
+        assertThat(combineExpenditure(2600.0, measured(2600.0, 482.0)).dataShare).isEqualTo(0.53) // weekly
         assertThat(combineExpenditure(2600.0, measured(3000.0, 0.0))).isEqualTo(CombinedExpenditure(3000.0, 1.0))
+    }
+
+    @Test
+    fun combineExpenditure_aSlightlyWiderMarginCountsSlightlyLess_noJump() {
+        // A real case: profile 1972, measured 2711 ± 287 one Monday and 2506 ± 317 the next.
+        // With a ±300 cut-off the target fell from 2453 to 1972; now it moves to 2291.
+        assertThat(combineExpenditure(1980.0, measured(2711.0, 287.0))).isEqualTo(CombinedExpenditure(2453.0, 0.65))
+        assertThat(combineExpenditure(1972.0, measured(2506.0, 317.0))).isEqualTo(CombinedExpenditure(2291.0, 0.6))
     }
 
     // --- weeklyExpenditure ---
