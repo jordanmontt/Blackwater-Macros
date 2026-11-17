@@ -190,6 +190,8 @@
   "profile_birth_year": "calorias.birthYearLabel",
   "profile_height": "calorias.heightLabel",
   "unit_kcal_day": "calorias.perDay",
+  "unit_g_day": "calorias.gPerDay",
+  "ingredient_protein_short": ["hoy.proteinShort", "n:s"],
   "rec_estimated_average": ["calorias.estimatedAverageValue", "n:s"],
   "rec_activity_factor": ["calorias.activityFactor", "n:s"],
   "rec_measured_tdee": ["progreso.measured", "n:s", "margin:s"],

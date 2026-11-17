@@ -29,7 +29,7 @@ export interface WeightFatRow {
 export function WeightFatChart({ data }: { data: WeightFatRow[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={data} margin={{ top: 16, right: 4, bottom: 0, left: -18 }}>
+      <ComposedChart data={data} margin={{ top: 16, right: 4, bottom: 0, left: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis
           dataKey="date"

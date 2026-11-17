@@ -97,7 +97,6 @@
     <string name="error_walking_minutes">Zwischen 0 und 480 min</string>
     <string name="rec_calories_title">Kalorienempfehlung</string>
     <string name="rec_protein_title">Eiweißempfehlung</string>
-    <string name="unit_g_day">g/Tag</string>
     <string name="rec_bmr">Grundumsatz (GU): %1$s kcal/Tag</string>
     <string name="rec_tdee">Geschätzter täglicher Energieverbrauch (TDEE): %1$s kcal/Tag</string>
     <string name="rec_per_kg">%1$s – %2$s g/kg</string>
@@ -171,7 +170,6 @@
     <string name="data_deleted">Daten von diesem Telefon gelöscht.</string>
     <string name="sync_indicator_synced">Alles synchronisiert</string>
     <string name="sync_indicator_problem">Synchronisierung braucht Aufmerksamkeit</string>
-    <string name="ingredient_protein_short">%1$s g Eiw.</string>
     <string name="language_system">Telefonsprache</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d Zutat</item>

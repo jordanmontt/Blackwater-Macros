@@ -239,10 +239,10 @@ export function NutritionRecommendationsCard({
             </div>
             <p className="text-2xl font-semibold tabular-nums">
               {proteinRec.range.min} – {proteinRec.range.max}{" "}
-              <span className="text-sm font-normal text-muted-foreground">g/día</span>
+              <span className="text-sm font-normal text-muted-foreground">{t.calorias.gPerDay}</span>
             </p>
             <p className="text-xs text-muted-foreground">
-              {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} g/día
+              {formatTemplate(t.calorias.estimatedAverageValue, { n: proteinRec.target })} {t.calorias.gPerDay}
             </p>
             <p className="text-xs text-muted-foreground">
               {proteinPerKgText(proteinRec)}

@@ -399,7 +399,7 @@ export default function PerfilPage() {
                     <DumbbellIcon className="size-3.5" /> {t.ajustes.proteinRecLabel}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {proteinRec.range.min} – {proteinRec.range.max} g/día{" "}
+                    {proteinRec.range.min} – {proteinRec.range.max} {t.calorias.gPerDay}{" "}
                     {proteinPerKgText(proteinRec)}
                   </p>
                 </div>

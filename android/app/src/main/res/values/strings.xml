@@ -98,7 +98,6 @@
     <string name="error_walking_minutes">Between 0 and 480 min</string>
     <string name="rec_calories_title">Calorie recommendation</string>
     <string name="rec_protein_title">Protein recommendation</string>
-    <string name="unit_g_day">g/day</string>
     <string name="rec_bmr">Basal metabolic rate (BMR): %1$s kcal/day</string>
     <string name="rec_tdee">Estimated daily energy expenditure (TDEE): %1$s kcal/day</string>
     <string name="rec_per_kg">%1$s – %2$s g/kg</string>
@@ -172,7 +171,6 @@
     <string name="data_deleted">Data deleted from this phone.</string>
     <string name="sync_indicator_synced">All changes synced</string>
     <string name="sync_indicator_problem">Sync needs attention</string>
-    <string name="ingredient_protein_short">%1$s g prot.</string>
     <string name="language_system">Phone language</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d ingredient</item>

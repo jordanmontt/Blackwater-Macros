@@ -300,7 +300,7 @@ function CaloriesSection({
       </CardHeader>
       <CardContent className="h-56 px-2 sm:h-64" data-testid="calories-chart">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={rows} margin={{ top: 16, right: 12, bottom: 0, left: -18 }}>
+          <ComposedChart data={rows} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="date"

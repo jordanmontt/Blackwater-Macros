@@ -71,7 +71,7 @@ vi.mock("@/lib/api", () => ({
 
 import { api } from "@/lib/api";
 import { clearCache } from "@/lib/client-cache";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 
 describe("pantalla Hoy", () => {
   beforeEach(() => {
@@ -102,6 +102,29 @@ describe("pantalla Hoy", () => {
     expect((await screen.findAllByText("475 kcal")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("850 kcal").length).toBeGreaterThan(0);
     expect(screen.getByText("32 g · Proteína")).toBeInTheDocument(); // redondeo visible
+  });
+
+  it("cada ingrediente muestra su nombre, cantidad, kcal y proteína; hidratos y grasa van en los totales", async () => {
+    vi.mocked(api.listMeals).mockResolvedValue([
+      {
+        ...meal({ title: "Cena", kcal: 600, protein: 40 }),
+        ingredients: [
+          { name: "Pechuga de pollo a la plancha", quantity: "150 g", calories: 250, protein: 35.2, carbs: 0, fat: 5 },
+          { name: "Arroz integral", quantity: "1 taza", calories: 350, protein: 4.8, carbs: 72, fat: 3 },
+        ],
+        resolvedCarbs: 72,
+        resolvedFat: 8,
+      },
+    ]);
+    render(<HoyPage />);
+
+    const row = (await screen.findByText("Pechuga de pollo a la plancha")).closest("li")!;
+    expect(within(row).getByText("150 g")).toBeInTheDocument();
+    expect(within(row).getByText("250 kcal")).toBeInTheDocument();
+    expect(within(row).getByText(formatTemplate(t.hoy.proteinShort, { n: formatNumber(35.2, 1) }))).toBeInTheDocument();
+    // Four labelled macros per row left no room for the name on a phone.
+    expect(row).not.toHaveTextContent(t.hoy.carbs);
+    expect(screen.getByText(`72 g · ${t.hoy.carbs}`)).toBeInTheDocument();
   });
 
   it("al cambiar de día se cargan las comidas de ese otro día", async () => {

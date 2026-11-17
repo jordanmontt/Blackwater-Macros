@@ -35,13 +35,10 @@ export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardP
     zIndex: isDragging ? 10 : undefined,
   };
 
-  const hasIngredientNutrition = meal.ingredients.some(
-    (ingredient) =>
-      ingredient.calories !== undefined ||
-      ingredient.protein !== undefined ||
-      ingredient.carbs !== undefined ||
-      ingredient.fat !== undefined,
-  );
+  // With a single ingredient its numbers equal the meal's totals shown below (as on Android).
+  const showIngredientNumbers =
+    meal.ingredients.length > 1 &&
+    meal.ingredients.some((ingredient) => ingredient.calories !== undefined || ingredient.protein !== undefined);
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -102,36 +99,22 @@ export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardP
           <CardContent className="pt-0">
             <ul className="divide-y rounded-lg border text-xs">
               {meal.ingredients.map((ingredient, index) => (
-                <li key={index} className="flex items-start justify-between gap-2 px-2 py-1">
-                  <span className="min-w-0 truncate pt-px">
-                    {ingredient.name}
-                    {ingredient.quantity ? (
-                      <span className="text-muted-foreground"> · {ingredient.quantity}</span>
-                    ) : null}
-                  </span>
-                  {hasIngredientNutrition ? (
-                    <span className="flex shrink-0 flex-wrap justify-end gap-x-2.5 gap-y-0.5 tabular-nums text-muted-foreground sm:gap-x-3">
-                      {ingredient.calories !== undefined ? (
-                        <span className="whitespace-nowrap">
-                          {formatNumber(ingredient.calories)} {t.hoy.kcalUnit}
-                        </span>
-                      ) : null}
-                      {ingredient.protein !== undefined ? (
-                        <span className="whitespace-nowrap">
-                          {formatNumber(ingredient.protein)} g {t.hoy.protein}
-                        </span>
-                      ) : null}
-                      {ingredient.carbs !== undefined ? (
-                        <span className="whitespace-nowrap">
-                          {formatNumber(ingredient.carbs)} g {t.hoy.carbs}
-                        </span>
-                      ) : null}
-                      {ingredient.fat !== undefined ? (
-                        <span className="whitespace-nowrap">
-                          {formatNumber(ingredient.fat)} g {t.hoy.fat}
-                        </span>
-                      ) : null}
-                    </span>
+                <li key={index} className="flex items-baseline gap-1.5 px-2 py-1">
+                  <span className="min-w-0 flex-1 truncate">{ingredient.name}</span>
+                  {/* Fixed-width, end-aligned columns (rem, so they grow with the font size), as on
+                      Android: the name keeps the room; carbs and fat are in the meal's totals below. */}
+                  <span className="w-13 shrink-0 truncate text-right text-muted-foreground">{ingredient.quantity ?? ""}</span>
+                  {showIngredientNumbers ? (
+                    <>
+                      <span className="w-16 shrink-0 text-right whitespace-nowrap tabular-nums text-muted-foreground">
+                        {ingredient.calories !== undefined ? `${formatNumber(ingredient.calories)} ${t.hoy.kcalUnit}` : ""}
+                      </span>
+                      <span className="w-19 shrink-0 text-right whitespace-nowrap tabular-nums text-muted-foreground">
+                        {ingredient.protein !== undefined
+                          ? formatTemplate(t.hoy.proteinShort, { n: formatNumber(ingredient.protein, 1) })
+                          : ""}
+                      </span>
+                    </>
                   ) : null}
                 </li>
               ))}
