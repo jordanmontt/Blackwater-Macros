@@ -235,7 +235,8 @@ export function DaySummaryCard({
             hasTargets && "border-t pt-2",
           )}
         >
-          <span className="flex flex-wrap gap-x-3 gap-y-1">
+          {/* With targets, carbs and fat are stacked so the layout does not change with the numbers. */}
+          <span className={cn("flex gap-x-3 gap-y-1", hasTargets ? "flex-col" : "flex-wrap")}>
             {hasTargets ? null : (
               <>
                 <PlainTotal label={t.hoy.calories} value={formatNumber(totals.calories)} unit={t.hoy.kcalUnit} />

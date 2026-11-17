@@ -151,13 +151,19 @@ internal fun DaySummaryCard(
             }
             if (hasTargets) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                FlowRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (!hasTargets) {
+                if (hasTargets) {
+                    // Stacked, so the layout does not change with the length of the numbers.
+                    Column(Modifier.weight(1f)) {
+                        PlainTotal(stringResource(R.string.macro_carbs), formatNumber(totals.carbs, 1), "g")
+                        PlainTotal(stringResource(R.string.macro_fat), formatNumber(totals.fat, 1), "g")
+                    }
+                } else {
+                    FlowRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         PlainTotal(stringResource(R.string.total_calories), formatNumber(totals.calories), "kcal")
                         PlainTotal(stringResource(R.string.macro_protein), formatNumber(totals.protein, 1), "g")
+                        PlainTotal(stringResource(R.string.macro_carbs), formatNumber(totals.carbs, 1), "g")
+                        PlainTotal(stringResource(R.string.macro_fat), formatNumber(totals.fat, 1), "g")
                     }
-                    PlainTotal(stringResource(R.string.macro_carbs), formatNumber(totals.carbs, 1), "g")
-                    PlainTotal(stringResource(R.string.macro_fat), formatNumber(totals.fat, 1), "g")
                 }
                 if (hasTargets) {
                     TextButton(onClick = { whyOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) {
