@@ -18,6 +18,7 @@ import { formatNumber } from "@/i18n/format";
  *    sale el objetivo (TMB, TDEE, gasto medido, proteína por kg) está en «¿Por qué
  *    estos números?», donde el número grande es el promedio estimado del rango,
  *  - si la ingesta está dentro del rango se indica "en rango",
+ *  - el número grande es lo consumido (también al pasarse), con el rango al lado,
  *  - si se excede se muestra un valor ("te pasaste de X"); en proteína, pasarse
  *    no es un problema: se dice en gris y la barra no cambia de color,
  *  - con 4 semanas de comidas y pesajes frecuentes aparece el gasto medido
@@ -164,11 +165,16 @@ describe("resumen del día (Comidas)", () => {
     const bars = await screen.findAllByRole("progressbar");
     expect(bars[0]).toHaveAttribute("aria-valuenow", "1200");
     expect(screen.getAllByTestId("intake-fill")[0].className).toContain("bg-primary");
-    // "consumido / mínimo–máximo kcal" en palabras, además de la barra
-    expect(screen.getByText((_, el) => el?.tagName === "SPAN" && /^1\.?200 \/ [\d.]+–[\d.]+ kcal$/.test(el.textContent ?? ""))).toBeInTheDocument();
+    // What was eaten is the big number, in words, with the range next to it.
+    const [calories, protein] = screen.getAllByTestId("intake-total");
+    expect(calories).toHaveTextContent(`1200 ${t.hoy.kcalEaten}`);
+    expect(calories).toHaveTextContent(/de \d+–\d+$/);
+    expect(protein).toHaveTextContent(`50 ${t.hoy.gEaten}`);
 
+    // Over the range: the total stays the number eaten, not only how much over.
     rerender(card(4000, 50));
     expect(screen.getAllByTestId("intake-fill")[0].className).toContain("bg-tertiary");
+    expect(screen.getAllByTestId("intake-total")[0]).toHaveTextContent(`4000 ${t.hoy.kcalEaten}`);
   });
 
   it("pasarse de proteína no es un aviso: se dice en gris y la barra no cambia de color", async () => {
@@ -398,10 +404,10 @@ describe("resumen del día (Comidas)", () => {
       profileHistory: [{ ...before, until: yesterday }],
     });
     const year = Number(todayKey().slice(0, 4));
-    // The bar's «eaten / min–max kcal».
+    // The range next to what was eaten: «de min–max».
     const range = (p: CalorieProfile) => {
       const rec = calculateCalorieRecommendation(p, 80, year)!;
-      return `2000 / ${formatNumber(rec.targetMin)}–${formatNumber(rec.targetMax)} kcal`;
+      return formatTemplate(t.hoy.ofRange, { min: formatNumber(rec.targetMin), max: formatNumber(rec.targetMax) });
     };
     const bar = (text: string) => (_: string, el: Element | null) => el?.tagName === "SPAN" && el.textContent === text;
 

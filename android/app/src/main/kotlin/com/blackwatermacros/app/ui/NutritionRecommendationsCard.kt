@@ -456,8 +456,9 @@ internal fun RecommendationSection(
 }
 
 /**
- * Progress towards the daily target: [title] and the numbers above («eaten /
- * min–max»), the bar (the outlined track is what is left, the solid fill what was
+ * Progress towards the daily target: with a [title] (Comidas), what was eaten as the
+ * big number («2707 kcal eaten», also when over) and the range next to it; without
+ * one (Perfil), the compact «eaten / min–max». Then the bar (the outlined track is what is left, the solid fill what was
  * eaten, ember once past the target unless [overIsFine], the two markers the target
  * range) and, under it, what is missing or over in words.
  */
@@ -478,28 +479,50 @@ internal fun IntakeBar(
     fun frac(v: Double) = (v / scaleMax).coerceIn(0.0, 1.0).toFloat()
     val over = current > rangeMax && !overIsFine
     Column {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+        if (title != null) {
+            // What was eaten is the big number (also when over); the range sits next to it.
             Text(
                 buildAnnotatedString {
-                    if (title != null) {
-                        withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = colors.onSurface)) { append(title) }
-                        if (goal != null) append(" · ${stringResource(goal.labelRes())}")
-                    }
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = colors.onSurface)) {
-                        append(formatNumber(round(current)))
-                    }
-                    append(" / ${formatNumber(rangeMin)}–${formatNumber(rangeMax)} $unit")
+                    append(title)
+                    if (goal != null) append(" · ${stringResource(goal.labelRes())}")
                 },
                 style = MaterialTheme.typography.labelMedium,
                 color = colors.onSurfaceVariant,
             )
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+                Text(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = colors.onSurface)) {
+                            append(formatNumber(round(current)))
+                        }
+                        withStyle(SpanStyle(fontSize = MaterialTheme.typography.bodyMedium.fontSize, color = colors.onSurfaceVariant)) {
+                            append(" ${stringResource(if (unit == "kcal") R.string.rec_kcal_eaten else R.string.rec_g_eaten)}")
+                        }
+                    },
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    stringResource(R.string.rec_of_range, formatNumber(rangeMin), formatNumber(rangeMax)),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+            }
+        } else {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+                Spacer(Modifier.weight(1f))
+                Text(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = colors.onSurface)) {
+                            append(formatNumber(round(current)))
+                        }
+                        append(" / ${formatNumber(rangeMin)}–${formatNumber(rangeMax)} $unit")
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.onSurfaceVariant,
+                )
+            }
         }
         Spacer(Modifier.height(4.dp))
         BoxWithConstraints(

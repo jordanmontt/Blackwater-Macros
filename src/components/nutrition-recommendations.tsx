@@ -59,25 +59,26 @@ function intakeStatus(
  * Progress towards the daily target. The outlined track is what is left, the
  * solid fill is what was eaten (orange once past the target, unless
  * `overIsFine`), and the two
- * markers crossing the bar are the target range. The numbers above say it in
- * words: eaten / target.
+ * markers crossing the bar are the target range. Above it, what was eaten is the
+ * big number («2707 kcal consumidas», also when over) with the range next to it.
  */
 function IntakeBar({
   title,
+  eatenLabel,
   current,
   rangeMin,
   rangeMax,
-  unit,
   statusLabel,
   statusColor,
   overIsFine,
 }: {
   /** «Calorías · Definición»: what is measured, left of the numbers. */
   title: ReactNode;
+  /** «kcal consumidas», after the big number. */
+  eatenLabel: string;
   current: number;
   rangeMin: number;
   rangeMax: number;
-  unit: string;
   statusLabel: string;
   statusColor: string;
   overIsFine: boolean;
@@ -88,12 +89,15 @@ function IntakeBar({
   const over = current > rangeMax && !overIsFine;
   return (
     <div className="space-y-1">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-medium">{title}</span>
+      <p className="text-xs text-muted-foreground">{title}</p>
+      {/* What was eaten is the big number: the status under the bar only says how far from the range. */}
+      <div className="flex items-baseline justify-between gap-2" data-testid="intake-total">
+        <span className="text-2xl font-semibold tabular-nums">
+          {formatNumber(Math.round(current), 0)}{" "}
+          <span className="text-sm font-normal text-muted-foreground">{eatenLabel}</span>
+        </span>
         <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-          <span className="text-sm font-semibold text-foreground">{formatNumber(Math.round(current), 0)}</span>
-          {" / "}
-          {formatNumber(rangeMin, 0)}–{formatNumber(rangeMax, 0)} {unit}
+          {formatTemplate(t.hoy.ofRange, { min: formatNumber(rangeMin, 0), max: formatNumber(rangeMax, 0) })}
         </span>
       </div>
       <div
@@ -190,7 +194,7 @@ export function DaySummaryCard({
             current={totals.calories}
             rangeMin={calorieRec.targetMin}
             rangeMax={calorieRec.targetMax}
-            unit={t.hoy.kcalUnit}
+            eatenLabel={t.hoy.kcalEaten}
             {...intakeStatus(
               totals.calories,
               calorieRec.targetMin,
@@ -207,7 +211,7 @@ export function DaySummaryCard({
             current={totals.protein}
             rangeMin={proteinRec.range.min}
             rangeMax={proteinRec.range.max}
-            unit={t.hoy.proteinUnit}
+            eatenLabel={t.hoy.gEaten}
             {...intakeStatus(
               totals.protein,
               proteinRec.range.min,
