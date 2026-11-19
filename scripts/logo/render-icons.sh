@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 # Regenerates every app/web icon from scripts/logo/render.html (headless Chrome).
-# Usage: scripts/logo/render-icons.sh   (needs Google Chrome and Python 3 + Pillow)
+# Usage: scripts/logo/render-icons.sh [variant]   (needs Google Chrome and Python 3 + Pillow)
+#   No argument = the original logo; a variant id (e.g. xmas-red, see `variants` in
+#   render.html) renders a seasonal one. Run it again without argument to go back.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 CHROME="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 PAGE="file://$PWD/scripts/logo/render.html"
+VARIANT="${1:-}"
 OUT="$(mktemp -d)"
 RES=android/app/src/main/res
 
 render() { # mode px file
   "$CHROME" --headless=new --disable-gpu --hide-scrollbars --default-background-color=00000000 \
-    --virtual-time-budget=5000 --window-size="$2,$2" --screenshot="$OUT/$3" "$PAGE?mode=$1&px=$2" >/dev/null 2>&1
+    --virtual-time-budget=5000 --window-size="$2,$2" --screenshot="$OUT/$3" "$PAGE?mode=$1&px=$2${VARIANT:+&variant=$VARIANT}" >/dev/null 2>&1
 }
 
 for d in mdpi:1 hdpi:1.5 xhdpi:2 xxhdpi:3 xxxhdpi:4; do

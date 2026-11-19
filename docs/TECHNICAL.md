@@ -1898,7 +1898,7 @@ Gotchas:
 | New field on meals/templates/weights (synced) | DB column + zod schema + DTO (web); Android: wire DTO, Room entity **+ `Migration`** (bump `LocalDatabase` version; never destructive: local-only users have no other copy), mappers, `FakeServer`; add a round-trip case to `OfflineSyncTest` |
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in the five `i18n/*.json`; proxy already protects it. Android: screen + route in `MainActivity`, texts as in «New UI text» |
 | New UI text | add it to the five `src/i18n/*.json` (a missing key fails the build; `i18n.test.ts` checks `{placeholders}`). Android: map it in `android/app/strings-from-web.json` (`"key": "path"`, or `["path", "n:d"]` with arguments) and use `stringResource`; Android-only texts and plurals go in the five `res/values*/strings.xml` (`TranslationsTest`) |
-| Change the logo | edit `scripts/logo/render.html`, run `scripts/logo/render-icons.sh` (writes every Android and web icon) |
+| Change the logo | edit `scripts/logo/render.html`, run `scripts/logo/render-icons.sh` (writes every Android and web icon); seasonal logo: `render-icons.sh <variant>`, back with no argument |
 | Release the Android app | docs/RELEASING.md (tag → signed GitHub Release + website; F-Droid builds the tag) |
 | Real migrations | switch from `db:push` to `db:generate` + `db:migrate` (both scripted already) once schema changes risk data loss |
 
@@ -2169,6 +2169,12 @@ every language (§6). The export file's names are English (a file format, §5.11
   (login page), and the web's `public/logo.png`, `src/app/icon.png` and PWA icons
   (maskable = plate in the 80 % safe circle on rim green). `public/logo.svg` is a copy of
   the vector. Tab headers have no logo (same on the web).
+  Seasonal variants (`xmas-hat`, `xmas-holly`, `xmas-red`, `xmas-red-hat`, `xmas-snow`,
+  `xmas-bauble`) live in the `variants` table of `render.html`; `render-icons.sh <variant>`
+  renders one, and `render-icons.sh` with no argument always renders the original again.
+  A variant with another rim colour (`xmas-red*`, rim `#5A0E13`) also needs
+  `ic_launcher_background` in `values/colors.xml` (original: `#0F2318`). The monochrome
+  layer is always the plain plate, so it stays unchanged. Christmas 2026 ships `xmas-red-hat`.
 
 ### 14.5 Configuration
 

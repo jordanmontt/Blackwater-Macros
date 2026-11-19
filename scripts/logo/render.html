@@ -2,15 +2,46 @@
 <!--
   Blackwater Macros logo (option B: steel hub). Single source for every icon:
   scripts/logo/render-icons.sh opens this page in headless Chrome with
-  ?mode=fg|mono|legacy|solo|maskable&px=N and screenshots it.
+  ?mode=fg|mono|legacy|solo|maskable&px=N[&variant=<id>] and screenshots it.
   Geometry is in a 108-unit adaptive-icon grid, plate radius 36.6 around (54,54).
+  Without `variant` the original logo is drawn; the seasonal variants are listed in `variants`.
 -->
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
 <style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}svg{display:block}</style></head>
 <body><div id="out"></div><script>
-const v = { id: "B", name: "B · Buje de acero", desc: "Como un disco olímpico real: aro metálico cepillado alrededor del agujero, agujero negro.",
+const original = { id: "B", name: "B · Buje de acero", desc: "Como un disco olímpico real: aro metálico cepillado alrededor del agujero, agujero negro.",
     rim: "#0f2318", body: "#1a3a2a", center: "#1e412f", step: "#0c1d14", text: "#f1ede0", hubRing: "steel", hole: "#050806", kg: true, bwSize: 76, hub: "steel" };
+/**
+ * Seasonal variants (?variant=<id>, `render-icons.sh <id>`). `deco` draws a decoration
+ * over the plate; `scale`/`cy` shrink and move the plate to make room for one that sticks
+ * out of it; `cross: "snow"` puts snowflakes where the four ribs are; `hub: "gold"`.
+ */
+const variants = {
+  "xmas-hat": { ...original, deco: "hat", scale: 0.78, cy: 62 },
+  "xmas-holly": { ...original, deco: "holly" },
+  "xmas-red": { ...original, rim: "#5a0e13", body: "#8c1820", center: "#9a1c25", step: "#460a0f", text: "#f3d58a", hub: "gold", cross: "snow" },
+  "xmas-red-hat": { ...original, rim: "#5a0e13", body: "#8c1820", center: "#9a1c25", step: "#460a0f", text: "#f3d58a", hub: "gold", cross: "snow", deco: "hat", scale: 0.78, cy: 62 },
+  "xmas-snow": { ...original, deco: "snow", cross: "snow" },
+  "xmas-bauble": { ...original, deco: "bauble", scale: 0.78, cy: 58 },
+};
+const q = new URLSearchParams(location.search);
+const v = variants[q.get("variant")] || original;
 let uid = 0;
+const rad = (a) => a * Math.PI / 180;
+/** Point at radius r and angle a (degrees, 0 = top, clockwise) around (54,54). */
+const at = (r, a) => [54 + r * Math.sin(rad(a)), 54 - r * Math.cos(rad(a))];
+
+/** A six-armed snowflake of radius r at (x,y). */
+function snowflake(x, y, r, color) {
+  let d = "";
+  for (let i = 0; i < 6; i++) {
+    const a = rad(i * 60), c = Math.cos(a), sn = Math.sin(a);
+    const p = (u, w) => `${(x + u * sn + w * c).toFixed(2)},${(y - u * c + w * sn).toFixed(2)}`;
+    d += `M${p(0, 0)}L${p(r, 0)}M${p(r * .55, 0)}L${p(r * .8, r * .22)}M${p(r * .55, 0)}L${p(r * .8, -r * .22)}`;
+  }
+  return `<path d="${d}" stroke="${color}" stroke-width="${(r * .16).toFixed(2)}" stroke-linecap="round" fill="none" opacity=".9"/>`;
+}
+
 /** The plate in a 108×108 canvas (adaptive icon grid), radius R around (54,54). */
 function plate(v, R = 36.6) {
   const k = R / 245; // original artwork was drawn with r=245 in a 512 box
@@ -22,7 +53,9 @@ function plate(v, R = 36.6) {
   const bot = `<path id="${id}b" d="M${54 - botR * k},54 A${s(botR)},${s(botR)} 0 0,0 ${54 + botR * k},54" fill="none"/>`;
   const kg = v.kg ? `<text font-family="Cinzel,serif" font-weight="900" font-size="${(58 * k).toFixed(2)}" fill="${v.text}" text-anchor="middle" letter-spacing="${(4 * k).toFixed(2)}"><textPath href="#${id}t" startOffset="50%">20 KG</textPath></text>` : "";
   const bw = `<text font-family="Cinzel,serif" font-weight="900" font-size="${(v.bwSize * k).toFixed(2)}" fill="${v.bwColor || v.text}" text-anchor="middle" letter-spacing="${(8 * k).toFixed(2)}"><textPath href="#${id}b" startOffset="50%">BW</textPath></text>`;
-  const cross = v.cross === false ? "" : `<g stroke="${v.step}" stroke-width="${s(3)}" stroke-linecap="round" opacity=".9">
+  const cross = v.cross === false ? "" : v.cross === "snow"
+    ? [0, 90, 180, 270].map((a) => snowflake(...at(94 * k, a), 26 * k, v.text)).join("")
+    : `<g stroke="${v.step}" stroke-width="${s(3)}" stroke-linecap="round" opacity=".9">
       <line x1="${54 - 128 * k}" y1="54" x2="${54 - 60 * k}" y2="54"/><line x1="${54 + 60 * k}" y1="54" x2="${54 + 128 * k}" y2="54"/>
       <line x1="54" y1="${54 - 128 * k}" x2="54" y2="${54 - 60 * k}"/><line x1="54" y1="${54 + 60 * k}" x2="54" y2="${54 + 128 * k}"/>
     </g>`;
@@ -30,6 +63,9 @@ function plate(v, R = 36.6) {
     <defs>
       <radialGradient id="${id}steel" cx="45%" cy="40%" r="70%">
         <stop offset="0" stop-color="#e6e8e3"/><stop offset=".55" stop-color="#9aa09a"/><stop offset="1" stop-color="#5d625d"/>
+      </radialGradient>
+      <radialGradient id="${id}gold" cx="45%" cy="40%" r="70%">
+        <stop offset="0" stop-color="#fff4c8"/><stop offset=".55" stop-color="#d9a93e"/><stop offset="1" stop-color="#8a6116"/>
       </radialGradient>
       <radialGradient id="${id}shade" cx="40%" cy="35%" r="75%">
         <stop offset="0" stop-color="#ffffff" stop-opacity=".07"/><stop offset="1" stop-color="#000000" stop-opacity=".12"/>
@@ -42,31 +78,113 @@ function plate(v, R = 36.6) {
     <circle cx="54" cy="54" r="${s(134)}" fill="${v.center}" stroke="${v.step}" stroke-width="${s(6)}"/>
     ${cross}
     ${kg}${bw}
-    ${v.hub === "steel" ? `<circle cx="54" cy="54" r="${s(48)}" fill="url(#${id}steel)"/>` : `<circle cx="54" cy="54" r="${s(46)}" fill="${v.hubRing}"/>`}
+    ${v.hub === "steel" || v.hub === "gold" ? `<circle cx="54" cy="54" r="${s(48)}" fill="url(#${id}${v.hub})"/>` : `<circle cx="54" cy="54" r="${s(46)}" fill="${v.hubRing}"/>`}
     <circle cx="54" cy="54" r="${s(33)}" fill="${v.hole}"/>
     <circle cx="54" cy="54" r="${R}" fill="url(#${id}shade)"/>
+    ${v.deco === "holly" ? holly(R) : v.deco === "snow" ? snow(R) : ""}
   `;
 }
 
+/** A spiky holly leaf from (0,0) along +x, length L. */
+function leaf(L, W) {
+  const pts = [[0, 0]];
+  const n = 4, w = (t) => W * Math.pow(Math.sin(Math.PI * t), .7);
+  for (const side of [1, -1]) {
+    const row = [];
+    for (let i = 1; i <= 2 * n - 1; i++) {
+      const t = i / (2 * n);
+      row.push([t * L, side * w(t) * (i % 2 ? 1 : .55)]);
+    }
+    if (side === 1) pts.push(...row, [L, 0]); else pts.push(...row.reverse());
+  }
+  return pts.map((p) => p.map((c) => c.toFixed(2)).join(",")).join(" ");
+}
 
-const q = new URLSearchParams(location.search);
+/** A sprig of holly (three leaves, three berries) on the upper left of the rim. */
+function holly(R) {
+  const [x, y] = at(R * .6, -62);
+  const L = R * .38, W = R * .13;
+  const leaves = [[-205, "#2f7d3c"], [-105, "#2a7036"], [-155, "#3a8f47"]].map(([a, c]) =>
+    `<g transform="rotate(${a})"><polygon points="${leaf(L, W)}" fill="${c}" stroke="#0e2a14" stroke-width="${(R * .02).toFixed(2)}" stroke-linejoin="round"/>
+     <line x1="0" y1="0" x2="${(L * .9).toFixed(2)}" y2="0" stroke="#0e2a14" stroke-width="${(R * .018).toFixed(2)}" opacity=".6"/></g>`).join("");
+  const br = R * .07;
+  const berries = [[-br * .9, -br * .2], [br * .9, -br * .4], [0, br * 1.1]].map(([bx, by]) =>
+    `<circle cx="${bx.toFixed(2)}" cy="${by.toFixed(2)}" r="${br.toFixed(2)}" fill="#c8102e" stroke="#5c0610" stroke-width="${(R * .015).toFixed(2)}"/>
+     <circle cx="${(bx - br * .35).toFixed(2)}" cy="${(by - br * .35).toFixed(2)}" r="${(br * .28).toFixed(2)}" fill="#fff" opacity=".7"/>`).join("");
+  return `<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)})">${leaves}${berries}</g>`;
+}
+
+/** Snow lying on the top of the rim, with a few drips. */
+function snow(R) {
+  const from = -78, to = 78, outer = [], inner = [];
+  for (let a = from; a <= to; a += 2) outer.push(at(R + .4, a));
+  const drips = [[-50, .12], [-15, .06], [24, .1], [56, .08]];
+  for (let a = to; a >= from; a -= 2) {
+    const edge = Math.min(1, (to - Math.abs(a)) / 25); // taper to nothing at the ends
+    let depth = .1 + .02 * Math.sin(rad(a * 9));
+    for (const [da, dd] of drips) depth += dd * Math.exp(-Math.pow((a - da) / 5, 2));
+    inner.push(at(R * (1 - depth * edge), a));
+  }
+  const d = "M" + [...outer, ...inner].map((p) => p.map((c) => c.toFixed(2)).join(",")).join("L") + "Z";
+  return `<path d="${d}" fill="#f7f9fc" stroke="#b9c9d8" stroke-width="${(R * .02).toFixed(2)}" stroke-linejoin="round"/>`;
+}
+
+/** Santa hat sitting tilted on the top left of the plate (R, centre cy). */
+function hat(R, cy) {
+  const a = -22, [x, y] = [54 + R * .8 * Math.sin(rad(a)), cy - R * .8 * Math.cos(rad(a))];
+  const w = R * .55, h = R * .78;
+  const body = `M${-w},0 C${-w * .9},${-h * .55} ${-w * .2},${-h * 1.05} ${w * .55},${-h * .95}
+    C${w * 1.1},${-h * .9} ${w * 1.35},${-h * .55} ${w * 1.35},${-h * .3}
+    C${w * 1.1},${-h * .55} ${w * .75},${-h * .6} ${w * .55},${-h * .45} C${w * .7},${-h * .25} ${w * .8},${-h * .1} ${w},0 Z`;
+  return `<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${a})">
+    <path d="${body}" fill="#c8102e" stroke="#6b0712" stroke-width="${(R * .025).toFixed(2)}" stroke-linejoin="round"/>
+    <path d="M${-w * .4},${-h * .5} C${-w * .1},${-h * .85} ${w * .3},${-h * .9} ${w * .6},${-h * .85}" stroke="#ff5a6e" stroke-width="${(R * .04).toFixed(2)}" fill="none" opacity=".45" stroke-linecap="round"/>
+    <rect x="${(-w * 1.12).toFixed(2)}" y="${(-R * .13).toFixed(2)}" width="${(w * 2.24).toFixed(2)}" height="${(R * .26).toFixed(2)}" rx="${(R * .13).toFixed(2)}" fill="#f6f3ec" stroke="#b9b3a6" stroke-width="${(R * .02).toFixed(2)}"/>
+    <circle cx="${(w * 1.35).toFixed(2)}" cy="${(-h * .22).toFixed(2)}" r="${(R * .14).toFixed(2)}" fill="#f6f3ec" stroke="#b9b3a6" stroke-width="${(R * .02).toFixed(2)}"/>
+  </g>`;
+}
+
+/** Gold cap and loop of a Christmas bauble on top of the plate (R, centre cy). */
+function bauble(R, cy) {
+  const top = cy - R, cw = R * .34, ch = R * .2;
+  let grooves = "";
+  for (let i = 1; i < 5; i++) {
+    const gx = 54 - cw / 2 + cw * i / 5;
+    grooves += `<line x1="${gx.toFixed(2)}" y1="${(top - ch + .6).toFixed(2)}" x2="${gx.toFixed(2)}" y2="${(top + .4).toFixed(2)}" stroke="#7a5512" stroke-width=".45" opacity=".7"/>`;
+  }
+  return `<defs><linearGradient id="capg" x1="0" x2="1"><stop offset="0" stop-color="#8a6116"/><stop offset=".4" stop-color="#ffe9a8"/><stop offset="1" stop-color="#a87a22"/></linearGradient></defs>
+    <circle cx="54" cy="${(top - ch - R * .09).toFixed(2)}" r="${(R * .11).toFixed(2)}" fill="none" stroke="url(#capg)" stroke-width="${(R * .05).toFixed(2)}"/>
+    <rect x="${(54 - cw / 2).toFixed(2)}" y="${(top - ch).toFixed(2)}" width="${cw.toFixed(2)}" height="${(ch + R * .06).toFixed(2)}" rx="${(R * .04).toFixed(2)}" fill="url(#capg)" stroke="#6b4a0e" stroke-width="${(R * .02).toFixed(2)}"/>
+    ${grooves}`;
+}
+
+/** The logo of the chosen variant: the plate, shrunk/moved if needed, plus its decoration. */
+function logo(v, R) {
+  const sc = v.scale || 1, cy = v.cy || 54;
+  if (sc === 1 && cy === 54) return plate(v, R);
+  const r = R * sc;
+  return `<g transform="translate(54 ${cy}) scale(${sc}) translate(-54 -54)">${plate(v, R)}</g>
+    ${v.deco === "hat" ? hat(r, cy) : v.deco === "bauble" ? bauble(r, cy) : ""}`;
+}
+
 const mode = q.get("mode"), px = +q.get("px");
 const R = 36.6, side = 2 * R;
 let body = "";
 if (mode === "fg") {
   // Adaptive-icon foreground: 108-unit canvas, plate fills the visible 72-unit area.
-  body = `<svg width="${px}" height="${px}" viewBox="0 0 108 108">${plate(v, R)}</svg>`;
+  body = `<svg width="${px}" height="${px}" viewBox="0 0 108 108">${logo(v, R)}</svg>`;
 } else if (mode === "solo") {
-  body = `<svg width="${px}" height="${px}" viewBox="${54 - R} ${54 - R} ${side} ${side}">${plate(v, R)}</svg>`;
+  body = `<svg width="${px}" height="${px}" viewBox="${54 - R} ${54 - R} ${side} ${side}">${logo(v, R)}</svg>`;
 } else if (mode === "legacy") {
   const s = side * 48 / 46;  // round plate with a 1dp margin in a 48dp icon
-  body = `<svg width="${px}" height="${px}" viewBox="${54 - s / 2} ${54 - s / 2} ${s} ${s}">${plate(v, R)}</svg>`;
+  body = `<svg width="${px}" height="${px}" viewBox="${54 - s / 2} ${54 - s / 2} ${s} ${s}">${logo(v, R)}</svg>`;
 } else if (mode === "maskable") {
   const s = side / 0.8;  // plate = the 80% safe circle, corners in the rim color
-  body = `<svg width="${px}" height="${px}" viewBox="${54 - s / 2} ${54 - s / 2} ${s} ${s}"><rect x="0" y="0" width="108" height="108" fill="${v.rim}"/>${plate(v, R)}</svg>`;
+  body = `<svg width="${px}" height="${px}" viewBox="${54 - s / 2} ${54 - s / 2} ${s} ${s}"><rect x="0" y="0" width="108" height="108" fill="${v.rim}"/>${logo(v, R)}</svg>`;
 } else if (mode === "mono") {
-  // Themed-icon layer: white plate silhouette with the hole, rings and lettering cut out.
-  const inner = plate({...v, rim:"#fff", body:"#fff", center:"#fff", step:"#000", text:"#000", hubRing:"#000", hole:"#000", hub:"cream", bwColor:"#000"}, R)
+  // Themed-icon layer: white plate silhouette with the hole, rings and lettering cut out
+  // (always the original plate: decorations would only blur a one-colour icon).
+  const inner = plate({...original, rim:"#fff", body:"#fff", center:"#fff", step:"#000", text:"#000", hubRing:"#000", hole:"#000", hub:"cream", bwColor:"#000"}, R)
     .replace(/<circle cx="54" cy="54" r="[^"]+" fill="url\(#[^)]+shade\)"\/>/, "");
   body = `<svg width="${px}" height="${px}" viewBox="0 0 108 108"><defs><mask id="mm" maskUnits="userSpaceOnUse" x="0" y="0" width="108" height="108">${inner}</mask></defs><rect width="108" height="108" fill="#fff" mask="url(#mm)"/></svg>`;
 }
