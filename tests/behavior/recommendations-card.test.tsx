@@ -55,10 +55,15 @@ function card(calories: number, protein: number, day?: string) {
   return <DaySummaryCard day={day} totals={{ calories, protein, carbs: 0, fat: 0 }} />;
 }
 
-/** «¿Por qué estos números?»: the sheet with where the ranges come from. */
+/** «Cómo se calculan»: the sheet with where the ranges come from. */
 async function openWhy(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(await screen.findByRole("button", { name: t.hoy.whyNumbers }));
-  return screen.findByRole("dialog", { name: t.hoy.whyNumbers });
+  await user.click(await screen.findByRole("button", { name: t.hoy.howCalculated }));
+  return screen.findByRole("dialog", { name: t.hoy.howCalculatedTitle });
+}
+
+/** The totals with no target, as label → value («217 g»). */
+function plainTotals() {
+  return screen.getAllByTestId("plain-total").map((el) => [el.children[0].textContent, el.children[1].textContent]);
 }
 
 const weight: WeightDTO = {
@@ -116,7 +121,7 @@ describe("resumen del día (Comidas)", () => {
     expect(missing.textContent).not.toMatch(/te faltan \d+ kcal/);
   });
 
-  it("en «¿Por qué estos números?» el número grande va con la etiqueta de promedio estimado", async () => {
+  it("en «Cómo se calculan» el número grande va con la etiqueta de promedio estimado", async () => {
     const user = userEvent.setup();
     render(card(2000, 50));
 
@@ -153,11 +158,44 @@ describe("resumen del día (Comidas)", () => {
     expect(within(why).getByRole("link", { name: t.hoy.fullMethodology })).toHaveAttribute("href", "/metodologia");
   });
 
-  it("los hidratos y la grasa del día se ven como totales, sin objetivo", async () => {
+  it("los hidratos y la grasa del día se ven como totales, sin objetivo, en dos columnas iguales", async () => {
     render(<DaySummaryCard totals={{ calories: 2000, protein: 50, carbs: 217, fat: 89.5 }} />);
     await screen.findByText(/te faltan \d+–\d+ kcal/);
-    expect(screen.getByText((_, el) => el?.tagName === "SPAN" && el.textContent === `${t.hoy.carbs} 217 g`)).toBeInTheDocument();
-    expect(screen.getByText((_, el) => el?.tagName === "SPAN" && el.textContent === `${t.hoy.fat} 89,5 g`)).toBeInTheDocument();
+    expect(plainTotals()).toEqual([
+      [t.hoy.carbs, "217 g"],
+      [t.hoy.fat, "89,5 g"],
+    ]);
+    // Side by side in equal columns, so both values start at the same height whatever the labels.
+    expect(screen.getByTestId("plain-totals").className).toContain("grid-cols-2");
+  });
+
+  it("el enlace a cómo se calculan está en el encabezado de los objetivos, no junto a los totales", async () => {
+    render(<DaySummaryCard totals={{ calories: 2000, protein: 50, carbs: 217, fat: 89.5 }} />);
+    const heading = await screen.findByRole("heading", { name: t.hoy.targetsToday });
+    const link = screen.getByRole("button", { name: t.hoy.howCalculated });
+    expect(heading.parentElement).toContainElement(link);
+    expect(screen.getByTestId("plain-totals")).not.toContainElement(link);
+  });
+
+  it("un día pasado se titula «Objetivos de ese día»", async () => {
+    render(card(2000, 50, addDaysToKey(todayKey(), -3)));
+    expect(await screen.findByRole("heading", { name: t.hoy.targetsThatDay })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: t.hoy.targetsToday })).toBeNull();
+  });
+
+  it("sin peso no hay objetivos: los cuatro totales en una cuadrícula de 2 × 2 y nada que explicar", async () => {
+    vi.mocked(api.listWeights).mockResolvedValue([]);
+    render(<DaySummaryCard totals={{ calories: 1842, protein: 128, carbs: 186.5, fat: 64.2 }} />);
+    expect(await screen.findByText(t.protein.noWeight)).toBeInTheDocument();
+    expect(plainTotals()).toEqual([
+      [t.hoy.calories, "1842 kcal"],
+      [t.hoy.protein, "128 g"],
+      [t.hoy.carbs, "186,5 g"],
+      [t.hoy.fat, "64,2 g"],
+    ]);
+    expect(screen.getByTestId("plain-totals").className).toContain("grid-cols-2");
+    expect(screen.queryByRole("heading", { name: t.hoy.targetsToday })).toBeNull();
+    expect(screen.queryByRole("button", { name: t.hoy.howCalculated })).toBeNull();
   });
 
   it("la barra muestra lo consumido frente al objetivo y cambia de color al pasarse", async () => {
@@ -365,7 +403,7 @@ describe("resumen del día (Comidas)", () => {
 
     unmount();
     render(card(2000, 50));
-    await screen.findByRole("button", { name: t.hoy.whyNumbers });
+    await screen.findByRole("button", { name: t.hoy.howCalculated });
     expect(screen.queryByText(notice)).toBeNull();
   });
 
@@ -375,7 +413,7 @@ describe("resumen del día (Comidas)", () => {
     const user = userEvent.setup();
     render(card(2000, 50));
 
-    // The measurement is there (in «¿Por qué estos números?»), and the card says nothing about it.
+    // The measurement is there (in «Cómo se calculan»), and the card says nothing about it.
     const why = await openWhy(user);
     expect(within(why).getByText(t.calorias.measuredTdee)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: t.expenditureCheck.why })).toBeNull();

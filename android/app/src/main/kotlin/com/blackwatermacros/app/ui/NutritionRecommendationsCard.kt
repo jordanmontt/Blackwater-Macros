@@ -2,12 +2,11 @@ package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
@@ -81,12 +80,12 @@ internal data class DayTotals(
  * Comidas' summary of the day (web `DaySummaryCard`): calories and protein against
  * their ranges (a bar each, with what is missing or over in words), carbs and fat as
  * plain totals, and the expenditure check's notices. Where the ranges come from
- * (BMR, TDEE, measured expenditure, protein per kg) is one tap away in «Why these
- * numbers?» ([RecommendationDetailsSheet]), so the day's meals start on the first
- * screen. A past [day] keeps the targets it had; the notices are about the current
- * profile, so they show on today only.
+ * (BMR, TDEE, measured expenditure, protein per kg) is one tap away in «How they're
+ * calculated» ([RecommendationDetailsSheet]), in the card's header («Today's targets»)
+ * so it reads as being about every target, not the totals next to it; the day's meals
+ * start on the first screen. A past [day] keeps the targets it had; the notices are
+ * about the current profile, so they show on today only.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun DaySummaryCard(
     day: String,
@@ -115,6 +114,20 @@ internal fun DaySummaryCard(
 
     AppCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (hasTargets) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(if (isToday) R.string.rec_targets_today else R.string.rec_targets_that_day),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.weight(1f).semantics { heading() },
+                    )
+                    TextButton(onClick = { whyOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) {
+                        Icon(Icons.Outlined.Info, contentDescription = null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(stringResource(R.string.rec_how_calculated), style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
             if (calorie != null) {
                 IntakeBar(
                     title = stringResource(R.string.total_calories),
@@ -150,25 +163,19 @@ internal fun DaySummaryCard(
                 )
             }
             if (hasTargets) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (hasTargets) {
-                    // Stacked, so the layout does not change with the length of the numbers.
-                    Column(Modifier.weight(1f)) {
-                        PlainTotal(stringResource(R.string.macro_carbs), formatNumber(totals.carbs, 1), "g")
-                        PlainTotal(stringResource(R.string.macro_fat), formatNumber(totals.fat, 1), "g")
-                    }
-                } else {
-                    FlowRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        PlainTotal(stringResource(R.string.total_calories), formatNumber(totals.calories), "kcal")
-                        PlainTotal(stringResource(R.string.macro_protein), formatNumber(totals.protein, 1), "g")
-                        PlainTotal(stringResource(R.string.macro_carbs), formatNumber(totals.carbs, 1), "g")
-                        PlainTotal(stringResource(R.string.macro_fat), formatNumber(totals.fat, 1), "g")
-                    }
+            // Two equal columns (2 × 2 without targets): the values line up and do not move with their length.
+            val totalsShown = buildList {
+                if (!hasTargets) {
+                    add(Triple(stringResource(R.string.total_calories), formatNumber(totals.calories), "kcal"))
+                    add(Triple(stringResource(R.string.macro_protein), formatNumber(totals.protein, 1), "g"))
                 }
-                if (hasTargets) {
-                    TextButton(onClick = { whyOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) {
-                        Text(stringResource(R.string.rec_why_numbers), style = MaterialTheme.typography.labelMedium)
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, Modifier.size(16.dp))
+                add(Triple(stringResource(R.string.macro_carbs), formatNumber(totals.carbs, 1), "g"))
+                add(Triple(stringResource(R.string.macro_fat), formatNumber(totals.fat, 1), "g"))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                totalsShown.chunked(2).forEach { pair ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        pair.forEach { (label, value, unit) -> PlainTotal(label, value, unit, Modifier.weight(1f)) }
                     }
                 }
             }
@@ -204,18 +211,24 @@ internal fun DaySummaryCard(
     }
 }
 
-/** One total with no target to compare with (carbs, fat; or anything before there is a weight). */
+/**
+ * One total with no target to compare with (carbs, fat; or anything before there is a
+ * weight): the label above, the value under it, as the bars' titles and big numbers.
+ */
 @Composable
-private fun PlainTotal(label: String, value: String, unit: String) {
-    Text(
-        buildAnnotatedString {
-            append("$label ")
-            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)) { append(value) }
-            append(" $unit")
-        },
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+private fun PlainTotal(label: String, value: String, unit: String, modifier: Modifier = Modifier) {
+    Column(modifier) {
+        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(value) }
+                withStyle(SpanStyle(fontSize = MaterialTheme.typography.bodySmall.fontSize, color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                    append(" $unit")
+                }
+            },
+            style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = "tnum"),
+        )
+    }
 }
 
 /** What is missing for the recommendations, with where to fix it. */
@@ -228,7 +241,7 @@ private fun HintLine(message: String, action: String, onClick: () -> Unit) {
 }
 
 /**
- * «Why these numbers?»: where the day's ranges come from, with the user's numbers
+ * «How your targets are calculated»: where the day's ranges come from, with the user's numbers
  * (the second layer; the methodology is the third). Labels and values sit in two
  * columns, so no language has to share another's punctuation.
  */
@@ -255,7 +268,7 @@ private fun RecommendationDetailsSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                stringResource(R.string.rec_why_numbers),
+                stringResource(R.string.rec_how_calculated_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.semantics { heading() },

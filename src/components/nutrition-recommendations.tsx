@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ChevronRightIcon, DumbbellIcon, FlameIcon } from "lucide-react";
+import { ChevronRightIcon, DumbbellIcon, FlameIcon, InfoIcon } from "lucide-react";
 import { formatNumber } from "@/i18n/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet } from "@/components/ui/sheet";
@@ -128,16 +128,23 @@ function IntakeBar({
   );
 }
 
-/** One total with no target to compare with (carbs, fat; or anything before there is a weight). */
+/**
+ * One total with no target to compare with (carbs, fat; or anything before there is a
+ * weight): the label above, the value under it, as the bars' titles and big numbers.
+ * Laid out in a grid of equal columns, so the values line up whatever the labels.
+ */
 function PlainTotal({ label, value, unit }: { label: string; value: string; unit: string }) {
   return (
-    <span className="whitespace-nowrap">
-      {label} <span className="font-semibold tabular-nums text-foreground">{value}</span> {unit}
-    </span>
+    <div data-testid="plain-total">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-lg font-semibold tabular-nums">
+        {value} <span className="text-xs font-normal text-muted-foreground">{unit}</span>
+      </p>
+    </div>
   );
 }
 
-/** A label and its value on one line of «¿Por qué estos números?» (no colon: each language punctuates its own). */
+/** A label and its value on one line of «Cómo se calculan tus objetivos» (no colon: each language punctuates its own). */
 function DetailRow({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1.5">
@@ -151,9 +158,11 @@ function DetailRow({ label, children }: { label: ReactNode; children: ReactNode 
  * Comidas' summary of the day: calories and protein against their ranges (a bar
  * each, with what is missing or over in words), carbs and fat as plain totals,
  * and the expenditure check's notices. Where the ranges come from (BMR, TDEE,
- * measured expenditure, protein per kg) is one tap away in «¿Por qué estos
- * números?», so the day's meals start on the first screen: message first, then
- * the user's numbers, then the methodology. A past `day` keeps the targets it had.
+ * measured expenditure, protein per kg) is one tap away in «Cómo se calculan», in
+ * the card's header («Objetivos de hoy») so it reads as being about every target,
+ * not the totals next to it. The day's meals start on the first screen: message
+ * first, then the user's numbers, then the methodology. A past `day` keeps the
+ * targets it had.
  */
 export function DaySummaryCard({
   day,
@@ -183,6 +192,19 @@ export function DaySummaryCard({
   return (
     <Card className="py-3">
       <CardContent className="space-y-3 px-4">
+        {hasTargets ? (
+          <div className="flex flex-wrap items-center justify-between gap-x-3">
+            <h2 className="text-sm font-semibold">{isToday ? t.hoy.targetsToday : t.hoy.targetsThatDay}</h2>
+            <button
+              type="button"
+              onClick={() => setWhyOpen(true)}
+              className="-my-3 -mr-1.5 inline-flex min-h-11 items-center gap-1 px-1.5 text-xs font-medium text-primary hover:underline"
+            >
+              <InfoIcon className="size-3.5" />
+              {t.hoy.howCalculated}
+            </button>
+          </div>
+        ) : null}
         {latestWeight && calorieRec ? (
           <IntakeBar
             title={
@@ -229,33 +251,16 @@ export function DaySummaryCard({
             inputs={formulaInputs(profile, latestWeight.weightKg, new Date().getFullYear())}
           />
         ) : null}
-        <div
-          className={cn(
-            "flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-muted-foreground",
-            hasTargets && "border-t pt-2",
+        {/* Two equal columns (2 × 2 without targets): the values line up and do not move with their length. */}
+        <div className={cn("grid grid-cols-2 gap-x-3 gap-y-2", hasTargets && "border-t pt-2")} data-testid="plain-totals">
+          {hasTargets ? null : (
+            <>
+              <PlainTotal label={t.hoy.calories} value={formatNumber(totals.calories)} unit={t.hoy.kcalUnit} />
+              <PlainTotal label={t.hoy.protein} value={formatNumber(totals.protein, 1)} unit={t.hoy.proteinUnit} />
+            </>
           )}
-        >
-          {/* With targets, carbs and fat are stacked so the layout does not change with the numbers. */}
-          <span className={cn("flex gap-x-3 gap-y-1", hasTargets ? "flex-col" : "flex-wrap")}>
-            {hasTargets ? null : (
-              <>
-                <PlainTotal label={t.hoy.calories} value={formatNumber(totals.calories)} unit={t.hoy.kcalUnit} />
-                <PlainTotal label={t.hoy.protein} value={formatNumber(totals.protein, 1)} unit={t.hoy.proteinUnit} />
-              </>
-            )}
-            <PlainTotal label={t.hoy.carbs} value={formatNumber(totals.carbs, 1)} unit={t.hoy.gramUnit} />
-            <PlainTotal label={t.hoy.fat} value={formatNumber(totals.fat, 1)} unit={t.hoy.gramUnit} />
-          </span>
-          {hasTargets ? (
-            <button
-              type="button"
-              onClick={() => setWhyOpen(true)}
-              className="-my-2 inline-flex min-h-11 items-center gap-0.5 font-medium text-primary hover:underline"
-            >
-              {t.hoy.whyNumbers}
-              <ChevronRightIcon className="size-3.5" />
-            </button>
-          ) : null}
+          <PlainTotal label={t.hoy.carbs} value={formatNumber(totals.carbs, 1)} unit={t.hoy.gramUnit} />
+          <PlainTotal label={t.hoy.fat} value={formatNumber(totals.fat, 1)} unit={t.hoy.gramUnit} />
         </div>
         {latestWeight ? null : <p className="text-xs text-muted-foreground">{t.protein.noWeight}</p>}
         {differsFromToday ? (
@@ -265,7 +270,7 @@ export function DaySummaryCard({
         ) : null}
       </CardContent>
       {hasTargets ? (
-        <Sheet open={whyOpen} onOpenChange={setWhyOpen} title={t.hoy.whyNumbers}>
+        <Sheet open={whyOpen} onOpenChange={setWhyOpen} title={t.hoy.howCalculatedTitle}>
           <div className="space-y-5 pb-2 text-sm">
             {calorieRec ? (
               <section className="space-y-1">
