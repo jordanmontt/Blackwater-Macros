@@ -79,7 +79,7 @@ describe("ruta de exportación", () => {
     );
     world!.data.weights.set(
       "w-1",
-      weightRow({ id: "w-1", userId: USER, measuredAt: new Date("2026-06-15T08:00:00Z"), weightKg: 77.4, bodyFatPct: 18.5 }),
+      weightRow({ id: "w-1", userId: USER, measuredAt: new Date("2026-06-15T08:00:00Z"), weightKg: 77.4, bodyFatPct: 18.5, fasted: false, timeZone: "Europe/Zurich" }),
     );
     world!.data.templates.set("t-1", templateRow({ id: "t-1", userId: USER, name: "Batido" }));
 
@@ -93,7 +93,9 @@ describe("ruta de exportación", () => {
     const file = JSON.parse(text);
     expect(file.format).toBe(1);
     expect(file.profile).toMatchObject({ sex: "female", goal: "bulk", gymMinutesPerSession: 60 });
-    expect(file.weighIns).toEqual([{ time: "2026-06-15T08:00:00.000Z", kg: 77.4, bodyFatPct: 18.5, note: null }]);
+    expect(file.weighIns).toEqual([
+      { time: "2026-06-15T08:00:00.000Z", kg: 77.4, bodyFatPct: 18.5, note: null, fasted: false, timeZone: "Europe/Zurich" },
+    ]);
     expect(file.meals).toHaveLength(1);
     expect(file.meals[0]).toMatchObject({
       date: "2026-06-15",

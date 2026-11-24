@@ -18,11 +18,11 @@ class ExpenditureTest {
     private fun meals(days: Int, kcal: Double) = (0 until days).map { DataPoint(daysAgo(it + 1), kcal) }
 
     /** A weigh-in every `every` days from `first` days ago, changing linearly. */
-    private fun weighIns(startKg: Double, kgPerWeek: Double, every: Int = 3, first: Int = 28): List<DataPoint> {
-        val points = mutableListOf<DataPoint>()
+    private fun weighIns(startKg: Double, kgPerWeek: Double, every: Int = 3, first: Int = 28): List<WeighIn> {
+        val points = mutableListOf<WeighIn>()
         var n = first
         while (n >= 1) {
-            points += DataPoint(daysAgo(n), startKg + (kgPerWeek / 7) * (first - n))
+            points += WeighIn(daysAgo(n), startKg + (kgPerWeek / 7) * (first - n))
             n -= every
         }
         return points
@@ -78,7 +78,7 @@ class ExpenditureTest {
     @Test
     fun ignoresTodayAndAnythingBeforeTheWindow() {
         val intake = meals(28, 2000.0) + DataPoint(TODAY, 9000.0) + DataPoint(daysAgo(29), 9000.0)
-        val weights = weighIns(80.0, 0.0) + DataPoint(TODAY, 60.0) + DataPoint(daysAgo(40), 100.0)
+        val weights = weighIns(80.0, 0.0) + WeighIn(TODAY, 60.0) + WeighIn(daysAgo(40), 100.0)
         val est = estimateExpenditure(intake, weights, TODAY)
         assertThat(est!!.avgIntake).isEqualTo(2000.0)
         assertThat(est.tdee).isEqualTo(2000.0)
@@ -86,10 +86,10 @@ class ExpenditureTest {
 
     @Test
     fun needsAtLeast4WeighInDays() {
-        val three = listOf(daysAgo(28), daysAgo(20), daysAgo(2)).map { DataPoint(it, 80.0) }
+        val three = listOf(daysAgo(28), daysAgo(20), daysAgo(2)).map { WeighIn(it, 80.0) }
         assertThat(estimateExpenditure(meals(28, 2500.0), three, TODAY)).isNull()
         // Two weigh-ins on the same day count once.
-        assertThat(estimateExpenditure(meals(28, 2500.0), three + DataPoint(daysAgo(2), 80.2), TODAY)).isNull()
+        assertThat(estimateExpenditure(meals(28, 2500.0), three + WeighIn(daysAgo(2), 80.2), TODAY)).isNull()
     }
 
     @Test
@@ -161,7 +161,7 @@ class ExpenditureTest {
     @Test
     fun morningAndEveningWeighInsDoNotCountTwice() {
         val single = estimateExpenditure(meals(28, 2500.0), weighIns(80.0, -0.5), TODAY)!!
-        val twice = weighIns(80.0, -0.5).flatMap { listOf(it, DataPoint(it.date, it.value + 1)) }
+        val twice = weighIns(80.0, -0.5).flatMap { listOf(it, WeighIn(it.date, it.value + 1)) }
         val doubled = estimateExpenditure(meals(28, 2500.0), twice, TODAY)!!
         assertThat(doubled.tdee).isEqualTo(single.tdee)
         assertThat(doubled.margin).isEqualTo(single.margin)
@@ -186,7 +186,7 @@ class ExpenditureTest {
 
     @Test
     fun measure_noMarginWithoutATrend() {
-        val data = measureExpenditure(meals(28, 2400.0), listOf(DataPoint(daysAgo(3), 80.0)), TODAY)
+        val data = measureExpenditure(meals(28, 2400.0), listOf(WeighIn(daysAgo(3), 80.0)), TODAY)
         assertThat(data.weighInDays).isEqualTo(1)
         assertThat(data.weightSpanDays).isEqualTo(0)
         assertThat(data.margin).isNull()
@@ -231,10 +231,10 @@ class ExpenditureTest {
 
     @Test
     fun check_notEnoughData_saysWhatIsMissing_mealsFirst() {
-        fun missing(intake: List<DataPoint>, weights: List<DataPoint>) =
+        fun missing(intake: List<DataPoint>, weights: List<WeighIn>) =
             (checkExpenditure(intake, weights, FORMULA, TODAY) as? ExpenditureCheck.NotEnoughData)?.missing
         assertThat(missing(meals(15, 2400.0), weighIns(80.0, 0.0, 1))).containsExactly(MissingExpenditureData.MEALS)
-        val three = listOf(daysAgo(28), daysAgo(20), daysAgo(2)).map { DataPoint(it, 80.0) }
+        val three = listOf(daysAgo(28), daysAgo(20), daysAgo(2)).map { WeighIn(it, 80.0) }
         assertThat(missing(meals(28, 2400.0), three)).containsExactly(MissingExpenditureData.WEIGH_INS)
         assertThat(missing(meals(28, 2400.0), weighIns(80.0, 0.0, 1, 13))).containsExactly(MissingExpenditureData.WEIGHT_SPAN)
         // A wide margin is never what is missing: weekly weigh-ins are enough to measure.
@@ -323,5 +323,117 @@ class ExpenditureTest {
     @Test
     fun weeklyExpenditure_isNullUntilTheDataCanSupportIt() {
         assertThat(weeklyExpenditure(emptyList(), weighIns(80.0, -0.5, 1, 40))(TODAY)).isNull()
+    }
+
+    // --- Weigh-ins taken in the same conditions ---
+
+    /** Daily weigh-ins from 28 days ago to yesterday; `at(x)` builds each one (x = 0 … 27). */
+    private fun dailyWith(at: (Int, String) -> WeighIn): List<WeighIn> =
+        (0 until 28).map { x -> at(x, daysAgo(28 - x)) }
+
+    @Test
+    fun groupWeighIns_byFastedAndTimeZonePeriod_onePointPerGroupAndDay() {
+        val grouped = groupWeighIns(
+            listOf(
+                WeighIn("2026-02-01", 80.0, "2026-02-01T07:00:00.000Z", fasted = true),
+                WeighIn("2026-02-01", 80.2, "2026-02-01T07:05:00.000Z", fasted = true),
+                WeighIn("2026-02-01", 80.9, "2026-02-01T20:00:00.000Z", fasted = false),
+                WeighIn("2026-02-02", 79.9, "2026-02-02T07:00:00.000Z"),
+            ),
+        )
+        assertThat(grouped.groups).containsExactly("f0", "n0", "f0").inOrder()
+        assertThat(grouped.points.map { it.date }).containsExactly("2026-02-01", "2026-02-01", "2026-02-02").inOrder()
+        assertThat(grouped.points[0].value).isWithin(1e-10).of(80.1)
+    }
+
+    @Test
+    fun groupWeighIns_aNewZoneStartsAPeriod_unknownZoneOrAnotherHourNever_goingBackStartsAnother() {
+        val zones = listOf("Europe/Zurich", null, "Europe/Zurich", "America/La_Paz", null, "Europe/Zurich")
+        val grouped = groupWeighIns(
+            zones.mapIndexed { i, zone ->
+                WeighIn("2026-02-0${i + 1}", 80.0, "2026-02-0${i + 1}T${if (i % 2 == 0) "07" else "21"}:00:00.000Z", timeZone = zone)
+            },
+        )
+        assertThat(grouped.groups).containsExactly("f0", "f0", "f0", "f1", "f1", "f2").inOrder()
+    }
+
+    @Test
+    fun fitWeightTrend_aJumpBetweenGroupsIsNotWeightChange_singleDayGroupsLeftOut() {
+        val days = listOf("2026-02-01", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-07")
+        val values = listOf(80.0, 79.9, 79.8, 80.7, 80.6, 80.5, 99.0)
+        val trend = fitWeightTrend(
+            days.mapIndexed { i, date -> DataPoint(date, values[i]) },
+            listOf("f0", "f0", "f0", "n0", "n0", "n0", "f1"),
+        )!!
+        assertThat(trend.slopePerDay).isWithin(1e-10).of(-0.1)
+        assertThat(trend.groups).containsExactly("f0", "n0").inOrder()
+        assertThat(trend.n).isEqualTo(6)
+        // The latest group's level: days 3–5, mean 80.6.
+        assertThat(trend.meanX).isEqualTo(4.0)
+        assertThat(trend.meanY).isWithin(1e-10).of(80.6)
+        assertThat(trend.levelN).isEqualTo(3)
+        assertThat(trend.sxx).isEqualTo(4.0)
+        assertThat(trend.sigma).isEqualTo(0.5)
+    }
+
+    @Test
+    fun afterBreakfastThenFasted_isTheTrueExpenditure_not330More() {
+        val est = estimateExpenditure(
+            meals(28, 2500.0),
+            dailyWith { x, date -> WeighIn(date, if (x < 14) 80.8 else 80.0, fasted = x >= 14) },
+            TODAY,
+        )!!
+        assertThat(est.tdee).isEqualTo(2500.0)
+        assertThat(est.groups).isEqualTo(2)
+        assertThat(est.mixedFasting).isTrue()
+        assertThat(est.newZoneSince).isNull()
+        // Two groups of 14 days: sum Sxx = 2 x 227.5 -> 1.96 x 0.5 / sqrt(455) x 7700 = 354
+        assertThat(est.margin).isEqualTo(354.0)
+        // Without the switch the same weigh-ins read as a loss: 2500 + 0.8 x 98 / 1827 x 7700 = 2830
+        val unmarked = dailyWith { x, date -> WeighIn(date, if (x < 14) 80.8 else 80.0) }
+        assertThat(estimateExpenditure(meals(28, 2500.0), unmarked, TODAY)!!.tdee).isEqualTo(2830.0)
+    }
+
+    @Test
+    fun aMoveWithANewScale_isNotWeightLost_andSaysSinceWhen() {
+        val est = estimateExpenditure(
+            meals(28, 2500.0),
+            dailyWith { x, date ->
+                WeighIn(date, if (x < 10) 80.0 else 78.5, timeZone = if (x < 10) "Europe/Zurich" else "America/La_Paz")
+            },
+            TODAY,
+        )!!
+        assertThat(est.tdee).isEqualTo(2500.0)
+        assertThat(est.groups).isEqualTo(2)
+        assertThat(est.mixedFasting).isFalse()
+        assertThat(est.newZoneSince).isEqualTo(daysAgo(18))
+        // Without the zones: 2500 + 1.5 x 90 / 1827 x 7700 = 3069
+        val unmarked = dailyWith { x, date -> WeighIn(date, if (x < 10) 80.0 else 78.5) }
+        assertThat(estimateExpenditure(meals(28, 2500.0), unmarked, TODAY)!!.tdee).isEqualTo(3069.0)
+    }
+
+    @Test
+    fun anExtraSplitCostsOnlyALittlePrecision() {
+        val est = estimateExpenditure(
+            meals(28, 2500.0),
+            dailyWith { x, date -> WeighIn(date, 80 - (0.5 / 7) * x, fasted = x % 2 == 0) },
+            TODAY,
+        )!!
+        assertThat(est.tdee).isEqualTo(3050.0)
+        assertThat(est.groups).isEqualTo(2)
+        // sum Sxx 1820 instead of 1827: still +- 177
+        assertThat(est.margin).isEqualTo(177.0)
+    }
+
+    @Test
+    fun weighInsAllTakenDifferently_giveNoTrend_moreWeighInsAreMissing() {
+        val zones = listOf("Europe/Zurich", "Europe/Paris", "Europe/Rome", "Europe/Berlin")
+        val scattered = listOf(22, 15, 8, 1).mapIndexed { i, n -> WeighIn(daysAgo(n), 80.0, timeZone = zones[i]) }
+        val data = measureExpenditure(meals(28, 2500.0), scattered, TODAY)
+        assertThat(data.weighInDays).isEqualTo(4)
+        assertThat(data.weightSpanDays).isEqualTo(21)
+        assertThat(data.margin).isNull()
+        assertThat(data.estimate).isNull()
+        assertThat(missingExpenditureData(data)).containsExactly(MissingExpenditureData.WEIGH_INS)
     }
 }

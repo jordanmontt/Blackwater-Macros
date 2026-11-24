@@ -45,11 +45,11 @@ need individual guidance.
 | Past days | Each day keeps the profile and weigh-in it had; changes count from today | FAO/WHO/UNU 2004 (PAL as habitual average) |
 | Protein | g/kg by goal (maintain 1.6–2.2 with strength training); lean mass when cutting with body fat; weight at BMI 25 above BMI 25; above the range is not a warning | Jäger 2017; Morton 2018; Nunes 2022; Helms 2014 (IJSNEM); McClave 2016; Kokura 2024; Gallagher 2000; Devries 2018; Antonio 2016 |
 | Strength training | With gym days, every goal also aims at muscle; a flat weight in a deficit can be fat lost and muscle gained | Barakat 2020; Murphy & Koehler 2022; Garthe 2011; Hall 2008 |
-| Measured expenditure | Energy balance over the 28 days before Monday, least-squares weight slope, 95 % margin | Hall 2008; Montgomery 2021 |
+| Measured expenditure | Energy balance over the 28 days before Monday, weight slope compared only within weigh-ins taken alike (fasted or not, same time zone), 95 % margin | Hall 2008; Montgomery 2021 |
 | Adaptive target | Formula (σ = 10 %) and measured (σ = margin ÷ 1.96) combined by inverse-variance weighting, weekly | Frankenfield 2005; Bajunaid 2025 |
 | Profile check | Measured 95 % range entirely outside profile ± 10 %, on two weekly measurements; says whether the profile fits, the target already follows the data | Frankenfield 2005; Schoeller 1995; Lichtman 1992 |
 | Weight trend | 7-day moving average | Zheng 2015; Walker 2005 |
-| Weekly rate | Least-squares slope × 7 | Montgomery 2021 |
+| Weekly rate | Slope within weigh-ins taken alike × 7 | Montgomery 2021 |
 | Coach projection | Trend line extended 30 days with its 95 % confidence band | Montgomery 2021 |
 | Macro energy split | 4 / 4 / 9 kcal per g | Atwater general factors |
 | Fat share | Period's average outside 20–35 % of calories, ≥ 7 logged days: one line in Progreso, no target | IOM 2005; WHO 2023; Hooper 2020; Whittaker & Wu 2021; Hall & Guo 2017; Gardner 2018 |
@@ -84,8 +84,9 @@ other. It needs only sex, weight, height and age, which the profile already has.
 - Age is `current year − birth year`, so it can be one year high for part of the year.
   That costs at most 5 kcal/day.
 - Mifflin predicts *resting* metabolic rate, a little above the strict basal rate that
-  FAO's PAL values are defined against. The difference is small and in the same
-  direction as the conservative choices below.
+  FAO's PAL values are defined against, so BMR × PAL comes out slightly high. The
+  difference is small and partly offsets the conservative choices below, which count
+  activity low.
 
 ### 1.2 Activity factor (PAL): the factorial method
 
@@ -375,11 +376,15 @@ you burn what you eat; if it moves, the difference is energy stored or released.
 ```
 Window:  the 28 days before this week's Monday (the current week is still being logged)
 intake = mean kcal of the days with meals logged
-β      = least-squares slope of the daily-mean weights [kg/day]
+β      = slope of the daily-mean weights, only within groups of weigh-ins taken alike [kg/day]
+       = Σ_g Σᵢ(xᵢ − x̄_g)(yᵢ − ȳ_g) / Σ_g Σᵢ(xᵢ − x̄_g)²
 TDEE   = intake − β × 7700
-margin = 1.96 × σ / √Σ(xᵢ − x̄)² × 7700          [kcal/day, 95 %]
-σ      = max( √(Σ residuals² / (n − 2)), 0.5 kg )
+margin = 1.96 × σ / √Sxx × 7700,   Sxx = Σ_g Σᵢ(xᵢ − x̄_g)²       [kcal/day, 95 %]
+σ      = max( √(Σ residuals² / (n − G − 1)), 0.5 kg )            G = number of groups
 ```
+
+With a single group (every weigh-in taken the same way, which is also how older data
+counts) this is the ordinary least-squares line, with n − 2 degrees of freedom.
 
 **Data rules, and why.**
 
@@ -388,16 +393,19 @@ margin = 1.96 × σ / √Σ(xᵢ − x̄)² × 7700          [kcal/day, 95 %]
 | ≥ 21 logged days of 28 | Weight reflects *every* day, logged or not. The intake average must cover nearly all of them, or unlogged (often larger) days are missing from it. |
 | Days without meals are excluded, never 0 kcal | Counting them as zero would make you look like you burn far less. |
 | ≥ 4 weigh-in days spanning ≥ 14 days | A slope over a few days is dominated by water and glycogen swings. |
-| One point per day (the mean of that day's weigh-ins) | Morning and evening weigh-ins can differ by a kilo. They are not independent measurements of the trend, so counting them twice would shrink the error falsely. |
+| One point per group and day (the mean of that day's weigh-ins in the group) | Two weigh-ins taken alike on one day are not independent measurements of the trend, so counting them twice would shrink the error falsely. |
+| The trend compares only weigh-ins taken alike: fasted or not, and in the same time zone | A weigh-in after eating or training reads 0.5–1 kg higher, and another scale reads differently. Comparing across them turns a change of habit into a fake loss or gain (below, «Weigh-ins taken alike»). |
 | No largest margin | A wide margin is shown with its ±, counts less in the target (§3.2) and needs a bigger gap before the check speaks (§3.1). A cut-off made the target jump (§3.2, «Why no cut-off»). |
 
 **The error model.**
 - The slope's standard error is `σ / √Sxx`, from ordinary least squares (Montgomery et
   al. 2021).
-- σ is estimated from the residuals with n − 2 degrees of freedom, but never below
+- σ is estimated from the residuals with n − G − 1 degrees of freedom (n − 2 with one
+  group), but never below
   **0.5 kg**, a realistic day-to-day scatter for body weight. A handful of weigh-ins can
   fall on a straight line by chance, and without the floor they would look precise.
-- `Sxx = Σ(xᵢ − x̄)²` grows with both the number of weigh-ins and how spread out they are.
+- `Sxx` (within groups) grows with both the number of weigh-ins and how spread out they
+  are; splitting into groups lowers it a little, which is the cost of a split.
 
 Worked margins, at the 0.5 kg floor and 28-day window:
 
@@ -429,10 +437,75 @@ than you eat, the measured expenditure is low by the same amount, and a target b
 is in the same units as your logging. The 4-week window, the margin, the weekly update
 and the formula's share in §3.2 soften the rest.
 
-**Weigh-ins at the same time of day.** Weight rises through the day with food and drink.
-Mixing morning and evening weigh-ins adds scatter; switching from evening to morning
-weigh-ins tilts the slope down even with no real change. The app asks for morning
-weigh-ins, after the toilet and before eating (weight form, weigh-in hint, Metodología).
+**Weigh-ins taken alike.**
+
+*In plain words.* The app only compares weigh-ins taken in the same conditions: fasted
+with fasted, after eating with after eating, and in the same time zone. Changing how you
+weigh yourself then never counts as weight lost or gained.
+
+*Why.* Weight rises 0.5–1 kg through the day with food and drink, and another scale can
+read a kilo apart. The trend is a line through 4 weeks of weigh-ins. A 1 kg jump in the
+middle of the window, from a change of habit, reads as 1 × 98 / 1827 × 7700 ≈ **410
+kcal/day** of extra expenditure, and the ± margin cannot see it: it only measures scatter.
+Two real exports showed it (2026-11-24):
+- one person switched from after-breakfast and after-gym weigh-ins to fasted ones on
+  waking, and the measurement read 2506–2711 while the fasted weigh-ins alone said ≈ 2000–2300;
+- another moved across time zones (and scales), weighed at midday for two weeks, then
+  went back to waking weigh-ins, and the measurement read 3000–3450 for six weeks while
+  the stretches of waking weigh-ins said 2665 ± 137 and 2605 ± 204 (formula ≈ 2650).
+
+*How.*
+- The weight form has an «En ayunas» switch (on waking, before eating or drinking). It
+  starts from the latest weigh-in's value, so it is only touched when the habit changes.
+- Each new weigh-in stores the device's time zone. A weigh-in in a different zone from the
+  last known one starts a new period: a move almost always means another scale and travel
+  water shifts. Summer time keeps the zone's name, and an unknown zone (older weigh-ins)
+  never splits.
+- Groups = (fasted or not, time-zone period). The trend has one level per group and one
+  common slope (a fixed-effects or ANCOVA fit with indicator variables; Montgomery et al.
+  2021). The jump between groups is absorbed by their levels, so only the change *within*
+  each group counts. Groups with a single day carry no slope and are left out.
+- The groups come only from the switch and the time zone, never from the weights. A real
+  change of body weight, including fat lost while muscle is gained (§2.4), is therefore
+  never taken for a change of conditions.
+
+*Why no time-of-day rule.* An automatic split «when the time of weighing moves by N hours»
+was considered and dropped: any N would be tuned on a few people, weekend lie-ins and
+summer time would have to fall under it, and it still could not tell «after breakfast at
+8» from «on waking at 7». Fasted or not is what changes the weight; the time zone is
+recorded exactly.
+
+*Older weigh-ins* count as fasted, with no time zone: the app always asked for weigh-ins on
+waking, and this way no one's target moves on the day of the update. They can be corrected
+by editing them.
+
+*What it costs, checked by simulation.* A person with a true expenditure of 2600 kcal/day,
+eating 2600 ± 400 a day and logging 25 of 28 days, scale noise 0.5 kg, 1000 windows each:
+
+| Daily weigh-ins | Before: bias / 95 % range holds 2600 | After: bias / holds 2600 |
+|---|---|---|
+| Nothing changes | −4 / 94 % | identical (1000 of 1000 windows) |
+| After breakfast (+0.8 kg) for 14 days, then fasted | **+326** / 9 % | −5 / 95 % (margin ± 196 → ± 374) |
+| Time-zone move with a new scale (−1.5 kg) at day 10 | **+565** / 0 % | −1 / 95 % (margin ± 230 → ± 336) |
+| Fasted switch set at random, no real change | −4 / 93 % | −5 / 93 % (margin ± 187 → ± 190) |
+
+A split removes the bias and widens the margin only while there are few weigh-ins of each
+kind, so the data count a little less in the target for those weeks (§3.2). A wrong or
+needless split costs almost nothing. Weighing 4 days a week gives the same picture with
+wider margins.
+
+*Checked on the two real exports*, with the switch set from each person's own notes («after
+the gym», «after breakfast», «on waking») and the zone change from the times of the
+weigh-ins. In every week where the waking weigh-ins alone could be measured (7 of 10 and 2
+of 2), the new measurement agreed with them; before, it was up to 630 kcal/day above. One
+stretch stayed high in both methods (≈ 3440 ± 730 from waking weigh-ins alone over 10 days):
+the fix removes changes of conditions, not real changes or short-window noise.
+
+*What it cannot do.* It needs the switch to be right: an unmarked weigh-in after eating
+behaves as before. Another scale without a change of time zone is not detected. And when
+day-to-day noise carries over from one day to the next (water retention), the 95 % margin
+is somewhat too narrow with or without this split (≈ 85 % instead of 95 % in the
+simulation with a day-to-day correlation of 0.5).
 
 **Worked example.** Over the 4 weeks before Monday you logged 25 days averaging 2300 kcal. The weight
 trend fell 0.1 kg/week (β = −0.0143 kg/day), so `TDEE = 2300 + 0.0143 × 7700 ≈ 2410`.
@@ -499,6 +572,13 @@ above the formula's 2608 for two weeks, but the check (§3.1) still said «match
 it only speaks when the whole 95 % range is beyond ±10 % (≈ 470 kcal for him). A gap the
 size of a whole cut was invisible, and his «maintenance» was a cut.
 
+*Later finding (2026-11-24).* Those windows straddled a move across time zones (and scales)
+and two weeks of midday weigh-ins. Comparing only weigh-ins taken alike (§3, «Weigh-ins
+taken alike»), the same Mondays read 2862–2909 instead of 3020–3137: still above the
+formula, by less. The case overstated the gap; the reason for the design (one person's
+expenditure can differ from the formula by several hundred kcal, Bajunaid et al. 2025)
+stands on its own.
+
 ```
 σ_profile  = 10 % × profile's expenditure (BMR × PAL)
 σ_measured = margin ÷ 1.96                     (the margin is the 95 % one, §3)
@@ -544,8 +624,12 @@ week at varying times of day, measured 2711 ± 287 one Monday and 2506 ± 317 th
 against a profile of about 1975. The second was dropped for being 17 kcal over the cut-off,
 and her target fell from 2453 to 1972 overnight, although her data still said she burned
 about 500 kcal/day more than the profile. The weighting already gives a noisy measurement
-less say (60 % at ±317, 53 % at ±482 for a 2600 kcal profile); the cut-off only turned that
-gradual decline into a jump. Without it her target went 2453 → 2291. The same holds for
+less say (60 % for her at ±317; for a 2600 kcal profile, 72 % at ±317 and 53 % at ±482);
+the cut-off only turned that gradual decline into a jump. Without it her target went
+2453 → 2291. *Later finding (2026-11-24):* within those windows she had switched from
+after-breakfast and after-gym weigh-ins to fasted ones on waking; comparing only weigh-ins
+taken alike, the two Mondays read 2381 ± 374 and 2148 ± 359. The argument against the
+cut-off (a gradual weight instead of a jump) still holds. The same holds for
 the check (§3.1): it needs the whole 95 % range outside the profile's ± 10 %, so a wide
 margin already makes it harder to trigger.
 
@@ -571,12 +655,13 @@ so the measured value comes out somewhat low (§2.4): the target errs on the low
     trend that does not jump with each day's number.
   - The Hacker's Diet (Walker 2005) uses an exponential moving average. A simple 7-day
     mean is easier to read and covers one full weekly cycle of eating and water.
-- **Weekly rate:** the ordinary-least-squares slope of the weigh-ins in the visible range,
-  × 7. It captures the long-term direction better than two single points.
-- **Raw entries versus daily means.** The moving average and the rate use every entry, so
-  a day weighed twice counts twice. That is harmless for a display. Where the statistical
-  error matters (the measured expenditure and the coach projection), same-day weigh-ins
-  are first averaged into one point.
+- **Weekly rate:** the slope of the weigh-ins in the visible range, compared only within
+  weigh-ins taken alike (§3), × 7. It captures the long-term direction better than two
+  single points, and a switch to fasted weigh-ins doesn't show as a loss.
+- **Raw entries versus daily means.** The moving average uses every entry, so a day
+  weighed twice counts twice. That is harmless for a display. The rate, the measured
+  expenditure and the coach projection first average same-day weigh-ins taken alike into
+  one point.
 - **Macro averages:** the mean over the days with food logged (calories > 0), shown with
   "N of M days logged". The energy split uses the general Atwater factors: 4 kcal/g
   protein, 4 carbs, 9 fat. Alcohol and fibre are not separated, so the split is
@@ -615,13 +700,14 @@ oil a day instead of a portion of bread (~+14 g fat, −25 g carbs) brings it to
 
 ## 5. Coach weight projection (`coach.ts`)
 
-- **Fit:** a least-squares line through the daily-mean weights of the last 28 days,
-  today included. It needs ≥ 4 weigh-in days spanning ≥ 14 days.
-- **Projection:** the line is extended 30 days, with the **95 % confidence band of the
-  trend line**:
+- **Fit:** the same trend as the measured expenditure (§3): daily-mean weights of the last
+  28 days, today included, compared only within weigh-ins taken alike. It needs ≥ 4
+  weigh-in days spanning ≥ 14 days.
+- **Projection:** the line is extended 30 days from the level of the latest weigh-ins'
+  group, with the **95 % confidence band of the trend line**:
 
 ```
-margin(x) = 1.96 × σ × √(1/n + (x − x̄)² / Sxx)        (σ floored at 0.5 kg, as in §3)
+margin(x) = 1.96 × σ × √(1/n_g + (x − x̄_g)² / Sxx)    (n_g, x̄_g: the latest group; σ floored at 0.5 kg, as in §3)
 ```
 
 - **What the band means.** It is the uncertainty of *where the trend will be*, not of a
@@ -701,6 +787,33 @@ margin(x) = 1.96 × σ × √(1/n + (x − x̄)² / Sxx)        (σ floored at 0
     IOM 2005, WHO 2023, Hooper 2020, Whittaker & Wu 2021, Hall & Guo 2017, Gardner 2018,
     checked against Crossref.
   - *Kept:* calories and protein as the only targets; z for the margin.
+
+- **2026-11-24, third review.**
+  - *Checked:* every formula and worked example again, the web and Kotlin constants side
+    by side, and the measured expenditure on two users' real exports.
+  - *Corrected:*
+    1. §1.1: resting rather than basal rate makes BMR × PAL slightly high, which partly
+       offsets the conservative choices; it said they went in the same direction.
+    2. §3.2: 60 % at ±317 was her share; for a 2600 kcal profile it is 72 %.
+    3. The coach's context said the measured expenditure counts «because it is the more
+       precise of the two», also when it weighs less than half. It now says both count by
+       their precision.
+
+- **2026-11-24, weigh-ins taken alike (§3).**
+  - *Changed:* the weight trend (measured expenditure, Progreso's rate, the coach's
+    projection) compares only weigh-ins taken in the same conditions: fasted or not (a
+    switch on the weight form) and the time zone (saved with each weigh-in). One level per
+    group, one common slope.
+  - *Why:* two users' real exports showed changes of weighing habit or scale reading as
+    300–800 kcal/day of extra expenditure for weeks, beyond the ± margin.
+  - *Checked before building it:* a simulation (bias removed, 95 % range holds the true
+    value in 95 % of windows, nothing changes when the weigh-ins are alike) and both
+    exports (agreement with the waking weigh-ins in every week that could be compared).
+  - *Considered, not adopted:* an automatic split when the time of weighing moves by N
+    hours (N would be tuned on a few people and can't tell after breakfast from on waking);
+    a «new scale» checkbox (rare; a move is detected from the time zone).
+  - *Open:* the margin assumes independent day-to-day noise; with water retention that
+    carries over, it is somewhat narrow (≈ 85 % instead of 95 % in the simulation).
 
 ## 9. References
 

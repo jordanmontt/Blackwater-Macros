@@ -246,6 +246,7 @@ private fun RecommendationsCard(loaded: ProfileUiState.Loaded, onOpenCheck: () -
                                 (if (rate > 0) "+" else "") + formatNumber(rate, 2),
                             ),
                         )
+                        weighInConditionsText(measured)?.let { CardDescription(it) }
                     }
                     TargetExpenditureLine(calorie, onOpenAdaptive)
                     ExpenditureCheckStatus(loaded.check, loaded.inputs, onOpenCheck)

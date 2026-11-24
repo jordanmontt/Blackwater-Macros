@@ -72,6 +72,8 @@ const weight: WeightDTO = {
   weightKg: 80,
   bodyFatPct: null,
   note: null,
+  fasted: true,
+  timeZone: null,
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
 

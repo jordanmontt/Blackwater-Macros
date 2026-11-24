@@ -55,6 +55,10 @@ export const weightInputSchema = z.object({
   weightKg: z.number().min(20, "weight_out_of_range").max(400, "weight_out_of_range"),
   bodyFatPct: z.number().min(3, "body_fat_out_of_range").max(60, "body_fat_out_of_range").nullish(),
   note: z.string().trim().max(500).nullish(),
+  /** On waking, before eating or drinking. Clients that don't send it (older Android) mean yes. */
+  fasted: z.boolean().default(true),
+  /** IANA time zone of the device when the weigh-in was saved («Europe/Zurich»). */
+  timeZone: z.string().trim().min(1).max(64).nullish(),
 });
 
 export type WeightInput = z.infer<typeof weightInputSchema>;

@@ -20,11 +20,15 @@ function meals(points: { date: string; kcal: number; protein: number }[]): Stats
   }));
 }
 
-function weights(entries: { iso: string; kg: number; bodyFatPct?: number | null }[]): StatsWeight[] {
+function weights(
+  entries: { iso: string; kg: number; bodyFatPct?: number | null; fasted?: boolean; timeZone?: string | null }[],
+): StatsWeight[] {
   return entries.map((e) => ({
     measuredAt: new Date(e.iso),
     weightKg: e.kg,
     bodyFatPct: e.bodyFatPct ?? null,
+    fasted: e.fasted ?? true,
+    timeZone: e.timeZone ?? null,
   }));
 }
 
@@ -90,6 +94,17 @@ describe("buildStatsFromData", () => {
 
     expect(summary.weight.changeSinceStartKg).toBeCloseTo(-2, 6);
     expect(summary.weight.ratePerWeekKg).toBeCloseTo(-0.5, 1);
+  });
+
+  it("el ritmo compara solo pesajes tomados igual: pasar a pesarse en ayunas no es bajar", () => {
+    const entries = Array.from({ length: 28 }, (_, i) => ({
+      iso: `${addDaysToKey(TODAY, -(27 - i))}T12:00:00Z`,
+      kg: i < 14 ? 80.8 : 80,
+      fasted: i >= 14,
+    }));
+    expect(buildStatsFromData([], weights(entries), "30d", TODAY).weight.ratePerWeekKg).toBe(0);
+    const unmarked = entries.map(({ iso, kg }) => ({ iso, kg }));
+    expect(buildStatsFromData([], weights(unmarked), "30d", TODAY).weight.ratePerWeekKg).toBeLessThan(-0.2);
   });
 
   it("construye la serie de grasa corporal solo con datos válidos de grasa", () => {

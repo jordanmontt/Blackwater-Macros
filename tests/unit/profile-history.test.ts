@@ -143,7 +143,7 @@ describe("targetsOn", () => {
     // Measured 2300 ± 177 from the week of 2026-10-12; nothing before.
     const measuredOn = (day: string) =>
       day >= "2026-10-12"
-        ? { tdee: 2300, margin: 177, avgIntake: 0, weightChangePerWeek: 0, loggedDays: 28, weighIns: 28, windowDays: 28 }
+        ? { tdee: 2300, margin: 177, avgIntake: 0, weightChangePerWeek: 0, loggedDays: 28, weighIns: 28, windowDays: 28, groups: 1, mixedFasting: false, newZoneSince: null }
         : null;
     expect(targetsOn(AFTER, HISTORY, WEIGHTS, "2026-10-15", measuredOn).calorie).toMatchObject({
       tdee: 2046,

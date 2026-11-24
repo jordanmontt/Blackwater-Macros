@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { api, errorText } from "@/lib/api";
-import { nowDateTimeLocalValue, parseLocalDateTime, toDateTimeLocalValue } from "@/lib/core/dates";
+import { deviceTimeZone, nowDateTimeLocalValue, parseLocalDateTime, toDateTimeLocalValue } from "@/lib/core/dates";
 import type { WeightDTO } from "@/lib/core/types";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { t } from "@/i18n";
@@ -18,34 +18,40 @@ interface WeightFormState {
   bodyFat: string;
   datetime: string;
   note: string;
+  fasted: boolean;
 }
 
-function formFor(entry: WeightDTO | null): WeightFormState {
-  if (!entry) return { weight: "", bodyFat: "", datetime: nowDateTimeLocalValue(), note: "" };
+function formFor(entry: WeightDTO | null, defaultFasted: boolean): WeightFormState {
+  if (!entry) return { weight: "", bodyFat: "", datetime: nowDateTimeLocalValue(), note: "", fasted: defaultFasted };
   return {
     weight: toDecimalInput(entry.weightKg),
     bodyFat: entry.bodyFatPct !== null ? toDecimalInput(entry.bodyFatPct) : "",
     datetime: toDateTimeLocalValue(new Date(entry.measuredAt)),
     note: entry.note ?? "",
+    fasted: entry.fasted,
   };
 }
 
 /**
  * Create or edit a weigh-in. `entry` null = new. The parent re-mounts it per
- * open (`key`) so the fields always start from `entry`.
+ * open (`key`) so the fields always start from `entry`. `defaultFasted` is the
+ * latest weigh-in's «En ayunas», so it is only touched when the habit changes.
+ * A new weigh-in saves the device's time zone; an edit keeps the stored one.
  */
 export function WeightFormDialog({
   open,
   entry,
+  defaultFasted = true,
   onOpenChange,
   onSaved,
 }: {
   open: boolean;
   entry: WeightDTO | null;
+  defaultFasted?: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: () => void | Promise<unknown>;
 }) {
-  const [form, setForm] = useState<WeightFormState>(() => formFor(entry));
+  const [form, setForm] = useState<WeightFormState>(() => formFor(entry, defaultFasted));
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(event: React.FormEvent) {
@@ -60,7 +66,14 @@ export function WeightFormDialog({
     const bodyFatPct = bodyFatStr !== "" && !Number.isNaN(Number(bodyFatStr)) ? Number(bodyFatStr) : null;
     setPending(true);
     try {
-      const payload = { measuredAt: measuredAt.toISOString(), weightKg, bodyFatPct, note: form.note.trim() || null };
+      const payload = {
+        measuredAt: measuredAt.toISOString(),
+        weightKg,
+        bodyFatPct,
+        note: form.note.trim() || null,
+        fasted: form.fasted,
+        timeZone: entry ? entry.timeZone : deviceTimeZone(),
+      };
       if (entry) {
         await api.updateWeight(entry.id, payload);
       } else {
@@ -115,6 +128,22 @@ export function WeightFormDialog({
               </Button>
             </div>
           </div>
+          {/* Only weigh-ins taken alike are compared: after eating reads 0.5–1 kg higher. */}
+          <label className="flex items-start gap-3 rounded-lg border p-3">
+            <input
+              id="weight-fasted"
+              type="checkbox"
+              role="switch"
+              {...{ switch: "" }}
+              className="mt-0.5 size-4 accent-primary"
+              checked={form.fasted}
+              onChange={(event) => setForm({ ...form, fasted: event.target.checked })}
+            />
+            <span className="space-y-0.5">
+              <span className="block text-sm font-medium">{t.peso.fastedLabel}</span>
+              <span className="block text-xs text-muted-foreground">{t.peso.fastedHint}</span>
+            </span>
+          </label>
           <div className="space-y-2">
             <Label htmlFor="bodyfat-input">{t.peso.bodyFatLabel}</Label>
             <Input

@@ -48,6 +48,10 @@ data class WeightDTO(
     val bodyFatPct: Double?,
     val note: String?,
     val updatedAt: String,
+    /** On waking, before eating or drinking (the weight trend compares only weigh-ins taken alike). */
+    val fasted: Boolean = true,
+    /** The device's time zone when the weigh-in was saved ("Europe/Zurich"); null for older ones. */
+    val timeZone: String? = null,
 )
 
 // --- Statistics ---
@@ -176,6 +180,12 @@ data class ExpenditureEstimate(
     val loggedDays: Int,
     val weighIns: Int,
     val windowDays: Int,
+    /** Groups of weigh-ins taken in the same conditions that the trend compared (1 = all alike). */
+    val groups: Int = 1,
+    /** Fasted and not-fasted weigh-ins were both among them. */
+    val mixedFasting: Boolean = false,
+    /** First day in a new time zone when the window spans a move, else null. */
+    val newZoneSince: String? = null,
 )
 
 /**

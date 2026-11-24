@@ -177,7 +177,9 @@ class AppRepository(
     suspend fun backupData(): BackupData = BackupData(
         profile = db.profile().get().toCore(),
         profileHistory = db.profile().get().history(),
-        weights = db.weights().observeAll().first().map { BackupWeight(it.measuredAt, it.weightKg, it.bodyFatPct, it.note) },
+        weights = db.weights().observeAll().first().map {
+            BackupWeight(it.measuredAt, it.weightKg, it.bodyFatPct, it.note, it.fasted, it.timeZone)
+        },
         meals = db.meals().observeAll().first().map { BackupMeal(it.logDate, it.toDto().backupContent()) },
         templates = db.templates().observeAll().first().map { it.toDto().let { t -> BackupTemplate(t.name, t.backupContent()) } },
     )

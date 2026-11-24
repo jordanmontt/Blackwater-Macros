@@ -8,7 +8,16 @@ package com.blackwatermacros.app.core
 const val BACKUP_APP = "Blackwater Macros"
 const val BACKUP_FORMAT = 1
 
-data class BackupWeight(val measuredAt: String, val weightKg: Double, val bodyFatPct: Double?, val note: String?)
+data class BackupWeight(
+    val measuredAt: String,
+    val weightKg: Double,
+    val bodyFatPct: Double?,
+    val note: String?,
+    /** On waking, before eating or drinking. */
+    val fasted: Boolean = true,
+    /** The device's time zone when it was saved; null for older weigh-ins. */
+    val timeZone: String? = null,
+)
 
 /** A meal's or a template's content, with the totals the app counts (`resolveMealTotals`). */
 data class BackupContent(
@@ -94,7 +103,14 @@ fun buildBackup(data: BackupData, exportedAt: String): String {
         "profile" to profileJson(data.profile),
         "pastProfiles" to data.profileHistory.map { linkedMapOf<String, Any?>("until" to it.until) + profileJson(it.profile) },
         "weighIns" to data.weights.map {
-            linkedMapOf("time" to it.measuredAt, "kg" to it.weightKg, "bodyFatPct" to it.bodyFatPct, "note" to it.note)
+            linkedMapOf(
+                "time" to it.measuredAt,
+                "kg" to it.weightKg,
+                "bodyFatPct" to it.bodyFatPct,
+                "note" to it.note,
+                "fasted" to it.fasted,
+                "timeZone" to it.timeZone,
+            )
         },
         "meals" to data.meals.map { linkedMapOf<String, Any?>("date" to it.logDate) + contentJson(it.content) },
         "templates" to data.templates.map { linkedMapOf<String, Any?>("name" to it.name) + contentJson(it.content) },

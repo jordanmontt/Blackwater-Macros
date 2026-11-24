@@ -2,7 +2,7 @@ import { api } from "@/lib/api";
 import { calculateCalorieRecommendation, doesStrengthTraining } from "@/lib/core/calories";
 import { buildCoachContext, COACH_WEIGHT_DAYS, type CoachInput } from "@/lib/core/coach";
 import { addDaysToKey, toDateKey, todayKey, weekStartOf } from "@/lib/core/dates";
-import { EXPENDITURE_WINDOW_DAYS, estimateExpenditure } from "@/lib/core/expenditure";
+import { EXPENDITURE_WINDOW_DAYS, estimateExpenditure, weighInsOf } from "@/lib/core/expenditure";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
 
 /**
@@ -21,7 +21,14 @@ export async function loadCoachInput(today = todayKey()): Promise<CoachInput> {
   ]);
   const profile = session.calorieProfile;
   const weights = weightDtos
-    .map((w) => ({ date: toDateKey(new Date(w.measuredAt)), weightKg: w.weightKg, bodyFatPct: w.bodyFatPct }))
+    .map((w) => ({
+      date: toDateKey(new Date(w.measuredAt)),
+      weightKg: w.weightKg,
+      bodyFatPct: w.bodyFatPct,
+      fasted: w.fasted,
+      time: w.measuredAt,
+      timeZone: w.timeZone,
+    }))
     .filter((w) => w.date >= addDaysToKey(today, -COACH_WEIGHT_DAYS) && w.date <= today)
     .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -30,7 +37,7 @@ export async function loadCoachInput(today = todayKey()): Promise<CoachInput> {
   const year = Number(today.slice(0, 4));
   const expenditure = estimateExpenditure(
     meals.filter((meal) => meal.logDate < today).map((meal) => ({ date: meal.logDate, value: meal.resolvedCalories })),
-    weightDtos.map((w) => ({ date: toDateKey(new Date(w.measuredAt)), value: w.weightKg })),
+    weighInsOf(weightDtos),
     monday,
   );
   const calorie = latest ? calculateCalorieRecommendation(profile, latest.weightKg, year, expenditure) : null;

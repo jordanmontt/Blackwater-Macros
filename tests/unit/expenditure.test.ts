@@ -7,10 +7,13 @@ import {
   dailyMeans,
   estimateExpenditure,
   fitWeightTrend,
+  groupWeighIns,
   measureExpenditure,
+  missingExpenditureData,
   onlyWeighInsMissing,
   showsGapNotice,
   weeklyExpenditure,
+  type WeighIn,
 } from "../../src/lib/core/expenditure";
 import type { DataPoint } from "../../src/lib/core/stats";
 import type { ExpenditureEstimate } from "../../src/lib/core/types";
@@ -253,6 +256,9 @@ describe("combineExpenditure", () => {
     loggedDays: 28,
     weighIns: 28,
     windowDays: 28,
+    groups: 1,
+    mixedFasting: false,
+    newZoneSince: null,
   });
 
   it("without a measurement, it is the profile's", () => {
@@ -326,5 +332,112 @@ describe("Today card notices", () => {
     expect(approximateGap(770)).toBe(750);
     expect(approximateGap(-523)).toBe(500);
     expect(approximateGap(530)).toBe(550);
+  });
+});
+
+describe("weigh-ins taken in the same conditions", () => {
+  /** Daily weigh-ins from 28 days ago to yesterday; `at(x)` gives each one's value and conditions (x = 0 … 27). */
+  function dailyWith(at: (x: number) => Partial<WeighIn> & { value: number }): WeighIn[] {
+    return Array.from({ length: 28 }, (_, x) => ({ date: daysAgo(28 - x), time: `${daysAgo(28 - x)}T07:00:00.000Z`, ...at(x) }));
+  }
+
+  it("groups by fasted or not, and by time-zone period; one point per group and day", () => {
+    const grouped = groupWeighIns([
+      { date: "2026-02-01", time: "2026-02-01T07:00:00.000Z", value: 80, fasted: true },
+      { date: "2026-02-01", time: "2026-02-01T07:05:00.000Z", value: 80.2, fasted: true },
+      { date: "2026-02-01", time: "2026-02-01T20:00:00.000Z", value: 80.9, fasted: false },
+      { date: "2026-02-02", time: "2026-02-02T07:00:00.000Z", value: 79.9 },
+    ]);
+    expect(grouped.groups).toEqual(["f0", "n0", "f0"]);
+    expect(grouped.points.map((p) => p.date)).toEqual(["2026-02-01", "2026-02-01", "2026-02-02"]);
+    expect(grouped.points[0].value).toBeCloseTo(80.1, 10);
+  });
+
+  it("a new time zone starts a period; an unknown zone or another hour never does; going back starts another", () => {
+    const zones: (string | null)[] = ["Europe/Zurich", null, "Europe/Zurich", "America/La_Paz", null, "Europe/Zurich"];
+    const grouped = groupWeighIns(
+      zones.map((timeZone, i) => ({
+        date: `2026-02-0${i + 1}`,
+        time: `2026-02-0${i + 1}T${i % 2 === 0 ? "07" : "21"}:00:00.000Z`,
+        value: 80,
+        timeZone,
+      })),
+    );
+    expect(grouped.groups).toEqual(["f0", "f0", "f0", "f1", "f1", "f2"]);
+  });
+
+  it("fit: a jump between groups is not weight change; single-day groups are left out", () => {
+    const days = ["2026-02-01", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-07"];
+    const values = [80, 79.9, 79.8, 80.7, 80.6, 80.5, 99];
+    const trend = fitWeightTrend(
+      days.map((date, i) => ({ date, value: values[i] })),
+      ["f0", "f0", "f0", "n0", "n0", "n0", "f1"],
+    )!;
+    expect(trend.slopePerDay).toBeCloseTo(-0.1, 10);
+    expect(trend.groups).toEqual(["f0", "n0"]);
+    expect(trend.n).toBe(6);
+    // The latest group's level: days 3–5, mean 80.6.
+    expect(trend.meanX).toBe(4);
+    expect(trend.meanY).toBeCloseTo(80.6, 10);
+    expect(trend.levelN).toBe(3);
+    expect(trend.sxx).toBe(4);
+    expect(trend.sigma).toBe(0.5);
+  });
+
+  it("after breakfast (+0.8 kg) for two weeks, then fasted: the true expenditure, not 330 kcal more", () => {
+    const steady = (x: number) => ({ value: x < 14 ? 80.8 : 80, fasted: x >= 14 });
+    const est = estimateExpenditure(meals(28, 2500), dailyWith(steady), TODAY)!;
+    expect(est.tdee).toBe(2500);
+    expect(est.groups).toBe(2);
+    expect(est.mixedFasting).toBe(true);
+    expect(est.newZoneSince).toBeNull();
+    // Two groups of 14 days: Σ Sxx = 2 × 227.5 → 1.96 × 0.5 / √455 × 7700 = 354
+    expect(est.margin).toBe(354);
+    // Without the switch the same weigh-ins read as a loss: 2500 + 0.8 × 98 / 1827 × 7700 = 2830
+    const unmarked = dailyWith((x) => ({ value: steady(x).value }));
+    expect(estimateExpenditure(meals(28, 2500), unmarked, TODAY)!.tdee).toBe(2830);
+  });
+
+  it("a move with a new scale (−1.5 kg) is not weight lost; it says since when", () => {
+    const moved = (x: number) => ({
+      value: x < 10 ? 80 : 78.5,
+      timeZone: x < 10 ? "Europe/Zurich" : "America/La_Paz",
+    });
+    const est = estimateExpenditure(meals(28, 2500), dailyWith(moved), TODAY)!;
+    expect(est.tdee).toBe(2500);
+    expect(est.groups).toBe(2);
+    expect(est.mixedFasting).toBe(false);
+    expect(est.newZoneSince).toBe(daysAgo(18));
+    // Without the zones: 2500 + 1.5 × 90 / 1827 × 7700 = 3069
+    const unmarked = dailyWith((x) => ({ value: moved(x).value }));
+    expect(estimateExpenditure(meals(28, 2500), unmarked, TODAY)!.tdee).toBe(3069);
+  });
+
+  it("an extra split costs only a little precision: alternating flags on a true line", () => {
+    const est = estimateExpenditure(
+      meals(28, 2500),
+      dailyWith((x) => ({ value: 80 - (0.5 / 7) * x, fasted: x % 2 === 0 })),
+      TODAY,
+    )!;
+    expect(est.tdee).toBe(3050);
+    expect(est.groups).toBe(2);
+    // Σ Sxx 1820 instead of 1827: still ± 177
+    expect(est.margin).toBe(177);
+  });
+
+  it("weigh-ins all taken differently give no trend: more weigh-ins are missing", () => {
+    const zones = ["Europe/Zurich", "Europe/Paris", "Europe/Rome", "Europe/Berlin"];
+    const scattered: WeighIn[] = [22, 15, 8, 1].map((n, i) => ({
+      date: daysAgo(n),
+      time: `${daysAgo(n)}T07:00:00.000Z`,
+      value: 80,
+      timeZone: zones[i],
+    }));
+    const data = measureExpenditure(meals(28, 2500), scattered, TODAY);
+    expect(data.weighInDays).toBe(4);
+    expect(data.weightSpanDays).toBe(21);
+    expect(data.margin).toBeNull();
+    expect(data.estimate).toBeNull();
+    expect(missingExpenditureData(data)).toEqual(["weighIns"]);
   });
 });

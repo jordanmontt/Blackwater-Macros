@@ -141,7 +141,7 @@ class FakeServer(
         id == null && method == "GET" -> ok(WeightsResponse.serializer(), WeightsResponse(weights.values.sortedBy { it.measuredAt }))
         id != null && method == "PUT" -> {
             val body = ApiJson.decodeFromString(WeightRequest.serializer(), request.body.readUtf8())
-            val weight = WeightDTO(id, body.measuredAt, body.weightKg, body.bodyFatPct, body.note, stamp())
+            val weight = WeightDTO(id, body.measuredAt, body.weightKg, body.bodyFatPct, body.note, stamp(), body.fasted, body.timeZone)
             weights[id] = weight
             ok(WeightResponse.serializer(), WeightResponse(weight))
         }

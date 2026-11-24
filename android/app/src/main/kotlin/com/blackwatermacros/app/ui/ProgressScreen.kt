@@ -146,6 +146,7 @@ fun ProgressScreen(
     if (formOpen) {
         WeightFormDialog(
             weight = formWeight,
+            defaultFasted = (state as? ProgressUiState.Loaded)?.progress?.latestFasted ?: true,
             onDismiss = { formOpen = false },
             onSubmit = { request ->
                 viewModel.saveWeight(formWeight?.id, request)
@@ -512,6 +513,13 @@ private fun WeighInRow(entry: WeightDTO, onEdit: (WeightDTO) -> Unit, onDelete: 
             entry.bodyFatPct?.let {
                 Text(
                     " · " + stringResource(R.string.body_fat_value, formatNumber(it, 1)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (!entry.fasted) {
+                Text(
+                    " · " + stringResource(R.string.weight_not_fasted_tag),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

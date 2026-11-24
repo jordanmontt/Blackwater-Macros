@@ -83,6 +83,10 @@ data class WeightEntity(
     val updatedAt: String,
     val pending: Boolean,
     val deleted: Boolean = false,
+    /** On waking, before eating or drinking: the weight trend compares only weigh-ins taken alike. */
+    @ColumnInfo(defaultValue = "1") val fasted: Boolean = true,
+    /** The phone's time zone when the weigh-in was saved; null for older ones. */
+    val timeZone: String? = null,
 )
 
 /**
@@ -267,7 +271,7 @@ interface ProfileDao {
 
 @Database(
     entities = [MealEntity::class, TemplateEntity::class, WeightEntity::class, ProfileEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class LocalDatabase : RoomDatabase() {
@@ -292,6 +296,14 @@ abstract class LocalDatabase : RoomDatabase() {
             object : Migration(1, 2) {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL("ALTER TABLE profile ADD COLUMN history TEXT NOT NULL DEFAULT '[]'")
+                }
+            },
+            // 2 → 3: how each weigh-in was taken. Older ones count as fasted (what the app
+            // always asked for), with no time zone, so no target moves on the update.
+            object : Migration(2, 3) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE weights ADD COLUMN fasted INTEGER NOT NULL DEFAULT 1")
+                    db.execSQL("ALTER TABLE weights ADD COLUMN timeZone TEXT")
                 }
             },
         )

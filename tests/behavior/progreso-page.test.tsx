@@ -55,7 +55,13 @@ vi.mock("@/lib/api", () => ({
     stats: vi.fn(async (range: StatsRange, today: string) =>
       buildStatsFromData(
         meals,
-        weights.map((w) => ({ measuredAt: new Date(w.measuredAt), weightKg: w.weightKg, bodyFatPct: w.bodyFatPct })),
+        weights.map((w) => ({
+          measuredAt: new Date(w.measuredAt),
+          weightKg: w.weightKg,
+          bodyFatPct: w.bodyFatPct,
+          fasted: w.fasted,
+          timeZone: w.timeZone,
+        })),
         range,
         today,
       ),
@@ -255,6 +261,44 @@ describe("pantalla Progreso", () => {
       expect.objectContaining({ weightKg: 77.4, bodyFatPct: 18.5, measuredAt: expect.any(String), note: null }),
     );
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("«En ayunas» empieza como el último pesaje; un pesaje nuevo guarda la zona horaria", async () => {
+    const user = userEvent.setup();
+    weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(1)), weightKg: 80, fasted: false })];
+    render(<ProgresoPage />);
+
+    // The list says which weigh-ins were not fasted.
+    expect(await screen.findByText(new RegExp(t.peso.notFastedTag))).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.peso.addTitle }));
+    const dialog = await screen.findByRole("dialog");
+    const fasted = within(dialog).getByRole("switch");
+    expect(fasted).not.toBeChecked();
+    await user.click(fasted);
+    await user.type(within(dialog).getByLabelText(t.peso.weightLabel), "79,6");
+    await user.click(within(dialog).getByRole("button", { name: t.peso.save }));
+
+    expect(vi.mocked(api.createWeight)).toHaveBeenCalledWith(
+      expect.objectContaining({ weightKg: 79.6, fasted: true, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+    );
+  });
+
+  it("editar un pesaje cambia «En ayunas» y conserva su zona horaria", async () => {
+    const user = userEvent.setup();
+    weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(1)), weightKg: 80, timeZone: "Europe/Zurich" })];
+    render(<ProgresoPage />);
+
+    await user.click(await screen.findByRole("button", { name: t.peso.edit }));
+    const dialog = await screen.findByRole("dialog");
+    const fasted = within(dialog).getByRole("switch");
+    expect(fasted).toBeChecked();
+    await user.click(fasted);
+    await user.click(within(dialog).getByRole("button", { name: t.peso.save }));
+
+    expect(vi.mocked(api.updateWeight)).toHaveBeenCalledWith(
+      "w-1",
+      expect.objectContaining({ fasted: false, timeZone: "Europe/Zurich" }),
+    );
   });
 
   it("rechaza un peso no válido sin llamar a la API", async () => {

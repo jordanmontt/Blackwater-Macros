@@ -17,6 +17,19 @@ export function todayKey(): string {
   return toDateKey(new Date());
 }
 
+/**
+ * The device's time zone («Europe/Zurich»), saved with each new weigh-in: a
+ * move to another zone usually means another scale, so the weight trend compares
+ * the weigh-ins before and after it separately. Null if the runtime can't say.
+ */
+export function deviceTimeZone(): string | null {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+  } catch {
+    return null;
+  }
+}
+
 export function addDaysToKey(key: string, days: number): string {
   const date = new Date(`${key}T00:00:00`);
   date.setDate(date.getDate() + days);

@@ -203,6 +203,9 @@ describe("calculateCalorieRecommendation", () => {
       loggedDays: 28,
       weighIns: 28,
       windowDays: 28,
+      groups: 1,
+      mixedFasting: false,
+      newZoneSince: null,
     });
 
     it("sin él, el objetivo sale del gasto del perfil", () => {

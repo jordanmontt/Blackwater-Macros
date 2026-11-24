@@ -254,6 +254,8 @@ fun WeightRequest.toEntity(id: String, updatedAt: String): WeightEntity = Weight
     note = note,
     updatedAt = updatedAt,
     pending = true,
+    fasted = fasted,
+    timeZone = timeZone,
 )
 
 fun WeightDTO.toEntity(): WeightEntity = WeightEntity(
@@ -264,6 +266,8 @@ fun WeightDTO.toEntity(): WeightEntity = WeightEntity(
     note = note,
     updatedAt = updatedAt,
     pending = false,
+    fasted = fasted,
+    timeZone = timeZone,
 )
 
 fun WeightEntity.toDto(): WeightDTO = WeightDTO(
@@ -273,6 +277,8 @@ fun WeightEntity.toDto(): WeightDTO = WeightDTO(
     bodyFatPct = bodyFatPct,
     note = note,
     updatedAt = updatedAt,
+    fasted = fasted,
+    timeZone = timeZone,
 )
 
 fun WeightEntity.toRequest(): WeightRequest = WeightRequest(
@@ -280,6 +286,8 @@ fun WeightEntity.toRequest(): WeightRequest = WeightRequest(
     weightKg = weightKg,
     bodyFatPct = bodyFatPct,
     note = note,
+    fasted = fasted,
+    timeZone = timeZone,
 )
 
 // --- Profile ---

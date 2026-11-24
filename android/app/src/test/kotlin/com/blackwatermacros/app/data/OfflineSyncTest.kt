@@ -402,6 +402,26 @@ class OfflineSyncTest {
     }
 
     @Test
+    fun `how a weigh-in was taken survives sync, backup and import`() = runBlocking<Unit> {
+        repository.saveWeight(
+            null,
+            WeightRequest("2026-06-15T19:30:00.000Z", 81.2, null, "Tras entrenar", fasted = false, timeZone = "Europe/Zurich"),
+        )
+        val file = buildBackup(repository.backupData(), "2026-06-16T20:00:00.000Z")
+        repository.wipe()
+        repository.replaceAll((BackupImport.parse(file) as BackupImport.Result.Ok).contents)
+        val local = repository.weights().first().single()
+        assertThat(local.fasted).isFalse()
+        assertThat(local.timeZone).isEqualTo("Europe/Zurich")
+
+        accounts.connect(accounts.verify("ana", "secreta"), uploadLocalData = true)
+        sync.sync()
+        val uploaded = backend.weights.values.single()
+        assertThat(uploaded.fasted).isFalse()
+        assertThat(uploaded.timeZone).isEqualTo("Europe/Zurich")
+    }
+
+    @Test
     fun `an imported file is uploaded only if the user logs in and chooses to upload`() = runBlocking<Unit> {
         repository.saveWeight(null, WeightRequest("2026-06-15T06:30:00.000Z", 80.4, 18.0, null))
         val file = buildBackup(repository.backupData(), "2026-06-16T20:00:00.000Z")

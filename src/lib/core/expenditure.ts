@@ -1,4 +1,4 @@
-import { addDaysToKey, daysBetweenKeys, weekStartOf } from "./dates";
+import { addDaysToKey, daysBetweenKeys, toDateKey, weekStartOf } from "./dates";
 import type { DataPoint } from "./stats";
 import type {
   CalorieRecommendation,
@@ -8,6 +8,7 @@ import type {
   ExpenditureNoticeDismissal,
   ExpenditureVerdict,
   MissingExpenditureData,
+  WeightDTO,
 } from "./types";
 
 /** The last 4 complete weeks (today is excluded: it is still being logged). */
@@ -50,6 +51,76 @@ export function dailyMeans(points: DataPoint[]): DataPoint[] {
     .map(([date, values]) => ({ date, value: values.reduce((a, b) => a + b, 0) / values.length }));
 }
 
+// --- Weigh-ins taken in the same conditions ---
+
+/**
+ * A weigh-in as the weight trend needs it: its local day and kg, plus the
+ * conditions it was taken in. A weigh-in after eating or training reads about
+ * 0.5–1 kg above one on waking, and another scale reads differently, so only
+ * weigh-ins taken alike are compared (`groupWeighIns`).
+ */
+export interface WeighIn extends DataPoint {
+  /** ISO instant: orders weigh-ins across days and time zones. Absent: the date. */
+  time?: string;
+  /** On waking, before eating or drinking. Absent: true, what the app has always asked for. */
+  fasted?: boolean;
+  /** The device's time zone when it was saved («Europe/Zurich»). Absent or null: unknown. */
+  timeZone?: string | null;
+}
+
+/** Stored weigh-ins as the trend takes them, each on its local calendar day (Android `weighInsOf`). */
+export function weighInsOf(weights: Pick<WeightDTO, "measuredAt" | "weightKg" | "fasted" | "timeZone">[]): WeighIn[] {
+  return weights.map((w) => ({
+    date: toDateKey(new Date(w.measuredAt)),
+    value: w.weightKg,
+    time: w.measuredAt,
+    fasted: w.fasted,
+    timeZone: w.timeZone,
+  }));
+}
+
+/** Weigh-ins as the fit takes them: one point per group and day, sorted by date. */
+export interface GroupedWeighIns {
+  points: DataPoint[];
+  /** The group of each point: «f» (fasted) or «n» (not), then the time-zone period («f0», «n1»…). */
+  groups: string[];
+}
+
+/**
+ * Puts together the weigh-ins taken in the same conditions: fasted or not, and
+ * in the same time zone. The period goes up when a weigh-in's known zone differs
+ * from the last known one (a move usually means another scale); an unknown zone
+ * never starts one, so summer time (same zone name) and old weigh-ins never
+ * split. The groups come only from the switch and the zone, never from the
+ * weights, so a real change of body weight is never taken for a change of
+ * conditions. One point per group and day: the mean, as `dailyMeans`.
+ */
+export function groupWeighIns(weighIns: WeighIn[]): GroupedWeighIns {
+  const ordered = [...weighIns].sort((a, b) => (a.time ?? a.date).localeCompare(b.time ?? b.date));
+  const byGroupDay = new Map<string, { date: string; group: string; values: number[] }>();
+  let period = 0;
+  let lastZone: string | null = null;
+  for (const weighIn of ordered) {
+    const zone = weighIn.timeZone ?? null;
+    if (zone !== null) {
+      if (lastZone !== null && zone !== lastZone) period++;
+      lastZone = zone;
+    }
+    const group = `${weighIn.fasted === false ? "n" : "f"}${period}`;
+    const key = `${group}#${weighIn.date}`;
+    const entry = byGroupDay.get(key) ?? { date: weighIn.date, group, values: [] };
+    entry.values.push(weighIn.value);
+    byGroupDay.set(key, entry);
+  }
+  const entries = [...byGroupDay.values()].sort(
+    (a, b) => a.date.localeCompare(b.date) || a.group.localeCompare(b.group),
+  );
+  return {
+    points: entries.map((e) => ({ date: e.date, value: e.values.reduce((a, b) => a + b, 0) / e.values.length })),
+    groups: entries.map((e) => e.group),
+  };
+}
+
 /** Least-squares line through weigh-ins, with what is needed for its error. */
 export interface WeightTrend {
   slopePerDay: number;
@@ -57,45 +128,124 @@ export interface WeightTrend {
   slopeError: number;
   /** Scatter of the weigh-ins around the line, kg (never below the noise floor). */
   sigma: number;
+  /** Points the fit used (groups with a single day carry no slope and are left out). */
   n: number;
-  /** Mean of x and of y (x = days since `origin`). */
+  /**
+   * The level of the group of the latest weigh-in: its mean x and y (x = days
+   * since `origin`) and its number of points. With one group, all the points.
+   */
   meanX: number;
   meanY: number;
-  /** Σ(x − x̄)². */
+  levelN: number;
+  /** Σ(x − x̄)² within each group, added up. */
   sxx: number;
   /** Date of the first weigh-in: x = 0. */
   origin: string;
+  /** The groups the fit used (`groupWeighIns`), oldest first. */
+  groups: string[];
+}
+
+interface GroupSums {
+  group: string;
+  xs: number[];
+  ys: number[];
+  meanX: number;
+  meanY: number;
+}
+
+/** The time-zone period of a group («f1» → 1; the default group «» → 0). */
+function periodOf(group: string): number {
+  return Number(group.slice(1)) || 0;
 }
 
 /**
- * Least-squares weight trend and its standard error. The scatter around the
- * line is estimated from the residuals (n − 2 degrees of freedom), never below
- * WEIGHT_NOISE_FLOOR_KG: SE = σ / √Σ(x − x̄)². Fewer or clustered weigh-ins
- * give a small Σ(x − x̄)², noisier ones a larger σ; both widen the error.
- * Points must be sorted by date. Null with fewer than 3 points or one day.
+ * Whether `g` is the group of the latest weigh-in rather than `best`: the later
+ * last day; on the same day the later time-zone period, then fasted.
  */
-export function fitWeightTrend(points: DataPoint[]): WeightTrend | null {
-  const n = points.length;
-  if (n < 3) return null;
+function isLaterGroup(g: GroupSums, best: GroupSums): boolean {
+  const days = Math.max(...g.xs) - Math.max(...best.xs);
+  if (days !== 0) return days > 0;
+  if (periodOf(g.group) !== periodOf(best.group)) return periodOf(g.group) > periodOf(best.group);
+  return g.group < best.group;
+}
+
+/** The groups with 2+ points, their means, and the common slope within them (null without spread). */
+function withinGroups(points: DataPoint[], groups: string[]) {
   const origin = points[0].date;
-  const xs = points.map((p) => daysBetweenKeys(origin, p.date));
-  const ys = points.map((p) => p.value);
-  const meanX = xs.reduce((a, b) => a + b, 0) / n;
-  const meanY = ys.reduce((a, b) => a + b, 0) / n;
+  const byGroup = new Map<string, { xs: number[]; ys: number[] }>();
+  points.forEach((point, i) => {
+    const entry = byGroup.get(groups[i]) ?? { xs: [], ys: [] };
+    entry.xs.push(daysBetweenKeys(origin, point.date));
+    entry.ys.push(point.value);
+    byGroup.set(groups[i], entry);
+  });
+  const used: GroupSums[] = [...byGroup.entries()]
+    .filter(([, g]) => g.xs.length >= 2)
+    .map(([group, g]) => ({
+      group,
+      xs: g.xs,
+      ys: g.ys,
+      meanX: g.xs.reduce((a, b) => a + b, 0) / g.xs.length,
+      meanY: g.ys.reduce((a, b) => a + b, 0) / g.ys.length,
+    }));
   let sxx = 0;
   let sxy = 0;
-  for (let i = 0; i < n; i++) {
-    sxx += (xs[i] - meanX) ** 2;
-    sxy += (xs[i] - meanX) * (ys[i] - meanY);
+  for (const g of used) {
+    g.xs.forEach((x, i) => {
+      sxx += (x - g.meanX) ** 2;
+      sxy += (x - g.meanX) * (g.ys[i] - g.meanY);
+    });
   }
-  if (sxx === 0) return null;
-  const slopePerDay = sxy / sxx;
+  return { origin, used, sxx, slopePerDay: sxx === 0 ? null : sxy / sxx };
+}
+
+/**
+ * Least-squares weight trend and its standard error, compared only within
+ * groups of weigh-ins taken alike (`groups`, from `groupWeighIns`; absent = one
+ * group): each group has its own level and all share one slope (fixed effects;
+ * Montgomery 2021). A jump between groups (fasted → after breakfast, a new
+ * scale) therefore never counts as weight change. With one group it is the
+ * ordinary least-squares line.
+ *
+ *   β = Σ_g Sxy_g / Σ_g Sxx_g,   σ = max(√(RSS / (n − G − 1)), 0.5 kg),   SE = σ / √Σ_g Sxx_g
+ *
+ * Groups with a single day carry no slope and are left out. Fewer or clustered
+ * weigh-ins give a small Σ Sxx, noisier ones a larger σ; both widen the error.
+ * Points must be sorted by date. Null without a degree of freedom or spread.
+ */
+export function fitWeightTrend(points: DataPoint[], groups: string[] = points.map(() => "")): WeightTrend | null {
+  if (points.length === 0) return null;
+  const { origin, used, sxx, slopePerDay } = withinGroups(points, groups);
+  const n = used.reduce((sum, g) => sum + g.xs.length, 0);
+  if (slopePerDay === null || n - used.length - 1 < 1) return null;
   let squaredResiduals = 0;
-  for (let i = 0; i < n; i++) {
-    squaredResiduals += (ys[i] - (meanY + slopePerDay * (xs[i] - meanX))) ** 2;
+  for (const g of used) {
+    g.xs.forEach((x, i) => {
+      squaredResiduals += (g.ys[i] - (g.meanY + slopePerDay * (x - g.meanX))) ** 2;
+    });
   }
-  const sigma = Math.max(Math.sqrt(squaredResiduals / (n - 2)), WEIGHT_NOISE_FLOOR_KG);
-  return { slopePerDay, slopeError: sigma / Math.sqrt(sxx), sigma, n, meanX, meanY, sxx, origin };
+  const sigma = Math.max(Math.sqrt(squaredResiduals / (n - used.length - 1)), WEIGHT_NOISE_FLOOR_KG);
+  const latest = used.reduce((best, g) => (isLaterGroup(g, best) ? g : best));
+  return {
+    slopePerDay,
+    slopeError: sigma / Math.sqrt(sxx),
+    sigma,
+    n,
+    meanX: latest.meanX,
+    meanY: latest.meanY,
+    levelN: latest.xs.length,
+    sxx,
+    origin,
+    groups: used.map((g) => g.group),
+  };
+}
+
+/**
+ * Only the slope within groups (kg/day), for a rate on screen (Progreso): needs
+ * spread inside a group, not degrees of freedom. Null without it.
+ */
+export function slopeWithinGroups(grouped: GroupedWeighIns): number | null {
+  return grouped.points.length === 0 ? null : withinGroups(grouped.points, grouped.groups).slopePerDay;
 }
 
 /**
@@ -107,7 +257,9 @@ export function fitWeightTrend(points: DataPoint[]): WeightTrend | null {
  *
  * `intake` holds one point per meal (date = log date, value = kcal); days with
  * no meals are unlogged and left out, never counted as 0 kcal. `weights` holds
- * one point per weigh-in. Both are restricted to the 28 days before `today`.
+ * one point per weigh-in, with the conditions it was taken in (`WeighIn`): the
+ * trend compares only weigh-ins taken alike (`groupWeighIns`). Both are
+ * restricted to the 28 days before `today`.
  *
  * The estimate is null until the data can support it: ≥21 logged days and ≥4
  * weigh-in days spanning ≥14 days. It always carries its 95 % margin
@@ -117,7 +269,7 @@ export function fitWeightTrend(points: DataPoint[]): WeightTrend | null {
  * margin a few kcal over it into a target that jumps from one week to the next.
  * The counts come back either way, so the app can say what is missing.
  */
-export function measureExpenditure(intake: DataPoint[], weights: DataPoint[], today: string): ExpenditureData {
+export function measureExpenditure(intake: DataPoint[], weights: WeighIn[], today: string): ExpenditureData {
   const from = addDaysToKey(today, -EXPENDITURE_WINDOW_DAYS);
   const inWindow = (point: DataPoint) => point.date >= from && point.date < today;
 
@@ -128,11 +280,11 @@ export function measureExpenditure(intake: DataPoint[], weights: DataPoint[], to
   const loggedTotals = [...caloriesByDay.values()].filter((kcal) => kcal > 0);
   const loggedDays = loggedTotals.length;
 
-  const weighIns = dailyMeans(weights.filter(inWindow));
-  const weighInDays = weighIns.length;
-  const weightSpanDays =
-    weighInDays < 2 ? 0 : daysBetweenKeys(weighIns[0].date, weighIns[weighIns.length - 1].date);
-  const trend = fitWeightTrend(weighIns);
+  const grouped = groupWeighIns(weights.filter(inWindow));
+  const days = [...new Set(grouped.points.map((point) => point.date))];
+  const weighInDays = days.length;
+  const weightSpanDays = weighInDays < 2 ? 0 : daysBetweenKeys(days[0], days[days.length - 1]);
+  const trend = fitWeightTrend(grouped.points, grouped.groups);
   const margin = trend === null ? null : Math.round(Z_95 * trend.slopeError * KCAL_PER_KG);
 
   const data: ExpenditureData = { loggedDays, weighInDays, weightSpanDays, margin, estimate: null };
@@ -160,14 +312,34 @@ export function measureExpenditure(intake: DataPoint[], weights: DataPoint[], to
       loggedDays,
       weighIns: weighInDays,
       windowDays: EXPENDITURE_WINDOW_DAYS,
+      ...conditionsOf(trend.groups, grouped),
     },
+  };
+}
+
+/**
+ * What the Perfil «why» says about the groups the trend used: how many, whether
+ * fasted and not-fasted weigh-ins were both among them, and the first day in a
+ * new time zone when they span a move.
+ */
+function conditionsOf(
+  used: string[],
+  grouped: GroupedWeighIns,
+): Pick<ExpenditureEstimate, "groups" | "mixedFasting" | "newZoneSince"> {
+  const latestPeriod = Math.max(...used.map(periodOf));
+  const periods = new Set(used.map(periodOf));
+  const firstInLatest = grouped.points.find((_, i) => used.includes(grouped.groups[i]) && periodOf(grouped.groups[i]) === latestPeriod);
+  return {
+    groups: used.length,
+    mixedFasting: used.some((g) => g.startsWith("f")) && used.some((g) => g.startsWith("n")),
+    newZoneSince: periods.size > 1 && firstInLatest ? firstInLatest.date : null,
   };
 }
 
 /** The measured expenditure, or null until the data can support it (see `measureExpenditure`). */
 export function estimateExpenditure(
   intake: DataPoint[],
-  weights: DataPoint[],
+  weights: WeighIn[],
   today: string,
 ): ExpenditureEstimate | null {
   return measureExpenditure(intake, weights, today).estimate;
@@ -216,7 +388,7 @@ export function combineExpenditure(
  */
 export function weeklyExpenditure(
   intake: DataPoint[],
-  weights: DataPoint[],
+  weights: WeighIn[],
 ): (day: string) => ExpenditureEstimate | null {
   const byWeek = new Map<string, ExpenditureEstimate | null>();
   return (day) => {
@@ -242,12 +414,17 @@ export const CHECK_DAYS = EXPENDITURE_WINDOW_DAYS + CHECK_CONFIRM_DAYS;
 /** A dismissed notice comes back after a whole new window of data. */
 export const NOTICE_SNOOZE_DAYS = EXPENDITURE_WINDOW_DAYS;
 
-/** What stops the measurement, in the order the user should fix it. */
+/**
+ * What stops the measurement, in the order the user should fix it. Enough
+ * weigh-in days with no trend (`margin` null) means no group of weigh-ins taken
+ * alike has 2+ days yet: more weigh-ins are needed.
+ */
 export function missingExpenditureData(data: ExpenditureData): MissingExpenditureData[] {
   const missing: MissingExpenditureData[] = [];
   if (data.loggedDays < MIN_LOGGED_DAYS) missing.push("meals");
   if (data.weighInDays < MIN_WEIGH_INS) missing.push("weighIns");
   else if (data.weightSpanDays < MIN_WEIGHT_SPAN_DAYS) missing.push("weightSpan");
+  else if (data.margin === null) missing.push("weighIns");
   return missing;
 }
 
@@ -272,7 +449,7 @@ function verdictOf(estimate: ExpenditureEstimate, normalMin: number, normalMax: 
  */
 export function checkExpenditure(
   intake: DataPoint[],
-  weights: DataPoint[],
+  weights: WeighIn[],
   formula: Pick<CalorieRecommendation, "bmr" | "activityFactor" | "tdee">,
   today: string,
 ): ExpenditureCheck {

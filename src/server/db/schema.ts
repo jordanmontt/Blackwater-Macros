@@ -115,6 +115,10 @@ export const weights = pgTable(
     weightKg: doublePrecision("weight_kg").notNull(),
     bodyFatPct: doublePrecision("body_fat_pct"),
     note: text("note"),
+    /** On waking, before eating or drinking: the weight trend compares only weigh-ins taken alike. */
+    fasted: boolean("fasted").notNull().default(true),
+    /** The device's time zone when the weigh-in was saved (IANA name); null for older ones. */
+    timeZone: text("time_zone"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

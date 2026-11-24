@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.ExpenditureCheck
+import com.blackwatermacros.app.core.ExpenditureEstimate
 import com.blackwatermacros.app.core.ExpenditureNoticeDismissal
 import com.blackwatermacros.app.core.ExpenditureVerdict
 import com.blackwatermacros.app.core.Gender
@@ -371,6 +372,7 @@ private fun CheckDetails(
     Step(stringResource(R.string.check_data_step)) {
         Bullet(stringResource(R.string.check_eaten, formatNumber(estimate.avgIntake), estimate.loggedDays))
         Bullet(stringResource(R.string.check_trend, signedRate, estimate.weighIns))
+        weighInConditionsText(estimate)?.let { Bullet(it) }
         StepText(stringResource(R.string.check_measured_label))
         Equation(
             "${formatNumber(estimate.avgIntake)} − ($signedRate ÷ 7 × ${formatNumber(KCAL_PER_KG)}) ≈ " +
@@ -523,5 +525,22 @@ private fun LegendRow(text: String, swatch: @Composable () -> Unit) {
         Box(Modifier.width(16.dp), contentAlignment = Alignment.Center) { swatch() }
         Spacer(Modifier.width(8.dp))
         StepText(text)
+    }
+}
+
+/**
+ * When the weigh-ins of the measurement were not all taken alike (fasted or not, or
+ * in another time zone), what the app did about it; null when they were (web
+ * `weighInConditionsText`). Said only then, so the «why» stays short otherwise.
+ */
+@Composable
+internal fun weighInConditionsText(estimate: ExpenditureEstimate): String? {
+    if (estimate.groups < 2) return null
+    val since = estimate.newZoneSince
+    val date = since?.let { java.time.LocalDate.parse(it).format(java.time.format.DateTimeFormatter.ofPattern("d MMM", appLocale())) }
+    return when {
+        estimate.mixedFasting && date != null -> stringResource(R.string.rec_conditions_both, date)
+        date != null -> stringResource(R.string.rec_conditions_zone, date)
+        else -> stringResource(R.string.rec_conditions_fasting)
     }
 }

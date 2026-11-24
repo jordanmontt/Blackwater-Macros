@@ -74,6 +74,25 @@ describe("rutas de peso", () => {
       expect(weight.weightKg).toBe(77.4);
       expect(weight.bodyFatPct).toBeNull();
       expect(new Date(weight.measuredAt).toISOString()).toBe("2026-06-15T08:00:00.000Z");
+      // Clients that don't say (older Android): fasted, time zone unknown.
+      expect(weight.fasted).toBe(true);
+      expect(weight.timeZone).toBeNull();
+    });
+
+    it("guarda si fue en ayunas y la zona horaria del dispositivo", async () => {
+      authenticate();
+      const res = await postWeight(
+        jsonRequest("/api/weights", {
+          measuredAt: "2026-06-15T19:30:00.000Z",
+          weightKg: 78.2,
+          fasted: false,
+          timeZone: "America/La_Paz",
+        }),
+      );
+      expect(res.status).toBe(201);
+      const { weight } = await res.json();
+      expect(weight.fasted).toBe(false);
+      expect(weight.timeZone).toBe("America/La_Paz");
     });
 
     it("guarda el porcentaje de grasa corporal", async () => {

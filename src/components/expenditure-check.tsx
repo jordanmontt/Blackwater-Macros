@@ -5,11 +5,11 @@ import Link from "next/link";
 import { CheckCircle2Icon, InfoIcon, ScaleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { formatNumber } from "@/i18n/format";
+import { formatDateKeyShort, formatNumber } from "@/i18n/format";
 import { formatTemplate, t } from "@/i18n";
 import { doesStrengthTraining } from "@/lib/core/calories";
 import { KCAL_PER_KG, approximateGap, onlyWeighInsMissing, showsGapNotice } from "@/lib/core/expenditure";
-import type { CalorieProfile, ExpenditureCheck, Gender, MissingExpenditureData } from "@/lib/core/types";
+import type { CalorieProfile, ExpenditureCheck, ExpenditureEstimate, Gender, MissingExpenditureData } from "@/lib/core/types";
 import { todayKey } from "@/lib/core/dates";
 import { useExpenditureNotices } from "@/lib/expenditure-notices";
 import { cn } from "@/lib/utils";
@@ -61,6 +61,21 @@ const ACTIVITY_HREF = "/ajustes/perfil#gym-days";
 type Measured = Extract<ExpenditureCheck, { status: "measured" }>;
 
 /** With strength training, a «lower» gap can partly be muscle gained (/metodologia, recomposition). */
+/**
+ * When the weigh-ins of the measurement were not all taken alike (fasted or not,
+ * or in another time zone), what the app did about it; null when they were.
+ * Said only then, so the measurement's «why» stays short otherwise.
+ */
+export function weighInConditionsText(
+  estimate: Pick<ExpenditureEstimate, "groups" | "mixedFasting" | "newZoneSince">,
+): string | null {
+  if (estimate.groups < 2) return null;
+  const date = estimate.newZoneSince === null ? "" : formatDateKeyShort(estimate.newZoneSince);
+  if (estimate.mixedFasting && estimate.newZoneSince !== null) return formatTemplate(t.calorias.conditionsBoth, { date });
+  if (estimate.newZoneSince !== null) return formatTemplate(t.calorias.conditionsZone, { date });
+  return t.calorias.conditionsFasting;
+}
+
 function trains(inputs: FormulaInputs | null): boolean {
   return inputs !== null && doesStrengthTraining(inputs);
 }
@@ -339,6 +354,7 @@ function ExpenditureCheckDetails({ check, inputs }: { check: Measured; inputs: F
             })}
           </li>
           <li>{formatTemplate(t.expenditureCheck.trend, { rate: signedRate, n: estimate.weighIns })}</li>
+          {weighInConditionsText(estimate) ? <li>{weighInConditionsText(estimate)}</li> : null}
         </ul>
         <p>{t.expenditureCheck.measuredLabel}</p>
         <Equation>

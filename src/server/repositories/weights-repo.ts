@@ -7,6 +7,8 @@ export interface NewWeightData {
   weightKg: number;
   bodyFatPct: number | null;
   note: string | null;
+  fasted: boolean;
+  timeZone: string | null;
 }
 
 export interface WeightsRepository {

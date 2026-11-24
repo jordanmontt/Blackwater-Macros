@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, errorText } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
-import { ExpenditureCheckStatus, formulaInputs } from "@/components/expenditure-check";
+import { ExpenditureCheckStatus, formulaInputs, weighInConditionsText } from "@/components/expenditure-check";
 import { proteinPerKgText, TargetExpenditure } from "@/components/nutrition-recommendations";
 import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
@@ -382,6 +382,11 @@ export default function PerfilPage() {
                           rate: `${measured.weightChangePerWeek > 0 ? "+" : ""}${formatNumber(measured.weightChangePerWeek, 2)}`,
                         })}
                       </p>
+                      {weighInConditionsText(measured) ? (
+                        <p className="text-xs text-muted-foreground" data-testid="weigh-in-conditions">
+                          {weighInConditionsText(measured)}
+                        </p>
+                      ) : null}
                     </>
                   ) : null}
                   {calorieRec.dataShare > 0 ? (

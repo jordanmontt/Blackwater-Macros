@@ -20,20 +20,22 @@ data class WeightProjection(
 
 /**
  * Where the weight trend of the last 4 weeks (today included) leads in `days`
- * days if it continues. Same data rules as the measured expenditure. The margin
- * is the 95 % interval of the fitted line at that date.
+ * days if it continues. Same data rules and trend as the measured expenditure:
+ * compared only within weigh-ins taken alike, from the level of the latest
+ * group. The margin is the 95 % interval of the fitted line at that date.
  */
-fun weightProjection(weights: List<DataPoint>, today: String, days: Int = 30): WeightProjection? {
+fun weightProjection(weights: List<WeighIn>, today: String, days: Int = 30): WeightProjection? {
     val from = addDaysToKey(today, -(EXPENDITURE_WINDOW_DAYS - 1))
-    val recent = dailyMeans(weights.filter { it.date >= from && it.date <= today })
-    if (recent.size < MIN_WEIGH_INS) return null
-    if (daysBetweenKeys(recent.first().date, recent.last().date) < MIN_WEIGHT_SPAN_DAYS) return null
+    val grouped = groupWeighIns(weights.filter { it.date >= from && it.date <= today })
+    val weighInDays = grouped.points.map { it.date }.distinct()
+    if (weighInDays.size < MIN_WEIGH_INS) return null
+    if (daysBetweenKeys(weighInDays.first(), weighInDays.last()) < MIN_WEIGHT_SPAN_DAYS) return null
 
-    val trend = fitWeightTrend(recent) ?: return null
+    val trend = fitWeightTrend(grouped.points, grouped.groups) ?: return null
     val xToday = daysBetweenKeys(trend.origin, today).toDouble()
     val xTarget = xToday + days
     fun fitted(x: Double) = trend.meanY + trend.slopePerDay * (x - trend.meanX)
-    val margin = Z_95 * trend.sigma * sqrt(1.0 / trend.n + (xTarget - trend.meanX).pow(2) / trend.sxx)
+    val margin = Z_95 * trend.sigma * sqrt(1.0 / trend.levelN + (xTarget - trend.meanX).pow(2) / trend.sxx)
 
     return WeightProjection(
         days = days,
@@ -55,7 +57,19 @@ data class CoachMeal(
     val resolvedFat: Double,
 )
 
-data class CoachWeight(val date: String, val weightKg: Double, val bodyFatPct: Double?)
+data class CoachWeight(
+    val date: String,
+    val weightKg: Double,
+    val bodyFatPct: Double?,
+    /** On waking, before eating or drinking. */
+    val fasted: Boolean = true,
+    /** ISO instant and time zone, for the trend's groups ([WeighIn]). */
+    val time: String = date,
+    val timeZone: String? = null,
+)
+
+/** " (not fasted)" after a weigh-in that was not taken on waking. */
+private fun notFasted(weight: CoachWeight): String = if (weight.fasted) "" else " (not fasted)"
 
 data class CoachInput(
     val today: String,
@@ -161,8 +175,8 @@ fun buildCoachContext(input: CoachInput): String {
     lines += if (calorie != null && calorie.dataShare > 0) {
         "Calorie target: ${num(calorie.targetMin)}–${num(calorie.targetMax)} kcal/day, built on an expenditure of " +
             "${num(calorie.expenditure)} kcal/day: the profile's estimate (BMR ${num(calorie.bmr)} × activity factor " +
-            "${num(calorie.activityFactor)} = ${num(calorie.tdee)}) combined with the measured expenditure, which weighs " +
-            "${num(mathRound(calorie.dataShare * 100))}% because it is the more precise of the two."
+            "${num(calorie.activityFactor)} = ${num(calorie.tdee)}) combined with the measured expenditure by how " +
+            "precise each one is: the measured one weighs ${num(mathRound(calorie.dataShare * 100))}%."
     } else if (calorie != null) {
         "Calorie target: ${num(calorie.targetMin)}–${num(calorie.targetMax)} kcal/day (BMR ${num(calorie.bmr)}, " +
             "estimated TDEE ${num(calorie.tdee)}, activity factor ${num(calorie.activityFactor)})."
@@ -232,15 +246,18 @@ fun buildCoachContext(input: CoachInput): String {
     if (latest == null) {
         lines += "Weight: no weigh-ins logged."
     } else {
-        lines += "Weight: latest ${num(round1(latest.weightKg))} kg on ${latest.date}."
+        lines += "Weight: latest ${num(round1(latest.weightKg))} kg on ${latest.date}${notFasted(latest)}."
         val bodyFat = input.weights.lastOrNull { it.bodyFatPct != null }
         if (bodyFat != null) lines += "Body fat: ${num(round1(bodyFat.bodyFatPct!!))}% on ${bodyFat.date}."
         if (recentWeights.size > 1) {
             val first = recentWeights.first()
             lines += "Weight in the last $COACH_WEIGHT_DAYS days: ${num(recentWeights.size)} weigh-ins, " +
-                "the first ${num(round1(first.weightKg))} kg on ${first.date}."
+                "the first ${num(round1(first.weightKg))} kg on ${first.date}${notFasted(first)}."
         }
-        val projection = weightProjection(input.weights.map { DataPoint(it.date, it.weightKg) }, today)
+        val projection = weightProjection(
+            input.weights.map { WeighIn(it.date, it.weightKg, it.time, it.fasted, it.timeZone) },
+            today,
+        )
         lines += if (projection != null) {
             "Weight trend (last $EXPENDITURE_WINDOW_DAYS days): ${num(projection.ratePerWeek)} kg/week, now ${num(projection.currentKg)} kg. " +
                 "Projection computed by the app if this trend continues: ${num(projection.projectedKg)} ± ${num(projection.marginKg)} kg " +

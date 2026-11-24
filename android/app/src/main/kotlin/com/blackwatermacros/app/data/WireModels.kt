@@ -168,6 +168,10 @@ data class WeightRequest(
     val weightKg: Double,
     val bodyFatPct: Double? = null,
     val note: String? = null,
+    /** On waking, before eating or drinking. */
+    val fasted: Boolean = true,
+    /** The phone's time zone when the weigh-in was first saved. */
+    val timeZone: String? = null,
 )
 
 @Serializable
@@ -178,6 +182,10 @@ data class WeightDTO(
     val bodyFatPct: Double?,
     val note: String?,
     val updatedAt: String,
+    /** On waking, before eating or drinking (older servers don't send it: yes). */
+    val fasted: Boolean = true,
+    /** The device's time zone when the weigh-in was saved; null for older ones. */
+    val timeZone: String? = null,
 )
 
 @Serializable

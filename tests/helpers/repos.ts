@@ -441,6 +441,8 @@ export function weightRow(overrides: Partial<WeightRow> = {}): WeightRow {
     weightKg: 80,
     bodyFatPct: null,
     note: null,
+    fasted: true,
+    timeZone: null,
     createdAt: SAMPLE_DATE,
     updatedAt: SAMPLE_DATE,
     ...overrides,
@@ -455,6 +457,8 @@ export function weightDto(overrides: Partial<WeightDTO> = {}): WeightDTO {
     weightKg: 80,
     bodyFatPct: null,
     note: null,
+    fasted: true,
+    timeZone: null,
     updatedAt: "2026-06-15T08:00:00.000Z",
     ...overrides,
   };

@@ -1,4 +1,4 @@
-import { todayKey, addDaysToKey } from "./core/dates";
+import { todayKey, addDaysToKey, deviceTimeZone } from "./core/dates";
 import type {
   CalorieProfile,
   IngredientInput,
@@ -376,6 +376,8 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
         weightKg,
         bodyFatPct,
         note: null,
+        fasted: true,
+        timeZone: deviceTimeZone(),
         updatedAt: new Date().toISOString(),
       });
       if (rand() < 0.12) {
@@ -386,6 +388,8 @@ export function buildDemoStore(today: string = todayKey()): DemoStore {
           weightKg: eveningWeight,
           bodyFatPct: null,
           note: t.demoData.afterTraining,
+          fasted: false,
+          timeZone: deviceTimeZone(),
           updatedAt: new Date().toISOString(),
         });
       }
@@ -490,7 +494,8 @@ export function listDemoTemplates(): MealTemplateDTO[] {
 }
 
 export function listDemoWeights(): WeightDTO[] {
-  return [...ensureDemoStore().weights].sort(byTime);
+  // Weigh-ins stored before the fasted switch and time zone existed: fasted, zone unknown.
+  return [...ensureDemoStore().weights].map((w) => ({ ...w, fasted: w.fasted ?? true, timeZone: w.timeZone ?? null })).sort(byTime);
 }
 
 // ---------------------------------------------------------------------------
@@ -619,6 +624,8 @@ export function createDemoWeight(payload: WeightPayload): WeightDTO {
     weightKg: payload.weightKg,
     bodyFatPct: payload.bodyFatPct ?? null,
     note: payload.note ?? null,
+    fasted: payload.fasted ?? true,
+    timeZone: payload.timeZone ?? null,
     updatedAt: new Date().toISOString(),
   };
   write((store) => ({ ...store, weights: [...store.weights, weight].sort(byTime) }));
@@ -638,6 +645,8 @@ export function updateDemoWeight(id: string, payload: WeightPayload): WeightDTO 
           weightKg: payload.weightKg,
           bodyFatPct: payload.bodyFatPct ?? null,
           note: payload.note ?? null,
+          fasted: payload.fasted ?? true,
+          timeZone: payload.timeZone ?? null,
           updatedAt: new Date().toISOString(),
         };
         return updated;

@@ -25,6 +25,14 @@ describe("weightProjection", () => {
     expect(weightProjection(daily(-0.5), TODAY, 7)!.projectedKg).toBe(77.6);
   });
 
+  it("projects from the level of the latest weigh-ins; a switch to fasted is not a loss", () => {
+    const weighIns = daily(0).map((p, i) => ({ ...p, value: i < 14 ? 80.8 : 80, fasted: i >= 14 }));
+    const projection = weightProjection(weighIns, TODAY)!;
+    expect(projection.currentKg).toBe(80);
+    expect(projection.projectedKg).toBe(80);
+    expect(projection.ratePerWeek).toBe(0);
+  });
+
   it("needs 4 weigh-in days spanning 14 days within the last 4 weeks", () => {
     expect(weightProjection(daily(0).slice(0, 3), TODAY)).toBeNull();
     expect(weightProjection(daily(0).slice(-10), TODAY)).toBeNull();
@@ -42,7 +50,7 @@ describe("buildCoachContext", () => {
         "Activity: gym 3 days/week × 60 min, walking 30 min/day.",
         "Strength training: the user also wants to gain muscle. The scale cannot tell muscle from fat: a kg of muscle stores about 1800 kcal and the usual weight loss about 7700, so losing fat while gaining muscle can keep the weight flat in a deficit (body recomposition), and the measured expenditure then comes out somewhat low. When the weight stalls, mention this and suggest other signs: strength, waist size, photos.",
         // 2589 ± 10 % and 2750 ± 177 (95 %): the data weigh 259² / (259² + 90²) = 89 %.
-        "Calorie target: 2233–2433 kcal/day, built on an expenditure of 2733 kcal/day: the profile's estimate (BMR 1738 × activity factor 1.49 = 2589) combined with the measured expenditure, which weighs 89% because it is the more precise of the two.",
+        "Calorie target: 2233–2433 kcal/day, built on an expenditure of 2733 kcal/day: the profile's estimate (BMR 1738 × activity factor 1.49 = 2589) combined with the measured expenditure by how precise each one is: the measured one weighs 89%.",
         "Protein target: 147–198 g/day (2.3–3.1 g/kg of 64 kg lean mass).",
         "Measured expenditure (energy balance, the 28 days before this week's Monday): 2750 ± 177 kcal/day.",
         "Today's meals:",
@@ -119,6 +127,15 @@ describe("buildCoachContext", () => {
     const text = buildCoachContext(within);
     expect(text).toContain("Calories: within the target range (up to 133 kcal more).");
     expect(text).toContain("Protein: over the target range by 22 g.");
+  });
+});
+
+describe("buildCoachContext: weigh-ins not fasted", () => {
+  it("marks them, so the coach doesn't read the difference as weight change", () => {
+    const weights = COACH_INPUT.weights.map((w, i, all) => (i === all.length - 1 ? { ...w, fasted: false } : w));
+    const context = buildCoachContext({ ...COACH_INPUT, weights });
+    expect(context).toContain("Weight: latest 78.1 kg on 2026-03-01 (not fasted).");
+    expect(buildCoachContext(COACH_INPUT)).not.toContain("not fasted");
   });
 });
 

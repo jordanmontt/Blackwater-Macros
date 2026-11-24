@@ -167,6 +167,7 @@ export default function ProgresoPage() {
         key={formKey}
         open={formOpen}
         entry={editing}
+        defaultFasted={weightsRes.data?.at(-1)?.fasted ?? true}
         onOpenChange={setFormOpen}
         onSaved={() => weightsRes.trigger()}
       />
@@ -551,6 +552,9 @@ function WeightEntries({
                     <span className="hidden text-muted-foreground min-[400px]:inline">
                       {" "}· {formatNumber(entry.bodyFatPct, 1)}% grasa
                     </span>
+                  )}
+                  {entry.fasted === false && (
+                    <span className="text-xs font-normal text-muted-foreground"> · {t.peso.notFastedTag}</span>
                   )}
                 </span>
                 {entry.note ? (

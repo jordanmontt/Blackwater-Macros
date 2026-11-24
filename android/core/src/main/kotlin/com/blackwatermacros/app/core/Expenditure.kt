@@ -30,22 +30,6 @@ const val WEIGHT_NOISE_FLOOR_KG = 0.5
 /** Two-sided 95 % normal quantile. */
 const val Z_95 = 1.96
 
-/** Least-squares line through weigh-ins, with what is needed for its error. */
-data class WeightTrend(
-    val slopePerDay: Double,
-    /** Standard error of the slope, kg/day. */
-    val slopeError: Double,
-    /** Scatter around the line, kg (never below the noise floor). */
-    val sigma: Double,
-    val n: Int,
-    val meanX: Double,
-    val meanY: Double,
-    /** Sum of (x - mean x)^2. */
-    val sxx: Double,
-    /** Date of the first weigh-in: x = 0. */
-    val origin: String,
-)
-
 /**
  * One point per day: the mean of that day's weigh-ins, sorted by date (web
  * `dailyMeans`). Several weigh-ins on one day are not independent measurements
@@ -56,56 +40,185 @@ fun dailyMeans(points: List<DataPoint>): List<DataPoint> =
         .toSortedMap()
         .map { (date, values) -> DataPoint(date, values.sumOf { it.value } / values.size) }
 
+// --- Weigh-ins taken in the same conditions (web `groupWeighIns`) ---
+
 /**
- * Least-squares weight trend and its standard error: SE = sigma / sqrt(Sxx),
- * sigma from the residuals (n - 2 degrees of freedom), never below
- * [WEIGHT_NOISE_FLOOR_KG]. Points must be sorted by date.
+ * A weigh-in as the weight trend needs it: its local day and kg, plus the
+ * conditions it was taken in. A weigh-in after eating or training reads about
+ * 0.5-1 kg above one on waking, and another scale reads differently, so only
+ * weigh-ins taken alike are compared ([groupWeighIns]).
  */
-fun fitWeightTrend(points: List<DataPoint>): WeightTrend? {
-    val n = points.size
-    if (n < 3) return null
+data class WeighIn(
+    val date: String,
+    val value: Double,
+    /** ISO instant: orders weigh-ins across days and time zones. Default: the date. */
+    val time: String = date,
+    /** On waking, before eating or drinking. Default true, what the app has always asked for. */
+    val fasted: Boolean = true,
+    /** The device's time zone when it was saved ("Europe/Zurich"); null = unknown. */
+    val timeZone: String? = null,
+)
+
+/** Weigh-ins as the fit takes them: one point per group and day, sorted by date. */
+data class GroupedWeighIns(
+    val points: List<DataPoint>,
+    /** The group of each point: "f" (fasted) or "n" (not), then the time-zone period ("f0", "n1"...). */
+    val groups: List<String>,
+)
+
+/**
+ * Puts together the weigh-ins taken in the same conditions: fasted or not, and
+ * in the same time zone. The period goes up when a weigh-in's known zone differs
+ * from the last known one; an unknown zone never starts one. The groups come
+ * only from the switch and the zone, never from the weights. One point per group
+ * and day: the mean (web `groupWeighIns`).
+ */
+fun groupWeighIns(weighIns: List<WeighIn>): GroupedWeighIns {
+    val ordered = weighIns.sortedWith(compareBy { it.time })
+    val byGroupDay = linkedMapOf<String, Triple<String, String, MutableList<Double>>>()
+    var period = 0
+    var lastZone: String? = null
+    for (weighIn in ordered) {
+        val zone = weighIn.timeZone
+        if (zone != null) {
+            if (lastZone != null && zone != lastZone) period++
+            lastZone = zone
+        }
+        val group = "${if (weighIn.fasted) "f" else "n"}$period"
+        val entry = byGroupDay.getOrPut("$group#${weighIn.date}") { Triple(weighIn.date, group, mutableListOf()) }
+        entry.third += weighIn.value
+    }
+    val entries = byGroupDay.values.sortedWith(compareBy({ it.first }, { it.second }))
+    return GroupedWeighIns(
+        points = entries.map { (date, _, values) -> DataPoint(date, values.sum() / values.size) },
+        groups = entries.map { it.second },
+    )
+}
+
+/** Least-squares line through weigh-ins, with what is needed for its error. */
+data class WeightTrend(
+    val slopePerDay: Double,
+    /** Standard error of the slope, kg/day. */
+    val slopeError: Double,
+    /** Scatter around the line, kg (never below the noise floor). */
+    val sigma: Double,
+    /** Points the fit used (groups with a single day are left out). */
+    val n: Int,
+    /** The level of the latest weigh-in's group: mean x and y and its points. With one group, all. */
+    val meanX: Double,
+    val meanY: Double,
+    val levelN: Int,
+    /** Sum of (x - mean x)^2 within each group, added up. */
+    val sxx: Double,
+    /** Date of the first weigh-in: x = 0. */
+    val origin: String,
+    /** The groups the fit used, oldest first. */
+    val groups: List<String>,
+)
+
+private class GroupSums(val group: String, val xs: List<Double>, val ys: List<Double>) {
+    val meanX = xs.sum() / xs.size
+    val meanY = ys.sum() / ys.size
+}
+
+private class WithinGroups(val origin: String, val used: List<GroupSums>, val sxx: Double, val slopePerDay: Double?)
+
+/** The time-zone period of a group ("f1" -> 1; the default group "" -> 0). */
+private fun periodOf(group: String): Int = group.drop(1).toIntOrNull() ?: 0
+
+/** The later last day; on the same day the later time-zone period, then fasted (web `isLaterGroup`). */
+private fun isLaterGroup(g: GroupSums, best: GroupSums): Boolean {
+    val days = g.xs.max() - best.xs.max()
+    if (days != 0.0) return days > 0
+    if (periodOf(g.group) != periodOf(best.group)) return periodOf(g.group) > periodOf(best.group)
+    return g.group < best.group
+}
+
+private fun withinGroups(points: List<DataPoint>, groups: List<String>): WithinGroups {
     val origin = points[0].date
-    val xs = points.map { daysBetweenKeys(origin, it.date).toDouble() }
-    val ys = points.map { it.value }
-    val meanX = xs.sum() / n
-    val meanY = ys.sum() / n
+    val byGroup = linkedMapOf<String, Pair<MutableList<Double>, MutableList<Double>>>()
+    points.forEachIndexed { i, point ->
+        val entry = byGroup.getOrPut(groups[i]) { mutableListOf<Double>() to mutableListOf() }
+        entry.first += daysBetweenKeys(origin, point.date).toDouble()
+        entry.second += point.value
+    }
+    val used = byGroup.entries.filter { it.value.first.size >= 2 }.map { (group, xy) -> GroupSums(group, xy.first, xy.second) }
     var sxx = 0.0
     var sxy = 0.0
-    for (i in 0 until n) {
-        sxx += (xs[i] - meanX) * (xs[i] - meanX)
-        sxy += (xs[i] - meanX) * (ys[i] - meanY)
+    for (g in used) {
+        g.xs.forEachIndexed { i, x ->
+            sxx += (x - g.meanX) * (x - g.meanX)
+            sxy += (x - g.meanX) * (g.ys[i] - g.meanY)
+        }
     }
-    if (sxx == 0.0) return null
-    val slopePerDay = sxy / sxx
-    var squaredResiduals = 0.0
-    for (i in 0 until n) {
-        val residual = ys[i] - (meanY + slopePerDay * (xs[i] - meanX))
-        squaredResiduals += residual * residual
-    }
-    val sigma = maxOf(sqrt(squaredResiduals / (n - 2)), WEIGHT_NOISE_FLOOR_KG)
-    return WeightTrend(slopePerDay, sigma / sqrt(sxx), sigma, n, meanX, meanY, sxx, origin)
+    return WithinGroups(origin, used, sxx, if (sxx == 0.0) null else sxy / sxx)
 }
 
 /**
- * `intake` holds one point per meal (date = log date, value = kcal); `weights`
- * one point per weigh-in. The counts come back even when they are not enough,
- * so the app can say what is missing (web `measureExpenditure`).
+ * Least-squares weight trend and its standard error, compared only within
+ * groups of weigh-ins taken alike ([groups], from [groupWeighIns]; default one
+ * group): each group has its own level, all share one slope (fixed effects).
+ * beta = sum Sxy_g / sum Sxx_g, sigma = max(sqrt(RSS / (n - G - 1)), 0.5 kg),
+ * SE = sigma / sqrt(sum Sxx_g). Groups with a single day are left out. Points
+ * must be sorted by date. Null without a degree of freedom or spread.
  */
-fun measureExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today: String): ExpenditureData {
+fun fitWeightTrend(points: List<DataPoint>, groups: List<String> = List(points.size) { "" }): WeightTrend? {
+    if (points.isEmpty()) return null
+    val within = withinGroups(points, groups)
+    val used = within.used
+    val slopePerDay = within.slopePerDay ?: return null
+    val n = used.sumOf { it.xs.size }
+    if (n - used.size - 1 < 1) return null
+    var squaredResiduals = 0.0
+    for (g in used) {
+        g.xs.forEachIndexed { i, x ->
+            val residual = g.ys[i] - (g.meanY + slopePerDay * (x - g.meanX))
+            squaredResiduals += residual * residual
+        }
+    }
+    val sigma = maxOf(sqrt(squaredResiduals / (n - used.size - 1)), WEIGHT_NOISE_FLOOR_KG)
+    val latest = used.reduce { best, g -> if (isLaterGroup(g, best)) g else best }
+    return WeightTrend(
+        slopePerDay = slopePerDay,
+        slopeError = sigma / sqrt(within.sxx),
+        sigma = sigma,
+        n = n,
+        meanX = latest.meanX,
+        meanY = latest.meanY,
+        levelN = latest.xs.size,
+        sxx = within.sxx,
+        origin = within.origin,
+        groups = used.map { it.group },
+    )
+}
+
+/** Only the slope within groups (kg/day), for a rate on screen (Progreso). Null without spread. */
+fun slopeWithinGroups(grouped: GroupedWeighIns): Double? =
+    if (grouped.points.isEmpty()) null else withinGroups(grouped.points, grouped.groups).slopePerDay
+
+/**
+ * `intake` holds one point per meal (date = log date, value = kcal); `weights`
+ * one point per weigh-in with the conditions it was taken in ([WeighIn]): the
+ * trend compares only weigh-ins taken alike ([groupWeighIns]). The counts come
+ * back even when they are not enough, so the app can say what is missing (web
+ * `measureExpenditure`).
+ */
+fun measureExpenditure(intake: List<DataPoint>, weights: List<WeighIn>, today: String): ExpenditureData {
     val from = addDaysToKey(today, -EXPENDITURE_WINDOW_DAYS)
-    val inWindow = { point: DataPoint -> point.date >= from && point.date < today }
+    val inWindow = { date: String -> date >= from && date < today }
 
     val caloriesByDay = linkedMapOf<String, Double>()
-    for (point in intake.filter(inWindow)) {
+    for (point in intake.filter { inWindow(it.date) }) {
         caloriesByDay[point.date] = (caloriesByDay[point.date] ?: 0.0) + point.value
     }
     val loggedTotals = caloriesByDay.values.filter { it > 0 }
     val loggedDays = loggedTotals.size
 
-    val weighIns = dailyMeans(weights.filter(inWindow))
-    val weighInDays = weighIns.size
-    val weightSpanDays = if (weighInDays < 2) 0 else daysBetweenKeys(weighIns.first().date, weighIns.last().date)
-    val trend = fitWeightTrend(weighIns)
+    val grouped = groupWeighIns(weights.filter { inWindow(it.date) })
+    val days = grouped.points.map { it.date }.distinct()
+    val weighInDays = days.size
+    val weightSpanDays = if (weighInDays < 2) 0 else daysBetweenKeys(days.first(), days.last())
+    val trend = fitWeightTrend(grouped.points, grouped.groups)
     val margin = trend?.let { mathRound(Z_95 * it.slopeError * KCAL_PER_KG) }
 
     val data = ExpenditureData(loggedDays, weighInDays, weightSpanDays, margin, estimate = null)
@@ -116,6 +229,11 @@ fun measureExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today:
     val tdee = mathRound(avgIntake - trend.slopePerDay * KCAL_PER_KG)
     if (tdee <= 0) return data
 
+    val used = trend.groups
+    val latestPeriod = used.maxOf { periodOf(it) }
+    val firstInLatest = grouped.points.indices
+        .firstOrNull { grouped.groups[it] in used && periodOf(grouped.groups[it]) == latestPeriod }
+        ?.let { grouped.points[it].date }
     return data.copy(
         estimate = ExpenditureEstimate(
             tdee = tdee,
@@ -125,12 +243,15 @@ fun measureExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today:
             loggedDays = loggedDays,
             weighIns = weighInDays,
             windowDays = EXPENDITURE_WINDOW_DAYS,
+            groups = used.size,
+            mixedFasting = used.any { it.startsWith("f") } && used.any { it.startsWith("n") },
+            newZoneSince = if (used.map { periodOf(it) }.distinct().size > 1) firstInLatest else null,
         ),
     )
 }
 
 /** The measured expenditure, or null until the data can support it (see [measureExpenditure]). */
-fun estimateExpenditure(intake: List<DataPoint>, weights: List<DataPoint>, today: String): ExpenditureEstimate? =
+fun estimateExpenditure(intake: List<DataPoint>, weights: List<WeighIn>, today: String): ExpenditureEstimate? =
     measureExpenditure(intake, weights, today).estimate
 
 // --- The target follows the data (web `combineExpenditure`) ---
@@ -172,7 +293,7 @@ fun combineExpenditure(formulaTdee: Double, measured: ExpenditureEstimate?): Com
  * once a week, not with every weigh-in. Memoized per week: Progreso asks for
  * every day of a period.
  */
-fun weeklyExpenditure(intake: List<DataPoint>, weights: List<DataPoint>): (String) -> ExpenditureEstimate? {
+fun weeklyExpenditure(intake: List<DataPoint>, weights: List<WeighIn>): (String) -> ExpenditureEstimate? {
     val byWeek = HashMap<String, ExpenditureEstimate?>()
     return { day ->
         val monday = weekStartOf(day)
@@ -198,12 +319,17 @@ const val CHECK_DAYS = EXPENDITURE_WINDOW_DAYS + CHECK_CONFIRM_DAYS
 /** A dismissed notice comes back after a whole new window of data. */
 const val NOTICE_SNOOZE_DAYS = EXPENDITURE_WINDOW_DAYS
 
-/** What stops the measurement, in the order the user should fix it. */
+/**
+ * What stops the measurement, in the order the user should fix it. Enough
+ * weigh-in days with no trend (`margin` null) means no group of weigh-ins taken
+ * alike has 2+ days yet: more weigh-ins are needed.
+ */
 fun missingExpenditureData(data: ExpenditureData): List<MissingExpenditureData> = buildList {
     if (data.loggedDays < MIN_LOGGED_DAYS) add(MissingExpenditureData.MEALS)
     when {
         data.weighInDays < MIN_WEIGH_INS -> add(MissingExpenditureData.WEIGH_INS)
         data.weightSpanDays < MIN_WEIGHT_SPAN_DAYS -> add(MissingExpenditureData.WEIGHT_SPAN)
+        data.margin == null -> add(MissingExpenditureData.WEIGH_INS)
     }
 }
 
@@ -222,7 +348,7 @@ private fun verdictOf(estimate: ExpenditureEstimate, normalMin: Double, normalMa
  */
 fun checkExpenditure(
     intake: List<DataPoint>,
-    weights: List<DataPoint>,
+    weights: List<WeighIn>,
     formula: CalorieRecommendation,
     today: String,
 ): ExpenditureCheck {

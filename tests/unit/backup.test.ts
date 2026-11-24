@@ -25,8 +25,15 @@ const DATA: BackupData = {
     },
   ],
   weights: [
-    { measuredAt: "2026-10-20T07:30:00.000Z", weightKg: 80.25, bodyFatPct: 18, note: null },
-    { measuredAt: "2026-10-26T07:15:00.000Z", weightKg: 80, bodyFatPct: null, note: "After \"cheat\" day" },
+    { measuredAt: "2026-10-20T07:30:00.000Z", weightKg: 80.25, bodyFatPct: 18, note: null, fasted: true, timeZone: "Europe/Zurich" },
+    {
+      measuredAt: "2026-10-26T07:15:00.000Z",
+      weightKg: 80,
+      bodyFatPct: null,
+      note: "After \"cheat\" day",
+      fasted: false,
+      timeZone: null,
+    },
   ],
   meals: [
     {
@@ -113,13 +120,17 @@ const EXPECTED = `{
       "time": "2026-10-20T07:30:00.000Z",
       "kg": 80.25,
       "bodyFatPct": 18,
-      "note": null
+      "note": null,
+      "fasted": true,
+      "timeZone": "Europe/Zurich"
     },
     {
       "time": "2026-10-26T07:15:00.000Z",
       "kg": 80,
       "bodyFatPct": null,
-      "note": "After \\"cheat\\" day"
+      "note": "After \\"cheat\\" day",
+      "fasted": false,
+      "timeZone": null
     }
   ],
   "meals": [

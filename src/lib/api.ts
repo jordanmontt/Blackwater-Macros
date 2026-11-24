@@ -105,6 +105,10 @@ export interface WeightPayload {
   weightKg: number;
   bodyFatPct?: number | null;
   note?: string | null;
+  /** On waking, before eating or drinking (absent = yes). */
+  fasted?: boolean;
+  /** The device's time zone when the weigh-in was first saved. */
+  timeZone?: string | null;
 }
 
 export interface TemplatePayload extends MealContentInput {

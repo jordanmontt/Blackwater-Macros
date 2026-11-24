@@ -89,6 +89,16 @@ class StatsBuilderTest {
     }
 
     @Test
+    fun buildStatsFromData_rateComparesOnlyWeighInsTakenAlike() {
+        val rows = (0 until 28).map { i ->
+            StatsWeight(Instant.parse("${addDaysToKey(TODAY, -(27 - i))}T12:00:00Z"), if (i < 14) 80.8 else 80.0, null, fasted = i >= 14)
+        }
+        assertThat(buildStatsFromData(emptyList(), rows, StatsRange.RANGE_30D, TODAY).weight.ratePerWeekKg).isEqualTo(0.0)
+        val unmarked = rows.map { it.copy(fasted = true) }
+        assertThat(buildStatsFromData(emptyList(), unmarked, StatsRange.RANGE_30D, TODAY).weight.ratePerWeekKg!!).isLessThan(-0.2)
+    }
+
+    @Test
     fun buildStatsFromData_monthLosingHalfKgPerWeekProducesNegativeRateAndTotalChange() {
         val entries = (0 until 5).map { week ->
             Triple("${addDaysToKey(addDaysToKey(TODAY, -28), week * 7)}T12:00:00Z", 85.0 - week * 0.5, null)

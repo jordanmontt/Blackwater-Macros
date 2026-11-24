@@ -41,7 +41,7 @@ vi.mock("@/lib/api", () => ({
       isAdmin: false,
       calorieProfile: profile({ calorieGoal: "maintain" }),
     })),
-    listWeights: vi.fn(async () => [{ id: "w-1", measuredAt: "2026-06-15T08:00:00.000Z", weightKg: 80, bodyFatPct: null, note: null, updatedAt: "2026-06-15T08:00:00.000Z" }]),
+    listWeights: vi.fn(async () => [{ id: "w-1", measuredAt: "2026-06-15T08:00:00.000Z", weightKg: 80, bodyFatPct: null, note: null, fasted: true, timeZone: null, updatedAt: "2026-06-15T08:00:00.000Z" }]),
     stats: vi.fn(),
     updateSettings: vi.fn(async (calorieProfile: CalorieProfile) => ({ calorieProfile, profileHistory: [] })),
   } satisfies Pick<typeof import("@/lib/api").api, "session" | "listWeights" | "stats" | "updateSettings">,
@@ -151,7 +151,8 @@ describe("pantalla Perfil", () => {
     expect(screen.queryByText(t.calorias.noProfile)).not.toBeInTheDocument();
   });
 
-  it("con 4 semanas de datos dice con qué gasto se calcula el objetivo", async () => {
+  /** 35 days on 2600 kcal, weighed daily; `weighIn(i)` can change how each weigh-in was taken. */
+  function measuredScenario(weighIn: (i: number) => Partial<WeightDTO> = () => ({})) {
     vi.mocked(api.session).mockResolvedValueOnce({
       username: "ana",
       isAdmin: false,
@@ -172,8 +173,11 @@ describe("pantalla Perfil", () => {
       measuredAt: `${day}T08:00:00`,
       weightKg: 80 + (0.7 / 7) * (34 - i),
       bodyFatPct: null,
+      fasted: true,
+      timeZone: null,
       note: null,
       updatedAt: `${day}T08:00:00`,
+      ...weighIn(i),
     }));
     vi.mocked(api.listWeights).mockResolvedValue(weighIns);
     logMeals(
@@ -195,12 +199,26 @@ describe("pantalla Perfil", () => {
         updatedAt: `${day}T08:00:00`,
       })),
     );
+  }
+
+  it("con 4 semanas de datos dice con qué gasto se calcula el objetivo", async () => {
+    measuredScenario();
     render(<PerfilPage />);
 
     // Profile 2608 ± 10 % and measured 3370 ± 177: the data weigh 89 % → 3288.
     const used = await screen.findByRole("link", { name: (name) => name.startsWith(t.calorias.targetExpenditure) });
     expect(used).toHaveTextContent(formatTemplate(t.calorias.targetExpenditureValue, { n: "3288", share: "89" }));
     expect(screen.getByText("3188 – 3388 kcal/día")).toBeInTheDocument();
+    // All weigh-ins taken alike: nothing to say about it.
+    expect(screen.queryByTestId("weigh-in-conditions")).toBeNull();
+  });
+
+  it("con pesajes en ayunas y sin ayunar dice que solo compara los tomados igual", async () => {
+    // The first 17 days after training (+0.8 kg, not fasted), then on waking.
+    measuredScenario((i) => (i < 17 ? { fasted: false, weightKg: 80 + (0.7 / 7) * (34 - i) + 0.8 } : {}));
+    render(<PerfilPage />);
+
+    expect(await screen.findByTestId("weigh-in-conditions")).toHaveTextContent(t.calorias.conditionsFasting);
   });
 
   it("con el perfil incompleto pide los datos que faltan", async () => {

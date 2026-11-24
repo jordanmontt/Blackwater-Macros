@@ -46,6 +46,8 @@ export async function buildStatsSummary(
     measuredAt: row.measuredAt,
     weightKg: row.weightKg,
     bodyFatPct: row.bodyFatPct,
+    fasted: row.fasted,
+    timeZone: row.timeZone,
   }));
 
   return buildStatsFromData(meals, weights, range, todayKeyParam);

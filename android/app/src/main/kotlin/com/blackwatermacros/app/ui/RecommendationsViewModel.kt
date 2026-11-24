@@ -6,6 +6,7 @@ import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.CalorieRecommendation
 import com.blackwatermacros.app.core.DataPoint
+import com.blackwatermacros.app.core.WeighIn
 import com.blackwatermacros.app.core.ExpenditureCheck
 import com.blackwatermacros.app.core.ExpenditureEstimate
 import com.blackwatermacros.app.core.ExpenditureNoticeDismissal
@@ -107,7 +108,7 @@ internal fun recommend(
 ): RecommendationsUiState {
     val latestWeight = weights.lastOrNull() ?: return RecommendationsUiState.NoWeight
     val intake = meals.map { DataPoint(it.logDate, it.resolvedCalories) }
-    val weighIns = weights.mapNotNull { w -> localDateKey(w.measuredAt)?.let { DataPoint(it, w.weightKg) } }
+    val weighIns = weighInsOf(weights)
     val measuredOn = weeklyExpenditure(intake, weighIns)
     val targets = TargetHistory(profile, history, datedWeights(weights), measuredOn)
     // Today: the current profile, the latest weigh-in and this week's measurement.
@@ -129,6 +130,15 @@ internal fun recommend(
 /** Weigh-ins on their local calendar day, in measuring order. */
 internal fun datedWeights(weights: List<WeightDTO>): List<DatedWeight> =
     weights.mapNotNull { w -> localDateKey(w.measuredAt)?.let { DatedWeight(it, w.weightKg, w.bodyFatPct) } }
+
+/**
+ * Weigh-ins as the weight trend takes them: local day, kg and the conditions they were
+ * taken in (fasted, time zone), so only weigh-ins taken alike are compared (`groupWeighIns`).
+ */
+internal fun weighInsOf(weights: List<WeightDTO>): List<WeighIn> =
+    weights.mapNotNull { w ->
+        localDateKey(w.measuredAt)?.let { WeighIn(it, w.weightKg, w.measuredAt, w.fasted, w.timeZone) }
+    }
 
 /** The local calendar day of an ISO instant ("2026-03-01T07:30:00Z" → "2026-03-01"). */
 internal fun localDateKey(instant: String): String? =

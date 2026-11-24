@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 import { api } from "./api";
 import { useCachedResource } from "./use-cached-resource";
-import { todayKey, toDateKey, weekStartOf } from "./core/dates";
-import { checkExpenditure, estimateExpenditure, weeklyExpenditure } from "./core/expenditure";
+import { todayKey, weekStartOf } from "./core/dates";
+import { checkExpenditure, estimateExpenditure, weeklyExpenditure, weighInsOf, type WeighIn } from "./core/expenditure";
 import type { MeasuredOn } from "./core/profile-history";
 import type { DataPoint } from "./core/stats";
 import type { CalorieRecommendation, ExpenditureCheck, ExpenditureEstimate, StatsSummary, WeightDTO } from "./core/types";
@@ -15,7 +15,7 @@ import type { CalorieRecommendation, ExpenditureCheck, ExpenditureEstimate, Stat
  * past day keeps the target it had. Uses the "stats:" and "weights" cache keys,
  * so logging a meal or a weight refreshes it like every other screen.
  */
-function useExpenditureInputs(): { intake: DataPoint[]; weights: DataPoint[]; today: string } | null {
+function useExpenditureInputs(): { intake: DataPoint[]; weights: WeighIn[]; today: string } | null {
   const today = todayKey();
   const statsRes = useCachedResource<StatsSummary>(`stats:all:${today}`, () => api.stats("all", today));
   const weightsRes = useCachedResource<WeightDTO[]>("weights", () => api.listWeights());
@@ -26,7 +26,8 @@ function useExpenditureInputs(): { intake: DataPoint[]; weights: DataPoint[]; to
     if (!stats || !weights) return null;
     return {
       intake: stats.calories.map((day) => ({ date: day.date, value: day.calories })),
-      weights: weights.map((w) => ({ date: toDateKey(new Date(w.measuredAt)), value: w.weightKg })),
+      // With how each was taken, so only weigh-ins taken alike are compared.
+      weights: weighInsOf(weights),
       today,
     };
   }, [stats, weights, today]);

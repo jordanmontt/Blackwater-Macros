@@ -117,6 +117,8 @@ export const demoApi = {
       measuredAt: new Date(w.measuredAt),
       weightKg: w.weightKg,
       bodyFatPct: w.bodyFatPct,
+      fasted: w.fasted,
+      timeZone: w.timeZone,
     })), range, today),
 
   updateSettings: async (profile: CalorieProfile) => {

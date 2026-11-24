@@ -9,6 +9,8 @@ function toDomainData(input: WeightInput): NewWeightData {
     weightKg: round2(input.weightKg),
     bodyFatPct: input.bodyFatPct ?? null,
     note: input.note ?? null,
+    fasted: input.fasted,
+    timeZone: input.timeZone ?? null,
   };
 }
 
@@ -19,6 +21,8 @@ export function toWeightDto(row: WeightRowLike): WeightDTO {
     weightKg: row.weightKg,
     bodyFatPct: row.bodyFatPct,
     note: row.note,
+    fasted: row.fasted,
+    timeZone: row.timeZone,
     updatedAt: row.updatedAt.toISOString(),
   };
 }
@@ -29,6 +33,8 @@ interface WeightRowLike {
   weightKg: number;
   bodyFatPct: number | null;
   note: string | null;
+  fasted: boolean;
+  timeZone: string | null;
   updatedAt: Date;
 }
 

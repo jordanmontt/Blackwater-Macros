@@ -16,6 +16,10 @@ export interface BackupWeight {
   weightKg: number;
   bodyFatPct: number | null;
   note: string | null;
+  /** On waking, before eating or drinking. */
+  fasted: boolean;
+  /** The device's time zone when it was saved; null for older weigh-ins. */
+  timeZone: string | null;
 }
 
 export type BackupMeal = MealContent & ResolvedTotals & { logDate: string };
@@ -94,6 +98,8 @@ export function buildBackup(data: BackupData, exportedAt: string): string {
       kg: weight.weightKg,
       bodyFatPct: weight.bodyFatPct,
       note: weight.note,
+      fasted: weight.fasted,
+      timeZone: weight.timeZone,
     })),
     meals: data.meals.map((meal) => ({ date: meal.logDate, ...contentJson(meal) })),
     templates: data.templates.map((template) => ({ name: template.name, ...contentJson(template) })),

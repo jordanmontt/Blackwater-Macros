@@ -164,6 +164,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_measured_data),
                     stringResource(R.string.meth_measured_uncertainty),
                     stringResource(R.string.meth_measured_morning),
+                    stringResource(R.string.meth_measured_conditions),
                     stringResource(R.string.meth_measured_limits),
                 ),
             )

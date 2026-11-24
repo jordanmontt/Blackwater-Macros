@@ -23,6 +23,9 @@ data class StatsWeight(
     val measuredAt: Instant,
     val weightKg: Double,
     val bodyFatPct: Double?,
+    /** Conditions of the weigh-in, so the rate compares only weigh-ins taken alike. */
+    val fasted: Boolean = true,
+    val timeZone: String? = null,
 )
 
 private const val TREND_WINDOW_DAYS = 7
@@ -101,7 +104,14 @@ fun buildStatsFromData(
     val lastValue = weightPoints.lastOrNull()?.value
     val firstValue = weightPoints.firstOrNull()?.value
     val lastTrend = trendValues.reversed().firstOrNull { it != null }
-    val ratePerWeekKg = linearRatePerWeek(weightPoints)
+    // The rate compares only weigh-ins taken alike, as the measured expenditure does.
+    val ratePerWeekKg = slopeWithinGroups(
+        groupWeighIns(
+            inRange.map { row ->
+                WeighIn(localDateOf(row.measuredAt), row.weightKg, row.measuredAt.toString(), row.fasted, row.timeZone)
+            },
+        ),
+    )?.let { it * 7 }
 
     // Body fat stats
     val lastBodyFat = bodyFatPoints.lastOrNull()?.value

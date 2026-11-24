@@ -62,6 +62,8 @@ const weight80: WeightInput = {
   weightKg: 80.5,
   bodyFatPct: 18.2,
   note: "ayunas",
+  fasted: true,
+  timeZone: "Europe/Madrid",
 };
 
 const weight90: WeightInput = {
@@ -69,6 +71,7 @@ const weight90: WeightInput = {
   weightKg: 90,
   bodyFatPct: null,
   note: null,
+  fasted: false,
 };
 
 describe("gestión de pesos", () => {
@@ -168,6 +171,8 @@ describe("toWeightDto", () => {
       weightKg: 80.5,
       bodyFatPct: 18.2,
       note: "ayunas",
+      fasted: true,
+      timeZone: "Europe/Madrid",
       updatedAt: new Date("2026-08-23T08:00:00.000Z"),
     };
     const dto = toWeightDto(row);
@@ -176,6 +181,8 @@ describe("toWeightDto", () => {
     expect(dto.weightKg).toBe(80.5);
     expect(dto.bodyFatPct).toBe(18.2);
     expect(dto.note).toBe("ayunas");
+    expect(dto.fasted).toBe(true);
+    expect(dto.timeZone).toBe("Europe/Madrid");
     expect(dto.updatedAt).toBe("2026-08-23T08:00:00.000Z");
   });
 
@@ -187,6 +194,8 @@ describe("toWeightDto", () => {
       weightKg: 90,
       bodyFatPct: null,
       note: null,
+      fasted: false,
+      timeZone: null,
       updatedAt: new Date("2026-08-30T08:00:00.000Z"),
     };
     const dto = toWeightDto(row);

@@ -25,8 +25,8 @@ class BackupTest {
         profile = profile,
         profileHistory = listOf(ProfilePeriod("2026-10-14", profile.copy(gymDaysPerWeek = 0, calorieGoal = null))),
         weights = listOf(
-            BackupWeight("2026-10-20T07:30:00.000Z", 80.25, 18.0, null),
-            BackupWeight("2026-10-26T07:15:00.000Z", 80.0, null, "After \"cheat\" day"),
+            BackupWeight("2026-10-20T07:30:00.000Z", 80.25, 18.0, null, fasted = true, timeZone = "Europe/Zurich"),
+            BackupWeight("2026-10-26T07:15:00.000Z", 80.0, null, "After \"cheat\" day", fasted = false, timeZone = null),
         ),
         meals = listOf(
             BackupMeal(
@@ -95,13 +95,17 @@ class BackupTest {
               "time": "2026-10-20T07:30:00.000Z",
               "kg": 80.25,
               "bodyFatPct": 18,
-              "note": null
+              "note": null,
+              "fasted": true,
+              "timeZone": "Europe/Zurich"
             },
             {
               "time": "2026-10-26T07:15:00.000Z",
               "kg": 80,
               "bodyFatPct": null,
-              "note": "After \"cheat\" day"
+              "note": "After \"cheat\" day",
+              "fasted": false,
+              "timeZone": null
             }
           ],
           "meals": [

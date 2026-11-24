@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.blackwatermacros.app.core.Gender
 import com.blackwatermacros.app.core.Goal
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -75,6 +76,32 @@ class MigrationTest {
             assertThat(profile!!.pending).isTrue()
             assertThat(profile.history()).isEmpty()
             assertThat(db.weights().count()).isEqualTo(1)
+        } finally {
+            db.close()
+        }
+    }
+
+    @Test
+    fun `version 2 weigh-ins survive the update and count as fasted, with no time zone`() = runBlocking<Unit> {
+        val name = "migration-v2.db"
+        createVersion(2, name) { db ->
+            db.execSQL(
+                "INSERT INTO weights (id, measuredAt, weightKg, bodyFatPct, note, updatedAt, pending, deleted) " +
+                    "VALUES ('w1', '2026-10-10T12:00:00Z', 61.0, NULL, 'Tras entrenar', '2026-10-10T12:00:00Z', 1, 0)",
+            )
+        }
+
+        val db = Room.databaseBuilder(context, LocalDatabase::class.java, name)
+            .addMigrations(*LocalDatabase.MIGRATIONS)
+            .allowMainThreadQueries()
+            .build()
+        try {
+            val weight = db.weights().observeAll().first().single()
+            assertThat(weight.weightKg).isEqualTo(61.0)
+            assertThat(weight.note).isEqualTo("Tras entrenar")
+            assertThat(weight.pending).isTrue()
+            assertThat(weight.fasted).isTrue()
+            assertThat(weight.timeZone).isNull()
         } finally {
             db.close()
         }

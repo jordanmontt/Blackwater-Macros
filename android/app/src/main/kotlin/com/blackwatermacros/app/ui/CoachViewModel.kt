@@ -329,7 +329,9 @@ class CoachViewModel(
                     resolvedFat = meal.resolvedFat,
                 )
             },
-            weights = weightDtos.mapNotNull { w -> localDateKey(w.measuredAt)?.let { CoachWeight(it, w.weightKg, w.bodyFatPct) } }
+            weights = weightDtos.mapNotNull { w ->
+                localDateKey(w.measuredAt)?.let { CoachWeight(it, w.weightKg, w.bodyFatPct, w.fasted, w.measuredAt, w.timeZone) }
+            }
                 .filter { it.date in weightFrom..today }
                 .sortedBy { it.date },
         )

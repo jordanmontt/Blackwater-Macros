@@ -63,6 +63,8 @@ data class Progress(
     /** Weigh-ins of the period by local day, newest first. */
     val groupedWeights: List<Pair<String, List<WeightDTO>>>,
     val hasAnyWeight: Boolean,
+    /** «En ayunas» of the latest weigh-in: the weight form starts from it. */
+    val latestFasted: Boolean = true,
 )
 
 sealed interface ProgressUiState {
@@ -124,7 +126,7 @@ internal fun buildProgress(
     val inRange = meals.filter { (fromKey == null || it.logDate >= fromKey) && it.logDate <= today }
     val summary = buildStatsFromData(
         meals = inRange.map { StatsMeal(it.logDate, it.resolvedCalories, it.resolvedProtein, it.resolvedCarbs, it.resolvedFat) },
-        weights = weights.map { StatsWeight(Instant.parse(it.measuredAt), it.weightKg, it.bodyFatPct) },
+        weights = weights.map { StatsWeight(Instant.parse(it.measuredAt), it.weightKg, it.bodyFatPct, it.fasted, it.timeZone) },
         range = range.range,
         todayKeyParam = today,
     )
@@ -152,6 +154,7 @@ internal fun buildProgress(
         expenditure = ready?.expenditure,
         groupedWeights = grouped,
         hasAnyWeight = weights.isNotEmpty(),
+        latestFasted = weights.lastOrNull()?.fasted ?: true,
     )
 }
 

@@ -47,6 +47,10 @@ export interface WeightDTO {
   weightKg: number;
   bodyFatPct: number | null;
   note: string | null;
+  /** On waking, before eating or drinking (the weight trend compares only weigh-ins taken alike). */
+  fasted: boolean;
+  /** The device's time zone when the weigh-in was saved («Europe/Zurich»); null for older ones. */
+  timeZone: string | null;
   updatedAt: string;
 }
 
@@ -179,6 +183,12 @@ export interface ExpenditureEstimate {
   loggedDays: number;
   weighIns: number;
   windowDays: number;
+  /** Groups of weigh-ins taken in the same conditions that the trend compared (1 = all alike). */
+  groups: number;
+  /** Fasted and not-fasted weigh-ins were both among them. */
+  mixedFasting: boolean;
+  /** First day in a new time zone when the window spans a move, else null. */
+  newZoneSince: string | null;
 }
 
 /**

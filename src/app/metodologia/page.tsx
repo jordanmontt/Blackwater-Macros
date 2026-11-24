@@ -80,6 +80,7 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.measuredData}</p>
         <p>{t.metodologia.measuredUncertainty}</p>
         <p>{t.metodologia.measuredMorning}</p>
+        <p>{t.metodologia.measuredConditions}</p>
         <p>{t.metodologia.measuredLimits}</p>
       </MethodologyCard>
 

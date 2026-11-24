@@ -1,7 +1,7 @@
 import { addDaysToKey, toDateKey } from "./dates";
+import { groupWeighIns, slopeWithinGroups } from "./expenditure";
 import {
   buildDailyNutritionSeries,
-  linearRatePerWeek,
   movingAverageByDays,
   rangeToDays,
   weeklyAverages,
@@ -26,6 +26,9 @@ export interface StatsWeight {
   measuredAt: Date;
   weightKg: number;
   bodyFatPct: number | null;
+  /** Conditions of the weigh-in, so the rate compares only weigh-ins taken alike. */
+  fasted: boolean;
+  timeZone: string | null;
 }
 
 /**
@@ -107,7 +110,19 @@ export function buildStatsFromData(
   const lastValue = weightPoints.at(-1)?.value ?? null;
   const firstValue = weightPoints[0]?.value ?? null;
   const lastTrend = [...trendValues].reverse().find((v) => v !== null) ?? null;
-  const ratePerWeekKg = linearRatePerWeek(weightPoints);
+  // The rate compares only weigh-ins taken alike, as the measured expenditure does.
+  const slope = slopeWithinGroups(
+    groupWeighIns(
+      inRange.map((row) => ({
+        date: toDateKey(row.measuredAt),
+        value: row.weightKg,
+        time: row.measuredAt.toISOString(),
+        fasted: row.fasted,
+        timeZone: row.timeZone,
+      })),
+    ),
+  );
+  const ratePerWeekKg = slope === null ? null : slope * 7;
 
   // Body fat stats
   const lastBodyFat = bodyFatPoints.at(-1)?.value ?? null;

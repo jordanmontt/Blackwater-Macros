@@ -5,12 +5,12 @@ import {
   MIN_WEIGHT_SPAN_DAYS,
   MIN_WEIGH_INS,
   Z_95,
-  dailyMeans,
   fitWeightTrend,
+  groupWeighIns,
+  type WeighIn,
 } from "./expenditure";
 import { round1, round2 } from "./nutrition";
 import { macroAverages } from "./progress";
-import type { DataPoint } from "./stats";
 import type {
   CalorieProfile,
   CalorieRecommendation,
@@ -32,22 +32,25 @@ export interface WeightProjection {
 /**
  * Where the weight trend of the last 4 weeks (today included) leads in `days`
  * days if it continues. Same data rules as the measured expenditure (≥ 4
- * weigh-in days spanning ≥ 14 days). The margin is the 95 % interval of the
- * fitted line at that date, σ·√(1/n + (x − x̄)²/Σ(x − x̄)²), so it widens the
- * further ahead it looks. It says nothing about changes in diet.
+ * weigh-in days spanning ≥ 14 days), and the same trend: compared only within
+ * weigh-ins taken alike, from the level of the latest group
+ * (`fitWeightTrend`). The margin is the 95 % interval of the fitted line at
+ * that date, σ·√(1/n_g + (x − x̄_g)²/Σ Sxx), so it widens the further ahead it
+ * looks. It says nothing about changes in diet.
  */
-export function weightProjection(weights: DataPoint[], today: string, days = 30): WeightProjection | null {
+export function weightProjection(weights: WeighIn[], today: string, days = 30): WeightProjection | null {
   const from = addDaysToKey(today, -(EXPENDITURE_WINDOW_DAYS - 1));
-  const recent = dailyMeans(weights.filter((point) => point.date >= from && point.date <= today));
-  if (recent.length < MIN_WEIGH_INS) return null;
-  if (daysBetweenKeys(recent[0].date, recent[recent.length - 1].date) < MIN_WEIGHT_SPAN_DAYS) return null;
+  const grouped = groupWeighIns(weights.filter((point) => point.date >= from && point.date <= today));
+  const weighInDays = [...new Set(grouped.points.map((point) => point.date))];
+  if (weighInDays.length < MIN_WEIGH_INS) return null;
+  if (daysBetweenKeys(weighInDays[0], weighInDays[weighInDays.length - 1]) < MIN_WEIGHT_SPAN_DAYS) return null;
 
-  const trend = fitWeightTrend(recent);
+  const trend = fitWeightTrend(grouped.points, grouped.groups);
   if (trend === null) return null;
   const xToday = daysBetweenKeys(trend.origin, today);
   const xTarget = xToday + days;
   const fitted = (x: number) => trend.meanY + trend.slopePerDay * (x - trend.meanX);
-  const margin = Z_95 * trend.sigma * Math.sqrt(1 / trend.n + (xTarget - trend.meanX) ** 2 / trend.sxx);
+  const margin = Z_95 * trend.sigma * Math.sqrt(1 / trend.levelN + (xTarget - trend.meanX) ** 2 / trend.sxx);
 
   return {
     days,
@@ -73,6 +76,16 @@ export interface CoachWeight {
   date: string;
   weightKg: number;
   bodyFatPct: number | null;
+  /** On waking, before eating or drinking; absent = true. */
+  fasted?: boolean;
+  /** ISO instant and time zone, for the trend's groups (`WeighIn`). */
+  time?: string;
+  timeZone?: string | null;
+}
+
+/** « (not fasted)» after a weigh-in that was not taken on waking. */
+function notFasted(weight: CoachWeight): string {
+  return weight.fasted === false ? " (not fasted)" : "";
 }
 
 export interface CoachInput {
@@ -174,7 +187,7 @@ export function buildCoachContext(input: CoachInput): string {
   // Targets
   if (calorie && calorie.dataShare > 0) {
     lines.push(
-      `Calorie target: ${num(calorie.targetMin)}–${num(calorie.targetMax)} kcal/day, built on an expenditure of ${num(calorie.expenditure)} kcal/day: the profile's estimate (BMR ${num(calorie.bmr)} × activity factor ${num(calorie.activityFactor)} = ${num(calorie.tdee)}) combined with the measured expenditure, which weighs ${num(Math.round(calorie.dataShare * 100))}% because it is the more precise of the two.`,
+      `Calorie target: ${num(calorie.targetMin)}–${num(calorie.targetMax)} kcal/day, built on an expenditure of ${num(calorie.expenditure)} kcal/day: the profile's estimate (BMR ${num(calorie.bmr)} × activity factor ${num(calorie.activityFactor)} = ${num(calorie.tdee)}) combined with the measured expenditure by how precise each one is: the measured one weighs ${num(Math.round(calorie.dataShare * 100))}%.`,
     );
   } else if (calorie) {
     lines.push(
@@ -249,17 +262,17 @@ export function buildCoachContext(input: CoachInput): string {
   if (!latest) {
     lines.push("Weight: no weigh-ins logged.");
   } else {
-    lines.push(`Weight: latest ${num(round1(latest.weightKg))} kg on ${latest.date}.`);
+    lines.push(`Weight: latest ${num(round1(latest.weightKg))} kg on ${latest.date}${notFasted(latest)}.`);
     const bodyFat = [...input.weights].reverse().find((w) => w.bodyFatPct !== null);
     if (bodyFat) lines.push(`Body fat: ${num(round1(bodyFat.bodyFatPct!))}% on ${bodyFat.date}.`);
     if (recentWeights.length > 1) {
       const first = recentWeights[0];
       lines.push(
-        `Weight in the last ${COACH_WEIGHT_DAYS} days: ${num(recentWeights.length)} weigh-ins, the first ${num(round1(first.weightKg))} kg on ${first.date}.`,
+        `Weight in the last ${COACH_WEIGHT_DAYS} days: ${num(recentWeights.length)} weigh-ins, the first ${num(round1(first.weightKg))} kg on ${first.date}${notFasted(first)}.`,
       );
     }
     const projection = weightProjection(
-      input.weights.map((w) => ({ date: w.date, value: w.weightKg })),
+      input.weights.map((w) => ({ date: w.date, value: w.weightKg, time: w.time, fasted: w.fasted, timeZone: w.timeZone })),
       today,
     );
     lines.push(

@@ -13,6 +13,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.doubleOrNull
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -122,6 +123,9 @@ object BackupImport {
             weightKg = node.number("kg", 20.0, 400.0) ?: throw Bad(node.path("kg")),
             bodyFatPct = node.number("bodyFatPct", 3.0, 60.0),
             note = node.optionalText("note", max = 500),
+            // Files from before the fasted switch: fasted, with no time zone.
+            fasted = node.bool("fasted") ?: true,
+            timeZone = node.optionalText("timeZone", max = 64),
         )
     }
 
@@ -199,6 +203,11 @@ object BackupImport {
             val number = (primitive as? JsonPrimitive)?.takeUnless { it.isString }?.doubleOrNull ?: throw Bad(path(key))
             if (number.isNaN() || number < min || number > max) throw Bad(path(key))
             return number
+        }
+
+        fun bool(key: String): Boolean? {
+            val primitive = value(key) ?: return null
+            return (primitive as? JsonPrimitive)?.takeUnless { it.isString }?.booleanOrNull ?: throw Bad(path(key))
         }
 
         fun int(key: String, min: Int, max: Int): Int? {

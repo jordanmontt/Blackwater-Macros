@@ -23,7 +23,7 @@ const weights = Array.from({ length: 28 }, (_, i) => ({
   bodyFatPct: i === 0 ? 20 : null,
 }));
 
-const expenditure = { tdee: 2750, margin: 177, avgIntake: 2300, weightChangePerWeek: -0.5, loggedDays: 28, weighIns: 28, windowDays: 28 };
+const expenditure = { tdee: 2750, margin: 177, avgIntake: 2300, weightChangePerWeek: -0.5, loggedDays: 28, weighIns: 28, windowDays: 28, groups: 1, mixedFasting: false, newZoneSince: null };
 
 /** The profile's target alone, before there is a measured expenditure. */
 export const FORMULA_CALORIE = calculateCalorieRecommendation(profile, 80, 2026);

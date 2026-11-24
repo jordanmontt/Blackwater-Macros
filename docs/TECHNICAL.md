@@ -143,7 +143,9 @@ meal_templates  id, user_id → users(cascade), name, title, notes,
              created_at, updated_at
 weights      id, user_id → users(cascade), measured_at TIMESTAMPTZ,
              weight_kg DOUBLE PRECISION, body_fat_pct DOUBLE PRECISION (nullable),
-             note, created_at, updated_at
+             note, fasted BOOLEAN NOT NULL DEFAULT true,
+             time_zone TEXT (nullable: IANA zone of the device when saved),
+             created_at, updated_at
              index: weights_user_measured_idx(user_id, measured_at)
 ```
 
@@ -595,6 +597,8 @@ Success `200`:
   "weightKg": 80,
   "bodyFatPct": null,
   "note": null,
+  "fasted": true,
+  "timeZone": "Europe/Zurich",
   "updatedAt": "2026-06-15T08:00:00.000Z"
 }
 ```
@@ -609,13 +613,19 @@ Request body (`WeightInput`):
   "measuredAt": "2026-06-15T08:00:00.000Z",
   "weightKg": 80,
   "bodyFatPct": null,
-  "note": null
+  "note": null,
+  "fasted": true,
+  "timeZone": "Europe/Zurich"
 }
 ```
 - `measuredAt` must parse as a valid date.
 - `weightKg` range 20–400.
 - `bodyFatPct` range 3–60 (nullable).
 - `note` max 500 chars.
+- `fasted`: on waking, before eating or drinking; absent = `true` (older Android clients).
+  The weight trend compares only weigh-ins taken alike (§8.3).
+- `timeZone`: the device's IANA zone (`deviceTimeZone()`), max 64 chars, nullable. Clients
+  send it when the weigh-in is created and send the stored one back when editing.
 
 Success `201`:
 ```json
@@ -759,7 +769,8 @@ the account, AI keys and models, theme, language.
   "profile": { "sex": "male", "birthYear": 1990, "heightCm": 178, "gymDaysPerWeek": 3,
                "gymMinutesPerSession": 60, "walkingMinutesPerDay": 30, "goal": "bulk" },
   "pastProfiles": [ { "until": "2026-10-14", "sex": "male", …, "goal": null } ],
-  "weighIns": [ { "time": "2026-10-26T07:15:00.000Z", "kg": 80.2, "bodyFatPct": 18, "note": null } ],
+  "weighIns": [ { "time": "2026-10-26T07:15:00.000Z", "kg": 80.2, "bodyFatPct": 18, "note": null,
+                 "fasted": true, "timeZone": "Europe/Zurich" } ],
   "meals": [ { "date": "2026-10-26", "title": "Breakfast", "notes": null, "mode": "foods",
                "foods": [ { "name": "Oats", "amount": "80 g", "kcal": 300, "protein": 10.5, "carbs": 54, "fat": 6 } ],
                "total": { "kcal": 300, "protein": 10.5, "carbs": 54, "fat": 6 } } ],
@@ -773,7 +784,8 @@ the account, AI keys and models, theme, language.
   the values it has. Meals are in day order (date, then their order in the day), weigh-ins
   oldest first.
 - **`format`** is 1. A change that an older app couldn't read raises it; an app refuses a file
-  with a higher number («update the app»).
+  with a higher number («update the app»). `fasted` and `timeZone` were added without raising
+  it: a file without them imports as `true` / `null`.
 
 #### Export
 
@@ -947,6 +959,10 @@ thousands from five digits up** — «1,6 g», «2000 kcal», «12 345 kcal».
 - Weights are **exact instants** (`TIMESTAMPTZ` ISO strings); the Progreso page groups
   them by local day and shows them with `i18n/format.ts` (dates in the active language);
   `datetime-local` values are parsed by `lib/core/dates.ts` (`parseLocalDateTime`).
+- A new weigh-in also stores the device's **time zone name** (`deviceTimeZone()`, web
+  `Intl…resolvedOptions().timeZone`, Android `ZoneId.systemDefault().id`). It is not used
+  for dates: only to tell the weight trend that weigh-ins before and after a move were
+  probably taken on different scales (§8.3).
 
 ### i18n
 
@@ -1020,6 +1036,10 @@ Pure helpers in `lib/core/stats.ts` (unit-tested):
   1 decimal before render).
 - `linearRatePerWeek(points)` — ordinary least squares slope × 7
   (`β = Σ(xi−x̄)(yi−ȳ)/Σ(xi−x̄)²`).
+- Progreso's **weekly rate** is not that line but `slopeWithinGroups(groupWeighIns(…))` × 7
+  (`expenditure.ts`): the slope compared only within weigh-ins taken alike, so a switch
+  from after-breakfast to fasted weigh-ins doesn't show as a loss (§8.3). `StatsWeight`
+  carries `fasted` and `timeZone` for it.
 - `weeklyAverages(points)` — Monday-start buckets, arithmetic mean.
 - Rounding helpers live in `lib/core/nutrition.ts` (`round1`, `round2`).
 
@@ -1143,12 +1163,26 @@ on **this week's Monday** (`weekStartOf(today)`, `dates.ts`):
 `TDEE = mean intake of logged days − β × 7700`, β = least-squares weight slope (kg/day).
 
 - Days without meals (or summing to 0 kcal) are **excluded**, never counted as 0.
-- Weigh-ins are reduced to **one point per day** (`dailyMeans`) before the fit: same-day
-  weigh-ins are not independent measurements (also for the coach's weight projection).
+- **Only weigh-ins taken alike are compared** (`groupWeighIns`, `WeighIn`). A weigh-in
+  belongs to a group = (fasted or not, time-zone period); the period goes up when a
+  weigh-in's known `timeZone` differs from the last known one (null never splits; summer
+  time keeps the name). One point per group and day: the mean (same-day weigh-ins are not
+  independent measurements). Groups come only from the switch and the zone, never from
+  the weights. Science and the simulation: [METHODOLOGY.md](./METHODOLOGY.md) §3.
+- `fitWeightTrend(points, groups)` is a fixed-effects fit: one level per group, one common
+  slope, `β = Σ_g Sxy_g / Σ_g Sxx_g`. Single-day groups carry no slope and are left out.
+  With one group (no conditions given, as in older data) it is exactly the ordinary
+  least-squares line. `WeightTrend.meanX/meanY/levelN` are the latest group's level (the
+  coach projects from it).
 - Measured when ≥ 21 logged days and ≥ 4 weigh-in days spanning ≥ 14 days, always with its
-  95 % margin `1.96 × SE(β) × 7700`, with `SE(β) = σ / √Σ(x − x̄)²` and σ the residual SD
-  (n − 2 df), floored at 0.5 kg so a few aligned weigh-ins can't look precise. Weekly
-  weigh-ins give ≈ ±480, ~3/week ≈ ±270, daily ≈ ±180.
+  95 % margin `1.96 × SE(β) × 7700`, with `SE(β) = σ / √Σ_g Sxx_g` and σ the residual SD
+  (n − G − 1 df), floored at 0.5 kg so a few aligned weigh-ins can't look precise. Weekly
+  weigh-ins give ≈ ±480, ~3/week ≈ ±270, daily ≈ ±180. Enough days but no group with 2+
+  days (no trend) reports `weighIns` as missing.
+- `ExpenditureEstimate.groups / mixedFasting / newZoneSince` say what was split; Perfil and
+  the «¿Por qué?» add one line only when `groups > 1` (`weighInConditionsText`, web
+  `expenditure-check.tsx`, Android `ExpenditureCheck.kt`). The coach's context marks
+  weigh-ins «(not fasted)».
 - **No largest margin** (until 2026-11 it had to be ≤ ±300): a wide margin counts less in
   the target (§8.3.2) and needs a bigger gap for the check (§8.3.1), both gradually. The
   cut-off dropped a ±317 measurement the data weighed 60 % in, and a real target fell
@@ -1811,7 +1845,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
 | `data/update/UpdateCheckerTest.kt` | New version notice: versions compare by number, GitHub asked at most once a day and never by another key's build (F-Droid) or with the switch off, «Not now» hides only that version, errors stay silent; «Check now» asks right away even with the switch off, says up to date / failed (keeping what it knew), shows the newest version and brings back one hidden with «Not now» |
 | `ui/ProgressLogicTest.kt` | Progreso: one period for everything, macro averages over logged days, weigh-ins of the period, each logged day's own target in the band and the average |
-| `data/local/MigrationTest.kt` | Updating the app keeps the phone's data: a version 1 database built from `app/schemas/…/1.json` opens with today's code through `MIGRATIONS` (the profile gets an empty history) |
+| `data/local/MigrationTest.kt` | Updating the app keeps the phone's data: a version 1 database built from `app/schemas/…/1.json` opens with today's code through `MIGRATIONS` (the profile gets an empty history); a version 2 one keeps its weigh-ins, which count as fasted with no time zone |
 | `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
 | `ui/NewProductFieldsTest.kt` | «Idioma del envase»: a new product starts in the app's language and takes the one the AI read; one Open Food Facts has keeps its own |
 | `ui/NewProductViewModelTest.kt` | «Nuevo producto» (mirrors `add-food-new-product.test.tsx`): a photo alone reads nothing until «Rellenar con la IA»; Save without a label photo asks once and «Guardar sin foto» saves; editing doesn't ask; the AI reads the photo waiting on the phone |
@@ -2055,7 +2089,7 @@ app/src/main/kotlin/com/blackwatermacros/app/
                              #   NavHost: 4 tabs + login / perfil / metodologia / admin pages;
                              #   requests a sync on every onStart when logged in
   data/
-    local/LocalDatabase.kt   # Room entities (pending/deleted flags) + DAOs + MIGRATIONS (version 2)
+    local/LocalDatabase.kt   # Room entities (pending/deleted flags) + DAOs + MIGRATIONS (version 3)
     local/Mappers.kt         # DTO ⇄ entity, totals via :core resolveMealTotals, nowIso() edit stamp
     AppRepository.kt         # the only data API the screens use (Flows + writes + undo + export data + replaceAll)
     AccountStore.kt          # persisted account (token, username, isAdmin, sessionExpired, lastSyncAt)

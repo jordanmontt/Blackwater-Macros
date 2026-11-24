@@ -2,6 +2,7 @@ package com.blackwatermacros.app.core
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
@@ -27,6 +28,13 @@ fun isValidDateKey(value: String): Boolean {
 fun toDateKey(date: LocalDate): String = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
 fun todayKey(): String = toDateKey(LocalDate.now())
+
+/**
+ * The device's time zone ("Europe/Zurich"), saved with each new weigh-in: a
+ * move to another zone usually means another scale, so the weight trend compares
+ * the weigh-ins before and after it separately (web `deviceTimeZone`).
+ */
+fun deviceTimeZone(): String = ZoneId.systemDefault().id
 
 fun addDaysToKey(key: String, days: Int): String {
     val date = LocalDate.parse(key)

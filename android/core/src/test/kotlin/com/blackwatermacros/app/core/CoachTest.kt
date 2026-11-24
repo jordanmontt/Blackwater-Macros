@@ -37,7 +37,7 @@ class CoachTest {
         },
     )
 
-    private fun daily(kgPerWeek: Double) = (0 until 28).map { i -> DataPoint(addDaysToKey(today, -(27 - i)), 80 + (kgPerWeek / 7) * i) }
+    private fun daily(kgPerWeek: Double) = (0 until 28).map { i -> WeighIn(addDaysToKey(today, -(27 - i)), 80 + (kgPerWeek / 7) * i) }
 
     // --- weightProjection ---
 
@@ -50,6 +50,15 @@ class CoachTest {
     fun continuesTheTrend() {
         assertThat(weightProjection(daily(-0.5), today)).isEqualTo(WeightProjection(30, 78.1, 75.9, 1.0, -0.5))
         assertThat(weightProjection(daily(-0.5), today, 7)!!.projectedKg).isEqualTo(77.6)
+    }
+
+    @Test
+    fun projectsFromTheLatestWeighInsLevel_aSwitchToFastedIsNotALoss() {
+        val weighIns = daily(0.0).mapIndexed { i, w -> w.copy(value = if (i < 14) 80.8 else 80.0, fasted = i >= 14) }
+        val projection = weightProjection(weighIns, today)!!
+        assertThat(projection.currentKg).isEqualTo(80.0)
+        assertThat(projection.projectedKg).isEqualTo(80.0)
+        assertThat(projection.ratePerWeek).isEqualTo(0.0)
     }
 
     @Test
@@ -76,8 +85,8 @@ class CoachTest {
                     "When the weight stalls, mention this and suggest other signs: strength, waist size, photos.",
                 // 2589 ± 10 % and 2750 ± 177 (95 %): the data weigh 259² / (259² + 90²) = 89 %.
                 "Calorie target: 2233–2433 kcal/day, built on an expenditure of 2733 kcal/day: the profile's estimate " +
-                    "(BMR 1738 × activity factor 1.49 = 2589) combined with the measured expenditure, which weighs 89% " +
-                    "because it is the more precise of the two.",
+                    "(BMR 1738 × activity factor 1.49 = 2589) combined with the measured expenditure by how precise " +
+                    "each one is: the measured one weighs 89%.",
                 "Protein target: 147–198 g/day (2.3–3.1 g/kg of 64 kg lean mass).",
                 "Measured expenditure (energy balance, the 28 days before this week's Monday): 2750 ± 177 kcal/day.",
                 "Today's meals:",
@@ -147,6 +156,13 @@ class CoachTest {
     }
 
     // --- buildCoachSystemPrompt ---
+
+    @Test
+    fun marksWeighInsNotFasted() {
+        val weights = input.weights.mapIndexed { i, w -> if (i == input.weights.size - 1) w.copy(fasted = false) else w }
+        assertThat(buildCoachContext(input.copy(weights = weights))).contains("Weight: latest 78.1 kg on 2026-03-01 (not fasted).")
+        assertThat(buildCoachContext(input)).doesNotContain("not fasted")
+    }
 
     @Test
     fun setsTheLanguageAndIncludesTheDataOrSaysItIsNotShared() {
