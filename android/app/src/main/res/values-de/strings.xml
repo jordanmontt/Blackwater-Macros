@@ -55,7 +55,6 @@
     <string name="weight_add">Gewicht erfassen</string>
     <string name="weight_edit">Gewicht bearbeiten</string>
     <string name="weight_empty">Du hast noch kein Gewicht erfasst.</string>
-    <string name="body_fat_value">%1$s %% Körperfett</string>
     <string name="body_fat_placeholder">15 (optional)</string>
     <string name="weight_date">Datum</string>
     <string name="weight_time">Uhrzeit</string>

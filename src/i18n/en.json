@@ -297,6 +297,7 @@
     "weightRequired": "Enter a valid weight.",
     "bodyFatLabel": "Body fat (%)",
     "bodyFatPlaceholder": "E.g. 15",
+    "bodyFatValue": "{value}% body fat",
     "datetimeLabel": "Date and time",
     "nowButton": "Now",
     "noteLabel": "Note (optional)",

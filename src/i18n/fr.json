@@ -297,6 +297,7 @@
     "weightRequired": "Saisissez un poids valide.",
     "bodyFatLabel": "Masse grasse (%)",
     "bodyFatPlaceholder": "Ex. 15",
+    "bodyFatValue": "{value} % de masse grasse",
     "datetimeLabel": "Date et heure",
     "nowButton": "Maintenant",
     "noteLabel": "Note (facultatif)",

@@ -133,6 +133,10 @@ describe("pantalla Progreso", () => {
     expect(screen.getByText(`-${formatNumber(0.5, 1)}`)).toBeInTheDocument(); // cambio
     expect(screen.getByText(formatNumber(18.5, 1))).toBeInTheDocument(); // grasa
     expect(screen.getByTestId("grafico-peso")).toHaveAttribute("data-puntos", "2");
+    // The list says the body fat in the app's language, not always in Spanish.
+    expect(
+      screen.getByText(new RegExp(formatTemplateText(t.peso.bodyFatValue, { value: formatNumber(18.5, 1) }))),
+    ).toBeInTheDocument();
   });
 
   it("con medidas de grasa, el gráfico pasa del peso a la grasa; sin ellas no hay que elegir", async () => {

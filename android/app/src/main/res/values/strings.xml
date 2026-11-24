@@ -56,7 +56,6 @@
     <string name="weight_add">Log weight</string>
     <string name="weight_edit">Edit weight</string>
     <string name="weight_empty">You haven\'t logged any weight yet.</string>
-    <string name="body_fat_value">%1$s%% body fat</string>
     <string name="body_fat_placeholder">15 (optional)</string>
     <string name="weight_date">Date</string>
     <string name="weight_time">Time</string>

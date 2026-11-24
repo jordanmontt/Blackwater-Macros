@@ -297,6 +297,7 @@
     "weightRequired": "Gib ein gültiges Gewicht ein.",
     "bodyFatLabel": "Körperfett (%)",
     "bodyFatPlaceholder": "Z. B. 15",
+    "bodyFatValue": "{value} % Körperfett",
     "datetimeLabel": "Datum und Uhrzeit",
     "nowButton": "Jetzt",
     "noteLabel": "Notiz (optional)",

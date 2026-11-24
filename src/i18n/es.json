@@ -297,6 +297,7 @@
     "weightRequired": "Introduce un peso válido.",
     "bodyFatLabel": "Grasa corporal (%)",
     "bodyFatPlaceholder": "Ej. 15",
+    "bodyFatValue": "{value} % grasa",
     "datetimeLabel": "Fecha y hora",
     "nowButton": "Ahora",
     "noteLabel": "Nota (opcional)",

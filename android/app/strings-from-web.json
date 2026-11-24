@@ -184,6 +184,7 @@
   "weight_fasted_hint": "peso.fastedHint",
   "weight_not_fasted_tag": "peso.notFastedTag",
   "body_fat_pct": "peso.bodyFatLabel",
+  "body_fat_value": ["peso.bodyFatValue", "value:s"],
   "account_login": "auth.loginTitle",
   "logout": "auth.logout",
   "appearance_title": "ajustes.appearance",

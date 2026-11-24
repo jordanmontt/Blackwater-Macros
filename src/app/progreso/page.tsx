@@ -550,7 +550,7 @@ function WeightEntries({
                   {formatNumber(entry.weightKg, 1)} kg
                   {entry.bodyFatPct !== null && (
                     <span className="hidden text-muted-foreground min-[400px]:inline">
-                      {" "}· {formatNumber(entry.bodyFatPct, 1)}% grasa
+                      {" "}· {formatTemplate(t.peso.bodyFatValue, { value: formatNumber(entry.bodyFatPct, 1) })}
                     </span>
                   )}
                   {entry.fasted === false && (

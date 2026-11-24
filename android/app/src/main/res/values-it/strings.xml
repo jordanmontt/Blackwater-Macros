@@ -55,7 +55,6 @@
     <string name="weight_add">Registra peso</string>
     <string name="weight_edit">Modifica peso</string>
     <string name="weight_empty">Non hai ancora registrato il peso.</string>
-    <string name="body_fat_value">%1$s%% grasso</string>
     <string name="body_fat_placeholder">15 (facoltativo)</string>
     <string name="weight_date">Data</string>
     <string name="weight_time">Ora</string>
