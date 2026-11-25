@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.blackwatermacros.app.core.AiProvider
 import com.blackwatermacros.app.data.BackupImport
+import com.blackwatermacros.app.data.ThemeMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,9 +17,10 @@ import java.io.File
  * file, from `scripts/demo-backup.ts`: meals, weigh-ins and the demo person's profile)
  * into `files/seed/` and sends
  * `adb shell am broadcast -n com.blackwatermacros.app.debug/com.blackwatermacros.app.DemoSeedReceiver`.
- * It imports it as the app's import does, skips the first steps and stores a
- * placeholder AI key so the AI screens show their normal state (no request is
- * made unless something is sent).
+ * It imports it as the app's import does, skips the first steps, picks the light
+ * theme (a phone in dark mode gave dark screenshots) and stores a placeholder AI
+ * key so the AI screens show their normal state (no request is made unless
+ * something is sent).
  */
 class DemoSeedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -31,6 +33,7 @@ class DemoSeedReceiver : BroadcastReceiver() {
                     else -> error("backup.json can't be imported: $parsed")
                 }
                 AppGraph.preferences.onboardingDone = true
+                AppGraph.preferences.setTheme(ThemeMode.LIGHT)
                 AppGraph.aiSettings.update {
                     it.copy(provider = AiProvider.GEMINI, apiKeys = it.apiKeys + (AiProvider.GEMINI to "screenshot-demo"))
                 }

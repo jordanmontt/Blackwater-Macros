@@ -20,7 +20,8 @@ import type { CalorieProfile } from "@/lib/core/types";
  *    el perfil anterior hasta ayer; sin historial conocido no se envía (el
  *    servidor conserva el suyo),
  *  - una escritura borra de la caché lo que cambia (pesos y estadísticas…),
- *    también en la demo.
+ *    también en la demo,
+ *  - deshacer el borrado de un peso lo devuelve con todos sus datos.
  */
 
 const REDIRECT_KEY = "_authRedirect";
@@ -210,5 +211,32 @@ describe("cliente de API", () => {
     expect(readCache("stats:month:2026-08-23")).toBeUndefined();
     expect(readCache("weights")).toBeUndefined();
     expect(readCache("templates")).toEqual([]);
+  });
+
+  // Sin «fasted», el servidor lo tomaba por en ayunas: un pesaje tras comer volvía a la tendencia.
+  it("deshacer el borrado de un peso lo devuelve igual, con en ayunas o no y su zona horaria", async () => {
+    const fetchMock = vi.fn(async () => jsonResponse(200, { weight: { id: "w1" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    await api.restoreWeight({
+      id: "w1",
+      measuredAt: "2026-08-23T19:00:00.000Z",
+      weightKg: 81.2,
+      bodyFatPct: 21.5,
+      note: "tras cenar",
+      fasted: false,
+      timeZone: "Europe/Zurich",
+      updatedAt: "2026-08-23T19:00:00.000Z",
+    });
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toContain("/api/weights/w1");
+    expect(init.method).toBe("PUT");
+    expect(JSON.parse(String(init.body))).toEqual({
+      measuredAt: "2026-08-23T19:00:00.000Z",
+      weightKg: 81.2,
+      bodyFatPct: 21.5,
+      note: "tras cenar",
+      fasted: false,
+      timeZone: "Europe/Zurich",
+    });
   });
 });

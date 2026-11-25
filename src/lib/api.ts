@@ -280,7 +280,11 @@ export const api = {
       return data.weight;
     }, "weights", "stats:"),
 
-  /** Undo of [deleteWeight]: the same weigh-in (same id) back. */
+  /**
+   * Undo of [deleteWeight]: the same weigh-in (same id) back, every field. Without
+   * `fasted` the server took it as fasted, and a weigh-in after eating came back
+   * in the trend.
+   */
   restoreWeight: (weight: WeightDTO) =>
     written(async () => {
       if (isDemoMode()) return demoApi.restoreWeight(weight);
@@ -289,6 +293,8 @@ export const api = {
         weightKg: weight.weightKg,
         bodyFatPct: weight.bodyFatPct,
         note: weight.note,
+        fasted: weight.fasted,
+        timeZone: weight.timeZone,
       };
       await request<{ weight: WeightDTO }>(`/api/weights/${weight.id}`, { method: "PUT", body: JSON.stringify(payload) });
     }, "weights", "stats:"),

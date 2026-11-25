@@ -2190,7 +2190,8 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
   rule. Deleting a meal, weigh-in or template asks
   first and then offers **Undo** in a snackbar (`offerUndo`; `AppRepository.restoreMeal` /
   `restoreWeight` / `restoreTemplate` put back the same id and position, even if the
-  delete already reached the server). Same on the web (toast with «Deshacer»).
+  delete already reached the server, with every field: a weigh-in keeps «En ayunas» and
+  its time zone). Same on the web (toast with «Deshacer»).
 - **Server errors** are shown in the app language: `ResponseErrorMapper` turns the
   envelope's `code` into a `server_error_*` string (`UiText`), see §5.3.
 - **Statistics** are computed on the phone with `:core` `buildStatsFromData` (same

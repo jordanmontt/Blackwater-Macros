@@ -12,7 +12,7 @@ is risky · ✅ = decided.
 
 | # | Part | State |
 |---|------|-------|
-| A | F-Droid release (repo public, catalog from the repo, metadata, merge request) | ◐ v1.0.2 released (signed APK on GitHub + website); merge request [!53565](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53565) in review |
+| A | F-Droid release (repo public, catalog from the repo, metadata, merge request) | ◐ v1.0.2 released (signed APK on GitHub + website); merge request [!53565](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53565) reopened on 2026-11-25, in review |
 | B | Premium accounts (paid sign-up on the web) | ☐ later |
 | C | End-to-end encryption for accounts ⚠️ | ☐ later, before B goes live |
 
@@ -20,6 +20,8 @@ Legend: ☐ todo · ◐ in progress · ☑ done.
 
 ## Log
 
+- 2026-11-25 — Merge request !53565 reopened, after the three months of active development
+  F-Droid asks for (it was closed on 2026-10-30; the repository started on 2026-08-24).
 - 2026-10-22 — v1.0.2 for the merge request: the review's issuebot reported «Fastlane/Triple-T
   is not found», because F-Droid reads the store listing only at the repository root; it
   moved from `android/fastlane/` to `fastlane/`. A tag can't be moved, so the recipe points to

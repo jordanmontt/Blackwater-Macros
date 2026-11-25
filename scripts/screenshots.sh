@@ -8,8 +8,8 @@
 # (sdkmanager "emulator" "system-images;android-36;default;arm64-v8a"), a JDK 17–23 in
 # JAVA_HOME, Node (npx tsx) and python3. The AVD «bw-shots» is created if missing.
 # Boots the emulator if none is running, installs a debug build, loads the web
-# demo dataset (scripts/demo-backup.ts) through the debug-only DemoSeedReceiver,
-# then walks the screens and saves them into
+# demo dataset (scripts/demo-backup.ts) through the debug-only DemoSeedReceiver
+# (light theme), then walks the screens and saves them into
 # fastlane/metadata/android/<locale>/images/phoneScreenshots/.
 set -euo pipefail
 
@@ -138,12 +138,15 @@ run() { # lang locale-folder
   rm -rf "$out" && mkdir -p "$out"
 
   "$ADB" shell pm clear "$PKG" >/dev/null
-  "$ADB" shell cmd locale set-app-locales "$PKG" --locales "$lang"
   (cd "$ROOT" && npx tsx scripts/demo-backup.ts "$WORK/seed-$lang" "$lang" >/dev/null)
   "$ADB" push "$WORK/seed-$lang/backup.json" /data/local/tmp/ >/dev/null
   "$ADB" shell "run-as $PKG mkdir -p files/seed && run-as $PKG cp /data/local/tmp/backup.json files/seed/"
   "$ADB" shell am broadcast -n "$PKG/$CLS.DemoSeedReceiver" >/dev/null
   sleep 3
+  # The language last, right before the app opens: set before the data load, a phone
+  # showed the app in its own language.
+  "$ADB" shell am force-stop "$PKG"
+  "$ADB" shell cmd locale set-app-locales "$PKG" --locales "$lang"
   "$ADB" shell am start -W -n "$PKG/$CLS.MainActivity" >/dev/null
   sleep 4
 
