@@ -149,6 +149,12 @@ run() { # lang locale-folder
   "$ADB" shell cmd locale set-app-locales "$PKG" --locales "$lang"
   "$ADB" shell am start -W -n "$PKG/$CLS.MainActivity" >/dev/null
   sleep 4
+  # The first launch after an install puts it back to the phone's language (AppCompat syncs
+  # its own empty language record once): set it again, and the app redraws in it.
+  if ! "$ADB" shell cmd locale get-app-locales "$PKG" | grep -q "\[$lang\]"; then
+    "$ADB" shell cmd locale set-app-locales "$PKG" --locales "$lang"
+    sleep 4
+  fi
 
   shot "$out" 1_meals
   tap "$(label "$lang" meal_add)";               shot "$out" 2_add_food
