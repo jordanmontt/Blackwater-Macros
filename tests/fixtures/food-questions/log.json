@@ -1,0 +1,4714 @@
+{
+ "comment": "Sample log for the food-question tests, read by tests/unit/food-questions.test.ts and FoodQuestionsTest.kt. Today is 2026-03-01 (a Sunday).",
+ "today": "2026-03-01",
+ "meals": [
+  {
+   "logDate": "2025-12-22",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Cacao con leche",
+     "quantity": "1 vaso",
+     "calories": 180,
+     "protein": 7,
+     "carbs": 25,
+     "fat": 5
+    }
+   ],
+   "resolvedCalories": 410,
+   "resolvedProtein": 15,
+   "resolvedCarbs": 65,
+   "resolvedFat": 9
+  },
+  {
+   "logDate": "2025-12-22",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2025-12-22",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2025-12-23",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2025-12-23",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2025-12-23",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2025-12-24",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2025-12-24",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2025-12-24",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2025-12-25",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2025-12-25",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2025-12-25",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2025-12-27",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2025-12-27",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2025-12-27",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2025-12-27",
+   "title": "Bebida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Cerveza",
+     "quantity": "330 ml",
+     "calories": 140,
+     "protein": 1,
+     "carbs": 11,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 140,
+   "resolvedProtein": 1,
+   "resolvedCarbs": 11,
+   "resolvedFat": 0
+  },
+  {
+   "logDate": "2025-12-28",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2025-12-28",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2025-12-28",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2025-12-29",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Cacao con leche",
+     "quantity": "1 vaso",
+     "calories": 180,
+     "protein": 7,
+     "carbs": 25,
+     "fat": 5
+    }
+   ],
+   "resolvedCalories": 410,
+   "resolvedProtein": 15,
+   "resolvedCarbs": 65,
+   "resolvedFat": 9
+  },
+  {
+   "logDate": "2025-12-29",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2025-12-29",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2025-12-30",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2025-12-30",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2025-12-30",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-01",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    },
+    {
+     "name": " ",
+     "calories": 0,
+     "protein": 0,
+     "carbs": 0,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-01",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-01",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-02",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-02",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-02",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-02",
+   "title": "Bebida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Cerveza",
+     "quantity": "330 ml",
+     "calories": 140,
+     "protein": 1,
+     "carbs": 11,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 140,
+   "resolvedProtein": 1,
+   "resolvedCarbs": 11,
+   "resolvedFat": 0
+  },
+  {
+   "logDate": "2026-01-03",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "leche chocolatada pil",
+     "quantity": "0,25 l",
+     "calories": 188,
+     "protein": 8,
+     "carbs": 28,
+     "fat": 5
+    }
+   ],
+   "resolvedCalories": 418,
+   "resolvedProtein": 16,
+   "resolvedCarbs": 68,
+   "resolvedFat": 9
+  },
+  {
+   "logDate": "2026-01-03",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-03",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-01-03",
+   "title": "Bebida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Cerveza",
+     "quantity": "330 ml",
+     "calories": 140,
+     "protein": 1,
+     "carbs": 11,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 140,
+   "resolvedProtein": 1,
+   "resolvedCarbs": 11,
+   "resolvedFat": 0
+  },
+  {
+   "logDate": "2026-01-04",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-04",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-04",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-01-06",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-01-06",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-06",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-07",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-07",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-07",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-08",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-08",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-08",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-09",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-01-09",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-09",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-09",
+   "title": "Bebida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Cerveza",
+     "quantity": "330 ml",
+     "calories": 140,
+     "protein": 1,
+     "carbs": 11,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 140,
+   "resolvedProtein": 1,
+   "resolvedCarbs": 11,
+   "resolvedFat": 0
+  },
+  {
+   "logDate": "2026-01-11",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-11",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-11",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-01-12",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Cacao con leche",
+     "quantity": "1 vaso",
+     "calories": 180,
+     "protein": 7,
+     "carbs": 25,
+     "fat": 5
+    }
+   ],
+   "resolvedCalories": 410,
+   "resolvedProtein": 15,
+   "resolvedCarbs": 65,
+   "resolvedFat": 9
+  },
+  {
+   "logDate": "2026-01-12",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-12",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-13",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-13",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-13",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-14",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-14",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-14",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-16",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-16",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-16",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-16",
+   "title": "Bebida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Cerveza",
+     "quantity": "330 ml",
+     "calories": 140,
+     "protein": 1,
+     "carbs": 11,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 140,
+   "resolvedProtein": 1,
+   "resolvedCarbs": 11,
+   "resolvedFat": 0
+  },
+  {
+   "logDate": "2026-01-17",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-17",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-17",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-01-17",
+   "title": "Bebida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Cerveza",
+     "quantity": "330 ml",
+     "calories": 140,
+     "protein": 1,
+     "carbs": 11,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 140,
+   "resolvedProtein": 1,
+   "resolvedCarbs": 11,
+   "resolvedFat": 0
+  },
+  {
+   "logDate": "2026-01-18",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-01-18",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-18",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-01-19",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Cacao con leche",
+     "quantity": "1 vaso",
+     "calories": 180,
+     "protein": 7,
+     "carbs": 25,
+     "fat": 5
+    }
+   ],
+   "resolvedCalories": 410,
+   "resolvedProtein": 15,
+   "resolvedCarbs": 65,
+   "resolvedFat": 9
+  },
+  {
+   "logDate": "2026-01-19",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-19",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-21",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-01-21",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-21",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-22",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-22",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-22",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-23",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-23",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-23",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-23",
+   "title": "Bebida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Cerveza",
+     "quantity": "330 ml",
+     "calories": 140,
+     "protein": 1,
+     "carbs": 11,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 140,
+   "resolvedProtein": 1,
+   "resolvedCarbs": 11,
+   "resolvedFat": 0
+  },
+  {
+   "logDate": "2026-01-24",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-01-24",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-24",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-01-24",
+   "title": "Bebida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Cerveza",
+     "quantity": "330 ml",
+     "calories": 140,
+     "protein": 1,
+     "carbs": 11,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 140,
+   "resolvedProtein": 1,
+   "resolvedCarbs": 11,
+   "resolvedFat": 0
+  },
+  {
+   "logDate": "2026-01-26",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Cacao con leche",
+     "quantity": "1 vaso",
+     "calories": 180,
+     "protein": 7,
+     "carbs": 25,
+     "fat": 5
+    }
+   ],
+   "resolvedCalories": 410,
+   "resolvedProtein": 15,
+   "resolvedCarbs": 65,
+   "resolvedFat": 9
+  },
+  {
+   "logDate": "2026-01-26",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-26",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-27",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-01-27",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-27",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-28",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-28",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-28",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-29",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-29",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-29",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-01-31",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-01-31",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-01-31",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-01-31",
+   "title": "Bebida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Cerveza",
+     "quantity": "330 ml",
+     "calories": 140,
+     "protein": 1,
+     "carbs": 11,
+     "fat": 0
+    }
+   ],
+   "resolvedCalories": 140,
+   "resolvedProtein": 1,
+   "resolvedCarbs": 11,
+   "resolvedFat": 0
+  },
+  {
+   "logDate": "2026-02-01",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-01",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-01",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-02-02",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Cacao con leche",
+     "quantity": "1 vaso",
+     "calories": 180,
+     "protein": 7,
+     "carbs": 25,
+     "fat": 5
+    }
+   ],
+   "resolvedCalories": 410,
+   "resolvedProtein": 15,
+   "resolvedCarbs": 65,
+   "resolvedFat": 9
+  },
+  {
+   "logDate": "2026-02-02",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-02",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-03",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-03",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-03",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-05",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-02-05",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-05",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-06",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-06",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-06",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-07",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-07",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-07",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-02-08",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-02-08",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-08",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-02-10",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-10",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-10",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-11",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-02-11",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-11",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-12",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-12",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-12",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-13",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-13",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-13",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-15",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-15",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-15",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-02-16",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Cacao con leche",
+     "quantity": "1 vaso",
+     "calories": 180,
+     "protein": 7,
+     "carbs": 25,
+     "fat": 5
+    }
+   ],
+   "resolvedCalories": 410,
+   "resolvedProtein": 15,
+   "resolvedCarbs": 65,
+   "resolvedFat": 9
+  },
+  {
+   "logDate": "2026-02-16",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-16",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-17",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-02-17",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-17",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-18",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-18",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-18",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-20",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-02-20",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-20",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-21",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-21",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-21",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-02-22",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-22",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-22",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  },
+  {
+   "logDate": "2026-02-23",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Cacao con leche",
+     "quantity": "1 vaso",
+     "calories": 180,
+     "protein": 7,
+     "carbs": 25,
+     "fat": 5
+    }
+   ],
+   "resolvedCalories": 410,
+   "resolvedProtein": 15,
+   "resolvedCarbs": 65,
+   "resolvedFat": 9
+  },
+  {
+   "logDate": "2026-02-23",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-23",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-25",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-25",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-25",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-26",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 230,
+   "resolvedProtein": 8,
+   "resolvedCarbs": 40,
+   "resolvedFat": 4
+  },
+  {
+   "logDate": "2026-02-26",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-26",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-27",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-27",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "200 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-27",
+   "title": "Cena",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Huevos",
+     "quantity": "2 unidades",
+     "calories": 140,
+     "protein": 12,
+     "carbs": 1,
+     "fat": 10
+    },
+    {
+     "name": "Pan",
+     "quantity": "60 g",
+     "calories": 160,
+     "protein": 5,
+     "carbs": 30,
+     "fat": 2
+    }
+   ],
+   "resolvedCalories": 300,
+   "resolvedProtein": 17,
+   "resolvedCarbs": 31,
+   "resolvedFat": 12
+  },
+  {
+   "logDate": "2026-02-28",
+   "title": "Desayuno",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Avena",
+     "quantity": "60 g",
+     "calories": 230,
+     "protein": 8,
+     "carbs": 40,
+     "fat": 4
+    },
+    {
+     "name": "Leche chocolatada Pil",
+     "quantity": "200 ml",
+     "calories": 150,
+     "protein": 6,
+     "carbs": 22,
+     "fat": 4
+    }
+   ],
+   "resolvedCalories": 380,
+   "resolvedProtein": 14,
+   "resolvedCarbs": 62,
+   "resolvedFat": 8
+  },
+  {
+   "logDate": "2026-02-28",
+   "title": "Comida",
+   "entryMode": "per_ingredient",
+   "ingredients": [
+    {
+     "name": "Pechuga de pollo",
+     "quantity": "150 g",
+     "calories": 240,
+     "protein": 45,
+     "carbs": 0,
+     "fat": 5
+    },
+    {
+     "name": "Arroz",
+     "quantity": "2 x 100 g",
+     "calories": 260,
+     "protein": 5,
+     "carbs": 56,
+     "fat": 1
+    }
+   ],
+   "resolvedCalories": 500,
+   "resolvedProtein": 50,
+   "resolvedCarbs": 56,
+   "resolvedFat": 6
+  },
+  {
+   "logDate": "2026-02-28",
+   "title": "Pizza",
+   "entryMode": "total_only",
+   "ingredients": [],
+   "resolvedCalories": 900,
+   "resolvedProtein": 35,
+   "resolvedCarbs": 100,
+   "resolvedFat": 35
+  }
+ ],
+ "weights": [
+  {
+   "date": "2025-12-22",
+   "weightKg": 82,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2025-12-22T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2025-12-23",
+   "weightKg": 82,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2025-12-23T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2025-12-25",
+   "weightKg": 81.9,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2025-12-25T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2025-12-26",
+   "weightKg": 81.9,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2025-12-26T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2025-12-28",
+   "weightKg": 81.8,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2025-12-28T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2025-12-29",
+   "weightKg": 81.8,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2025-12-29T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2025-12-31",
+   "weightKg": 81.7,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2025-12-31T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-01",
+   "weightKg": 81.7,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-01T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-03",
+   "weightKg": 81.6,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-03T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-04",
+   "weightKg": 81.6,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-04T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-06",
+   "weightKg": 81.6,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-06T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-07",
+   "weightKg": 81.5,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-07T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-09",
+   "weightKg": 81.5,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-09T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-10",
+   "weightKg": 81.4,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-10T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-12",
+   "weightKg": 81.4,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-12T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-13",
+   "weightKg": 81.3,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-13T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-15",
+   "weightKg": 81.3,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-15T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-16",
+   "weightKg": 81.3,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-16T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-18",
+   "weightKg": 81.2,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-18T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-19",
+   "weightKg": 81.2,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-19T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-21",
+   "weightKg": 81.1,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-21T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-22",
+   "weightKg": 81.1,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-22T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-24",
+   "weightKg": 81,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-24T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-25",
+   "weightKg": 81,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-25T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-27",
+   "weightKg": 80.9,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-27T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-28",
+   "weightKg": 80.9,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-28T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-30",
+   "weightKg": 80.8,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-30T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-01-31",
+   "weightKg": 80.8,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-01-31T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-02",
+   "weightKg": 80.7,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-02T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-03",
+   "weightKg": 80.7,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-03T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-05",
+   "weightKg": 80.5,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-05T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-06",
+   "weightKg": 80.5,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-06T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-08",
+   "weightKg": 80.3,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-08T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-09",
+   "weightKg": 80.3,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-09T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-11",
+   "weightKg": 80.1,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-11T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-12",
+   "weightKg": 80,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-12T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-14",
+   "weightKg": 79.9,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-14T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-15",
+   "weightKg": 79.8,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-15T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-17",
+   "weightKg": 79.7,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-17T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-18",
+   "weightKg": 79.6,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-18T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-20",
+   "weightKg": 79.5,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-20T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-21",
+   "weightKg": 79.4,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-21T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-23",
+   "weightKg": 79.3,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-23T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-24",
+   "weightKg": 79.2,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-24T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-26",
+   "weightKg": 79.1,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-26T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-02-27",
+   "weightKg": 79,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-02-27T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  },
+  {
+   "date": "2026-03-01",
+   "weightKg": 78.9,
+   "bodyFatPct": null,
+   "fasted": true,
+   "time": "2026-03-01T06:30:00.000Z",
+   "timeZone": "Europe/Madrid"
+  }
+ ]
+}

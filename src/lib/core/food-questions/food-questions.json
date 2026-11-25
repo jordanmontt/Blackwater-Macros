@@ -1,0 +1,140 @@
+{
+  "comment": "Food questions (docs/TECHNICAL.md §8.7): what both platforms share as data. The web imports this file; Android's :core reads it as a resource. Texts for the model are English; texts for the user are in src/i18n.",
+  "rules": {
+    "minLoggedDays": 7,
+    "fewLoggedDays": 14,
+    "defaultDays": 28,
+    "weightDefaultDays": 56,
+    "weekendDefaultDays": 56,
+    "minSideDays": 21,
+    "changeGapDays": 14,
+    "dayLogMaxDays": 3,
+    "rankingSize": 10,
+    "countedNamesShown": 8,
+    "similarNamesShown": 5,
+    "maxSearchWords": 8,
+    "resultMaxChars": 1200,
+    "requestMaxTokens": 4096
+  },
+  "requestPrompt": [
+    "You turn a question about the user's own food log into a request for the app Blackwater Macros. The app computes every number from the log; you only choose what to compute.",
+    "Today is {today} ({weekday}). The user writes in {language} and usually logs foods in {language}.",
+    "Reply with one JSON object and nothing else.",
+    "",
+    "Analyses (the \"analysis\" field) and the fields each one uses:",
+    "{analyses}",
+    "",
+    "Fields:",
+    "{fields}",
+    "",
+    "Leave out the fields an analysis does not use. Use \"none\" when the question is not about what the user ate (advice, recipes, targets, today's numbers, a photo) or when no analysis fits.",
+    "",
+    "Examples:",
+    "{examples}",
+    "",
+    "{previous}"
+  ],
+  "noneDescription": "not about what the user ate",
+  "previousRequest": "The previous request in this conversation was: {request}. For a follow-up (\"and last month?\", \"and on weekends?\") keep what it had and change only what the new question asks.",
+  "analyses": {
+    "food_stats": {
+      "description": "how often and how much of a food the user eats, and the calories and macros it brings",
+      "fields": ["foods", "from", "to"],
+      "required": ["foods"]
+    },
+    "ranking": {
+      "description": "the user's top foods by calories, protein, carbs, fat or how often they eat them",
+      "fields": ["metric", "from", "to"],
+      "required": []
+    },
+    "day_log": {
+      "description": "what the user ate on a day or a few days",
+      "fields": ["from", "to"],
+      "required": []
+    },
+    "compare": {
+      "description": "one number compared between weekdays and the weekend, or between two periods; of everything eaten, or of some foods when \"foods\" is given",
+      "fields": ["metric", "split", "foods", "from", "to", "from2", "to2"],
+      "required": ["split"]
+    },
+    "food_vs_weight": {
+      "description": "how the user's weight moved with more or less of a food, or before and after a date (\"since I stopped eating X\")",
+      "fields": ["foods", "at", "from", "to"],
+      "required": ["foods"]
+    }
+  },
+  "fields": {
+    "foods": "search words for the food as the user may have logged it: the words of the question in the singular, synonyms, and the name in {language} and in English; at most 8. Example: chocolate milk → [\"chocolate milk\", \"leche chocolatada\", \"chocolatada\", \"cacao\"].",
+    "from": "the first day, \"YYYY-MM-DD\"; leave it out when the question names no period.",
+    "to": "the last day, \"YYYY-MM-DD\"; leave it out when the question names no period.",
+    "metric": "\"calories\", \"protein\", \"carbs\", \"fat\" or \"times\" (how often).",
+    "split": "\"weekday_weekend\", or \"periods\" to compare from–to with from2–to2.",
+    "from2": "the first day of the second period (split \"periods\").",
+    "to2": "the last day of the second period (split \"periods\").",
+    "at": "the day something changed (\"since 1 October\"), \"YYYY-MM-DD\"; leave it out when the question names none."
+  },
+  "examples": [
+    { "question": "How much chocolate milk do I drink?", "request": { "analysis": "food_stats", "foods": ["chocolate milk", "leche chocolatada", "chocolatada", "cacao"] } },
+    { "question": "¿Cuántos huevos comí el mes pasado?", "request": { "analysis": "food_stats", "foods": ["huevo", "egg", "tortilla"], "from": "{lastMonthFrom}", "to": "{lastMonthTo}" } },
+    { "question": "What gives me most of my protein?", "request": { "analysis": "ranking", "metric": "protein" } },
+    { "question": "What did I eat yesterday?", "request": { "analysis": "day_log", "from": "{yesterday}", "to": "{yesterday}" } },
+    { "question": "Do I eat more on weekends?", "request": { "analysis": "compare", "split": "weekday_weekend", "metric": "calories" } },
+    { "question": "Did my weight change since I stopped drinking beer?", "request": { "analysis": "food_vs_weight", "foods": ["beer", "cerveza"] } },
+    { "question": "How much protein should I eat?", "request": { "analysis": "none" } }
+  ],
+  "result": {
+    "header": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.",
+    "period": "Period: {from} to {to} ({days} days, {logged} with meals logged).",
+    "group": "{label}: {from} to {to} ({days} days, {logged} with meals logged).",
+    "counted": "Logged names counted: {names}.",
+    "countedMore": "Logged names counted: {names}, and {more} more.",
+    "few": "Only {logged} days with meals logged: present the numbers as a rough hint, not a firm average.",
+    "foodDays": "Eaten on {eatenDays} of the {logged} logged days (about {perWeek} days a week), {times} times in all.",
+    "amount": "Amount in {unit}: {total} {unit} in {entries} entries; {perEatenDay} {unit} per day it was eaten, {perLoggedDay} {unit} per logged day.",
+    "withoutAmount": "{n} of the entries have no amount in g or ml, so they are left out of the amounts.",
+    "foodNutrition": "These foods bring {calories} kcal per logged day ({share}% of the calories logged), {protein} g protein, {carbs} g carbs and {fat} g fat per logged day.",
+    "rankingTitle": "Top foods by {metric} (the period's total: {total} {unit}):",
+    "rankingLine": "{rank}. {name}: {value} {unit} ({share}%), on {days} days",
+    "rankingTimesTitle": "Top foods by how often they were eaten:",
+    "rankingTimesLine": "{rank}. {name}: on {days} of the {logged} logged days",
+    "dayLogCut": "Showing the last {shown} of the {days} days asked for.",
+    "day": "{date} ({weekday}): {macros}.",
+    "dayEmpty": "{date} ({weekday}): nothing logged.",
+    "meal": "- {title}: {macros}",
+    "mealItems": "- {title}: {macros}. Items: {items}",
+    "macros": "{calories} kcal, {protein} g protein, {carbs} g carbs, {fat} g fat",
+    "compareTitle": "{metric} per logged day, compared:",
+    "compareFoodsTitle": "{metric} from these foods per logged day, compared:",
+    "compareTimesTitle": "How often these foods were eaten, compared:",
+    "compareValue": "{label}: {value} {unit} per logged day.",
+    "compareTimes": "{label}: on {eatenDays} of the {logged} logged days ({share}%).",
+    "compareDifference": "{second} minus {first}: {difference} {unit} per logged day ({percent}%).",
+    "compareDifferenceFromZero": "{second} minus {first}: {difference} {unit} per logged day.",
+    "compareTimesDifference": "{second} minus {first}: {difference} percentage points.",
+    "weightSplitStopped": "The split is the day after the last time these foods were logged ({at}).",
+    "weightSplitStarted": "The split is the first day these foods were logged ({at}).",
+    "weightSplitHalves": "The split is the middle of the period ({at}): the foods were logged all along.",
+    "weightSplitAsked": "The split is the day the user named ({at}).",
+    "weightFood": "{label}: these foods on {eatenDays} of {logged} logged days, {calories} kcal from them per logged day; {total} kcal per logged day in all.",
+    "weightTrend": "{label}: weight trend {rate} ± {margin} kg/week (from {weighIns} days with weigh-ins, compared only within weigh-ins taken alike).",
+    "weightTrendMissing": "{label}: not enough weigh-ins for a trend (needs {minWeighIns} days with weigh-ins spanning {minSpan} days).",
+    "association": "This shows an association, not a cause: other things changed too, such as the total calories above. Say so.",
+    "cut": "(The rest was left out to keep this short.)",
+    "labels": {
+      "period": "Period",
+      "weekdays": "Weekdays (Monday to Friday)",
+      "weekend": "Weekend (Saturday and Sunday)",
+      "first": "First period",
+      "second": "Second period",
+      "before": "Before",
+      "after": "After"
+    },
+    "metrics": {
+      "calories": { "name": "calories", "unit": "kcal" },
+      "protein": { "name": "protein", "unit": "g" },
+      "carbs": { "name": "carbs", "unit": "g" },
+      "fat": { "name": "fat", "unit": "g" },
+      "times": { "name": "how often", "unit": "" }
+    }
+  }
+}

@@ -1,0 +1,1189 @@
+{
+  "comment": "Shared expectations, read by tests/unit/food-questions.test.ts and FoodQuestionsTest.kt. cases: the model's step-1 answer → the request read from it (null: unreadable) → the app's answer (null: «none», or not answerable as asked). Written from the TypeScript code and checked by hand; regenerate only on purpose.",
+  "basics": {
+    "amounts": [
+      {
+        "quantity": "200 ml",
+        "amount": {
+          "value": 200,
+          "unit": "ml"
+        }
+      },
+      {
+        "quantity": "200ml",
+        "amount": {
+          "value": 200,
+          "unit": "ml"
+        }
+      },
+      {
+        "quantity": "1,5 kg",
+        "amount": {
+          "value": 1500,
+          "unit": "g"
+        }
+      },
+      {
+        "quantity": "0.25 l",
+        "amount": {
+          "value": 250,
+          "unit": "ml"
+        }
+      },
+      {
+        "quantity": "33 cl",
+        "amount": {
+          "value": 330,
+          "unit": "ml"
+        }
+      },
+      {
+        "quantity": "150 g",
+        "amount": {
+          "value": 150,
+          "unit": "g"
+        }
+      },
+      {
+        "quantity": "150 gramos",
+        "amount": {
+          "value": 150,
+          "unit": "g"
+        }
+      },
+      {
+        "quantity": "2 litros",
+        "amount": {
+          "value": 2000,
+          "unit": "ml"
+        }
+      },
+      {
+        "quantity": "1 taza (250 ml)",
+        "amount": null
+      },
+      {
+        "quantity": "2 x 30 g",
+        "amount": null
+      },
+      {
+        "quantity": "2 unidades",
+        "amount": null
+      },
+      {
+        "quantity": "100 grains",
+        "amount": null
+      },
+      {
+        "quantity": "",
+        "amount": null
+      },
+      {
+        "quantity": "0 g",
+        "amount": null
+      }
+    ],
+    "names": [
+      {
+        "name": "Leche Chocolatada Pil",
+        "normalized": "leche chocolatada pil"
+      },
+      {
+        "name": "  Café con leche ",
+        "normalized": "cafe con leche"
+      },
+      {
+        "name": "Crème brûlée",
+        "normalized": "creme brulee"
+      },
+      {
+        "name": "Pan-integral (Bimbo)",
+        "normalized": "pan integral bimbo"
+      },
+      {
+        "name": "Jamón ibérico 5J",
+        "normalized": "jamon iberico 5j"
+      }
+    ],
+    "matches": [
+      {
+        "name": "Leche chocolatada Pil",
+        "foods": [
+          "leche chocolatada"
+        ],
+        "matches": true
+      },
+      {
+        "name": "Leche chocolatada Pil",
+        "foods": [
+          "choco"
+        ],
+        "matches": true
+      },
+      {
+        "name": "Leche chocolatada Pil",
+        "foods": [
+          "chocolate milk"
+        ],
+        "matches": false
+      },
+      {
+        "name": "Huevos revueltos",
+        "foods": [
+          "huevo"
+        ],
+        "matches": true
+      },
+      {
+        "name": "Lechuga",
+        "foods": [
+          "leche"
+        ],
+        "matches": false
+      },
+      {
+        "name": "Café con leche",
+        "foods": [
+          "cafe"
+        ],
+        "matches": true
+      }
+    ],
+    "mostLoggedFood": "Arroz",
+    "cut": {
+      "lines": [
+        "Line 1: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 2: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 3: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 4: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 5: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 6: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 7: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 8: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 9: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 10: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 11: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 12: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 13: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 14: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 15: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 16: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 17: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 18: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 19: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 20: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 21: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 22: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 23: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 24: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 25: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 26: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 27: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 28: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 29: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "Line 30: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nLine 1: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 2: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 3: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 4: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 5: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 6: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 7: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 8: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 9: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 10: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 11: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 12: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 13: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 14: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 15: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 16: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nLine 17: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n(The rest was left out to keep this short.)"
+    }
+  },
+  "cases": [
+    {
+      "name": "food_stats: chocolate milk, default 28 days, ml and entries without an amount",
+      "model": "{\"analysis\": \"food_stats\", \"foods\": [\"chocolate milk\", \"leche chocolatada\", \"cacao\"]}",
+      "request": {
+        "analysis": "food_stats",
+        "foods": [
+          "chocolate milk",
+          "leche chocolatada",
+          "cacao"
+        ],
+        "metric": null,
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"chocolate milk\",\"leche chocolatada\",\"cacao\"]}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Leche chocolatada Pil, Cacao con leche.\nEaten on 16 of the 22 logged days (about 5.1 days a week), 16 times in all.\nAmount in ml: 2600 ml in 13 entries; 200 ml per day it was eaten, 118 ml per logged day.\n3 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 113 kcal per logged day (9% of the calories logged), 4.5 g protein, 16.4 g carbs and 3 g fat per logged day.",
+        "details": {
+          "analysis": "food_stats",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-02",
+              "to": "2026-03-01",
+              "loggedDays": 22,
+              "totalDays": 28
+            }
+          ],
+          "counted": [
+            "Leche chocolatada Pil",
+            "Cacao con leche"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 3,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "food_stats: in a code fence, one period, a food without amounts",
+      "model": "```json\n{\"analysis\":\"food_stats\",\"foods\":[\"huevo\"],\"from\":\"2026-01-01\",\"to\":\"2026-01-31\"}\n```",
+      "request": {
+        "analysis": "food_stats",
+        "foods": [
+          "huevo"
+        ],
+        "metric": null,
+        "split": null,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"huevo\"],\"from\":\"2026-01-01\",\"to\":\"2026-01-31\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-01-01 to 2026-01-31 (31 days, 25 with meals logged).\nLogged names counted: Huevos.\nEaten on 18 of the 25 logged days (about 5 days a week), 18 times in all.\n18 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 101 kcal per logged day (7% of the calories logged), 8.6 g protein, 0.7 g carbs and 7.2 g fat per logged day.",
+        "details": {
+          "analysis": "food_stats",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-01-01",
+              "to": "2026-01-31",
+              "loggedDays": 25,
+              "totalDays": 31
+            }
+          ],
+          "counted": [
+            "Huevos"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 18,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "food_stats: «Solo total» meals count by their title",
+      "model": "{\"analysis\":\"food_stats\",\"foods\":[\"pizza\"]}",
+      "request": {
+        "analysis": "food_stats",
+        "foods": [
+          "pizza"
+        ],
+        "metric": null,
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"pizza\"]}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Pizza.\nEaten on 6 of the 22 logged days (about 1.9 days a week), 6 times in all.\n6 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 245 kcal per logged day (19% of the calories logged), 9.5 g protein, 27.3 g carbs and 9.5 g fat per logged day.",
+        "details": {
+          "analysis": "food_stats",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-02",
+              "to": "2026-03-01",
+              "loggedDays": 22,
+              "totalDays": 28
+            }
+          ],
+          "counted": [
+            "Pizza"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 6,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "food_stats: few logged days are a hint",
+      "model": "{\"analysis\":\"food_stats\",\"foods\":[\"avena\"],\"from\":\"2026-02-17\",\"to\":\"2026-03-01\"}",
+      "request": {
+        "analysis": "food_stats",
+        "foods": [
+          "avena"
+        ],
+        "metric": null,
+        "split": null,
+        "from": "2026-02-17",
+        "to": "2026-03-01",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"avena\"],\"from\":\"2026-02-17\",\"to\":\"2026-03-01\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-17 to 2026-03-01 (13 days, 10 with meals logged).\nLogged names counted: Avena.\nOnly 10 days with meals logged: present the numbers as a rough hint, not a firm average.\nEaten on 10 of the 10 logged days (about 7 days a week), 10 times in all.\nAmount in g: 600 g in 10 entries; 60 g per day it was eaten, 60 g per logged day.\nThese foods bring 230 kcal per logged day (17% of the calories logged), 8 g protein, 40 g carbs and 4 g fat per logged day.",
+        "details": {
+          "analysis": "food_stats",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-17",
+              "to": "2026-03-01",
+              "loggedDays": 10,
+              "totalDays": 13
+            }
+          ],
+          "counted": [
+            "Avena"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": true,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "food_stats: below 7 logged days there is not enough",
+      "model": "{\"analysis\":\"food_stats\",\"foods\":[\"avena\"],\"from\":\"2026-02-24\",\"to\":\"2026-03-01\"}",
+      "request": {
+        "analysis": "food_stats",
+        "foods": [
+          "avena"
+        ],
+        "metric": null,
+        "split": null,
+        "from": "2026-02-24",
+        "to": "2026-03-01",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"avena\"],\"from\":\"2026-02-24\",\"to\":\"2026-03-01\"}",
+      "answer": {
+        "kind": "not_enough",
+        "reason": "logged_days",
+        "details": {
+          "analysis": "food_stats",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-24",
+              "to": "2026-03-01",
+              "loggedDays": 4,
+              "totalDays": 6
+            }
+          ],
+          "counted": [
+            "Avena"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": true,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "food_stats: no match, last seen before the period",
+      "model": "{\"analysis\":\"food_stats\",\"foods\":[\"beer\",\"cerveza\"]}",
+      "request": {
+        "analysis": "food_stats",
+        "foods": [
+          "beer",
+          "cerveza"
+        ],
+        "metric": null,
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"beer\",\"cerveza\"]}",
+      "answer": {
+        "kind": "no_match",
+        "foods": [
+          "beer",
+          "cerveza"
+        ],
+        "range": {
+          "from": "2026-02-02",
+          "to": "2026-03-01"
+        },
+        "lastSeen": "2026-01-31",
+        "similar": []
+      }
+    },
+    {
+      "name": "food_stats: no match, names that look alike",
+      "model": "{\"analysis\":\"food_stats\",\"foods\":[\"chocolate\"]}",
+      "request": {
+        "analysis": "food_stats",
+        "foods": [
+          "chocolate"
+        ],
+        "metric": null,
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"chocolate\"]}",
+      "answer": {
+        "kind": "no_match",
+        "foods": [
+          "chocolate"
+        ],
+        "range": {
+          "from": "2026-02-02",
+          "to": "2026-03-01"
+        },
+        "lastSeen": null,
+        "similar": [
+          "Leche chocolatada Pil"
+        ]
+      }
+    },
+    {
+      "name": "food_stats: a period ending after today stops today; one food as a string",
+      "model": "{\"analysis\":\"food_stats\",\"foods\":\"arroz\",\"from\":\"2026-02-02\",\"to\":\"2026-12-31\"}",
+      "request": {
+        "analysis": "food_stats",
+        "foods": [
+          "arroz"
+        ],
+        "metric": null,
+        "split": null,
+        "from": "2026-02-02",
+        "to": "2026-12-31",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"arroz\"],\"from\":\"2026-02-02\",\"to\":\"2026-12-31\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Arroz.\nEaten on 22 of the 22 logged days (about 7 days a week), 22 times in all.\nAmount in g: 3400 g in 17 entries; 200 g per day it was eaten, 155 g per logged day.\n5 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 260 kcal per logged day (20% of the calories logged), 5 g protein, 56 g carbs and 1 g fat per logged day.",
+        "details": {
+          "analysis": "food_stats",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-02",
+              "to": "2026-03-01",
+              "loggedDays": 22,
+              "totalDays": 28
+            }
+          ],
+          "counted": [
+            "Arroz"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 5,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "ranking: protein",
+      "model": "{\"analysis\":\"ranking\",\"metric\":\"protein\"}",
+      "request": {
+        "analysis": "ranking",
+        "foods": [],
+        "metric": "protein",
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"ranking\",\"metric\":\"protein\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nTop foods by protein (the period's total: 1857 g):\n1. Pechuga de pollo: 990 g (53%), on 22 days\n2. Pizza: 210 g (11%), on 6 days\n3. Huevos: 192 g (10%), on 16 days\n4. Avena: 176 g (9%), on 22 days\n5. Arroz: 110 g (6%), on 22 days\n6. Pan: 80 g (4%), on 16 days\n7. Leche chocolatada Pil: 78 g (4%), on 13 days\n8. Cacao con leche: 21 g (1%), on 3 days",
+        "details": {
+          "analysis": "ranking",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-02",
+              "to": "2026-03-01",
+              "loggedDays": 22,
+              "totalDays": 28
+            }
+          ],
+          "counted": [],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "ranking: how often, fields it does not use are dropped",
+      "model": "{\"analysis\":\"ranking\",\"metric\":\"times\",\"foods\":[\"x\"],\"split\":\"periods\"}",
+      "request": {
+        "analysis": "ranking",
+        "foods": [],
+        "metric": "times",
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"ranking\",\"metric\":\"times\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nTop foods by how often they were eaten:\n1. Arroz: on 22 of the 22 logged days\n2. Avena: on 22 of the 22 logged days\n3. Pechuga de pollo: on 22 of the 22 logged days\n4. Huevos: on 16 of the 22 logged days\n5. Pan: on 16 of the 22 logged days\n6. Leche chocolatada Pil: on 13 of the 22 logged days\n7. Pizza: on 6 of the 22 logged days\n8. Cacao con leche: on 3 of the 22 logged days",
+        "details": {
+          "analysis": "ranking",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-02",
+              "to": "2026-03-01",
+              "loggedDays": 22,
+              "totalDays": 28
+            }
+          ],
+          "counted": [],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "ranking: calories by default",
+      "model": "{\"analysis\":\"ranking\",\"from\":\"2026-01-01\",\"to\":\"2026-01-31\"}",
+      "request": {
+        "analysis": "ranking",
+        "foods": [],
+        "metric": null,
+        "split": null,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"ranking\",\"from\":\"2026-01-01\",\"to\":\"2026-01-31\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-01-01 to 2026-01-31 (31 days, 25 with meals logged).\nTop foods by calories (the period's total: 34048 kcal):\n1. Arroz: 6500 kcal (19%), on 25 days\n2. Pizza: 6300 kcal (19%), on 7 days\n3. Pechuga de pollo: 6000 kcal (18%), on 25 days\n4. Avena: 5750 kcal (17%), on 25 days\n5. Pan: 2880 kcal (8%), on 18 days\n6. Huevos: 2520 kcal (7%), on 18 days\n7. Leche chocolatada Pil: 2438 kcal (7%), on 16 days\n8. Cerveza: 1120 kcal (3%), on 8 days\n9. Cacao con leche: 540 kcal (2%), on 3 days",
+        "details": {
+          "analysis": "ranking",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-01-01",
+              "to": "2026-01-31",
+              "loggedDays": 25,
+              "totalDays": 31
+            }
+          ],
+          "counted": [],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "day_log: yesterday",
+      "model": "{\"analysis\":\"day_log\",\"from\":\"2026-02-28\",\"to\":\"2026-02-28\"}",
+      "request": {
+        "analysis": "day_log",
+        "foods": [],
+        "metric": null,
+        "split": null,
+        "from": "2026-02-28",
+        "to": "2026-02-28",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"day_log\",\"from\":\"2026-02-28\",\"to\":\"2026-02-28\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\n2026-02-28 (Saturday): 1780 kcal, 99 g protein, 218 g carbs, 49 g fat.\n- Desayuno: 380 kcal, 14 g protein, 62 g carbs, 8 g fat. Items: Avena (60 g), Leche chocolatada Pil (200 ml)\n- Comida: 500 kcal, 50 g protein, 56 g carbs, 6 g fat. Items: Pechuga de pollo (150 g), Arroz (2 x 100 g)\n- Pizza: 900 kcal, 35 g protein, 100 g carbs, 35 g fat",
+        "details": {
+          "analysis": "day_log",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-28",
+              "to": "2026-02-28",
+              "loggedDays": 1,
+              "totalDays": 1
+            }
+          ],
+          "counted": [],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "day_log: today by default",
+      "model": "{\"analysis\":\"day_log\"}",
+      "request": {
+        "analysis": "day_log",
+        "foods": [],
+        "metric": null,
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"day_log\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\n2026-03-01 (Sunday): nothing logged.",
+        "details": {
+          "analysis": "day_log",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-03-01",
+              "to": "2026-03-01",
+              "loggedDays": 0,
+              "totalDays": 1
+            }
+          ],
+          "counted": [],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "day_log: at most 3 days, the last ones; a day with nothing",
+      "model": "{\"analysis\":\"day_log\",\"from\":\"2026-02-22\",\"to\":\"2026-02-26\"}",
+      "request": {
+        "analysis": "day_log",
+        "foods": [],
+        "metric": null,
+        "split": null,
+        "from": "2026-02-22",
+        "to": "2026-02-26",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"day_log\",\"from\":\"2026-02-22\",\"to\":\"2026-02-26\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nShowing the last 3 of the 5 days asked for.\n2026-02-24 (Tuesday): nothing logged.\n2026-02-25 (Wednesday): 1180 kcal, 81 g protein, 149 g carbs, 26 g fat.\n- Desayuno: 380 kcal, 14 g protein, 62 g carbs, 8 g fat. Items: Avena (60 g), Leche chocolatada Pil (200 ml)\n- Comida: 500 kcal, 50 g protein, 56 g carbs, 6 g fat. Items: Pechuga de pollo (150 g), Arroz (200 g)\n- Cena: 300 kcal, 17 g protein, 31 g carbs, 12 g fat. Items: Huevos (2 unidades), Pan (60 g)\n2026-02-26 (Thursday): 1030 kcal, 75 g protein, 127 g carbs, 22 g fat.\n- Desayuno: 230 kcal, 8 g protein, 40 g carbs, 4 g fat. Items: Avena (60 g)\n- Comida: 500 kcal, 50 g protein, 56 g carbs, 6 g fat. Items: Pechuga de pollo (150 g), Arroz (200 g)\n- Cena: 300 kcal, 17 g protein, 31 g carbs, 12 g fat. Items: Huevos (2 unidades), Pan (60 g)",
+        "details": {
+          "analysis": "day_log",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-24",
+              "to": "2026-02-26",
+              "loggedDays": 2,
+              "totalDays": 3
+            }
+          ],
+          "counted": [],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "compare: weekday and weekend calories",
+      "model": "{\"analysis\":\"compare\",\"split\":\"weekday_weekend\",\"metric\":\"calories\"}",
+      "request": {
+        "analysis": "compare",
+        "foods": [],
+        "metric": "calories",
+        "split": "weekday_weekend",
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"compare\",\"metric\":\"calories\",\"split\":\"weekday_weekend\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nWeekdays (Monday to Friday): 2026-01-05 to 2026-03-01 (40 days, 32 with meals logged).\nWeekend (Saturday and Sunday): 2026-01-05 to 2026-03-01 (16 days, 12 with meals logged).\nOnly 12 days with meals logged: present the numbers as a rough hint, not a firm average.\nCalories per logged day, compared:\nWeekdays (Monday to Friday): 1157 kcal per logged day.\nWeekend (Saturday and Sunday): 1778 kcal per logged day.\nWeekend (Saturday and Sunday) minus Weekdays (Monday to Friday): 621 kcal per logged day (54%).",
+        "details": {
+          "analysis": "compare",
+          "groups": [
+            {
+              "label": "weekdays",
+              "from": "2026-01-05",
+              "to": "2026-03-01",
+              "loggedDays": 32,
+              "totalDays": 40
+            },
+            {
+              "label": "weekend",
+              "from": "2026-01-05",
+              "to": "2026-03-01",
+              "loggedDays": 12,
+              "totalDays": 16
+            }
+          ],
+          "counted": [],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": true,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "compare: how often a food, weekday and weekend",
+      "model": "{\"analysis\":\"compare\",\"split\":\"weekday_weekend\",\"metric\":\"times\",\"foods\":[\"leche chocolatada\"],\"from\":\"2026-01-05\",\"to\":\"2026-03-01\"}",
+      "request": {
+        "analysis": "compare",
+        "foods": [
+          "leche chocolatada"
+        ],
+        "metric": "times",
+        "split": "weekday_weekend",
+        "from": "2026-01-05",
+        "to": "2026-03-01",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"compare\",\"foods\":[\"leche chocolatada\"],\"metric\":\"times\",\"split\":\"weekday_weekend\",\"from\":\"2026-01-05\",\"to\":\"2026-03-01\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nWeekdays (Monday to Friday): 2026-01-05 to 2026-03-01 (40 days, 32 with meals logged).\nWeekend (Saturday and Sunday): 2026-01-05 to 2026-03-01 (16 days, 12 with meals logged).\nLogged names counted: Leche chocolatada Pil.\nOnly 12 days with meals logged: present the numbers as a rough hint, not a firm average.\nHow often these foods were eaten, compared:\nWeekdays (Monday to Friday): on 17 of the 32 logged days (53%).\nWeekend (Saturday and Sunday): on 9 of the 12 logged days (75%).\nWeekend (Saturday and Sunday) minus Weekdays (Monday to Friday): 22 percentage points.",
+        "details": {
+          "analysis": "compare",
+          "groups": [
+            {
+              "label": "weekdays",
+              "from": "2026-01-05",
+              "to": "2026-03-01",
+              "loggedDays": 32,
+              "totalDays": 40
+            },
+            {
+              "label": "weekend",
+              "from": "2026-01-05",
+              "to": "2026-03-01",
+              "loggedDays": 12,
+              "totalDays": 16
+            }
+          ],
+          "counted": [
+            "Leche chocolatada Pil"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": true,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "compare: two periods, protein of a food",
+      "model": "{\"analysis\":\"compare\",\"split\":\"periods\",\"metric\":\"protein\",\"foods\":[\"pollo\"],\"from\":\"2026-01-01\",\"to\":\"2026-01-31\",\"from2\":\"2026-02-01\",\"to2\":\"2026-02-28\"}",
+      "request": {
+        "analysis": "compare",
+        "foods": [
+          "pollo"
+        ],
+        "metric": "protein",
+        "split": "periods",
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "from2": "2026-02-01",
+        "to2": "2026-02-28",
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"compare\",\"foods\":[\"pollo\"],\"metric\":\"protein\",\"split\":\"periods\",\"from\":\"2026-01-01\",\"to\":\"2026-01-31\",\"from2\":\"2026-02-01\",\"to2\":\"2026-02-28\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nFirst period: 2026-01-01 to 2026-01-31 (31 days, 25 with meals logged).\nSecond period: 2026-02-01 to 2026-02-28 (28 days, 23 with meals logged).\nLogged names counted: Pechuga de pollo.\nProtein from these foods per logged day, compared:\nFirst period: 45 g per logged day.\nSecond period: 45 g per logged day.\nSecond period minus First period: 0 g per logged day (0%).",
+        "details": {
+          "analysis": "compare",
+          "groups": [
+            {
+              "label": "first",
+              "from": "2026-01-01",
+              "to": "2026-01-31",
+              "loggedDays": 25,
+              "totalDays": 31
+            },
+            {
+              "label": "second",
+              "from": "2026-02-01",
+              "to": "2026-02-28",
+              "loggedDays": 23,
+              "totalDays": 28
+            }
+          ],
+          "counted": [
+            "Pechuga de pollo"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "compare: two periods need both",
+      "model": "{\"analysis\":\"compare\",\"split\":\"periods\",\"from\":\"2026-01-01\",\"to\":\"2026-01-31\"}",
+      "request": {
+        "analysis": "compare",
+        "foods": [],
+        "metric": null,
+        "split": "periods",
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"compare\",\"split\":\"periods\",\"from\":\"2026-01-01\",\"to\":\"2026-01-31\"}",
+      "answer": null
+    },
+    {
+      "name": "compare: how often needs foods",
+      "model": "{\"analysis\":\"compare\",\"split\":\"weekday_weekend\",\"metric\":\"times\"}",
+      "request": {
+        "analysis": "compare",
+        "foods": [],
+        "metric": "times",
+        "split": "weekday_weekend",
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"compare\",\"metric\":\"times\",\"split\":\"weekday_weekend\"}",
+      "answer": null
+    },
+    {
+      "name": "food_vs_weight: stopped beer, split the day after the last one",
+      "model": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"cerveza\"],\"from\":\"2025-12-21\",\"to\":\"2026-03-01\"}",
+      "request": {
+        "analysis": "food_vs_weight",
+        "foods": [
+          "cerveza"
+        ],
+        "metric": null,
+        "split": null,
+        "from": "2025-12-21",
+        "to": "2026-03-01",
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"cerveza\"],\"from\":\"2025-12-21\",\"to\":\"2026-03-01\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nBefore: 2025-12-21 to 2026-01-31 (42 days, 33 with meals logged).\nAfter: 2026-02-01 to 2026-03-01 (29 days, 23 with meals logged).\nThe split is the day after the last time these foods were logged (2026-02-01).\nLogged names counted: Cerveza.\nBefore: these foods on 9 of 33 logged days, 38 kcal from them per logged day; 1351 kcal per logged day in all.\nAfter: these foods on 0 of 23 logged days, 0 kcal from them per logged day; 1327 kcal per logged day in all.\nBefore: weight trend -0.21 ± 0.11 kg/week (from 28 days with weigh-ins, compared only within weigh-ins taken alike).\nAfter: weight trend -0.48 ± 0.19 kg/week (from 19 days with weigh-ins, compared only within weigh-ins taken alike).\nThis shows an association, not a cause: other things changed too, such as the total calories above. Say so.",
+        "details": {
+          "analysis": "food_vs_weight",
+          "groups": [
+            {
+              "label": "before",
+              "from": "2025-12-21",
+              "to": "2026-01-31",
+              "loggedDays": 33,
+              "totalDays": 42
+            },
+            {
+              "label": "after",
+              "from": "2026-02-01",
+              "to": "2026-03-01",
+              "loggedDays": 23,
+              "totalDays": 29
+            }
+          ],
+          "counted": [
+            "Cerveza"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": {
+            "at": "2026-02-01",
+            "reason": "stopped"
+          }
+        }
+      }
+    },
+    {
+      "name": "food_vs_weight: a day named, without a period",
+      "model": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"cerveza\"],\"at\":\"2026-02-01\"}",
+      "request": {
+        "analysis": "food_vs_weight",
+        "foods": [
+          "cerveza"
+        ],
+        "metric": null,
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": "2026-02-01"
+      },
+      "requestJson": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"cerveza\"],\"at\":\"2026-02-01\"}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nBefore: 2026-01-04 to 2026-01-31 (28 days, 22 with meals logged).\nAfter: 2026-02-01 to 2026-02-28 (28 days, 23 with meals logged).\nThe split is the day the user named (2026-02-01).\nLogged names counted: Cerveza.\nBefore: these foods on 6 of 22 logged days, 38 kcal from them per logged day; 1345 kcal per logged day in all.\nAfter: these foods on 0 of 23 logged days, 0 kcal from them per logged day; 1327 kcal per logged day in all.\nBefore: weight trend -0.21 ± 0.19 kg/week (from 19 days with weigh-ins, compared only within weigh-ins taken alike).\nAfter: weight trend -0.48 ± 0.21 kg/week (from 18 days with weigh-ins, compared only within weigh-ins taken alike).\nThis shows an association, not a cause: other things changed too, such as the total calories above. Say so.",
+        "details": {
+          "analysis": "food_vs_weight",
+          "groups": [
+            {
+              "label": "before",
+              "from": "2026-01-04",
+              "to": "2026-01-31",
+              "loggedDays": 22,
+              "totalDays": 28
+            },
+            {
+              "label": "after",
+              "from": "2026-02-01",
+              "to": "2026-02-28",
+              "loggedDays": 23,
+              "totalDays": 28
+            }
+          ],
+          "counted": [
+            "Cerveza"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": {
+            "at": "2026-02-01",
+            "reason": "asked"
+          }
+        }
+      }
+    },
+    {
+      "name": "food_vs_weight: eaten all along, split in the middle",
+      "model": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"pollo\"]}",
+      "request": {
+        "analysis": "food_vs_weight",
+        "foods": [
+          "pollo"
+        ],
+        "metric": null,
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"pollo\"]}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nBefore: 2026-01-05 to 2026-02-01 (28 days, 22 with meals logged).\nAfter: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nThe split is the middle of the period (2026-02-02): the foods were logged all along.\nLogged names counted: Pechuga de pollo.\nBefore: these foods on 22 of 22 logged days, 240 kcal from them per logged day; 1345 kcal per logged day in all.\nAfter: these foods on 22 of 22 logged days, 240 kcal from them per logged day; 1307 kcal per logged day in all.\nBefore: weight trend -0.22 ± 0.21 kg/week (from 18 days with weigh-ins, compared only within weigh-ins taken alike).\nAfter: weight trend -0.48 ± 0.19 kg/week (from 19 days with weigh-ins, compared only within weigh-ins taken alike).\nThis shows an association, not a cause: other things changed too, such as the total calories above. Say so.",
+        "details": {
+          "analysis": "food_vs_weight",
+          "groups": [
+            {
+              "label": "before",
+              "from": "2026-01-05",
+              "to": "2026-02-01",
+              "loggedDays": 22,
+              "totalDays": 28
+            },
+            {
+              "label": "after",
+              "from": "2026-02-02",
+              "to": "2026-03-01",
+              "loggedDays": 22,
+              "totalDays": 28
+            }
+          ],
+          "counted": [
+            "Pechuga de pollo"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": false,
+          "split": {
+            "at": "2026-02-02",
+            "reason": "halves"
+          }
+        }
+      }
+    },
+    {
+      "name": "food_vs_weight: a side shorter than 3 weeks",
+      "model": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"pollo\"],\"from\":\"2026-02-01\",\"to\":\"2026-03-01\",\"at\":\"2026-02-20\"}",
+      "request": {
+        "analysis": "food_vs_weight",
+        "foods": [
+          "pollo"
+        ],
+        "metric": null,
+        "split": null,
+        "from": "2026-02-01",
+        "to": "2026-03-01",
+        "from2": null,
+        "to2": null,
+        "at": "2026-02-20"
+      },
+      "requestJson": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"pollo\"],\"from\":\"2026-02-01\",\"to\":\"2026-03-01\",\"at\":\"2026-02-20\"}",
+      "answer": {
+        "kind": "not_enough",
+        "reason": "side_days",
+        "details": {
+          "analysis": "food_vs_weight",
+          "groups": [
+            {
+              "label": "before",
+              "from": "2026-02-01",
+              "to": "2026-02-19",
+              "loggedDays": 15,
+              "totalDays": 19
+            },
+            {
+              "label": "after",
+              "from": "2026-02-20",
+              "to": "2026-03-01",
+              "loggedDays": 8,
+              "totalDays": 10
+            }
+          ],
+          "counted": [
+            "Pechuga de pollo"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 0,
+          "few": true,
+          "split": {
+            "at": "2026-02-20",
+            "reason": "asked"
+          }
+        }
+      }
+    },
+    {
+      "name": "food_vs_weight: a day outside the period",
+      "model": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"pollo\"],\"from\":\"2026-02-01\",\"to\":\"2026-03-01\",\"at\":\"2026-01-01\"}",
+      "request": {
+        "analysis": "food_vs_weight",
+        "foods": [
+          "pollo"
+        ],
+        "metric": null,
+        "split": null,
+        "from": "2026-02-01",
+        "to": "2026-03-01",
+        "from2": null,
+        "to2": null,
+        "at": "2026-01-01"
+      },
+      "requestJson": "{\"analysis\":\"food_vs_weight\",\"foods\":[\"pollo\"],\"from\":\"2026-02-01\",\"to\":\"2026-03-01\",\"at\":\"2026-01-01\"}",
+      "answer": null
+    },
+    {
+      "name": "none",
+      "model": "{\"analysis\":\"none\"}",
+      "request": {
+        "analysis": "none",
+        "foods": [],
+        "metric": null,
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"none\"}",
+      "answer": null
+    },
+    {
+      "name": "unreadable: no JSON",
+      "model": "I think you mean chocolate milk.",
+      "request": null,
+      "requestJson": null,
+      "answer": null
+    },
+    {
+      "name": "unreadable: unknown analysis",
+      "model": "{\"analysis\":\"food_trend\",\"foods\":[\"pan\"]}",
+      "request": null,
+      "requestJson": null,
+      "answer": null
+    },
+    {
+      "name": "unreadable: a required field missing",
+      "model": "{\"analysis\":\"food_stats\"}",
+      "request": null,
+      "requestJson": null,
+      "answer": null
+    },
+    {
+      "name": "unreadable: a day that does not exist",
+      "model": "{\"analysis\":\"food_stats\",\"foods\":[\"pan\"],\"from\":\"2026-02-30\"}",
+      "request": null,
+      "requestJson": null,
+      "answer": null
+    },
+    {
+      "name": "unreadable: a period that ends before it starts",
+      "model": "{\"analysis\":\"ranking\",\"from\":\"2026-02-10\",\"to\":\"2026-02-01\"}",
+      "request": null,
+      "requestJson": null,
+      "answer": null
+    },
+    {
+      "name": "unreadable: a metric it does not know",
+      "model": "{\"analysis\":\"ranking\",\"metric\":\"sugar\"}",
+      "request": null,
+      "requestJson": null,
+      "answer": null
+    },
+    {
+      "name": "unreadable: foods that are not words",
+      "model": "{\"analysis\":\"food_stats\",\"foods\":[1,2]}",
+      "request": null,
+      "requestJson": null,
+      "answer": null
+    }
+  ]
+}

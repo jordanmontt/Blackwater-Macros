@@ -85,6 +85,11 @@
       "source": "src/lib/core/new-product.ts",
       "ts": "tests/unit/new-product.test.ts",
       "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/NewProductTest.kt"
+    },
+    {
+      "source": "src/lib/core/food-questions/",
+      "ts": "tests/unit/food-questions.test.ts",
+      "kt": "android/core/src/test/kotlin/com/blackwatermacros/app/core/foodquestions/FoodQuestionsTest.kt"
     }
   ]
 }
