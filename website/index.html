@@ -85,7 +85,7 @@
     </section>
 
     <section class="block adaptive">
-      <h2>A state-of-the-art target that learns from you</h2>
+      <h2>A target that learns from you</h2>
       <p class="intro">Every calorie app starts with a formula, and formulas describe the average person. For you, the formula can be off by hundreds of calories a day. That's enough to lose weight when you meant to maintain, without knowing why.</p>
       <figure class="blend">
         <dl>
@@ -106,7 +106,7 @@
         <dt>Calories</dt>
         <dd>Your basal rate, times what you really do (gym days, session length, walking), not a "lightly active" guess. Never below your basal rate.</dd>
         <dt>Protein</dt>
-        <dd>A range from sports-nutrition research for your goal. It's counted on your lean mass when you log body fat. Eating more than the range is fine.</dd>
+        <dd>A range from sports-nutrition research for your goal. When you're cutting and log body fat, it's counted on your lean mass. Eating more than the range is fine.</dd>
       </dl>
       <p><a href="https://github.com/jordanmontt/Blackwater-Macros/blob/main/docs/METHODOLOGY.md">Read the full methodology and its references</a></p>
     </section>
@@ -120,7 +120,9 @@
         <dt>Add what Open Food Facts doesn't have</dt>
         <dd>Scan a product it doesn't know and copy its nutrition label, per 100 g, 100 ml or per serving, or let AI read it. You log it right away, and it's shared with Open Food Facts so the next person who scans it finds it. Values that don't match the label? Correct them the same way.</dd>
         <dt>See your progress</dt>
-        <dd>A weight trend that smooths out water swings, your weekly rate, body fat, and daily calories against your target.</dd>
+        <dd>A weight trend that smooths out water swings, your weekly rate, body fat, and daily calories against your target. A weigh-in taken differently from usual (after eating instead of fasted, say) shows on the chart but doesn't bend the trend.</dd>
+        <dt>Ask the coach</dt>
+        <dd>A chat that knows your numbers: “What should I have for dinner?”, “What will I weigh in 30 days?”, “How often do I eat salmon?”. Questions about what you ate are answered with numbers the app works out from your log, not by the AI. Optional, with your own AI key or a model that runs on the phone.</dd>
         <dt>Past days stay as they were</dt>
         <dd>Changing your activity, goal or weight counts from today. Last week is judged with last week's profile.</dd>
         <dt>Five languages</dt>
@@ -147,14 +149,12 @@
       <table>
         <thead><tr><th scope="col">When you</th><th scope="col">It contacts</th></tr></thead>
         <tbody>
-          <tr><td>search a product or scan a barcode</td><td>Open Food Facts</td></tr>
-          <tr><td>add a product it doesn't have (its name, brand, values and label photo)</td><td>Open Food Facts</td></tr>
-          <tr><td>correct a product's values (the values and label photo)</td><td>Open Food Facts</td></tr>
-          <tr><td>edit or correct a product (to show its label photo)</td><td>Open Food Facts</td></tr>
+          <tr><td>search a product, scan a barcode or open one to edit it</td><td>Open Food Facts</td></tr>
+          <tr><td>add or correct a product (its name, brand, values and label photo)</td><td>Open Food Facts</td></tr>
           <tr><td>use AI with your own key</td><td>the provider you chose</td></tr>
           <tr><td>download a model to run AI on the phone</td><td>Hugging Face</td></tr>
           <tr><td>open the list of phone models</td><td>GitHub</td></tr>
-          <tr><td>installed it from this page (once a day, or when you tap Check now, to check for a new version)</td><td>GitHub</td></tr>
+          <tr><td>use the APK from this page (once a day, or when you tap Check now, it looks for a new version)</td><td>GitHub</td></tr>
         </tbody>
       </table>
       <p>Products you add or correct go straight from your phone to Open Food Facts, never through our server, under an open licence and with nothing about you. A label photo waits on the phone only until Open Food Facts has it.</p>
@@ -165,7 +165,7 @@
       <h2>Questions</h2>
       <details>
         <summary>Should I install from F-Droid or from this page?</summary>
-        <p>Either one. F-Droid builds the app from the source code and updates it for you. The APK on this page is built by GitHub from the same code, and the app tells you when a new version is out. They are signed with different keys, so to switch from one to the other you uninstall first. Sync your account or export your data before you do.</p>
+        <p>It's coming to F-Droid soon. Once it's there, either one: F-Droid builds the app from the source code and updates it for you. The APK on this page is built by GitHub from the same code, and the app tells you when a new version is out. They are signed with different keys, so to switch from one to the other you uninstall first. Sync your account or export your data before you do.</p>
       </details>
       <details>
         <summary>How do I update the APK?</summary>

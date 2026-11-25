@@ -1,4 +1,5 @@
-// The latest release from GitHub: its version, size and date under the Download button.
+// The latest release from GitHub: its version, size and date under the Download button,
+// keeping «Coming soon to F-Droid» until the app is there (docs/RELEASING.md).
 // If GitHub can't be reached, the button still works (it always points to the latest APK).
 (async () => {
   const line = document.getElementById("release");
@@ -12,7 +13,7 @@
     if (!apk) return;
     const date = new Date(release.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
     const megabytes = Math.round(apk.size / 1e6);
-    line.textContent = `Version ${release.tag_name.replace(/^v/, "")}, ${megabytes} MB, released ${date}. For Android 7.0 and later, on 64-bit phones.`;
+    line.textContent = `Version ${release.tag_name.replace(/^v/, "")}, ${megabytes} MB, released ${date}. For Android 7.0 and later, on 64-bit phones. Coming soon to F-Droid.`;
   } catch {
     // Offline or rate-limited: keep the static text.
   }

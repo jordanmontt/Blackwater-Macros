@@ -81,7 +81,8 @@ h1, h2, .brand {
 
 @media (min-width: 52rem) {
   .hero { padding-top: 4rem; }
-  .hero-inner { grid-template-columns: 1.15fr 0.85fr; }
+  /* Room for the title in 3 lines next to the phone (15rem; its column stays wider). */
+  .hero-inner { grid-template-columns: 1.3fr 0.7fr; }
 }
 
 .hero-text { padding-bottom: 2rem; }
@@ -102,16 +103,19 @@ h1 {
   font-size: clamp(2.1rem, 5.2vw, 3.4rem);
   line-height: 1.12;
   margin: 0 0 0.75rem;
-  max-width: 16ch;
+  max-width: 20ch;
   color: #f1f4ee;
+  /* No word left alone on the last line («check», «ads.»). */
+  text-wrap: balance;
 }
 
+/* In the text face: Cinzel has only capitals, and two blocks of them in a row read as one. */
 .tagline {
-  font-family: Cinzel, Georgia, serif;
   font-weight: 600;
-  font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+  font-size: clamp(1.15rem, 2vw, 1.3rem);
   margin: 0 0 1.5rem;
   color: var(--fog);
+  text-wrap: balance;
 }
 
 .lede {
@@ -264,14 +268,33 @@ td:last-child { white-space: nowrap; }
 
 details { border-bottom: 1px solid var(--rule); }
 
+/* The marker inside the column (hanging outside, it touched a phone's edge): a chevron
+   that turns down when the answer is open. */
 summary {
+  position: relative;
   cursor: pointer;
-  padding: 0.9rem 0;
+  padding: 0.9rem 0 0.9rem 1.5rem;
   font-weight: 600;
-  list-style-position: outside;
+  list-style: none;
 }
 
-details p { margin: 0 0 1rem; color: var(--muted); }
+summary::-webkit-details-marker { display: none; }
+
+summary::before {
+  content: "";
+  position: absolute;
+  left: 0.2rem;
+  top: 1.5rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg);
+}
+
+details[open] > summary::before { top: 1.35rem; transform: rotate(45deg); }
+
+details p { margin: 0 0 1rem 1.5rem; color: var(--muted); }
 
 .fingerprint { font-size: 0.85rem; overflow-wrap: anywhere; color: var(--ink); }
 

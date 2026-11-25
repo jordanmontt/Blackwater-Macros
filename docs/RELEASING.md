@@ -105,8 +105,9 @@ The two are signed with different keys, so an app from one can't update an app f
       reopen !53565 with a short comment.
 - [ ] **Once it is on F-Droid:** replace «Coming soon to F-Droid» with the F-Droid badge and
       link (`https://f-droid.org/packages/com.blackwatermacros.app/`) in the README and in
-      `website/index.html` (the line under the Download button), then push `main` so the
-      website redeploys.
+      `website/index.html` (the line under the Download button), drop it from the line
+      `website/latest.js` writes there, start the FAQ answer «Should I install from F-Droid…»
+      with «Either one», then push `main` so the website redeploys.
 
 ## Every release
 
