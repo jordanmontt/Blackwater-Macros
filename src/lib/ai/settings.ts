@@ -2,12 +2,15 @@
 
 import { useSyncExternalStore } from "react";
 import { DEFAULT_MODELS, isAiConfigured, type AiConfig, type AiProvider } from "@/lib/core/ai-providers";
+import { userDataStorage } from "@/lib/demo-store";
 import { localJsonStore } from "@/lib/local-json-store";
 
 /**
- * Ajustes → IA, kept only in this browser's localStorage: the key never
- * reaches the Blackwater server, it goes straight to the chosen provider.
- * One key and model per provider, so switching back and forth keeps them.
+ * Ajustes → IA, kept only in this browser's localStorage (in the demo, the tab's
+ * sessionStorage: a key typed there goes with the tab, and the demo never sees the
+ * browser's own): the key never reaches the Blackwater server, it goes straight
+ * to the chosen provider. One key and model per provider, so switching back and
+ * forth keeps them.
  */
 export interface AiSettings {
   provider: AiProvider;
@@ -54,7 +57,7 @@ function parse(raw: string | null): AiSettings {
   }
 }
 
-const store = localJsonStore("bw:ai", parse);
+const store = localJsonStore("bw:ai", parse, userDataStorage);
 
 /** The stored settings; the same object until they change (for useSyncExternalStore). */
 export const getAiSettings = store.get;

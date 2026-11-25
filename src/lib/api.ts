@@ -96,6 +96,18 @@ function jsonBody(payload: unknown): RequestInit {
   return { method: "POST", body: JSON.stringify(payload) };
 }
 
+/**
+ * Runs a write — to the server, or to the tab's data in the demo — then drops the
+ * cached reads it changes (`changed`: cache key prefixes), so the pages showing
+ * them read again. One list for both: the demo once skipped it, and Progreso kept
+ * its old chart and «Cambio» after a weigh-in.
+ */
+async function written<T>(write: () => Promise<T>, ...changed: string[]): Promise<T> {
+  const result = await write();
+  for (const prefix of changed) invalidate(prefix);
+  return result;
+}
+
 export interface MealPayload extends MealContentInput {
   logDate: string;
 }
@@ -156,48 +168,43 @@ export const api = {
     return data.meals;
   },
 
-  createMeal: async (payload: MealPayload) => {
-    if (isDemoMode()) return demoApi.createMeal(payload);
-    const data = await request<{ meal: MealDTO }>("/api/meals", jsonBody(payload));
-    invalidate("meals:");
-    invalidate("stats:");
-    return data.meal;
-  },
+  createMeal: (payload: MealPayload) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.createMeal(payload);
+      const data = await request<{ meal: MealDTO }>("/api/meals", jsonBody(payload));
+      return data.meal;
+    }, "meals:", "stats:"),
 
-  updateMeal: async (id: string, payload: MealPayload) => {
-    if (isDemoMode()) return demoApi.updateMeal(id, payload);
-    const data = await request<{ meal: MealDTO }>(`/api/meals/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    });
-    invalidate("meals:");
-    invalidate("stats:");
-    return data.meal;
-  },
+  updateMeal: (id: string, payload: MealPayload) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.updateMeal(id, payload);
+      const data = await request<{ meal: MealDTO }>(`/api/meals/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+      return data.meal;
+    }, "meals:", "stats:"),
 
-  deleteMeal: (id: string) => {
-    if (isDemoMode()) return demoApi.deleteMeal(id);
-    return request<{ ok: true }>(`/api/meals/${id}`, { method: "DELETE" }).then((result) => {
-      invalidate("meals:");
-      invalidate("stats:");
-      return result;
-    });
-  },
+  deleteMeal: (id: string) =>
+    written(
+      () => (isDemoMode() ? demoApi.deleteMeal(id) : request<{ ok: true }>(`/api/meals/${id}`, { method: "DELETE" })),
+      "meals:",
+      "stats:",
+    ),
 
   /**
    * Undo of [deleteMeal]: the same meal (same id) back, then the day's order
    * as it was. `orderedIds` is the day's list before the delete.
    */
-  restoreMeal: async (meal: MealDTO, orderedIds: string[]) => {
-    if (isDemoMode()) return demoApi.restoreMeal(meal, orderedIds);
-    await request<{ meal: MealDTO }>(`/api/meals/${meal.id}`, {
-      method: "PUT",
-      body: JSON.stringify({ logDate: meal.logDate, ...mealContent(meal) } satisfies MealPayload),
-    });
-    await request<{ ok: true }>("/api/meals/reorder", { method: "PATCH", body: JSON.stringify({ orderedIds }) });
-    invalidate("meals:");
-    invalidate("stats:");
-  },
+  restoreMeal: (meal: MealDTO, orderedIds: string[]) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.restoreMeal(meal, orderedIds);
+      await request<{ meal: MealDTO }>(`/api/meals/${meal.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ logDate: meal.logDate, ...mealContent(meal) } satisfies MealPayload),
+      });
+      await request<{ ok: true }>("/api/meals/reorder", { method: "PATCH", body: JSON.stringify({ orderedIds }) });
+    }, "meals:", "stats:"),
 
   reorderMeals: (orderedIds: string[]) => {
     if (isDemoMode()) return demoApi.reorderMeals(orderedIds);
@@ -216,40 +223,39 @@ export const api = {
     return data.templates;
   },
 
-  createTemplate: async (payload: TemplatePayload) => {
-    if (isDemoMode()) return demoApi.createTemplate(payload);
-    const data = await request<{ template: MealTemplateDTO }>("/api/templates", jsonBody(payload));
-    invalidate("templates");
-    return data.template;
-  },
+  createTemplate: (payload: TemplatePayload) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.createTemplate(payload);
+      const data = await request<{ template: MealTemplateDTO }>("/api/templates", jsonBody(payload));
+      return data.template;
+    }, "templates"),
 
-  updateTemplate: async (id: string, payload: TemplatePayload) => {
-    if (isDemoMode()) return demoApi.updateTemplate(id, payload);
-    const data = await request<{ template: MealTemplateDTO }>(`/api/templates/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    });
-    invalidate("templates");
-    return data.template;
-  },
+  updateTemplate: (id: string, payload: TemplatePayload) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.updateTemplate(id, payload);
+      const data = await request<{ template: MealTemplateDTO }>(`/api/templates/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+      return data.template;
+    }, "templates"),
 
   /** Undo of [deleteTemplate]: the same template (same id) back. */
-  restoreTemplate: async (template: MealTemplateDTO) => {
-    if (isDemoMode()) return demoApi.restoreTemplate(template);
-    await request<{ template: MealTemplateDTO }>(`/api/templates/${template.id}`, {
-      method: "PUT",
-      body: JSON.stringify({ name: template.name, ...mealContent(template) } satisfies TemplatePayload),
-    });
-    invalidate("templates");
-  },
+  restoreTemplate: (template: MealTemplateDTO) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.restoreTemplate(template);
+      await request<{ template: MealTemplateDTO }>(`/api/templates/${template.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ name: template.name, ...mealContent(template) } satisfies TemplatePayload),
+      });
+    }, "templates"),
 
-  deleteTemplate: (id: string) => {
-    if (isDemoMode()) return demoApi.deleteTemplate(id);
-    return request<{ ok: true }>(`/api/templates/${id}`, { method: "DELETE" }).then((result) => {
-      invalidate("templates");
-      return result;
-    });
-  },
+  deleteTemplate: (id: string) =>
+    written(
+      () =>
+        isDemoMode() ? demoApi.deleteTemplate(id) : request<{ ok: true }>(`/api/templates/${id}`, { method: "DELETE" }),
+      "templates",
+    ),
 
   listWeights: async () => {
     if (isDemoMode()) return demoApi.listWeights();
@@ -257,47 +263,42 @@ export const api = {
     return data.weights;
   },
 
-  createWeight: async (payload: WeightPayload) => {
-    if (isDemoMode()) return demoApi.createWeight(payload);
-    const data = await request<{ weight: WeightDTO }>("/api/weights", jsonBody(payload));
-    invalidate("weights");
-    invalidate("stats:");
-    return data.weight;
-  },
+  createWeight: (payload: WeightPayload) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.createWeight(payload);
+      const data = await request<{ weight: WeightDTO }>("/api/weights", jsonBody(payload));
+      return data.weight;
+    }, "weights", "stats:"),
 
-  updateWeight: async (id: string, payload: WeightPayload) => {
-    if (isDemoMode()) return demoApi.updateWeight(id, payload);
-    const data = await request<{ weight: WeightDTO }>(`/api/weights/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    });
-    invalidate("weights");
-    invalidate("stats:");
-    return data.weight;
-  },
+  updateWeight: (id: string, payload: WeightPayload) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.updateWeight(id, payload);
+      const data = await request<{ weight: WeightDTO }>(`/api/weights/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+      return data.weight;
+    }, "weights", "stats:"),
 
   /** Undo of [deleteWeight]: the same weigh-in (same id) back. */
-  restoreWeight: async (weight: WeightDTO) => {
-    if (isDemoMode()) return demoApi.restoreWeight(weight);
-    const payload: WeightPayload = {
-      measuredAt: weight.measuredAt,
-      weightKg: weight.weightKg,
-      bodyFatPct: weight.bodyFatPct,
-      note: weight.note,
-    };
-    await request<{ weight: WeightDTO }>(`/api/weights/${weight.id}`, { method: "PUT", body: JSON.stringify(payload) });
-    invalidate("weights");
-    invalidate("stats:");
-  },
+  restoreWeight: (weight: WeightDTO) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.restoreWeight(weight);
+      const payload: WeightPayload = {
+        measuredAt: weight.measuredAt,
+        weightKg: weight.weightKg,
+        bodyFatPct: weight.bodyFatPct,
+        note: weight.note,
+      };
+      await request<{ weight: WeightDTO }>(`/api/weights/${weight.id}`, { method: "PUT", body: JSON.stringify(payload) });
+    }, "weights", "stats:"),
 
-  deleteWeight: (id: string) => {
-    if (isDemoMode()) return demoApi.deleteWeight(id);
-    return request<{ ok: true }>(`/api/weights/${id}`, { method: "DELETE" }).then((result) => {
-      invalidate("weights");
-      invalidate("stats:");
-      return result;
-    });
-  },
+  deleteWeight: (id: string) =>
+    written(
+      () => (isDemoMode() ? demoApi.deleteWeight(id) : request<{ ok: true }>(`/api/weights/${id}`, { method: "DELETE" })),
+      "weights",
+      "stats:",
+    ),
 
   /**
    * Open Food Facts text search through our pass-through route (the search
@@ -321,18 +322,17 @@ export const api = {
    * from today on: the history keeps the old profile for the days up to yesterday.
    * Without a known history nothing is sent for it, and the server keeps its own.
    */
-  updateSettings: async (payload: CalorieProfile, saved?: SessionData) => {
-    if (isDemoMode()) return demoApi.updateSettings(payload);
-    const profileHistory = saved?.profileHistory
-      ? withProfileChange(saved.calorieProfile, saved.profileHistory, payload, todayKey())
-      : undefined;
-    const data = await request<UserSettings>("/api/settings", {
-      method: "PUT",
-      body: JSON.stringify({ ...payload, profileHistory }),
-    });
-    invalidate("session");
-    return data;
-  },
+  updateSettings: (payload: CalorieProfile, saved?: SessionData) =>
+    written(async () => {
+      if (isDemoMode()) return demoApi.updateSettings(payload);
+      const profileHistory = saved?.profileHistory
+        ? withProfileChange(saved.calorieProfile, saved.profileHistory, payload, todayKey())
+        : undefined;
+      return request<UserSettings>("/api/settings", {
+        method: "PUT",
+        body: JSON.stringify({ ...payload, profileHistory }),
+      });
+    }, "session"),
 
   adminUsers: async () => {
     const data = await request<{ users: AdminUserDTO[] }>("/api/admin/users");

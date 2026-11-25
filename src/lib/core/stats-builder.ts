@@ -106,12 +106,19 @@ export function buildStatsFromData(
     date: toDateKey(row.measuredAt),
     value: row.bodyFatPct!,
   }));
-  const bodyFatTrendValues = movingAverageByDays(bodyFatPoints, TREND_WINDOW_DAYS);
+  // The same rule as the weight, among the readings with body fat: a scale's reading
+  // moves with water and food even more than the weight does.
+  const usuallyFastedFat = usualCondition(bodyFatRows);
+  const fatInTrend = bodyFatRows.map((row) => isFasted(row) === usuallyFastedFat);
+  const bodyFatTrendValues = movingAverageByDays(bodyFatPoints, TREND_WINDOW_DAYS, fatInTrend);
   const bodyFatSeries = bodyFatPoints.map((point, i) => ({
     date: point.date,
     bodyFatPct: round1(point.value),
-    trend: bodyFatTrendValues[i] === null ? null : round1(bodyFatTrendValues[i] as number),
+    // Two decimals, as the weight's: the bold line drew stairs at 0.1.
+    trend: bodyFatTrendValues[i] === null ? null : round2(bodyFatTrendValues[i] as number),
+    inTrend: fatInTrend[i],
   }));
+  const fatTrendPoints = bodyFatPoints.filter((_, i) => fatInTrend[i]);
 
   const lastValue = weightPoints.at(-1)?.value ?? null;
   const firstUsual = trendPoints[0]?.value ?? null;
@@ -133,7 +140,8 @@ export function buildStatsFromData(
 
   // Body fat stats
   const lastBodyFat = bodyFatPoints.at(-1)?.value ?? null;
-  const firstBodyFat = bodyFatPoints[0]?.value ?? null;
+  const firstUsualFat = fatTrendPoints[0]?.value ?? null;
+  const lastUsualFat = fatTrendPoints.at(-1)?.value ?? null;
 
   const weightSummary: StatsSummary["weight"] = {
     currentWeightKg: lastValue === null ? null : round2(lastValue),
@@ -149,7 +157,7 @@ export function buildStatsFromData(
       : null,
     currentBodyFatPct: lastBodyFat === null ? null : round1(lastBodyFat),
     changeBodyFatPct:
-      firstBodyFat !== null && lastBodyFat !== null ? round1(lastBodyFat - firstBodyFat) : null,
+      firstUsualFat !== null && lastUsualFat !== null ? round1(lastUsualFat - firstUsualFat) : null,
     minBodyFatPct: bodyFatPoints.length
       ? round1(bodyFatPoints.reduce((min, p) => Math.min(min, p.value), Infinity))
       : null,

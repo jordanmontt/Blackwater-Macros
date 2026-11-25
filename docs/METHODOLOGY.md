@@ -659,6 +659,13 @@ so the measured value comes out somewhat low (§2.4): the target errs on the low
   level is too noisy to estimate, and a corrected line would show weights the scale never
   read. The rate takes the second (§3). On the chart the others are hollow dots, with one
   line saying so.
+- **Body fat.** The same rule, counted among the weigh-ins that have a body fat value
+  (someone who measures it only in the evening still gets a trend): a home scale
+  estimates body fat from the body's electrical resistance, which moves with the water
+  and food in it, so a reading after a meal is not comparable with a fasted one. The
+  chart draws the 7-day trend of the usual readings, the others hollow with their own
+  line under the chart; the value shown is still the latest reading, and the body fat
+  change in the summary is the last minus the first usual reading.
 - **Change:** the last minus the first usual weigh-in of the period.
 - **Trend (7-day moving average):** for each weigh-in on day d, the mean of the usual
   entries dated d − 6 … d. Days without entries are neither counted nor filled with zeros.

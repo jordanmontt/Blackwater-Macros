@@ -203,6 +203,7 @@ function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () =>
   const w = summary.weight;
   const [series, setSeries] = useState<WeightChartSeries>("weight");
   const hasBodyFat = summary.bodyFat.length > 0;
+  const fatShown = hasBodyFat && series === "bodyFat";
   const rows = useMemo<WeightFatRow[]>(() => {
     const map = new Map<string, WeightFatRow>();
     for (const point of summary.weights) {
@@ -215,7 +216,14 @@ function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () =>
       }
     }
     for (const point of summary.bodyFat) {
-      map.set(point.date, { ...(map.get(point.date) ?? { date: point.date }), bodyFatPct: point.bodyFatPct });
+      const row = map.get(point.date) ?? { date: point.date };
+      // The same for body fat, among its own readings.
+      if (row.bodyFatPct != null && row.bodyFatInTrend !== false && point.inTrend === false) {
+        row.bodyFatTrend = point.trend;
+      } else {
+        Object.assign(row, { bodyFatPct: point.bodyFatPct, bodyFatTrend: point.trend, bodyFatInTrend: point.inTrend });
+      }
+      map.set(point.date, row);
     }
     return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
   }, [summary]);
@@ -276,8 +284,10 @@ function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () =>
             <div className="h-60 sm:h-72">
               <WeightFatChart data={rows} series={hasBodyFat ? series : "weight"} />
             </div>
-            {(!hasBodyFat || series === "weight") && rows.some((row) => row.inTrend === false) ? (
-              <p className="text-xs text-muted-foreground">{t.progreso.otherWeighInsNote}</p>
+            {rows.some((row) => (fatShown ? row.bodyFatPct != null && row.bodyFatInTrend === false : row.inTrend === false)) ? (
+              <p className="text-xs text-muted-foreground">
+                {fatShown ? t.progreso.otherFatReadingsNote : t.progreso.otherWeighInsNote}
+              </p>
             ) : null}
           </>
         ) : null}

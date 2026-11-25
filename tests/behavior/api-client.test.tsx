@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, ApiError, AUTH_EXPIRED_EVENT } from "@/lib/api";
-import { DEMO_COOKIE_NAME } from "@/lib/demo-store";
+import { clearCache, readCache, writeCache } from "@/lib/client-cache";
+import { DEMO_COOKIE_NAME, enterDemoMode } from "@/lib/demo-store";
 import { jsonResponse } from "../helpers/repos";
 import { applyLanguage, t } from "@/i18n";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
@@ -17,7 +18,9 @@ import type { CalorieProfile } from "@/lib/core/types";
  *  - no se emite dos veces en menos de 3 segundos (evita loops),
  *  - al guardar el perfil, el cambio cuenta desde hoy: se envía el historial con
  *    el perfil anterior hasta ayer; sin historial conocido no se envía (el
- *    servidor conserva el suyo).
+ *    servidor conserva el suyo),
+ *  - una escritura borra de la caché lo que cambia (pesos y estadísticas…),
+ *    también en la demo.
  */
 
 const REDIRECT_KEY = "_authRedirect";
@@ -37,6 +40,7 @@ describe("cliente de API", () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     sessionStorage.clear();
+    clearCache();
     document.cookie = `${DEMO_COOKIE_NAME}=; path=/; max-age=0`;
   });
 
@@ -176,5 +180,35 @@ describe("cliente de API", () => {
       { username: "", isAdmin: false, calorieProfile: OLD },
     );
     expect(body()).not.toHaveProperty("profileHistory");
+  });
+
+  // Progreso guarda un peso y solo pide de nuevo la lista: el gráfico, la tendencia y
+  // «Cambio» se renuevan porque la escritura borra «stats:». La demo se lo saltaba.
+  it.each([
+    ["con el servidor", false],
+    ["en la demo", true],
+  ])("guardar o borrar un peso borra de la caché los pesos y las estadísticas, %s", async (_mode, demo) => {
+    if (demo) enterDemoMode();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonResponse(200, { weight: { id: "w1" }, ok: true })),
+    );
+    const fill = () => {
+      writeCache("stats:month:2026-08-23", { cached: true });
+      writeCache("weights", []);
+      writeCache("templates", []);
+    };
+
+    fill();
+    const saved = await api.createWeight({ measuredAt: "2026-08-23T07:00:00.000Z", weightKg: 80 });
+    expect(readCache("stats:month:2026-08-23")).toBeUndefined();
+    expect(readCache("weights")).toBeUndefined();
+    expect(readCache("templates")).toEqual([]);
+
+    fill();
+    await api.deleteWeight(saved.id);
+    expect(readCache("stats:month:2026-08-23")).toBeUndefined();
+    expect(readCache("weights")).toBeUndefined();
+    expect(readCache("templates")).toEqual([]);
   });
 });

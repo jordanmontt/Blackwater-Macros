@@ -98,14 +98,21 @@ fun buildStatsFromData(
     val bodyFatPoints: List<DataPoint> = bodyFatRows.map { row ->
         DataPoint(date = localDateOf(row.measuredAt), value = row.bodyFatPct!!)
     }
-    val bodyFatTrendValues = movingAverageByDays(bodyFatPoints, TREND_WINDOW_DAYS)
+    // The same rule as the weight, among the readings with body fat: a scale's reading
+    // moves with water and food even more than the weight does.
+    val usuallyFastedFat = usualCondition(bodyFatRows)
+    val fatInTrend = bodyFatRows.map { it.fasted == usuallyFastedFat }
+    val bodyFatTrendValues = movingAverageByDays(bodyFatPoints, TREND_WINDOW_DAYS, fatInTrend)
     val bodyFatSeries = bodyFatPoints.mapIndexed { i, point ->
         BodyFatPoint(
             date = point.date,
             bodyFatPct = round1(point.value),
-            trend = bodyFatTrendValues[i]?.let { round1(it) },
+            // Two decimals, as the weight's: the bold line drew stairs at 0.1.
+            trend = bodyFatTrendValues[i]?.let { round2(it) },
+            inTrend = fatInTrend[i],
         )
     }
+    val fatTrendPoints = bodyFatPoints.filterIndexed { i, _ -> fatInTrend[i] }
 
     val lastValue = weightPoints.lastOrNull()?.value
     val firstUsual = trendPoints.firstOrNull()?.value
@@ -122,7 +129,8 @@ fun buildStatsFromData(
 
     // Body fat stats
     val lastBodyFat = bodyFatPoints.lastOrNull()?.value
-    val firstBodyFat = bodyFatPoints.firstOrNull()?.value
+    val firstUsualFat = fatTrendPoints.firstOrNull()?.value
+    val lastUsualFat = fatTrendPoints.lastOrNull()?.value
 
     val weightSummary = CompositionStats(
         currentWeightKg = lastValue?.let { round2(it) },
@@ -132,7 +140,7 @@ fun buildStatsFromData(
         minKg = if (weightPoints.isNotEmpty()) round2(weightPoints.minOf { it.value }) else null,
         maxKg = if (weightPoints.isNotEmpty()) round2(weightPoints.maxOf { it.value }) else null,
         currentBodyFatPct = lastBodyFat?.let { round1(it) },
-        changeBodyFatPct = if (firstBodyFat != null && lastBodyFat != null) round1(lastBodyFat - firstBodyFat) else null,
+        changeBodyFatPct = if (firstUsualFat != null && lastUsualFat != null) round1(lastUsualFat - firstUsualFat) else null,
         minBodyFatPct = if (bodyFatPoints.isNotEmpty()) round1(bodyFatPoints.minOf { it.value }) else null,
         maxBodyFatPct = if (bodyFatPoints.isNotEmpty()) round1(bodyFatPoints.maxOf { it.value }) else null,
     )

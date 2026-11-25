@@ -85,7 +85,8 @@ export interface StatsSummary {
   fat: DailyNutritionPoint[];
   /** `inTrend`: taken the way most weigh-ins of the range were (fasted or not), so it counts in the trend and the change. */
   weights: { date: string; weight: number; trend: number | null; inTrend: boolean }[];
-  bodyFat: { date: string; bodyFatPct: number; trend: number | null }[];
+  /** `inTrend`: as for `weights`, among the readings with body fat. */
+  bodyFat: { date: string; bodyFatPct: number; trend: number | null; inTrend: boolean }[];
   caloriesAvg: number | null;
   caloriesMaxDay: DailyNutritionPoint | null;
   proteinAvg: number | null;

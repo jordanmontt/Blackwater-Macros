@@ -168,6 +168,39 @@ class StatsBuilderTest {
     }
 
     @Test
+    fun buildStatsFromData_bodyFatTrendAndChangeUseOnlyReadingsTakenLikeMost() {
+        // Two weeks fasted at 20 %, and the last three evenings also after dinner at 22 %.
+        val rows = (0 until 14).flatMap { i ->
+            val day = addDaysToKey(TODAY, -(13 - i))
+            listOf(StatsWeight(Instant.parse("${day}T10:00:00Z"), 80.0, 20.0)) +
+                if (i >= 11) listOf(StatsWeight(Instant.parse("${day}T14:00:00Z"), 81.2, 22.0, fasted = false)) else emptyList()
+        }
+        val summary = buildStatsFromData(emptyList(), rows, StatsRange.RANGE_30D, TODAY)
+        assertThat(summary.bodyFat.count { !it.inTrend }).isEqualTo(3)
+        assertThat(summary.bodyFat.last()).isEqualTo(BodyFatPoint(TODAY, 22.0, 20.0, inTrend = false))
+        assertThat(summary.weight.changeBodyFatPct).isEqualTo(0.0)
+        // The last reading is still the one shown: it is what the scale said.
+        assertThat(summary.weight.currentBodyFatPct).isEqualTo(22.0)
+
+        val unmarked = buildStatsFromData(emptyList(), rows.map { it.copy(fasted = true) }, StatsRange.RANGE_30D, TODAY)
+        assertThat(unmarked.weight.changeBodyFatPct).isEqualTo(2.0)
+    }
+
+    @Test
+    fun buildStatsFromData_bodyFatMajorityIsAmongReadingsWithBodyFat() {
+        // Ten fasted weigh-ins without body fat, and three after eating with it.
+        val rows = (0 until 10).map { i ->
+            StatsWeight(Instant.parse("${addDaysToKey(TODAY, -(12 - i))}T10:00:00Z"), 80.0, null)
+        } + listOf(21.8, 21.6, 21.4).mapIndexed { i, fat ->
+            StatsWeight(Instant.parse("${addDaysToKey(TODAY, -(2 - i))}T14:00:00Z"), 81.0, fat, fasted = false)
+        }
+        val summary = buildStatsFromData(emptyList(), rows, StatsRange.RANGE_30D, TODAY)
+        assertThat(summary.weights.count { !it.inTrend }).isEqualTo(3)
+        assertThat(summary.bodyFat.all { it.inTrend }).isTrue()
+        assertThat(summary.weight.changeBodyFatPct).isEqualTo(-0.4)
+    }
+
+    @Test
     fun buildStatsFromData_returnsNullsWhenNoMealsOrWeightsInRange() {
         val summary = buildStatsFromData(emptyList(), emptyList(), StatsRange.RANGE_7D, TODAY)
         assertThat(summary.caloriesAvg).isNull()

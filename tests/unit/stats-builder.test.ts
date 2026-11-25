@@ -154,6 +154,40 @@ describe("buildStatsFromData", () => {
     expect(summary.weight.currentBodyFatPct).toBe(18);
   });
 
+  it("la grasa corporal sigue la misma regla: su tendencia y su cambio solo usan las lecturas tomadas como la mayoría", () => {
+    // Two weeks fasted at 20 %, and the last three evenings also after dinner at 22 %.
+    const entries = Array.from({ length: 14 }, (_, i) => addDaysToKey(TODAY, -(13 - i))).flatMap((day, i) => [
+      { iso: `${day}T10:00:00Z`, kg: 80, bodyFatPct: 20 },
+      ...(i >= 11 ? [{ iso: `${day}T14:00:00Z`, kg: 81.2, bodyFatPct: 22, fasted: false }] : []),
+    ]);
+    const summary = buildStatsFromData([], weights(entries), "30d", TODAY);
+    expect(summary.bodyFat.filter((point) => !point.inTrend)).toHaveLength(3);
+    expect(summary.bodyFat.at(-1)).toMatchObject({ bodyFatPct: 22, trend: 20, inTrend: false });
+    expect(summary.weight.changeBodyFatPct).toBe(0);
+    // The last reading is still the one shown: it is what the scale said.
+    expect(summary.weight.currentBodyFatPct).toBe(22);
+
+    const unmarked = buildStatsFromData([], weights(entries.map(({ iso, kg, bodyFatPct }) => ({ iso, kg, bodyFatPct }))), "30d", TODAY);
+    expect(unmarked.weight.changeBodyFatPct).toBe(2);
+  });
+
+  it("la mayoría de la grasa se cuenta entre las lecturas con grasa, no entre todos los pesajes", () => {
+    // Ten fasted weigh-ins without body fat, and three after eating with it.
+    const entries = [
+      ...Array.from({ length: 10 }, (_, i) => ({ iso: `${addDaysToKey(TODAY, -(12 - i))}T10:00:00Z`, kg: 80 })),
+      ...[21.8, 21.6, 21.4].map((bodyFatPct, i) => ({
+        iso: `${addDaysToKey(TODAY, -(2 - i))}T14:00:00Z`,
+        kg: 81,
+        bodyFatPct,
+        fasted: false,
+      })),
+    ];
+    const summary = buildStatsFromData([], weights(entries), "30d", TODAY);
+    expect(summary.weights.filter((point) => !point.inTrend)).toHaveLength(3);
+    expect(summary.bodyFat.every((point) => point.inTrend)).toBe(true);
+    expect(summary.weight.changeBodyFatPct).toBe(-0.4);
+  });
+
   it("devuelve nulos cuando no hay comidas ni pesos en el rango", () => {
     const summary = buildStatsFromData([], [], "7d", TODAY);
     expect(summary.caloriesAvg).toBeNull();

@@ -83,8 +83,9 @@ enum class WeightChartSeries { WEIGHT, BODY_FAT }
  * the 7-day trend, the line that says where the weight is going, bold; each weigh-in
  * a light dot with no line between them (day-to-day water and food make it zig-zag),
  * a ring when it was taken otherwise than most and stays out of the trend.
- * [WeightChartSeries.BODY_FAT]: the body fat measurements on their own axis. One axis
- * at a time: kg and % on two axes with overlapping ranges were hard to read.
+ * [WeightChartSeries.BODY_FAT]: the same for the body fat readings, on their own axis
+ * (a scale's reading swings with water even more than the weight). One axis at a time:
+ * kg and % on two axes with overlapping ranges were hard to read.
  */
 @Composable
 fun WeightFatChart(
@@ -107,9 +108,9 @@ fun WeightFatChart(
     val labelValue = stringResource(R.string.label_value)
     val axisTitle = stringResource(if (isWeight) R.string.chart_weight_axis else R.string.chart_fat_axis)
 
-    // The points drawn as dots, and the line (the trend for weight; the measurements themselves for fat).
+    // The readings drawn as dots, and the 7-day trend as the line.
     val dots = if (isWeight) data.mapIndexed { i, r -> i to r.weight } else data.mapIndexedNotNull { i, r -> r.bodyFatPct?.let { i to it } }
-    val line = if (isWeight) data.mapIndexedNotNull { i, r -> r.weightTrend?.let { i to it } } else dots
+    val line = data.mapIndexedNotNull { i, r -> (if (isWeight) r.weightTrend else r.bodyFatTrend)?.let { i to it } }
     if (dots.isEmpty()) return
     val values = dots.map { it.second } + line.map { it.second }
     val minRaw = values.min()
@@ -189,11 +190,11 @@ fun WeightFatChart(
                 drawPath(
                     path = path,
                     color = if (isWeight) ChartBlue else Chart2,
-                    style = Stroke(width = (if (isWeight) 3 else 2).dp.toPx()),
+                    style = Stroke(width = 3.dp.toPx()),
                 )
             }
             dots.forEach { (i, v) ->
-                if (isWeight && !data[i].inTrend) {
+                if (!(if (isWeight) data[i].inTrend else data[i].bodyFatInTrend)) {
                     // Taken otherwise than most: a ring, outside the trend (web `WeighInDot`).
                     drawCircle(color = cardColor, radius = 2.75.dp.toPx(), center = Offset(xIndex(i), y(v)))
                     drawCircle(
@@ -204,7 +205,7 @@ fun WeightFatChart(
                     )
                 } else {
                     drawCircle(
-                        color = if (isWeight) weighInColor else Chart2,
+                        color = weighInColor,
                         radius = 2.5.dp.toPx(),
                         center = Offset(xIndex(i), y(v)),
                     )
@@ -221,6 +222,7 @@ fun WeightFatChart(
                         row.weightTrend?.let { add(labelValue.format(trendLabel, "${formatNumber(it, 1)} kg")) }
                     } else {
                         row.bodyFatPct?.let { add(labelValue.format(bodyFatLabel, "${formatNumber(it, 1)}%")) }
+                        row.bodyFatTrend?.let { add(labelValue.format(trendLabel, "${formatNumber(it, 1)}%")) }
                     }
                 }
                 drawSelection(xIndex(si), plotTop, plotBottom, chartWidth, lines, labelColor, surfaceColor)
@@ -234,7 +236,9 @@ fun WeightFatChart(
                     Spacer(Modifier.width(12.dp))
                     LegendDot(weighInColor, weightLabel)
                 } else {
-                    LegendDot(Chart2, bodyFatLabel)
+                    LegendDot(Chart2, trendLabel)
+                    Spacer(Modifier.width(12.dp))
+                    LegendDot(weighInColor, bodyFatLabel)
                 }
             }
         }

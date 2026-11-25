@@ -32,6 +32,7 @@
   "profile_with_latest_weight": ["perfil.withLatestWeight", "kg:s"],
   "rec_chain_goal": ["calorias.chainGoal", "goal:s", "offset:s", "offsetMin:s", "offsetMax:s", "target:s", "min:s", "max:s"],
   "progress_other_weigh_ins_note": "progreso.otherWeighInsNote",
+  "progress_other_fat_readings_note": "progreso.otherFatReadingsNote",
   "progress_rate": "progreso.rate",
   "progress_body_fat": "progreso.bodyFat",
   "progress_calories": "progreso.caloriesTitle",

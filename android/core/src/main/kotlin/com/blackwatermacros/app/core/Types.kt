@@ -89,6 +89,8 @@ data class BodyFatPoint(
     val date: String,
     val bodyFatPct: Double,
     val trend: Double?,
+    /** As for [WeightPoint.inTrend], among the readings with body fat. */
+    val inTrend: Boolean = true,
 )
 
 data class WeeklyAvg(

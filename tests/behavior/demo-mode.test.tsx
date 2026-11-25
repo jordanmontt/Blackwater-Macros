@@ -16,6 +16,7 @@ import {
 } from "@/lib/demo-store";
 import type { MealPayload } from "@/lib/api";
 import { recentFoods, rememberFood, type FoodChoice } from "@/lib/foods/foods-client";
+import { getAiSettings, saveAiSettings } from "@/lib/ai/settings";
 import { applyLanguage, currentLanguage, dictionaryFor } from "@/i18n";
 
 /**
@@ -26,8 +27,8 @@ import { applyLanguage, currentLanguage, dictionaryFor } from "@/i18n";
  *    no está vacío),
  *  - se puede añadir/editar/borrar datos y todo queda en la sesión,
  *  - lo que se guarda fuera del store (alimentos recientes, productos propios, la
- *    cuenta de Open Food Facts) también queda en la pestaña: no se mezcla con lo del
- *    navegador ni sobrevive a la pestaña,
+ *    cuenta de Open Food Facts, los ajustes de IA con su clave) también queda en la
+ *    pestaña: no se mezcla con lo del navegador ni sobrevive a la pestaña,
  *  - al salir del modo demo se limpia la cookie y los datos locales.
  */
 
@@ -178,6 +179,20 @@ describe("modo demo local", () => {
     expect(sessionStorage.getItem("bw:recent-foods")).not.toBeNull();
     exitDemoMode();
     expect(recentFoods().map((item) => item.name)).toEqual(["Arroz"]);
+    localStorage.clear();
+  });
+
+  it("la clave de IA escrita en la demo queda en la pestaña: no se ve fuera ni sobrevive a la demo", () => {
+    localStorage.clear();
+    saveAiSettings((current) => ({ ...current, apiKeys: { gemini: "clave-del-navegador" } }));
+    enterDemoMode();
+    expect(getAiSettings().apiKeys).toEqual({});
+    saveAiSettings((current) => ({ ...current, apiKeys: { gemini: "clave-de-la-demo" } }));
+    expect(getAiSettings().apiKeys).toEqual({ gemini: "clave-de-la-demo" });
+    expect(localStorage.getItem("bw:ai")).not.toContain("clave-de-la-demo");
+    exitDemoMode();
+    expect(sessionStorage.getItem("bw:ai")).toBeNull();
+    expect(getAiSettings().apiKeys).toEqual({ gemini: "clave-del-navegador" });
     localStorage.clear();
   });
 });

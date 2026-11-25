@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.blackwatermacros.app.AppGraph
 import com.blackwatermacros.app.R
 import com.blackwatermacros.app.core.AverageTargets
+import com.blackwatermacros.app.core.BodyFatPoint
 import com.blackwatermacros.app.core.CalorieProfile
 import com.blackwatermacros.app.core.ExpenditureEstimate
 import com.blackwatermacros.app.core.MacroAverages
@@ -50,6 +51,9 @@ data class WeightFatRow(
     val bodyFatPct: Double?,
     /** False: taken otherwise than most weigh-ins (fasted or not); drawn hollow, outside the trend. */
     val inTrend: Boolean = true,
+    val bodyFatTrend: Double? = null,
+    /** As [inTrend], among the readings with body fat. */
+    val bodyFatInTrend: Boolean = true,
 )
 
 /** Everything the Progreso screen shows for one period (mirror web `progreso/page.tsx`). */
@@ -163,15 +167,30 @@ internal fun buildProgress(
 
 private fun weightRows(summary: StatsSummary): List<WeightFatRow> {
     val trendByDate = summary.weights.mapNotNull { point -> point.trend?.let { point.date to it } }.toMap()
-    val fatByDate = summary.bodyFat.associate { it.date to it.bodyFatPct }
-    // One dot a day (web `WeightCard`): a weigh-in that counts in the trend wins over one taken otherwise.
+    val fatTrendByDate = summary.bodyFat.mapNotNull { point -> point.trend?.let { point.date to it } }.toMap()
+    // One dot a day (web `WeightSection`): a weigh-in that counts in the trend wins over one taken otherwise.
     val shown = sortedMapOf<String, WeightPoint>()
     for (point in summary.weights) {
         val current = shown[point.date]
         if (current == null || !current.inTrend || point.inTrend) shown[point.date] = point
     }
+    // The same for body fat, among its own readings.
+    val shownFat = sortedMapOf<String, BodyFatPoint>()
+    for (point in summary.bodyFat) {
+        val current = shownFat[point.date]
+        if (current == null || !current.inTrend || point.inTrend) shownFat[point.date] = point
+    }
     return shown.values.map { point ->
-        WeightFatRow(point.date, point.weight, trendByDate[point.date], fatByDate[point.date], point.inTrend)
+        val fat = shownFat[point.date]
+        WeightFatRow(
+            date = point.date,
+            weight = point.weight,
+            weightTrend = trendByDate[point.date],
+            bodyFatPct = fat?.bodyFatPct,
+            inTrend = point.inTrend,
+            bodyFatTrend = fatTrendByDate[point.date],
+            bodyFatInTrend = fat?.inTrend ?: true,
+        )
     }
 }
 

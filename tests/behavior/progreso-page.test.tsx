@@ -84,11 +84,13 @@ vi.mock("@/lib/api", () => ({
 vi.mock("@/components/weight-fat-chart", async () => {
   const React = await import("react");
   return {
-    WeightFatChart: ({ data, series }: { data: { inTrend?: boolean }[]; series?: string }) =>
+    WeightFatChart: ({ data, series }: { data: { inTrend?: boolean; bodyFatInTrend?: boolean; bodyFatTrend?: number | null }[]; series?: string }) =>
       React.createElement("div", {
         "data-testid": "grafico-peso",
         "data-puntos": String(data.length),
         "data-huecos": String(data.filter((row) => row.inTrend === false).length),
+        "data-huecos-grasa": String(data.filter((row) => row.bodyFatInTrend === false).length),
+        "data-tendencia-grasa": String(data.at(-1)?.bodyFatTrend ?? ""),
         "data-serie": series ?? "weight",
       }),
   };
@@ -315,6 +317,25 @@ describe("pantalla Progreso", () => {
     // Tendencia 80,0 and Cambio 0,0: the 81,6 after dinner counts in neither.
     expect(screen.getByText(t.progreso.trend).parentElement).toHaveTextContent(`${t.progreso.trend}${formatNumber(80, 1)}kg`);
     expect(screen.getByText(t.progreso.change).parentElement).toHaveTextContent(`${t.progreso.change}${formatNumber(0, 1)}kg`);
+  });
+
+  it("una lectura de grasa sin ayunar se ve hueca y no mueve la tendencia de la grasa", async () => {
+    const user = userEvent.setup();
+    weights = [
+      weightDto({ id: "w-1", measuredAt: at(daysAgo(5)), weightKg: 80, bodyFatPct: 20 }),
+      weightDto({ id: "w-2", measuredAt: at(daysAgo(3)), weightKg: 80, bodyFatPct: 20 }),
+      weightDto({ id: "w-3", measuredAt: at(daysAgo(2)), weightKg: 80, bodyFatPct: 20 }),
+      weightDto({ id: "w-4", measuredAt: at(daysAgo(1)), weightKg: 81.6, bodyFatPct: 23, fasted: false }),
+    ];
+    render(<ProgresoPage />);
+
+    await user.click(await screen.findByRole("radio", { name: t.stats.legendBodyFat }));
+    const chart = screen.getByTestId("grafico-peso");
+    expect(chart).toHaveAttribute("data-huecos-grasa", "1");
+    // The 23 % after dinner is out of the trend, which stays at 20 %.
+    expect(chart).toHaveAttribute("data-tendencia-grasa", "20");
+    expect(screen.getByText(t.progreso.otherFatReadingsNote)).toBeInTheDocument();
+    expect(screen.queryByText(t.progreso.otherWeighInsNote)).toBeNull();
   });
 
   it("«En ayunas» empieza como el último pesaje; un pesaje nuevo guarda la zona horaria", async () => {

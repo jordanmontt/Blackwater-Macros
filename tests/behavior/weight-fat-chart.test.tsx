@@ -6,13 +6,13 @@ import { formatTemplate, t } from "@/i18n";
 /**
  * Requisitos del gráfico de peso para un lector de pantalla: su nombre dice en una
  * frase lo que muestra, con los números del usuario (de dónde a dónde va la
- * tendencia, o la grasa, y entre qué fechas).
+ * tendencia del peso o de la grasa, y entre qué fechas).
  */
 
 const rows = [
-  { date: "2026-10-26", weight: 83.4, weightTrend: 83.4, bodyFatPct: 17.2 },
+  { date: "2026-10-26", weight: 83.4, weightTrend: 83.4, bodyFatPct: 17.2, bodyFatTrend: 17.2 },
   { date: "2026-11-10", weight: 82.4, weightTrend: 82.6 },
-  { date: "2026-11-24", weight: 81.5, weightTrend: 81.8, bodyFatPct: 15.7 },
+  { date: "2026-11-24", weight: 81.5, weightTrend: 81.8, bodyFatPct: 15.7, bodyFatTrend: 16.1 },
 ];
 
 describe("gráfico de peso: resumen en una frase", () => {
@@ -27,11 +27,11 @@ describe("gráfico de peso: resumen en una frase", () => {
     );
   });
 
-  it("la grasa usa solo los días con medida", () => {
+  it("la grasa dice de dónde a dónde va su tendencia, en los días con medida", () => {
     expect(chartSummary(rows, "bodyFat")).toBe(
       formatTemplate(t.stats.bodyFatChartSummary, {
         from: formatNumber(17.2, 1),
-        to: formatNumber(15.7, 1),
+        to: formatNumber(16.1, 1),
         start: formatDateKeyShort("2026-10-26"),
         end: formatDateKeyShort("2026-11-24"),
       }),

@@ -307,10 +307,11 @@ private fun WeightCard(progress: Progress) {
                     Spacer(Modifier.height(8.dp))
                 }
                 WeightFatChart(progress.weightRows, Modifier.fillMaxWidth(), if (hasBodyFat) series else WeightChartSeries.WEIGHT)
-                if ((!hasBodyFat || series == WeightChartSeries.WEIGHT) && progress.weightRows.any { !it.inTrend }) {
+                val fatShown = hasBodyFat && series == WeightChartSeries.BODY_FAT
+                if (progress.weightRows.any { if (fatShown) it.bodyFatPct != null && !it.bodyFatInTrend else !it.inTrend }) {
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        stringResource(R.string.progress_other_weigh_ins_note),
+                        stringResource(if (fatShown) R.string.progress_other_fat_readings_note else R.string.progress_other_weigh_ins_note),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
