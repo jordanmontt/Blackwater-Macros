@@ -58,6 +58,9 @@ export default function ProgresoPage() {
   const [editing, setEditing] = useState<WeightDTO | null>(null);
   const [formKey, setFormKey] = useState(0);
   const [deleting, setDeleting] = useState<WeightDTO | null>(null);
+  // Here and not in the weight card: a save reads the stats again, the card goes away behind the
+  // skeleton meanwhile, and the chart came back on the weight after each weigh-in.
+  const [series, setSeries] = useState<WeightChartSeries>("weight");
 
   const today = todayKey();
   const summaryRes = useCachedResource<StatsSummary>(`stats:${range}:${today}`, () => api.stats(range, today), {
@@ -151,7 +154,7 @@ export default function ProgresoPage() {
         </div>
       ) : (
         <div className="mt-5 space-y-4">
-          <WeightSection summary={summary} onAdd={() => openForm(null)} />
+          <WeightSection summary={summary} series={series} onSeries={setSeries} onAdd={() => openForm(null)} />
           <CaloriesSection summary={summary} calorieOn={targets.calorieOn} />
           <MacrosCard summary={summary} averageTargets={targets.average} />
           <WeightEntries
@@ -199,9 +202,18 @@ export default function ProgresoPage() {
   );
 }
 
-function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () => void }) {
+function WeightSection({
+  summary,
+  series,
+  onSeries,
+  onAdd,
+}: {
+  summary: StatsSummary;
+  series: WeightChartSeries;
+  onSeries: (series: WeightChartSeries) => void;
+  onAdd: () => void;
+}) {
   const w = summary.weight;
-  const [series, setSeries] = useState<WeightChartSeries>("weight");
   const hasBodyFat = summary.bodyFat.length > 0;
   const fatShown = hasBodyFat && series === "bodyFat";
   const rows = useMemo<WeightFatRow[]>(() => {
@@ -270,7 +282,7 @@ function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () =>
                     type="button"
                     role="radio"
                     aria-checked={series === value}
-                    onClick={() => setSeries(value)}
+                    onClick={() => onSeries(value)}
                     className={cn(
                       "min-h-9 rounded-full border px-3 text-xs font-medium transition-colors",
                       series === value ? "border-transparent bg-primary/15 text-primary" : "text-muted-foreground hover:bg-accent",

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProgresoPage from "@/app/progreso/page";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
@@ -22,6 +22,7 @@ import { t } from "@/i18n";
  *    («N de M días registrados»), con el reparto de calorías y los objetivos
  *    (la media de los de cada día: cambiar el perfil no reescribe el pasado),
  *  - el gasto medido abre «Ver el cálculo» (su ± explicado paso a paso),
+ *  - la elección del gráfico se mantiene tras guardar un pesaje,
  *  - la lista de pesajes del periodo, con añadir, editar y borrar (pregunta
  *    antes y luego ofrece «Deshacer»).
  */
@@ -98,7 +99,7 @@ vi.mock("@/components/weight-fat-chart", async () => {
 
 import { api } from "@/lib/api";
 import { mealDto, weightDto } from "../helpers/repos";
-import { clearCache } from "@/lib/client-cache";
+import { clearCache, invalidate } from "@/lib/client-cache";
 
 const today = todayKey();
 const daysAgo = (n: number) => addDaysToKey(today, -n);
@@ -163,6 +164,25 @@ describe("pantalla Progreso", () => {
     expect(screen.getByRole("radio", { name: t.stats.legendWeight })).toHaveAttribute("aria-checked", "true");
     await user.click(screen.getByRole("radio", { name: t.stats.legendBodyFat }));
     expect(screen.getByTestId("grafico-peso")).toHaveAttribute("data-serie", "bodyFat");
+  });
+
+  // Every write drops the cached stats (api.ts `written`), and the page shows a skeleton while it
+  // reads them again: the choice was kept in the card, which went away, and the chart came back on
+  // the weight after each weigh-in.
+  it("el gráfico sigue en la grasa cuando las estadísticas se vuelven a pedir tras guardar", async () => {
+    const user = userEvent.setup();
+    weights = [
+      weightDto({ id: "w-1", measuredAt: at(daysAgo(5)), weightKg: 80, bodyFatPct: 19 }),
+      weightDto({ id: "w-2", measuredAt: at(daysAgo(1)), weightKg: 79.5, bodyFatPct: 18.5 }),
+    ];
+    render(<ProgresoPage />);
+    await user.click(await screen.findByRole("radio", { name: t.stats.legendBodyFat }));
+
+    const reads = vi.mocked(api.stats).mock.calls.length;
+    act(() => invalidate("stats:"));
+    await vi.waitFor(() => expect(vi.mocked(api.stats).mock.calls.length).toBeGreaterThan(reads));
+    expect(await screen.findByTestId("grafico-peso")).toHaveAttribute("data-serie", "bodyFat");
+    expect(screen.getByRole("radio", { name: t.stats.legendBodyFat })).toHaveAttribute("aria-checked", "true");
   });
 
   it("sin medidas de grasa no ofrece elegir", async () => {

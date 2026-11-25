@@ -35,11 +35,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,6 +70,9 @@ internal fun IngredientEditor(
     onRemove: () -> Unit,
     onChange: (IngredientDraft) -> Unit,
 ) {
+    // The quantity field is as wide as the web's (6rem), growing with the system font size: a
+    // quarter of the row left «E.g. 30 g» no room, and the hint wrapped onto two lines.
+    val fontScale = LocalDensity.current.fontScale
     Column(
         Modifier
             .fillMaxWidth()
@@ -80,13 +85,13 @@ internal fun IngredientEditor(
                 onValueChange = { onChange(item.copy(name = it)) },
                 placeholder = stringResource(R.string.ingredient_name_placeholder),
                 capitalize = true,
-                modifier = Modifier.weight(3f),
+                modifier = Modifier.weight(1f),
             )
             CompactField(
                 value = item.quantity,
                 onValueChange = { onChange(item.copy(quantity = it)) },
                 placeholder = stringResource(R.string.ingredient_quantity_placeholder),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.width(96.dp * fontScale),
             )
             IconButton(onClick = onRemove, enabled = canRemove) {
                 Icon(
@@ -275,6 +280,9 @@ private fun Placeholder(text: String) {
         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
         // Clearly fainter than typed text, so a hint like «Desayuno» is not mistaken for a value.
         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+        // One line, as the field itself (and the web's input): a wrapped hint made the field taller.
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
 }
 
