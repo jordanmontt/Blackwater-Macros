@@ -28,7 +28,7 @@
 </ul>
 
 <p><b>AI, only if you want it</b></p>
-<p>Estimate a meal from photos or a description, and ask the coach questions about your diet (“what should I have for dinner?”, “what will I weigh in 30 days?”). Use your own key from Google Gemini (free), OpenAI, Anthropic, OpenRouter or a compatible server, or download a model that runs entirely on your phone. Your key stays on your phone and goes straight to the provider.</p>
+<p>Estimate a meal from photos or a description, and ask the coach questions about your diet (“what should I have for dinner?”, “what will I weigh in 30 days?”). It also answers questions about what you ate (“how much chocolate milk do I drink?”, “do I eat more at the weekend?”) with numbers the app works out from your log, never the AI, and shows how they were worked out. Use your own key from Google Gemini (free), OpenAI, Anthropic, OpenRouter or a compatible server, or download a model that runs entirely on your phone. Your key stays on your phone and goes straight to the provider.</p>
 
 <p><b>Private by design</b></p>
 <ul>

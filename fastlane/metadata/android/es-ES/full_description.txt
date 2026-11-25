@@ -28,7 +28,7 @@
 </ul>
 
 <p><b>IA, solo si la quieres</b></p>
-<p>Estima una comida a partir de fotos o de una descripción, y pregunta al coach sobre tu dieta («¿qué ceno hoy?», «¿cuánto pesaré en 30 días?»). Usa tu propia clave de Google Gemini (gratis), OpenAI, Anthropic, OpenRouter o un servidor compatible, o descarga un modelo que funciona entero en tu teléfono. Tu clave se queda en tu teléfono y va directa al proveedor.</p>
+<p>Estima una comida a partir de fotos o de una descripción, y pregunta al coach sobre tu dieta («¿qué ceno hoy?», «¿cuánto pesaré en 30 días?»). También responde preguntas sobre lo que comiste («¿cuánta leche chocolatada tomo?», «¿como más el fin de semana?») con cifras que la app calcula a partir de tu registro, nunca la IA, y muestra cómo se calcularon. Usa tu propia clave de Google Gemini (gratis), OpenAI, Anthropic, OpenRouter o un servidor compatible, o descarga un modelo que funciona entero en tu teléfono. Tu clave se queda en tu teléfono y va directa al proveedor.</p>
 
 <p><b>Privada por diseño</b></p>
 <ul>

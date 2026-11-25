@@ -28,7 +28,7 @@
 </ul>
 
 <p><b>KI, nur wenn du willst</b></p>
-<p>Schätze eine Mahlzeit anhand von Fotos oder einer Beschreibung und stelle dem Coach Fragen („Wie viel wiege ich in 30 Tagen?“). Nutze deinen eigenen Schlüssel von Google Gemini (kostenlos), OpenAI, Anthropic, OpenRouter oder einem kompatiblen Server, oder lade ein Modell herunter, das komplett auf deinem Telefon läuft. Dein Schlüssel bleibt auf deinem Telefon und geht direkt an den Anbieter.</p>
+<p>Schätze eine Mahlzeit anhand von Fotos oder einer Beschreibung und stelle dem Coach Fragen („Wie viel wiege ich in 30 Tagen?“). Er beantwortet auch Fragen dazu, was du gegessen hast („Wie viel Schokomilch trinke ich?“, „Esse ich am Wochenende mehr?“), mit Zahlen, die die App aus deinen Einträgen berechnet, nie die KI, und zeigt, wie sie berechnet wurden. Nutze deinen eigenen Schlüssel von Google Gemini (kostenlos), OpenAI, Anthropic, OpenRouter oder einem kompatiblen Server, oder lade ein Modell herunter, das komplett auf deinem Telefon läuft. Dein Schlüssel bleibt auf deinem Telefon und geht direkt an den Anbieter.</p>
 
 <p><b>Privat von Grund auf</b></p>
 <ul>
