@@ -868,7 +868,7 @@ expired and keeps local data. Statistics are computed on the phone, so `/api/sta
 | Perfil | `app/ajustes/perfil/page.tsx` | Goal selector with one line on what the goal does (§8.2.1), calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations: the calorie range as the headline (as on Today), the estimated average with the weight the BMR uses («Con tu último peso: 81,7 kg»), the expenditure check's line with «Ver el cálculo» (BMR, activity, TDEE and the measured expenditure as formulas live there; before a measurement, one line «TMB × actividad = TDEE»), then protein. About ten lines of small numbers used to sit here. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
-| Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, why past days keep their targets at `#past-days`, protein, measured expenditure, the profile check at `#check`) with the reasoning and Crossref-checked citations. Every section is an `<h2>` (Android: a `heading()`) with an anchor, the same ids on both (`sections()` / `SECTIONS`: `scale`, `moving-average`, `rate`, `daily`, `protein`, `calories`, `recomposition`, `past-days`, `measured`, `adaptive`, `check`, `fat`, `ai`, `sources`, `references`), and an «En esta página» index at the top links to each: about 11 000 px of text with one heading left screen readers nothing to jump between. Today's «Metodología completa» opens `#calories`. Android: `MethodologyScreen.kt`, same content and reference list |
+| Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, why past days keep their targets at `#past-days`, protein, measured expenditure, the profile check at `#check`) with the reasoning and Crossref-checked citations. Every section is an `<h2>` (Android: a `heading()`) with an anchor, the same ids on both (`sections()` / `SECTIONS`: `scale`, `fasted`, `moving-average`, `rate`, `daily`, `protein`, `calories`, `recomposition`, `past-days`, `measured`, `adaptive`, `check`, `fat`, `ai`, `sources`, `references`), and an «En esta página» index at the top links to each: about 11 000 px of text with one heading left screen readers nothing to jump between. Today's «Metodología completa» opens `#calories`. Android: `MethodologyScreen.kt`, same content and reference list |
 
 ### Client data layer (`lib/api.ts`)
 
@@ -1319,7 +1319,10 @@ Science, the case that motivated it and every number: [METHODOLOGY.md](./METHODO
   the data's share (`coach.ts` / `Coach.kt`).
 - **Weigh-in timing:** the weight form asks for morning weigh-ins (`peso.timingHint`,
   Android `weight_timing_hint`), as do `expenditureCheck.weighInHint` and
-  `metodologia.measuredMorning`.
+  `metodologia.measuredMorning`. Its «En ayunas» switch has one line (`peso.fastedHint`) and,
+  outside the switch so its name stays short, «¿Por qué pesarse en ayunas?» →
+  `/metodologia#fasted` (Android `FASTED_SECTION`; the form closes, as the web's link leaves
+  the page): why fasted, and that a weigh-in after eating is fine if the switch is off.
 - **Tests** that build data relative to today pin the clock to a Monday (web
   `vi.setSystemTime`, Android `today = "2026-03-02"`), so «the 4 weeks before Monday» are the
   4 weeks before today whatever day the suite runs.

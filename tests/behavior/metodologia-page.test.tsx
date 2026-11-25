@@ -8,7 +8,8 @@ import { en } from "@/i18n/en";
  * Requisitos de «Metodología»: se lee en el idioma elegido (antes salía siempre
  * en español porque la página se generaba en el servidor), y explica la
  * comprobación del perfil con sus fuentes en el ancla que abre su «¿Por qué?»,
- * y por qué los días pasados conservan sus objetivos (enlazado desde Perfil). Cada
+ * por qué los días pasados conservan sus objetivos (enlazado desde Perfil) y por qué
+ * pesarse en ayunas (enlazado desde el pesaje). Cada
  * sección es un encabezado con su ancla, y un índice arriba lleva a todas.
  */
 
@@ -46,6 +47,14 @@ describe("Metodología", () => {
       expect(section!.querySelector("h2")!.textContent!.trim()).toBe(link.textContent!.trim());
     }
     expect(container.querySelector("#calories h2")).toHaveTextContent(t.metodologia.tdeeTitle);
+  });
+
+  it("explica por qué pesarse en ayunas y qué hacer si no, en /metodologia#fasted (enlazado desde el pesaje)", () => {
+    const { container } = render(<MetodologiaPage />);
+    const section = container.querySelector("#fasted");
+    expect(section!.querySelector("h2")).toHaveTextContent(t.metodologia.fastedTitle);
+    expect(section!.textContent).toContain(t.metodologia.fastedBody);
+    expect(section!.textContent).toContain(t.metodologia.fastedRule);
   });
 
   it("explica cómo se compara el perfil con los datos, en /metodologia#check, con sus fuentes", () => {

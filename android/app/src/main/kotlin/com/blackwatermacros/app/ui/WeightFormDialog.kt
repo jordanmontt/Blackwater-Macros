@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,6 +62,8 @@ fun WeightFormDialog(
     onSubmit: (WeightRequest) -> Unit,
     /** «En ayunas» of the latest weigh-in, so it is only touched when the habit changes. */
     defaultFasted: Boolean = true,
+    /** «¿Por qué pesarse en ayunas?»: Metodología's section (web `/metodologia#fasted`). */
+    onOpenWhyFasted: () -> Unit = {},
 ) {
     var weightText by remember(weight?.id) { mutableStateOf(weight?.weightKg?.let(::toDecimalInput).orEmpty()) }
     var measuredAt by remember(weight?.id) {
@@ -94,7 +97,12 @@ fun WeightFormDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Boxes aligned at the bottom: a label that wraps (large text) must not push its box down.
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
                     LabeledField(stringResource(R.string.weight_kg), Modifier.weight(1f)) {
                         CompactField(
                             value = weightText,
@@ -114,7 +122,11 @@ fun WeightFormDialog(
                         )
                     }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
                     LabeledField(stringResource(R.string.weight_date), Modifier.weight(1f)) {
                         PickerField(DateTimeFormatter.ofPattern("d MMM", appLocale()).format(measuredAt)) { showDatePicker = true }
                     }
@@ -124,25 +136,39 @@ fun WeightFormDialog(
                         }
                     }
                 }
-                // Only weigh-ins taken alike are compared: after eating reads 0.5–1 kg higher.
-                Row(
+                // Only weigh-ins taken alike are compared: after eating reads 0.5–1 kg higher. One line
+                // here; why, and what to do after eating, in Metodología (web the same). The link sits
+                // outside the switch, so the switch keeps its own name.
+                Column(
                     Modifier
                         .fillMaxWidth()
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-                        .toggleable(value = fasted, role = Role.Switch, onValueChange = { fasted = it })
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)),
                 ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.weight_fasted_label), style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            stringResource(R.string.weight_fasted_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .toggleable(value = fasted, role = Role.Switch, onValueChange = { fasted = it })
+                            .padding(start = 12.dp, top = 12.dp, end = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.weight_fasted_label), style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                stringResource(R.string.weight_fasted_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(checked = fasted, onCheckedChange = null)
                     }
-                    Switch(checked = fasted, onCheckedChange = null)
+                    TextButton(
+                        onClick = onOpenWhyFasted,
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                        modifier = Modifier.padding(start = 4.dp),
+                    ) {
+                        Text(stringResource(R.string.weight_fasted_why), style = MaterialTheme.typography.labelMedium)
+                    }
                 }
                 // The switch copies the last weigh-in; after noon that habit may not hold (web the same).
                 if (fasted && measuredAt.hour >= 12) {

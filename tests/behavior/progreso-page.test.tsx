@@ -378,6 +378,18 @@ describe("pantalla Progreso", () => {
     );
   });
 
+  it("«En ayunas» se explica en una línea, y el porqué está en Metodología (fuera del nombre del interruptor)", async () => {
+    const user = userEvent.setup();
+    weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(1)), weightKg: 80 })];
+    render(<ProgresoPage />);
+    await user.click(await screen.findByRole("button", { name: t.peso.addTitle }));
+    const dialog = await screen.findByRole("dialog");
+
+    const fasted = within(dialog).getByRole("switch");
+    expect(fasted).toHaveAccessibleName(`${t.peso.fastedLabel} ${t.peso.fastedHint}`);
+    expect(within(dialog).getByRole("link", { name: t.peso.fastedWhy })).toHaveAttribute("href", "/metodologia#fasted");
+  });
+
   it("después del mediodía, «En ayunas» marcado pregunta si de verdad (sin impedir guardar)", async () => {
     const user = userEvent.setup();
     weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(1)), weightKg: 80 })];

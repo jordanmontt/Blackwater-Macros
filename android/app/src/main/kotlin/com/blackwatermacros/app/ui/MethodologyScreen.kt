@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.layout.Spacer
@@ -71,9 +72,13 @@ const val FAT_SECTION = "fat"
 /** The calories section (BMR, TDEE and the goal), opened from Today's «Metodología completa». */
 const val CALORIES_SECTION = "calories"
 
+/** The section «Why weigh yourself fasted», opened from the weight form's link. */
+const val FASTED_SECTION = "fasted"
+
 /**
  * [section] opens the page on that section: [CHECK_SECTION], [PAST_DAYS_SECTION],
- * [ADAPTIVE_SECTION] or [FAT_SECTION] (web `/metodologia#check`, `#past-days`, `#adaptive`, `#fat`).
+ * [ADAPTIVE_SECTION], [FAT_SECTION] or [FASTED_SECTION] (web `/metodologia#check`, `#past-days`,
+ * `#adaptive`, `#fat`, `#fasted`).
  */
 @Composable
 fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
@@ -112,6 +117,13 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
             // The page is long: an index to every section (web the same, with the same ids).
             IndexCard { id -> scope.launch { sectionTops[id]?.let { scroll.animateScrollTo(it) } } }
             MethodCard(Icons.Filled.MonitorWeight, R.string.meth_scale_title, R.string.meth_scale_body, modifier = at("scale"))
+            MethodCard(
+                Icons.Filled.WbTwilight,
+                R.string.meth_fasted_title,
+                R.string.meth_fasted_body,
+                afterRes = R.string.meth_fasted_rule,
+                modifier = at(FASTED_SECTION),
+            )
             MethodCard(
                 Icons.Filled.Functions,
                 R.string.meth_ma_title,
@@ -248,6 +260,7 @@ private fun SectionTitle(icon: ImageVector, text: String) {
 /** Every section's id and title, in page order (web `sections()` in `app/metodologia/page.tsx`). */
 private val SECTIONS = listOf(
     "scale" to R.string.meth_scale_title,
+    FASTED_SECTION to R.string.meth_fasted_title,
     "moving-average" to R.string.meth_ma_title,
     "rate" to R.string.meth_rate_title,
     "daily" to R.string.meth_daily_title,

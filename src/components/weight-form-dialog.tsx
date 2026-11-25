@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -128,22 +129,31 @@ export function WeightFormDialog({
               </Button>
             </div>
           </div>
-          {/* Only weigh-ins taken alike are compared: after eating reads 0.5–1 kg higher. */}
-          <label className="flex items-start gap-3 rounded-lg border p-3">
-            <input
-              id="weight-fasted"
-              type="checkbox"
-              role="switch"
-              {...{ switch: "" }}
-              className="mt-0.5 size-4 accent-primary"
-              checked={form.fasted}
-              onChange={(event) => setForm({ ...form, fasted: event.target.checked })}
-            />
-            <span className="space-y-0.5">
-              <span className="block text-sm font-medium">{t.peso.fastedLabel}</span>
-              <span className="block text-xs text-muted-foreground">{t.peso.fastedHint}</span>
-            </span>
-          </label>
+          {/* Only weigh-ins taken alike are compared: after eating reads 0.5–1 kg higher. One line
+              here; why, and what to do after eating, in /metodologia#fasted (Android the same). */}
+          <div className="rounded-lg border p-3">
+            <label className="flex items-start gap-3">
+              <input
+                id="weight-fasted"
+                type="checkbox"
+                role="switch"
+                {...{ switch: "" }}
+                className="mt-0.5 size-4 accent-primary"
+                checked={form.fasted}
+                onChange={(event) => setForm({ ...form, fasted: event.target.checked })}
+              />
+              <span className="space-y-0.5">
+                <span className="block text-sm font-medium">{t.peso.fastedLabel}</span>
+                <span className="block text-xs text-muted-foreground">{t.peso.fastedHint}</span>
+              </span>
+            </label>
+            <Link
+              href="/metodologia#fasted"
+              className="ml-7 inline-flex min-h-9 items-center text-xs font-medium text-primary hover:underline"
+            >
+              {t.peso.fastedWhy}
+            </Link>
+          </div>
           {/* The switch copies the last weigh-in; after noon that habit may not hold. A question, never a block. */}
           {form.fasted && Number(form.datetime.slice(11, 13)) >= 12 ? (
             <p className="-mt-2 text-xs text-muted-foreground" role="status">

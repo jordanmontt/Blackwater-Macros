@@ -554,13 +554,14 @@ function MacrosCard({
         <p className="text-xs text-muted-foreground">{t.progreso.perLoggedDay}</p>
         {fatShare ? <FatShareNotice check={fatShare} /> : null}
         {measured ? (
-          // The ± and where the number comes from are one tap away, in «Ver el cálculo».
+          // The ± and where the number comes from are one tap away, in «Ver el cálculo»,
+          // on its own line like the notices' «¿Por qué?» (Android the same).
           <ExpenditureCalculationButton className="block text-left text-sm">
             {formatTemplate(t.progreso.measured, {
               n: formatNumber(measured.tdee),
               margin: formatNumber(measured.margin),
-            })}{" "}
-            <span className="whitespace-nowrap text-xs font-medium text-primary">{t.expenditureCheck.seeCalculation}</span>
+            })}
+            <span className="mt-1 block text-xs font-medium text-primary">{t.expenditureCheck.seeCalculation}</span>
           </ExpenditureCalculationButton>
         ) : null}
       </CardContent>

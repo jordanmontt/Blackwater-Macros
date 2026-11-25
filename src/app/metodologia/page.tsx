@@ -1,7 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
-import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DropletIcon, DumbbellIcon, FlameIcon, HistoryIcon, MessageCircleQuestionIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DropletIcon, DumbbellIcon, FlameIcon, HistoryIcon, MessageCircleQuestionIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, SunriseIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { BackPageButton } from "@/components/close-page-button";
 import { t } from "@/i18n";
@@ -33,6 +33,12 @@ export default function MetodologiaPage() {
 
       <MethodologyCard id="scale" icon={<ScaleIcon />} title={t.metodologia.scaleVsTrendTitle}>
         <p>{t.metodologia.scaleVsTrendBody}</p>
+      </MethodologyCard>
+
+      {/* Linked from the weight form's «¿Por qué pesarse en ayunas?». */}
+      <MethodologyCard id="fasted" icon={<SunriseIcon />} title={t.metodologia.fastedTitle}>
+        <p>{t.metodologia.fastedBody}</p>
+        <p>{t.metodologia.fastedRule}</p>
       </MethodologyCard>
 
       <MethodologyCard id="moving-average" icon={<SigmaIcon />} title={t.metodologia.movingAvgTitle}>
@@ -461,6 +467,7 @@ function FormulaLines({ text }: { text: string }) {
  */
 const sections = (): [id: string, title: string][] => [
   ["scale", t.metodologia.scaleVsTrendTitle],
+  ["fasted", t.metodologia.fastedTitle],
   ["moving-average", t.metodologia.movingAvgTitle],
   ["rate", t.metodologia.rateTitle],
   ["daily", t.metodologia.nutritionTitle],

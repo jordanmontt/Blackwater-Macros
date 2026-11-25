@@ -160,6 +160,11 @@ fun ProgressScreen(
                 viewModel.saveWeight(formWeight?.id, request)
                 formOpen = false
             },
+            // Leaves the form, as the web's link does.
+            onOpenWhyFasted = {
+                formOpen = false
+                onOpenMethodology(FASTED_SECTION)
+            },
         )
     }
 
@@ -435,12 +440,13 @@ private fun MacrosCard(progress: Progress, averages: MacroAverages, onOpenMethod
             }
             progress.expenditure?.let {
                 Spacer(Modifier.height(6.dp))
-                // The ± and where the number comes from are one tap away, in «Ver el cálculo» (web the same).
+                // The ± and where the number comes from are one tap away, in «Ver el cálculo» (web the same),
+                // on its own line like the notices' «¿Por qué?».
                 val seeCalculation = stringResource(R.string.check_see_calculation)
                 Text(
                     buildAnnotatedString {
                         append(stringResource(R.string.rec_measured_tdee, formatNumber(it.tdee), formatNumber(it.margin)))
-                        append(" ")
+                        append("\n")
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)) {
                             append(seeCalculation)
                         }
