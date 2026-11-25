@@ -36,7 +36,8 @@ recipe library.
 - **See your progress.** A weight trend that smooths out daily water swings, your weekly
   rate, body fat, daily calories against your target and your macro averages.
 - **Ask the coach.** A chat that knows your numbers: «What should I have for dinner?»,
-  «What will I weigh in 30 days?» (optional AI, see below).
+  «What will I weigh in 30 days?», «How much chocolate milk do I drink?» (optional AI, see
+  below).
 - **Your data is yours.** Everything stays on your phone. Export it any time as one file you
   can read in any text editor; without an account, the app imports it back (a new phone, a
   reinstall).
@@ -89,7 +90,9 @@ every number on screen can be checked by hand.
   whose values are wrong, a photo of its label fills in the values; you check them before
   saving.
 - **Coach:** ask about your diet and progress; it gets a short summary of your data only if
-  you allow it, and the conversation is never stored.
+  you allow it, and the conversation is never stored. Questions about what you ate («Do I
+  eat more at the weekend?») are answered with numbers the app computes from your log, never
+  the model, with «How it was worked out» under the answer.
 - **Bring your own key**: Google Gemini (free key, with a step-by-step guide), OpenAI,
   Anthropic, OpenRouter or any OpenAI-compatible server. **Or run a model on your phone**
   (Gemma 4 or Qwen3, downloaded on request): nothing leaves the device.
