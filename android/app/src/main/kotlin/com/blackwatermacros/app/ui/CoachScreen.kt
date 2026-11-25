@@ -495,8 +495,9 @@ private fun CoachSetupInvite(onExample: (String) -> Unit, onOpenAiSettings: () -
                 Text(example, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center)
             }
         }
+        // One sentence and the button: it used to say «configure the AI» three times (web the same).
         Text(
-            stringResource(R.string.coach_examples_not_ready),
+            stringResource(R.string.coach_not_configured),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -506,11 +507,5 @@ private fun CoachSetupInvite(onExample: (String) -> Unit, onOpenAiSettings: () -
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.photo_configure))
         }
-        Text(
-            stringResource(R.string.coach_not_configured),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
     }
 }

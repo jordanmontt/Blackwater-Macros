@@ -81,6 +81,8 @@ data class WeightPoint(
     val date: String,
     val weight: Double,
     val trend: Double?,
+    /** Taken the way most weigh-ins of the range were (fasted or not): counts in the trend and the change. */
+    val inTrend: Boolean = true,
 )
 
 data class BodyFatPoint(

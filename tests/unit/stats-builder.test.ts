@@ -107,6 +107,37 @@ describe("buildStatsFromData", () => {
     expect(buildStatsFromData([], weights(unmarked), "30d", TODAY).weight.ratePerWeekKg).toBeLessThan(-0.2);
   });
 
+  it("la tendencia y el cambio usan solo los pesajes tomados como la mayoría", () => {
+    // Two weeks fasted at 80 kg, and the last three evenings also after dinner at 81,2 kg.
+    const entries = Array.from({ length: 14 }, (_, i) => addDaysToKey(TODAY, -(13 - i))).flatMap((day, i) => [
+      { iso: `${day}T10:00:00Z`, kg: 80 },
+      ...(i >= 11 ? [{ iso: `${day}T14:00:00Z`, kg: 81.2, fasted: false }] : []),
+    ]);
+    const summary = buildStatsFromData([], weights(entries), "30d", TODAY);
+    expect(summary.weights.filter((point) => !point.inTrend)).toHaveLength(3);
+    expect(summary.weights.at(-1)).toMatchObject({ weight: 81.2, trend: 80, inTrend: false });
+    expect(summary.weight.currentTrendKg).toBe(80);
+    expect(summary.weight.changeSinceStartKg).toBe(0);
+    // The last weigh-in is still the big number: it is what the scale said.
+    expect(summary.weight.currentWeightKg).toBe(81.2);
+
+    // Unmarked, the same weigh-ins pull the trend up as if 1,2 kg had been gained.
+    const unmarked = buildStatsFromData([], weights(entries.map(({ iso, kg }) => ({ iso, kg }))), "30d", TODAY);
+    expect(unmarked.weight.currentTrendKg).toBeGreaterThan(80.2);
+    expect(unmarked.weight.changeSinceStartKg).toBeCloseTo(1.2, 6);
+  });
+
+  it("si casi siempre se pesa sin ayunar, esos pesajes son la tendencia", () => {
+    const entries = Array.from({ length: 10 }, (_, i) => {
+      const fasted = i < 2;
+      return { iso: `${addDaysToKey(TODAY, -(9 - i))}T${fasted ? "10" : "14"}:00:00Z`, kg: fasted ? 80 : 81, fasted };
+    });
+    const summary = buildStatsFromData([], weights(entries), "30d", TODAY);
+    expect(summary.weights.map((point) => point.inTrend)).toEqual([false, false, ...Array(8).fill(true)]);
+    expect(summary.weight.currentTrendKg).toBe(81);
+    expect(summary.weight.changeSinceStartKg).toBe(0);
+  });
+
   it("construye la serie de grasa corporal solo con datos válidos de grasa", () => {
     const summary = buildStatsFromData(
       [],

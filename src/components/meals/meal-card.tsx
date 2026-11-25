@@ -40,6 +40,9 @@ export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardP
     meal.ingredients.length > 1 &&
     meal.ingredients.some((ingredient) => ingredient.calories !== undefined || ingredient.protein !== undefined);
 
+  // «Editar Desayuno», not «Editar» four times: a screen reader lists the buttons out of their cards.
+  const named = (label: string) => formatTemplate(label, { title: meal.title });
+
   return (
     <div ref={setNodeRef} style={style}>
       <Card size="sm">
@@ -68,7 +71,8 @@ export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardP
             <Button
               variant="ghost"
               size="icon"
-              aria-label={t.meal.edit}
+              aria-label={named(t.meal.editNamed)}
+              title={named(t.meal.editNamed)}
               className="size-7"
               onClick={() => onEdit(meal)}
             >
@@ -77,8 +81,8 @@ export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardP
             <Button
               variant="ghost"
               size="icon"
-              aria-label={t.meal.saveAsTemplate}
-              title={t.meal.saveAsTemplate}
+              aria-label={named(t.meal.saveAsTemplateNamed)}
+              title={named(t.meal.saveAsTemplateNamed)}
               className="size-7"
               onClick={() => onSaveAsTemplate(meal)}
             >
@@ -87,7 +91,8 @@ export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardP
             <Button
               variant="ghost"
               size="icon"
-              aria-label={t.meal.delete}
+              aria-label={named(t.meal.deleteNamed)}
+              title={named(t.meal.deleteNamed)}
               className="size-7"
               onClick={() => onDelete(meal)}
             >
@@ -101,7 +106,8 @@ export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardP
             <ul className="divide-y rounded-lg border text-xs">
               {meal.ingredients.map((ingredient, index) => (
                 <li key={index} className="flex items-baseline gap-1.5 px-2 py-1">
-                  <span className="min-w-0 flex-1 truncate">{ingredient.name}</span>
+                  {/* Two lines before «…»: on a phone the columns leave the name ~13 characters. */}
+                  <span className="line-clamp-2 min-w-0 flex-1 break-words">{ingredient.name}</span>
                   {/* Fixed-width, end-aligned columns (rem, so they grow with the font size), as on
                       Android: the name keeps the room; carbs and fat are in the meal's totals below. */}
                   <span className="w-13 shrink-0 truncate text-right text-muted-foreground">{ingredient.quantity ?? ""}</span>

@@ -99,6 +99,45 @@ class StatsBuilderTest {
     }
 
     @Test
+    fun buildStatsFromData_trendAndChangeUseOnlyWeighInsTakenLikeMost() {
+        // Two weeks fasted at 80 kg, and the last three evenings also after dinner at 81,2 kg.
+        val rows = (0 until 14).flatMap { i ->
+            val day = addDaysToKey(TODAY, -(13 - i))
+            listOf(StatsWeight(Instant.parse("${day}T10:00:00Z"), 80.0, null)) +
+                if (i >= 11) listOf(StatsWeight(Instant.parse("${day}T14:00:00Z"), 81.2, null, fasted = false)) else emptyList()
+        }
+        val summary = buildStatsFromData(emptyList(), rows, StatsRange.RANGE_30D, TODAY)
+        assertThat(summary.weights.count { !it.inTrend }).isEqualTo(3)
+        assertThat(summary.weights.last()).isEqualTo(WeightPoint(TODAY, 81.2, 80.0, inTrend = false))
+        assertThat(summary.weight.currentTrendKg).isEqualTo(80.0)
+        assertThat(summary.weight.changeSinceStartKg).isEqualTo(0.0)
+        // The last weigh-in is still the big number: it is what the scale said.
+        assertThat(summary.weight.currentWeightKg).isEqualTo(81.2)
+
+        // Unmarked, the same weigh-ins pull the trend up as if 1,2 kg had been gained.
+        val unmarked = buildStatsFromData(emptyList(), rows.map { it.copy(fasted = true) }, StatsRange.RANGE_30D, TODAY)
+        assertThat(unmarked.weight.currentTrendKg!!).isGreaterThan(80.2)
+        assertThat(unmarked.weight.changeSinceStartKg!!).isWithin(1e-6).of(1.2)
+    }
+
+    @Test
+    fun buildStatsFromData_mostlyNotFastedMakesThoseTheTrend() {
+        val rows = (0 until 10).map { i ->
+            val fasted = i < 2
+            StatsWeight(
+                Instant.parse("${addDaysToKey(TODAY, -(9 - i))}T${if (fasted) "10" else "14"}:00:00Z"),
+                if (fasted) 80.0 else 81.0,
+                null,
+                fasted = fasted,
+            )
+        }
+        val summary = buildStatsFromData(emptyList(), rows, StatsRange.RANGE_30D, TODAY)
+        assertThat(summary.weights.map { it.inTrend }).containsExactlyElementsIn(listOf(false, false) + List(8) { true }).inOrder()
+        assertThat(summary.weight.currentTrendKg).isEqualTo(81.0)
+        assertThat(summary.weight.changeSinceStartKg).isEqualTo(0.0)
+    }
+
+    @Test
     fun buildStatsFromData_monthLosingHalfKgPerWeekProducesNegativeRateAndTotalChange() {
         val entries = (0 until 5).map { week ->
             Triple("${addDaysToKey(addDaysToKey(TODAY, -28), week * 7)}T12:00:00Z", 85.0 - week * 0.5, null)

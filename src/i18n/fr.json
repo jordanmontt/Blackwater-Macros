@@ -72,6 +72,12 @@
     "semiSkimmedMilk": "Lait demi-écrémé"
   },
   "hoy": {
+    "nothingLogged": "Aucun repas enregistré",
+    "dragInstructions": "Pour déplacer un repas, appuyez sur la barre d'espace ou Entrée. Déplacez-le avec les flèches et appuyez de nouveau sur espace ou Entrée pour le déposer, ou sur Échap pour annuler.",
+    "dragStart": "Déplacement de {title}.",
+    "dragOver": "{title} : position {n} sur {total}.",
+    "dragEnd": "{title} est maintenant en position {n} sur {total}.",
+    "dragCancel": "Annulé : {title} reprend sa place.",
     "title": "Repas",
     "addMeal": "Ajouter un repas",
     "emptyDay": "Vous n'avez encore enregistré aucun repas ce jour-là.",
@@ -100,6 +106,9 @@
     "templates": "Modèles"
   },
   "meal": {
+    "editNamed": "Modifier {title}",
+    "saveAsTemplateNamed": "Enregistrer {title} comme modèle",
+    "deleteNamed": "Supprimer {title}",
     "newTitle": "Nouveau repas",
     "editTitle": "Modifier le repas",
     "titleLabel": "Titre",
@@ -114,6 +123,7 @@
     "ingredientsLabel": "Ingrédients",
     "ingredientNamePlaceholder": "4 œufs",
     "quantityPlaceholder": "(ex. 30 g)",
+    "quantityLabel": "Quantité",
     "caloriesPlaceholder": "kcal",
     "proteinPlaceholder": "g protéines",
     "carbsPlaceholder": "g glucides",
@@ -243,6 +253,7 @@
     "consent": "En enregistrant, il est ajouté à Open Food Facts pour que quiconque le scanne le trouve : le nom, la marque, les valeurs et la photo du tableau, sous licence ouverte. Rien sur vous.",
     "consentExisting": "En enregistrant, les valeurs et la photo du tableau sont ajoutées à ce produit sur Open Food Facts, sous licence ouverte. Rien sur vous.",
     "consentCorrection": "En enregistrant, vos valeurs et la photo du tableau sont envoyées à ce produit sur Open Food Facts, sous licence ouverte. Son historique garde les valeurs précédentes. Rien sur vous.",
+    "demoNotSent": "En mode démo, les produits ne sont pas envoyés à Open Food Facts : ils restent seulement dans cet onglet.",
     "save": "Enregistrer et choisir la quantité",
     "saveEdit": "Enregistrer les modifications",
     "noPhoto": "Sans photo, les bénévoles d'Open Food Facts ne peuvent pas vérifier les valeurs.",
@@ -315,6 +326,7 @@
     "weightTitle": "Poids",
     "trend": "Tendance",
     "change": "Variation",
+    "otherWeighInsNote": "Les points creux sont des pesées prises autrement que la plupart (à jeun ou non) : elles ne comptent ni dans la tendance ni dans la variation.",
     "rate": "Rythme",
     "bodyFat": "Masse grasse",
     "caloriesTitle": "Calories quotidiennes",
@@ -340,6 +352,9 @@
     "noMeals": "Pas encore de repas sur cette période."
   },
   "stats": {
+    "weightChartSummary": "Poids : la tendance passe de {from} à {to} kg entre le {start} et le {end}.",
+    "bodyFatChartSummary": "Masse grasse : de {from} % à {to} % entre le {start} et le {end}.",
+    "caloriesChartSummary": "Calories quotidiennes : moyenne de {avg} kcal sur {n} jours enregistrés, entre le {start} et le {end}.",
     "range7": "7 jours",
     "range30": "30 jours",
     "range90": "90 jours",
@@ -368,6 +383,9 @@
     "noWeight": "Enregistrez votre poids pour voir les recommandations"
   },
   "calorias": {
+    "chainBlend": "Dépense utilisée : {data} % de votre dépense mesurée ({measured}) + {profile} % de celle de votre profil ({tdee}) ≈ {expenditure} kcal/jour",
+    "chainProfile": "Dépense utilisée : celle de votre profil, MB {bmr} × activité {pal} = {tdee} kcal/jour (pas encore de dépense mesurée)",
+    "chainGoal": "{goal} : {offset} kcal ({offsetMin} à {offsetMax}) → {target} en moyenne, plage {min}–{max}",
     "recommendationTitle": "Recommandation de calories",
     "noProfile": "Saisissez vos données pour connaître vos calories optimales",
     "bmr": "Métabolisme de base (MB)",
@@ -459,6 +477,7 @@
     "missingWeightSpan": "Jours couverts par vos pesées : {days} (il en faut 14, pour que les variations d'eau ne dominent pas la tendance)."
   },
   "metodologia": {
+    "onThisPage": "Sur cette page",
     "title": "Méthodologie",
     "aiTitle": "Estimations par l'IA",
     "aiBody": [
@@ -473,11 +492,11 @@
     ],
     "intro": "Comment sont calculées les statistiques et les recommandations de calories et de protéines, avec les formules exactes et les références sur lesquelles elles s'appuient.",
     "scaleVsTrendTitle": "Poids de la balance vs tendance",
-    "scaleVsTrendBody": "Le « poids actuel » est votre dernière pesée de la période. La « tendance » est la valeur la plus récente de la moyenne mobile sur 7 jours. La « variation » compare la première et la dernière pesée de la période choisie, et le « rythme » est la pente de la régression décrite plus bas.",
+    "scaleVsTrendBody": "Le « poids actuel » est votre dernière pesée de la période. La « tendance » est la valeur la plus récente de la moyenne mobile sur 7 jours. La « variation » compare la première et la dernière pesée de la période choisie, et le « rythme » est la pente de la régression décrite plus bas. La tendance et la variation n'utilisent que les pesées prises comme la plupart de celles de la période (à jeun ou non) : une pesée après un repas affiche plus sans que vous ayez rien pris, et la moyenner avec les autres ne compense pas cet écart. Sur le graphique, les autres apparaissent en points creux. Le rythme les utilise toutes, mais compare chaque type seulement avec les siennes.",
     "movingAvgTitle": "Moyenne mobile sur 7 jours (tendance)",
     "movingAvgFormulaLabel": "Pour chaque jour d :",
     "movingAvgWindow": "W(d) = { entrées datées dans [d − 6, d] }",
-    "movingAvgBody": "Toutes vos entrées dont la date tombe dans la fenêtre de 7 jours se terminant en d sont moyennées. Les jours sans entrée ne comptent pas et ne sont pas remplis par des zéros : si vous ne vous êtes pesé que 3 fois cette semaine-là, la moyenne porte sur ces 3 entrées. Cela atténue le bruit quotidien (eau, sel, contenu intestinal) et montre la vraie tendance, qui évolue lentement. Se peser régulièrement est associé à une perte de poids plus importante, sans effets psychologiques négatifs (Zheng et al. 2015) ; la moyenne transforme ces pesées en une tendance qui ne saute pas avec la valeur de chaque jour. The Hacker's Diet a popularisé cette même idée de « poids de tendance », avec une moyenne mobile exponentielle ; ici on utilise une moyenne simple sur 7 jours, plus facile à lire.",
+    "movingAvgBody": "Vos entrées dont la date tombe dans la fenêtre de 7 jours se terminant en d sont moyennées (seulement celles prises comme la plupart, voir plus haut). Les jours sans entrée ne comptent pas et ne sont pas remplis par des zéros : si vous ne vous êtes pesé que 3 fois cette semaine-là, la moyenne porte sur ces 3 entrées. Cela atténue le bruit quotidien (eau, sel, contenu intestinal) et montre la vraie tendance, qui évolue lentement. Se peser régulièrement est associé à une perte de poids plus importante, sans effets psychologiques négatifs (Zheng et al. 2015) ; la moyenne transforme ces pesées en une tendance qui ne saute pas avec la valeur de chaque jour. The Hacker's Diet a popularisé cette même idée de « poids de tendance », avec une moyenne mobile exponentielle ; ici on utilise une moyenne simple sur 7 jours, plus facile à lire.",
     "rateTitle": "Rythme hebdomadaire (kg/semaine)",
     "rateFormulaLabel": "Pente par moindres carrés ordinaires :",
     "rateFormula": "rythme = β × 7 [kg/semaine]",
@@ -764,6 +783,7 @@
     "estimateQuery": "Estimer « {q} » avec l'IA"
   },
   "perfil": {
+    "withLatestWeight": "Avec votre dernier poids : {kg} kg",
     "title": "Profil",
     "description": "Votre objectif, vos données corporelles et les recommandations de calories et de protéines.",
     "backToSettings": "Retour aux Réglages",
@@ -810,6 +830,9 @@
     "action": "Installer"
   },
   "common": {
+    "backTo": "Revenir à {page}",
+    "backToToday": "Revenir à aujourd'hui",
+    "notifications": "Notifications",
     "today": "Aujourd'hui",
     "loading": "Chargement…",
     "retry": "Réessayer",

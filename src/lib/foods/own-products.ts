@@ -16,6 +16,7 @@ import {
   type OffWriteOutcome,
 } from "@/lib/core/new-product";
 import type { AiImage } from "@/lib/core/ai-providers";
+import { isDemoMode, userDataStorage } from "@/lib/demo-store";
 import { localJsonStore } from "@/lib/local-json-store";
 import type { FoodChoice } from "@/lib/foods/foods-client";
 
@@ -23,7 +24,8 @@ import type { FoodChoice } from "@/lib/foods/foods-client";
  * Products the user added from a label («Añadir este producto»), kept in this
  * browser and sent from it straight to Open Food Facts (never through our
  * server). A record stays «pending» until Open Food Facts has both the values
- * and the label photo; the photo is dropped once it is there.
+ * and the label photo; the photo is dropped once it is there. In the demo they
+ * stay in the tab (`userDataStorage`) and are never sent.
  */
 
 /** Open Food Facts; `NEXT_PUBLIC_OFF_SERVER=https://world.openfoodfacts.net` tries everything on their test server. */
@@ -61,7 +63,7 @@ function parseProducts(raw: string | null): OwnProduct[] {
   }
 }
 
-const products = localJsonStore("bw:own-products", parseProducts);
+const products = localJsonStore("bw:own-products", parseProducts, userDataStorage);
 
 export function ownProducts(): OwnProduct[] {
   return products.get();
@@ -153,8 +155,8 @@ function parseAccount(raw: string | null): OffAccount | null {
   }
 }
 
-/** The user's own Open Food Facts account (Ajustes → Open Food Facts), in this browser only. */
-const account = localJsonStore("bw:off-account", parseAccount);
+/** The user's own Open Food Facts account (Ajustes → Open Food Facts), in this browser only (in the demo, this tab). */
+const account = localJsonStore("bw:off-account", parseAccount, userDataStorage);
 
 export function useOffAccount(): OffAccount | null {
   return useSyncExternalStore(account.subscribe, account.get, () => null);
@@ -232,6 +234,8 @@ export function sendOwnProducts(): Promise<void> {
 }
 
 async function sendAll(): Promise<void> {
+  // A visitor's experiments must not reach the public database.
+  if (isDemoMode()) return;
   const own = account.get();
   const userId = own?.userId ?? OFF_APP_USER_ID;
   const password = own?.password ?? OFF_APP_PASSWORD;

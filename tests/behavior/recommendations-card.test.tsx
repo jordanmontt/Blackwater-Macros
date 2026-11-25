@@ -153,11 +153,12 @@ describe("resumen del día (Comidas)", () => {
 
     // Message first: the bars and what is missing; the day's meals start on the first screen.
     await screen.findByText(/te faltan \d+–\d+ kcal/);
-    expect(screen.queryByText(t.calorias.bmr)).toBeNull();
+    expect(screen.queryByTestId("target-chain")).toBeNull();
+    // Then the chain from the inputs to the range, with the user's numbers (no measured expenditure yet).
     const why = await openWhy(user);
-    expect(within(why).getByText(t.calorias.bmr)).toBeInTheDocument();
-    expect(within(why).getByText(t.calorias.tdee)).toBeInTheDocument();
-    expect(within(why).getByRole("link", { name: t.hoy.fullMethodology })).toHaveAttribute("href", "/metodologia");
+    expect(within(why).getByTestId("target-chain")).toHaveTextContent(/TMB \d+ × actividad \d+,\d+ = 2608 kcal\/día/);
+    expect(within(why).getByRole("button", { name: t.expenditureCheck.seeCalculation })).toBeInTheDocument();
+    expect(within(why).getByRole("link", { name: t.hoy.fullMethodology })).toHaveAttribute("href", "/metodologia#calories");
   });
 
   it("los hidratos y la grasa del día se ven como totales, sin objetivo, en dos columnas iguales", async () => {
@@ -183,6 +184,19 @@ describe("resumen del día (Comidas)", () => {
     render(card(2000, 50, addDaysToKey(todayKey(), -3)));
     expect(await screen.findByRole("heading", { name: t.hoy.targetsThatDay })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: t.hoy.targetsToday })).toBeNull();
+  });
+
+  it("un día pasado sin comidas no dice lo que «falta»: lo dice en gris, una vez", async () => {
+    render(<DaySummaryCard day={addDaysToKey(todayKey(), -3)} totals={{ calories: 0, protein: 0, carbs: 0, fat: 0 }} nothingLogged />);
+    expect(await screen.findByText(t.hoy.nothingLogged)).toHaveClass("text-muted-foreground");
+    expect(screen.getAllByText(t.hoy.nothingLogged)).toHaveLength(1);
+    expect(screen.queryByText(/te faltan/)).toBeNull();
+  });
+
+  it("hoy sin comidas sí dice lo que falta", async () => {
+    render(<DaySummaryCard totals={{ calories: 0, protein: 0, carbs: 0, fat: 0 }} nothingLogged />);
+    expect(await screen.findByText(/te faltan \d+–\d+ kcal/)).toBeInTheDocument();
+    expect(screen.queryByText(t.hoy.nothingLogged)).toBeNull();
   });
 
   it("sin peso no hay objetivos: los cuatro totales en una cuadrícula de 2 × 2 y nada que explicar", async () => {
@@ -263,10 +277,11 @@ describe("resumen del día (Comidas)", () => {
     const user = userEvent.setup();
     render(card(2000, 50));
 
-    // Peso estable → gasto = ingesta media; pesaje diario → margen ±177
+    // Peso estable → gasto = ingesta media; pesaje diario → margen ±177, explained in «Ver el cálculo».
     const why = await openWhy(user);
-    expect(within(why).getByText(t.calorias.measuredTdee)).toBeInTheDocument();
-    expect(within(why).getByText(/2\.?500 ± 177 kcal\/día/)).toBeInTheDocument();
+    expect(within(why).getByTestId("target-chain")).toHaveTextContent(`tu gasto medido (${formatNumber(2500)})`);
+    await user.click(within(why).getByRole("button", { name: t.expenditureCheck.seeCalculation }));
+    expect(await screen.findByText(/2\.?500 ± 177 kcal\/día/)).toBeInTheDocument();
   });
 
   it("con pesajes semanales lo muestra con un margen amplio, y tus datos cuentan menos", async () => {
@@ -278,8 +293,15 @@ describe("resumen del día (Comidas)", () => {
     // Days 28, 21, 14, 7: 1,96 × 0,5 / √245 × 7700 = ±482. Against the profile's 2608 ± 10 %,
     // the data weigh 260,8² / (260,8² + 245,9²) = 53 %: 2608 − 0,53 × 108 = 2551.
     const why = await openWhy(user);
-    expect(within(why).getByText(/2\.?500 ± 482 kcal\/día/)).toBeInTheDocument();
-    expect(within(why).getByText(/2\.?551 kcal\/día \(53 %/)).toBeInTheDocument();
+    expect(within(why).getByTestId("target-chain")).toHaveTextContent(
+      formatTemplate(t.calorias.chainBlend, {
+        data: "53",
+        measured: formatNumber(2500),
+        profile: "47",
+        tdee: formatNumber(2608),
+        expenditure: formatNumber(2551),
+      }),
+    );
   });
 
   it("en definición con % de grasa, la proteína va por kg de masa magra", async () => {
@@ -336,7 +358,7 @@ describe("resumen del día (Comidas)", () => {
     expect(within(dialog).getByRole("button", { name: t.expenditureCheck.howItWorks })).toHaveAttribute("href", "/metodologia#check");
   });
 
-  it("con gasto medido, el objetivo se calcula con él y lo dice, enlazando a cómo se hace", async () => {
+  it("con gasto medido, el objetivo se calcula con él y la cadena lo dice paso a paso", async () => {
     // Perfil 2608 ± 10 %, medido 3370 ± 177: los datos pesan un 89 % → 3288; mantenimiento 3188–3388.
     vi.mocked(api.listWeights).mockResolvedValue(dailyWeighIns(35, -0.7));
     logMeals(meals(35, 2600));
@@ -344,19 +366,31 @@ describe("resumen del día (Comidas)", () => {
     render(card(2000, 50));
 
     const why = await openWhy(user);
-    const used = within(why).getByRole("link", { name: t.calorias.targetExpenditure });
-    expect(used).toHaveAttribute("href", "/metodologia#adaptive");
-    expect(used.closest("div")).toHaveTextContent(formatTemplate(t.calorias.targetExpenditureValue, { n: "3288", share: "89" }));
+    const chain = within(why).getByTestId("target-chain");
+    // The profile's own expenditure is still there, in the blend.
+    expect(chain).toHaveTextContent(
+      formatTemplate(t.calorias.chainBlend, { data: "89", measured: "3370", profile: "11", tdee: "2608", expenditure: "3288" }),
+    );
+    expect(chain).toHaveTextContent(
+      formatTemplate(t.calorias.chainGoal, {
+        goal: t.calorias.goalMaintain,
+        offset: "0",
+        offsetMin: "−100",
+        offsetMax: "+100",
+        target: "3288",
+        min: "3188",
+        max: "3388",
+      }),
+    );
     expect(within(why).getByText((_, el) => el?.tagName === "P" && /^3188 – 3388\s/.test(el.textContent ?? ""))).toBeInTheDocument();
-    // The profile's own expenditure is still shown next to it.
-    expect(within(why).getByText(t.calorias.tdee).closest("div")).toHaveTextContent("2608");
   });
 
-  it("sin gasto medido, el objetivo sale solo del perfil y no hay línea de gasto usado", async () => {
+  it("sin gasto medido, el objetivo sale solo del perfil y la cadena lo dice", async () => {
     const user = userEvent.setup();
     render(card(2000, 50));
     const why = await openWhy(user);
-    expect(within(why).queryByText(t.calorias.targetExpenditure)).toBeNull();
+    expect(within(why).getByTestId("target-chain")).not.toHaveTextContent(/tu gasto medido/);
+    expect(within(why).getByTestId("target-chain")).toHaveTextContent(/aún sin gasto medido/);
   });
 
   it("si gastas claramente menos, enumera las causas empezando por la comida sin registrar", async () => {
@@ -417,7 +451,7 @@ describe("resumen del día (Comidas)", () => {
 
     // The measurement is there (in «Cómo se calculan»), and the card says nothing about it.
     const why = await openWhy(user);
-    expect(within(why).getByText(t.calorias.measuredTdee)).toBeInTheDocument();
+    expect(within(why).getByTestId("target-chain")).toHaveTextContent(/tu gasto medido \(\d+\)/);
     expect(screen.queryByRole("button", { name: t.expenditureCheck.why })).toBeNull();
   });
 

@@ -93,12 +93,15 @@ internal fun DaySummaryCard(
     onOpenProfile: () -> Unit = {},
     onOpenWeight: () -> Unit = {},
     onOpenMethodology: (section: String?) -> Unit = {},
+    /** No meals on that day: on a past day the bars say so in gray, not what is «missing» (web the same). */
+    nothingLogged: Boolean = false,
     viewModel: RecommendationsViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val noticeDismissal by viewModel.noticeDismissal.collectAsStateWithLifecycle()
     val weighInHintDismissed by viewModel.weighInHintDismissed.collectAsStateWithLifecycle()
     var whyOpen by remember { mutableStateOf(false) }
+    var calculationOpen by remember { mutableStateOf(false) }
 
     val ready = state as? RecommendationsUiState.Ready
     val isToday = day == todayKey()
@@ -111,6 +114,8 @@ internal fun DaySummaryCard(
         (calorie?.targetMin != ready.calorie?.targetMin || calorie?.targetMax != ready.calorie?.targetMax ||
             protein?.range != ready.protein?.range)
     val hasTargets = calorie != null || protein != null
+    // An unlogged past day is not a day without food.
+    val unlogged = !isToday && nothingLogged
 
     AppCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -137,6 +142,7 @@ internal fun DaySummaryCard(
                     rangeMax = calorie.targetMax,
                     unit = "kcal",
                     overIsFine = false,
+                    quiet = unlogged,
                 )
             }
             if (protein != null) {
@@ -148,6 +154,9 @@ internal fun DaySummaryCard(
                     rangeMax = protein.range.max,
                     unit = "g",
                     overIsFine = true,
+                    quiet = unlogged,
+                    // Said once, under calories.
+                    showStatus = !(unlogged && calorie != null),
                 )
             }
             if (isToday && ready != null && calorie != null) {
@@ -207,6 +216,20 @@ internal fun DaySummaryCard(
                 whyOpen = false
                 onOpenMethodology(section)
             },
+            // Today's calculation: on a past day it would not match the numbers in the sheet.
+            onSeeCalculation = if (isToday && ready?.check != null) {
+                { whyOpen = false; calculationOpen = true }
+            } else {
+                null
+            },
+        )
+    }
+    if (calculationOpen) {
+        ExpenditureCalculationSheet(
+            onDismiss = { calculationOpen = false },
+            onOpenProfile = onOpenProfile,
+            onOpenMethodology = { onOpenMethodology(CHECK_SECTION) },
+            viewModel = viewModel,
         )
     }
 }
@@ -254,6 +277,8 @@ private fun RecommendationDetailsSheet(
     differsFromToday: Boolean,
     onDismiss: () -> Unit,
     onOpenMethodology: (section: String?) -> Unit,
+    /** Opens «Ver el cálculo»; null when there is nothing to show (or on a past day). */
+    onSeeCalculation: (() -> Unit)?,
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -284,32 +309,18 @@ private fun RecommendationDetailsSheet(
                         perDay,
                         stringResource(R.string.rec_estimated_average, "${formatNumber(calorie.target)} $perDay"),
                     )
+                    // The chain, inputs to range, with the user's numbers; the formulas behind each
+                    // input are in «Ver el cálculo» (web the same).
                     Column(
                         Modifier
                             .padding(top = 6.dp)
                             .fillMaxWidth()
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
-                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        if (calorie.dataShare > 0) {
-                            DetailRow(
-                                stringResource(R.string.rec_target_expenditure),
-                                stringResource(
-                                    R.string.rec_target_expenditure_value,
-                                    formatNumber(calorie.expenditure),
-                                    formatNumber(round(calorie.dataShare * 100)),
-                                ),
-                                onClick = { onOpenMethodology(ADAPTIVE_SECTION) },
-                            )
-                        }
-                        if (measured != null) {
-                            DetailRow(
-                                stringResource(R.string.rec_measured_label),
-                                stringResource(R.string.rec_measured_value, formatNumber(measured.tdee), formatNumber(measured.margin)),
-                            )
-                        }
-                        DetailRow(stringResource(R.string.rec_tdee_label), "${formatNumber(calorie.tdee)} $perDay")
-                        DetailRow(stringResource(R.string.rec_bmr_label), "${formatNumber(calorie.bmr)} $perDay")
+                        Text(expenditureChain(calorie, measured), style = MaterialTheme.typography.bodySmall)
+                        Text(goalChain(calorie), style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -330,12 +341,56 @@ private fun RecommendationDetailsSheet(
             if (differsFromToday) {
                 Text(stringResource(R.string.past_day_targets), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            TextButton(onClick = { onOpenMethodology(null) }, contentPadding = PaddingValues(horizontal = 0.dp)) {
-                Text(stringResource(R.string.rec_full_methodology))
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, Modifier.size(18.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                if (onSeeCalculation != null) {
+                    TextButton(onClick = onSeeCalculation, contentPadding = PaddingValues(horizontal = 0.dp)) {
+                        Text(stringResource(R.string.check_see_calculation))
+                    }
+                }
+                TextButton(onClick = { onOpenMethodology(CALORIES_SECTION) }, contentPadding = PaddingValues(horizontal = 0.dp)) {
+                    Text(stringResource(R.string.rec_full_methodology))
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, Modifier.size(18.dp))
+                }
             }
         }
     }
+}
+
+/** «Gasto usado: 89 % tu gasto medido (2625) + 11 % el de tu perfil (2615) ≈ 2624 kcal/día» (core `combineExpenditure`). */
+@Composable
+private fun expenditureChain(calorie: CalorieRecommendation, measured: ExpenditureEstimate?): String =
+    if (calorie.dataShare > 0 && measured != null) {
+        val data = round(calorie.dataShare * 100)
+        stringResource(
+            R.string.rec_chain_blend,
+            formatNumber(data),
+            formatNumber(measured.tdee),
+            formatNumber(100 - data),
+            formatNumber(calorie.tdee),
+            formatNumber(calorie.expenditure),
+        )
+    } else {
+        stringResource(R.string.rec_chain_profile, formatNumber(calorie.bmr), formatNumber(calorie.activityFactor, 2), formatNumber(calorie.tdee))
+    }
+
+/** «Definición: −400 kcal (−500 a −300) → 2224 de media, rango 2124–2324», from the numbers shown (the BMR floor included). */
+@Composable
+private fun goalChain(calorie: CalorieRecommendation): String {
+    fun signed(n: Double): String = when {
+        n > 0 -> "+${formatNumber(n)}"
+        n < 0 -> "−${formatNumber(-n)}"
+        else -> "0"
+    }
+    return stringResource(
+        R.string.rec_chain_goal,
+        stringResource(calorie.goal.labelRes()),
+        signed(calorie.target - calorie.expenditure),
+        signed(calorie.targetMin - calorie.expenditure),
+        signed(calorie.targetMax - calorie.expenditure),
+        formatNumber(calorie.target),
+        formatNumber(calorie.targetMin),
+        formatNumber(calorie.targetMax),
+    )
 }
 
 @Composable
@@ -357,26 +412,6 @@ private fun RangeHeader(title: String, icon: ImageVector, goal: Goal?, range: St
     Text(average, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-@Composable
-private fun DetailRow(label: String, value: String, onClick: (() -> Unit)? = null) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (onClick != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f),
-        )
-        Spacer(Modifier.width(12.dp))
-        Text(value, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.End)
-    }
-}
-
 /** "1.4 – 2.0 g/kg", or per kg of lean mass when the cut uses body fat. */
 @Composable
 internal fun proteinPerKg(protein: ProteinRecommendation): String {
@@ -387,29 +422,6 @@ internal fun proteinPerKg(protein: ProteinRecommendation): String {
         ProteinBasis.REFERENCE_WEIGHT -> stringResource(R.string.rec_per_kg_reference, min, max, formatNumber(protein.basisKg, 1))
         ProteinBasis.BODY_WEIGHT -> stringResource(R.string.rec_per_kg, min, max)
     }
-}
-
-/**
- * «Expenditure your target uses: 2990 kcal/day (85% from your data)», once the
- * measured expenditure counts (core `combineExpenditure`); tapping it opens how.
- */
-@Composable
-internal fun TargetExpenditureLine(calorie: CalorieRecommendation, onClick: () -> Unit) {
-    if (calorie.dataShare <= 0) return
-    Text(
-        stringResource(
-            R.string.label_value,
-            stringResource(R.string.rec_target_expenditure),
-            stringResource(
-                R.string.rec_target_expenditure_value,
-                formatNumber(calorie.expenditure),
-                formatNumber(round(calorie.dataShare * 100)),
-            ),
-        ),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.clickable(onClick = onClick),
-    )
 }
 
 @Composable
@@ -490,8 +502,16 @@ internal fun IntakeBar(
     rangeMax: Double,
     unit: String,
     overIsFine: Boolean,
+    /** A past day with nothing logged: «Sin comidas registradas» in gray instead of what is missing. */
+    quiet: Boolean = false,
+    /** False: no status line under the bar (it stays the bar's description for TalkBack). */
+    showStatus: Boolean = true,
 ) {
-    val status = intakeStatus(current, rangeMin, rangeMax, unit, overIsFine)
+    val status = if (quiet) {
+        Status(stringResource(R.string.rec_nothing_logged), MaterialTheme.colorScheme.onSurfaceVariant)
+    } else {
+        intakeStatus(current, rangeMin, rangeMax, unit, overIsFine)
+    }
     val colors = MaterialTheme.colorScheme
     // Leave room past the target so going over is visible on the bar.
     val scaleMax = if (rangeMax > 0) rangeMax * 1.1 else 1.0
@@ -582,8 +602,10 @@ internal fun IntakeBar(
                 )
             }
         }
-        Spacer(Modifier.height(2.dp))
-        Text(status.label, style = MaterialTheme.typography.labelMedium, color = status.color)
+        if (showStatus) {
+            Spacer(Modifier.height(2.dp))
+            Text(status.label, style = MaterialTheme.typography.labelMedium, color = status.color)
+        }
     }
 }
 

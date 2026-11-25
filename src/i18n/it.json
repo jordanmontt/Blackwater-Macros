@@ -72,6 +72,12 @@
     "semiSkimmedMilk": "Latte parzialmente scremato"
   },
   "hoy": {
+    "nothingLogged": "Nessun pasto registrato",
+    "dragInstructions": "Per spostare un pasto, premi la barra spaziatrice o Invio. Spostalo con le frecce e premi di nuovo spazio o Invio per rilasciarlo, oppure Esc per annullare.",
+    "dragStart": "Spostamento di {title}.",
+    "dragOver": "{title}: posizione {n} di {total}.",
+    "dragEnd": "{title} è ora in posizione {n} di {total}.",
+    "dragCancel": "Annullato: {title} torna al suo posto.",
     "title": "Pasti",
     "addMeal": "Aggiungi cibo",
     "emptyDay": "Non hai ancora registrato nessun pasto in questo giorno.",
@@ -100,6 +106,9 @@
     "templates": "Modelli"
   },
   "meal": {
+    "editNamed": "Modifica {title}",
+    "saveAsTemplateNamed": "Salva {title} come modello",
+    "deleteNamed": "Elimina {title}",
     "newTitle": "Nuovo pasto",
     "editTitle": "Modifica pasto",
     "titleLabel": "Titolo",
@@ -114,6 +123,7 @@
     "ingredientsLabel": "Ingredienti",
     "ingredientNamePlaceholder": "4 uova",
     "quantityPlaceholder": "(es. 30 g)",
+    "quantityLabel": "Quantità",
     "caloriesPlaceholder": "kcal",
     "proteinPlaceholder": "g proteine",
     "carbsPlaceholder": "g carboidrati",
@@ -243,6 +253,7 @@
     "consent": "Salvando, viene aggiunto a Open Food Facts così chi lo scansiona lo trova: nome, marca, valori e foto della tabella, con licenza aperta. Niente su di te.",
     "consentExisting": "Salvando, i valori e la foto della tabella vengono aggiunti a questo prodotto su Open Food Facts, con licenza aperta. Niente su di te.",
     "consentCorrection": "Salvando, i tuoi valori e la foto della tabella vengono inviati a questo prodotto su Open Food Facts, con licenza aperta. La sua cronologia conserva i valori precedenti. Niente su di te.",
+    "demoNotSent": "In modalità demo i prodotti non vengono inviati a Open Food Facts: restano solo in questa scheda.",
     "save": "Salva e scegli la quantità",
     "saveEdit": "Salva le modifiche",
     "noPhoto": "Senza foto, i volontari di Open Food Facts non possono verificare i valori.",
@@ -315,6 +326,7 @@
     "weightTitle": "Peso",
     "trend": "Tendenza",
     "change": "Variazione",
+    "otherWeighInsNote": "I punti vuoti sono pesate fatte in modo diverso dalla maggior parte (a digiuno o no): non contano nella tendenza né nella variazione.",
     "rate": "Ritmo",
     "bodyFat": "Grasso corporeo",
     "caloriesTitle": "Calorie giornaliere",
@@ -340,6 +352,9 @@
     "noMeals": "Ancora nessun pasto in questo periodo."
   },
   "stats": {
+    "weightChartSummary": "Peso: la tendenza passa da {from} a {to} kg tra il {start} e il {end}.",
+    "bodyFatChartSummary": "Grasso corporeo: da {from} % a {to} % tra il {start} e il {end}.",
+    "caloriesChartSummary": "Calorie giornaliere: media di {avg} kcal in {n} giorni registrati, tra il {start} e il {end}.",
     "range7": "7 giorni",
     "range30": "30 giorni",
     "range90": "90 giorni",
@@ -368,6 +383,9 @@
     "noWeight": "Registra il tuo peso per vedere le raccomandazioni"
   },
   "calorias": {
+    "chainBlend": "Dispendio usato: {data} % il tuo dispendio misurato ({measured}) + {profile} % quello del tuo profilo ({tdee}) ≈ {expenditure} kcal/giorno",
+    "chainProfile": "Dispendio usato: quello del tuo profilo, MB {bmr} × attività {pal} = {tdee} kcal/giorno (ancora senza dispendio misurato)",
+    "chainGoal": "{goal}: {offset} kcal (da {offsetMin} a {offsetMax}) → {target} in media, intervallo {min}–{max}",
     "recommendationTitle": "Raccomandazione di calorie",
     "noProfile": "Inserisci i tuoi dati per conoscere le tue calorie ottimali",
     "bmr": "Metabolismo basale (MB)",
@@ -459,6 +477,7 @@
     "missingWeightSpan": "Giorni coperti dalle pesate: {days} (ne servono 14, perché le variazioni d'acqua non dominino l'andamento)."
   },
   "metodologia": {
+    "onThisPage": "In questa pagina",
     "title": "Metodologia",
     "aiTitle": "Stime dell'IA",
     "aiBody": [
@@ -473,11 +492,11 @@
     ],
     "intro": "Come vengono calcolate le statistiche e le raccomandazioni di calorie e proteine, con le formule esatte e i riferimenti su cui si basano.",
     "scaleVsTrendTitle": "Peso della bilancia vs tendenza",
-    "scaleVsTrendBody": "Il «peso attuale» è la tua ultima pesata del periodo. La «tendenza» è il valore più recente della media mobile a 7 giorni. La «variazione» confronta la prima e l'ultima pesata del periodo scelto, e il «ritmo» è la pendenza della regressione descritta sotto.",
+    "scaleVsTrendBody": "Il «peso attuale» è la tua ultima pesata del periodo. La «tendenza» è il valore più recente della media mobile a 7 giorni. La «variazione» confronta la prima e l'ultima pesata del periodo scelto, e il «ritmo» è la pendenza della regressione descritta sotto. La tendenza e la variazione usano solo le pesate fatte come la maggior parte di quelle del periodo (a digiuno o no): una pesata dopo un pasto segna di più senza che tu abbia preso nulla, e farne la media con le altre non lo compensa. Nel grafico, le altre sono punti vuoti. Il ritmo le usa tutte, ma confronta ogni tipo solo con il suo.",
     "movingAvgTitle": "Media mobile a 7 giorni (tendenza)",
     "movingAvgFormulaLabel": "Per ogni giorno d:",
     "movingAvgWindow": "W(d) = { voci con data in [d − 6, d] }",
-    "movingAvgBody": "Si fa la media di tutte le voci la cui data cade nella finestra di 7 giorni che termina in d. I giorni senza voci non contano e non vengono riempiti con zeri: se quella settimana ti sei pesato solo 3 volte, la media è di quelle 3 voci. Questo attenua il rumore quotidiano (acqua, sale, contenuto intestinale) e mostra la vera tendenza, che cambia lentamente. Pesarsi regolarmente è associato a una maggiore perdita di peso, senza effetti psicologici negativi (Zheng et al. 2015); la media trasforma queste pesate in una tendenza che non salta con il numero di ogni giorno. The Hacker's Diet ha reso popolare la stessa idea di «peso di tendenza», con una media mobile esponenziale; qui si usa una media semplice a 7 giorni, più facile da leggere.",
+    "movingAvgBody": "Si fa la media delle voci la cui data cade nella finestra di 7 giorni che termina in d (solo quelle fatte come la maggior parte, vedi sopra). I giorni senza voci non contano e non vengono riempiti con zeri: se quella settimana ti sei pesato solo 3 volte, la media è di quelle 3 voci. Questo attenua il rumore quotidiano (acqua, sale, contenuto intestinale) e mostra la vera tendenza, che cambia lentamente. Pesarsi regolarmente è associato a una maggiore perdita di peso, senza effetti psicologici negativi (Zheng et al. 2015); la media trasforma queste pesate in una tendenza che non salta con il numero di ogni giorno. The Hacker's Diet ha reso popolare la stessa idea di «peso di tendenza», con una media mobile esponenziale; qui si usa una media semplice a 7 giorni, più facile da leggere.",
     "rateTitle": "Ritmo settimanale (kg/settimana)",
     "rateFormulaLabel": "Pendenza ai minimi quadrati ordinari:",
     "rateFormula": "ritmo = β × 7 [kg/settimana]",
@@ -764,6 +783,7 @@
     "estimateQuery": "Stima «{q}» con l'IA"
   },
   "perfil": {
+    "withLatestWeight": "Con il tuo ultimo peso: {kg} kg",
     "title": "Profilo",
     "description": "Il tuo obiettivo, i tuoi dati corporei e le raccomandazioni di calorie e proteine.",
     "backToSettings": "Torna alle Impostazioni",
@@ -810,6 +830,9 @@
     "action": "Installa"
   },
   "common": {
+    "backTo": "Torna a {page}",
+    "backToToday": "Torna a oggi",
+    "notifications": "Notifiche",
     "today": "Oggi",
     "loading": "Caricamento…",
     "retry": "Riprova",

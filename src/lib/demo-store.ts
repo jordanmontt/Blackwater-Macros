@@ -63,6 +63,16 @@ export function isDemoMode(): boolean {
 }
 
 /**
+ * Where what the user makes outside the demo store is kept (recent foods, own
+ * products, the Open Food Facts account): this browser's localStorage, or in the
+ * demo this tab's sessionStorage, so it goes when the tab closes, as the banner
+ * says, and a real login in the same browser never sees it.
+ */
+export function userDataStorage(): Storage {
+  return isDemoMode() ? sessionStorage : localStorage;
+}
+
+/**
  * Enters demo mode by setting the gate cookie. The cookie is not a real
  * session (API routes still require `bw_session`), it only lets the edge
  * proxy render protected pages in the browser.
@@ -72,11 +82,15 @@ export function enterDemoMode(): void {
   document.cookie = `${DEMO_COOKIE_NAME}=1; path=/; SameSite=Lax; max-age=31536000`;
 }
 
-/** Exits demo mode: removes the gate cookie and wipes local demo data. */
+/** Exits demo mode: removes the gate cookie and wipes local demo data (also what `userDataStorage` kept). */
 export function exitDemoMode(): void {
   if (typeof document === "undefined") return;
   document.cookie = `${DEMO_COOKIE_NAME}=; path=/; SameSite=Lax; max-age=0`;
   sessionStorage.removeItem(STORAGE_KEY);
+  for (let i = sessionStorage.length - 1; i >= 0; i--) {
+    const key = sessionStorage.key(i);
+    if (key?.startsWith("bw:")) sessionStorage.removeItem(key);
+  }
 }
 
 // ---------------------------------------------------------------------------

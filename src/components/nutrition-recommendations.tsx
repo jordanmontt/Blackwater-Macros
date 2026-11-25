@@ -6,11 +6,11 @@ import { ChevronRightIcon, DumbbellIcon, FlameIcon, InfoIcon } from "lucide-reac
 import { formatNumber } from "@/i18n/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet } from "@/components/ui/sheet";
-import { ExpenditureNotices, formulaInputs } from "@/components/expenditure-check";
+import { ExpenditureCalculationButton, ExpenditureNotices, formulaInputs } from "@/components/expenditure-check";
 import { useExpenditureCheck } from "@/lib/use-measured-expenditure";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { todayKey } from "@/lib/core/dates";
-import type { CalorieRecommendation, Goal, ProteinRecommendation } from "@/lib/core/types";
+import type { CalorieRecommendation, ExpenditureEstimate, Goal, ProteinRecommendation } from "@/lib/core/types";
 import { formatTemplate, t } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +71,7 @@ function IntakeBar({
   statusLabel,
   statusColor,
   overIsFine,
+  showStatus = true,
 }: {
   /** «Calorías · Definición»: what is measured, left of the numbers. */
   title: ReactNode;
@@ -82,6 +83,8 @@ function IntakeBar({
   statusLabel: string;
   statusColor: string;
   overIsFine: boolean;
+  /** False: the status line under the bar is left out (it stays the bar's name for screen readers). */
+  showStatus?: boolean;
 }) {
   // Leave room past the target so going over is visible on the bar.
   const scaleMax = rangeMax > 0 ? rangeMax * 1.1 : 1;
@@ -123,7 +126,7 @@ function IntakeBar({
           />
         ))}
       </div>
-      <p className={cn("text-xs", statusColor)}>{statusLabel}</p>
+      {showStatus ? <p className={cn("text-xs", statusColor)}>{statusLabel}</p> : null}
     </div>
   );
 }
@@ -144,16 +147,6 @@ function PlainTotal({ label, value, unit }: { label: string; value: string; unit
   );
 }
 
-/** A label and its value on one line of «Cómo se calculan tus objetivos» (no colon: each language punctuates its own). */
-function DetailRow({ label, children }: { label: ReactNode; children: ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 py-1.5">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="shrink-0 text-right tabular-nums">{children}</dd>
-    </div>
-  );
-}
-
 /**
  * Comidas' summary of the day: calories and protein against their ranges (a bar
  * each, with what is missing or over in words), carbs and fat as plain totals,
@@ -167,10 +160,13 @@ function DetailRow({ label, children }: { label: ReactNode; children: ReactNode 
 export function DaySummaryCard({
   day,
   totals,
+  nothingLogged = false,
 }: {
   /** The day shown (today when omitted). */
   day?: string;
   totals: { calories: number; protein: number; carbs: number; fat: number };
+  /** No meals on that day. On a past day the bars then say so in gray, not what is «missing». */
+  nothingLogged?: boolean;
 }) {
   const [whyOpen, setWhyOpen] = useState(false);
   const today = useRecommendations();
@@ -188,6 +184,9 @@ export function DaySummaryCard({
       proteinRec?.range.min !== today.proteinRec?.range.min ||
       proteinRec?.range.max !== today.proteinRec?.range.max);
   const hasTargets = latestWeight !== null && (calorieRec !== null || proteinRec !== null);
+  // An unlogged past day is not a day without food: no «te faltan 2153–2353 kcal» in orange.
+  const unlogged = !isToday && nothingLogged;
+  const quiet = { statusLabel: t.hoy.nothingLogged, statusColor: "text-muted-foreground", overIsFine: true };
 
   return (
     <Card className="py-3">
@@ -217,14 +216,16 @@ export function DaySummaryCard({
             rangeMin={calorieRec.targetMin}
             rangeMax={calorieRec.targetMax}
             eatenLabel={t.hoy.kcalEaten}
-            {...intakeStatus(
-              totals.calories,
-              calorieRec.targetMin,
-              calorieRec.targetMax,
-              t.calorias.missingCalories,
-              t.calorias.exceededCalories,
-              t.calorias.inRange,
-            )}
+            {...(unlogged
+              ? quiet
+              : intakeStatus(
+                  totals.calories,
+                  calorieRec.targetMin,
+                  calorieRec.targetMax,
+                  t.calorias.missingCalories,
+                  t.calorias.exceededCalories,
+                  t.calorias.inRange,
+                ))}
           />
         ) : null}
         {latestWeight && proteinRec ? (
@@ -234,15 +235,19 @@ export function DaySummaryCard({
             rangeMin={proteinRec.range.min}
             rangeMax={proteinRec.range.max}
             eatenLabel={t.hoy.gEaten}
-            {...intakeStatus(
-              totals.protein,
-              proteinRec.range.min,
-              proteinRec.range.max,
-              t.protein.missingProtein,
-              t.protein.aboveRangeBy,
-              t.protein.inRange,
-              true,
-            )}
+            {...(unlogged
+              ? quiet
+              : intakeStatus(
+                  totals.protein,
+                  proteinRec.range.min,
+                  proteinRec.range.max,
+                  t.protein.missingProtein,
+                  t.protein.aboveRangeBy,
+                  t.protein.inRange,
+                  true,
+                ))}
+            // Said once, under calories.
+            showStatus={!(unlogged && calorieRec)}
           />
         ) : null}
         {isToday && latestWeight && calorieRec ? (
@@ -286,30 +291,11 @@ export function DaySummaryCard({
                   {formatTemplate(t.calorias.estimatedAverageValue, { n: formatNumber(calorieRec.target) })}{" "}
                   {t.calorias.perDay}
                 </p>
-                <dl className="mt-2 divide-y rounded-lg border px-3 text-xs">
-                  {calorieRec.dataShare > 0 ? (
-                    <DetailRow label={<TargetExpenditure rec={calorieRec} labelOnly />}>
-                      {formatTemplate(t.calorias.targetExpenditureValue, {
-                        n: formatNumber(calorieRec.expenditure),
-                        share: formatNumber(Math.round(calorieRec.dataShare * 100)),
-                      })}
-                    </DetailRow>
-                  ) : null}
-                  {measured ? (
-                    <DetailRow label={t.calorias.measuredTdee}>
-                      {formatTemplate(t.calorias.measuredTdeeValue, {
-                        n: formatNumber(measured.tdee),
-                        margin: formatNumber(measured.margin),
-                      })}
-                    </DetailRow>
-                  ) : null}
-                  <DetailRow label={t.calorias.tdee}>
-                    {formatNumber(calorieRec.tdee)} {t.calorias.perDay}
-                  </DetailRow>
-                  <DetailRow label={t.calorias.bmr}>
-                    {formatNumber(calorieRec.bmr)} {t.calorias.perDay}
-                  </DetailRow>
-                </dl>
+                {/* The chain, inputs to range, with the user's numbers; the formulas behind each input are in «Ver el cálculo». */}
+                <div className="mt-2 space-y-1 rounded-lg border px-3 py-2 text-xs tabular-nums" data-testid="target-chain">
+                  <p>{expenditureChain(calorieRec, measured)}</p>
+                  <p>{goalChain(calorieRec)}</p>
+                </div>
               </section>
             ) : null}
             {proteinRec ? (
@@ -328,10 +314,18 @@ export function DaySummaryCard({
               </section>
             ) : null}
             {differsFromToday ? <p className="text-xs text-muted-foreground">{t.calorias.pastDayTargets}</p> : null}
-            <Link href="/metodologia" className="inline-flex min-h-11 items-center gap-0.5 font-medium text-primary hover:underline">
-              {t.hoy.fullMethodology}
-              <ChevronRightIcon className="size-4" />
-            </Link>
+            <div className="flex flex-wrap gap-x-5">
+              {/* Today's calculation: on a past day it would not match the numbers above. */}
+              {isToday && calorieRec ? (
+                <ExpenditureCalculationButton className="inline-flex min-h-11 items-center gap-0.5 font-medium text-primary hover:underline">
+                  {t.expenditureCheck.seeCalculation}
+                </ExpenditureCalculationButton>
+              ) : null}
+              <Link href="/metodologia#calories" className="inline-flex min-h-11 items-center gap-0.5 font-medium text-primary hover:underline">
+                {t.hoy.fullMethodology}
+                <ChevronRightIcon className="size-4" />
+              </Link>
+            </div>
           </div>
         </Sheet>
       ) : null}
@@ -339,32 +333,37 @@ export function DaySummaryCard({
   );
 }
 
-/**
- * «Gasto usado para tu objetivo: 2990 kcal/día (85 % de tus datos)»: what the
- * target is built on, once the measured expenditure counts (`combineExpenditure`).
- * It opens how (`/metodologia#adaptive`).
- */
-export function TargetExpenditure({ rec, labelOnly = false }: { rec: CalorieRecommendation; labelOnly?: boolean }) {
-  if (labelOnly) {
-    return (
-      <Link href="/metodologia#adaptive" className="underline-offset-2 hover:underline">
-        {t.calorias.targetExpenditure}
-      </Link>
-    );
+/** «Gasto usado: 89 % tu gasto medido (2625) + 11 % el de tu perfil (2615) ≈ 2624 kcal/día» (`combineExpenditure`). */
+function expenditureChain(rec: CalorieRecommendation, measured: ExpenditureEstimate | null): string {
+  if (rec.dataShare > 0 && measured) {
+    const data = Math.round(rec.dataShare * 100);
+    return formatTemplate(t.calorias.chainBlend, {
+      data: formatNumber(data),
+      measured: formatNumber(measured.tdee),
+      profile: formatNumber(100 - data),
+      tdee: formatNumber(rec.tdee),
+      expenditure: formatNumber(rec.expenditure),
+    });
   }
-  return (
-    <p>
-      <Link href="/metodologia#adaptive" className="hover:underline">
-        {formatTemplate(t.common.labelValue, {
-          label: t.calorias.targetExpenditure,
-          value: formatTemplate(t.calorias.targetExpenditureValue, {
-            n: formatNumber(rec.expenditure),
-            share: formatNumber(Math.round(rec.dataShare * 100)),
-          }),
-        })}
-      </Link>
-    </p>
-  );
+  return formatTemplate(t.calorias.chainProfile, {
+    bmr: formatNumber(rec.bmr),
+    pal: formatNumber(rec.activityFactor, 2),
+    tdee: formatNumber(rec.tdee),
+  });
+}
+
+/** «Definición: −400 kcal (−500 a −300) → 2224 de media, rango 2124–2324», from the numbers shown (the BMR floor included). */
+function goalChain(rec: CalorieRecommendation): string {
+  const signed = (n: number) => (n > 0 ? `+${formatNumber(n)}` : n < 0 ? `−${formatNumber(-n)}` : "0");
+  return formatTemplate(t.calorias.chainGoal, {
+    goal: GOAL_LABELS[rec.goal],
+    offset: signed(rec.target - rec.expenditure),
+    offsetMin: signed(rec.targetMin - rec.expenditure),
+    offsetMax: signed(rec.targetMax - rec.expenditure),
+    target: formatNumber(rec.target),
+    min: formatNumber(rec.targetMin),
+    max: formatNumber(rec.targetMax),
+  });
 }
 
 /** «2,3–3,1 g/kg» of body weight, of lean mass («… de 43,9 kg de masa magra») or of the reference weight. */

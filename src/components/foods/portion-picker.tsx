@@ -11,6 +11,7 @@ import { scalePer100g } from "@/lib/core/foods";
 import type { FoodChoice } from "@/lib/foods/foods-client";
 import { ownProduct, useOwnProducts, type OwnProduct } from "@/lib/foods/own-products";
 import { normalizeDecimal } from "@/lib/utils";
+import { useDemoMode } from "@/lib/use-demo-mode";
 import { formatTemplate, t } from "@/i18n";
 
 /**
@@ -156,6 +157,14 @@ function useOnline(): boolean {
 /** Whether Open Food Facts has the product yet, in one line. */
 function OwnProductStatus({ own }: { own: OwnProduct }) {
   const online = useOnline();
+  const demoMode = useDemoMode();
+  if (demoMode) {
+    return (
+      <p className="text-xs text-muted-foreground" role="status">
+        {t.newProduct.demoNotSent}
+      </p>
+    );
+  }
   if (own.state === "sent") {
     return (
       <p className="flex items-center gap-1 text-xs text-green-700 dark:text-green-400" role="status">

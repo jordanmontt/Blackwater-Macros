@@ -14,6 +14,7 @@ import com.blackwatermacros.app.core.StatsMeal
 import com.blackwatermacros.app.core.StatsRange
 import com.blackwatermacros.app.core.StatsSummary
 import com.blackwatermacros.app.core.StatsWeight
+import com.blackwatermacros.app.core.WeightPoint
 import com.blackwatermacros.app.core.addDaysToKey
 import com.blackwatermacros.app.core.buildStatsFromData
 import com.blackwatermacros.app.core.macroAverages
@@ -47,6 +48,8 @@ data class WeightFatRow(
     val weight: Double,
     val weightTrend: Double?,
     val bodyFatPct: Double?,
+    /** False: taken otherwise than most weigh-ins (fasted or not); drawn hollow, outside the trend. */
+    val inTrend: Boolean = true,
 )
 
 /** Everything the Progreso screen shows for one period (mirror web `progreso/page.tsx`). */
@@ -161,8 +164,14 @@ internal fun buildProgress(
 private fun weightRows(summary: StatsSummary): List<WeightFatRow> {
     val trendByDate = summary.weights.mapNotNull { point -> point.trend?.let { point.date to it } }.toMap()
     val fatByDate = summary.bodyFat.associate { it.date to it.bodyFatPct }
-    return summary.weights.associate { it.date to it.weight }.toSortedMap().map { (date, weight) ->
-        WeightFatRow(date, weight, trendByDate[date], fatByDate[date])
+    // One dot a day (web `WeightCard`): a weigh-in that counts in the trend wins over one taken otherwise.
+    val shown = sortedMapOf<String, WeightPoint>()
+    for (point in summary.weights) {
+        val current = shown[point.date]
+        if (current == null || !current.inTrend || point.inTrend) shown[point.date] = point
+    }
+    return shown.values.map { point ->
+        WeightFatRow(point.date, point.weight, trendByDate[point.date], fatByDate[point.date], point.inTrend)
     }
 }
 

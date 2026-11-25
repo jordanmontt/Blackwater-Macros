@@ -13,12 +13,15 @@ import { t } from "@/i18n";
  * Requisitos visibles en la pantalla "Progreso" (Peso + Estadísticas en una):
  *  - un selector de periodo que manda sobre toda la pantalla,
  *  - resumen de peso (actual, tendencia, cambio, ritmo, grasa) y su gráfico: un eje
- *    a la vez, el peso o (si hay medidas) la grasa corporal, a elegir,
+ *    a la vez, el peso o (si hay medidas) la grasa corporal, a elegir; un pesaje
+ *    tomado de otra forma que la mayoría (en ayunas o no) se ve hueco, no cuenta en
+ *    la tendencia ni en el cambio, y una línea bajo el gráfico lo dice,
  *  - el gráfico de calorías dice qué es cada cosa: cada día, la media de 7 días y
  *    el rango objetivo,
  *  - gráfico de calorías y «Promedio de macros» solo sobre los días registrados
  *    («N de M días registrados»), con el reparto de calorías y los objetivos
  *    (la media de los de cada día: cambiar el perfil no reescribe el pasado),
+ *  - el gasto medido abre «Ver el cálculo» (su ± explicado paso a paso),
  *  - la lista de pesajes del periodo, con añadir, editar y borrar (pregunta
  *    antes y luego ofrece «Deshacer»).
  */
@@ -81,8 +84,13 @@ vi.mock("@/lib/api", () => ({
 vi.mock("@/components/weight-fat-chart", async () => {
   const React = await import("react");
   return {
-    WeightFatChart: ({ data, series }: { data: unknown[]; series?: string }) =>
-      React.createElement("div", { "data-testid": "grafico-peso", "data-puntos": String(data.length), "data-serie": series ?? "weight" }),
+    WeightFatChart: ({ data, series }: { data: { inTrend?: boolean }[]; series?: string }) =>
+      React.createElement("div", {
+        "data-testid": "grafico-peso",
+        "data-puntos": String(data.length),
+        "data-huecos": String(data.filter((row) => row.inTrend === false).length),
+        "data-serie": series ?? "weight",
+      }),
   };
 });
 
@@ -133,6 +141,7 @@ describe("pantalla Progreso", () => {
     expect(screen.getByText(`-${formatNumber(0.5, 1)}`)).toBeInTheDocument(); // cambio
     expect(screen.getByText(formatNumber(18.5, 1))).toBeInTheDocument(); // grasa
     expect(screen.getByTestId("grafico-peso")).toHaveAttribute("data-puntos", "2");
+    expect(screen.queryByText(t.progreso.otherWeighInsNote)).toBeNull();
     // The list says the body fat in the app's language, not always in Spanish.
     expect(
       screen.getByText(new RegExp(formatTemplateText(t.peso.bodyFatValue, { value: formatNumber(18.5, 1) }))),
@@ -265,6 +274,44 @@ describe("pantalla Progreso", () => {
       expect.objectContaining({ weightKg: 77.4, bodyFatPct: 18.5, measuredAt: expect.any(String), note: null }),
     );
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("el botón de registrar peso es redondo, con su nombre para lectores y como tooltip", async () => {
+    weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(1)), weightKg: 80 })];
+    render(<ProgresoPage />);
+    const add = await screen.findByRole("button", { name: t.peso.addTitle });
+    // No visible text: it covered the chart's last days (about 210 px wide in French).
+    expect(add).not.toHaveTextContent(t.peso.addTitle);
+    expect(add).toHaveAttribute("title", t.peso.addTitle);
+  });
+
+  it("«Gasto medido ± …» abre «Ver el cálculo», donde se explica el ±", async () => {
+    const user = userEvent.setup();
+    // Oldest first, as the API returns them.
+    meals = Array.from({ length: 35 }, (_, i) => meal(daysAgo(35 - i), 2500, 150, 250, 80));
+    weights = Array.from({ length: 35 }, (_, i) => weightDto({ id: `w-${i}`, measuredAt: at(daysAgo(35 - i)), weightKg: 80 }));
+    render(<ProgresoPage />);
+
+    const line = await screen.findByRole("button", { name: new RegExp(`^${t.progreso.measured.split("{")[0]}`) });
+    expect(line).toHaveTextContent(t.expenditureCheck.seeCalculation);
+    await user.click(line);
+    expect(await screen.findByRole("dialog")).toHaveTextContent(t.expenditureCheck.marginNote);
+  });
+
+  it("un pesaje sin ayunar se ve hueco y no mueve la tendencia ni el cambio", async () => {
+    weights = [
+      weightDto({ id: "w-1", measuredAt: at(daysAgo(5)), weightKg: 80 }),
+      weightDto({ id: "w-2", measuredAt: at(daysAgo(3)), weightKg: 80 }),
+      weightDto({ id: "w-3", measuredAt: at(daysAgo(2)), weightKg: 81.6, fasted: false }),
+      weightDto({ id: "w-4", measuredAt: at(daysAgo(1)), weightKg: 80 }),
+    ];
+    render(<ProgresoPage />);
+
+    expect(await screen.findByTestId("grafico-peso")).toHaveAttribute("data-huecos", "1");
+    expect(screen.getByText(t.progreso.otherWeighInsNote)).toBeInTheDocument();
+    // Tendencia 80,0 and Cambio 0,0: the 81,6 after dinner counts in neither.
+    expect(screen.getByText(t.progreso.trend).parentElement).toHaveTextContent(`${t.progreso.trend}${formatNumber(80, 1)}kg`);
+    expect(screen.getByText(t.progreso.change).parentElement).toHaveTextContent(`${t.progreso.change}${formatNumber(0, 1)}kg`);
   });
 
   it("«En ayunas» empieza como el último pesaje; un pesaje nuevo guarda la zona horaria", async () => {

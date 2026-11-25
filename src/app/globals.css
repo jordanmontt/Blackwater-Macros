@@ -141,7 +141,14 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
+  }
+  /* Keyboard focus that shows on every background (the pale selected chips too):
+     2 px in the full ring colour, just outside the element. Controls with their own
+     ring (`focus-visible:ring-2 ring-ring`) set `outline-none`. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
   body {
     @apply bg-background text-foreground;

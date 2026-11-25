@@ -174,6 +174,14 @@ The MealForm defaults **new** meals to `per_ingredient` ("Por ingrediente"); edi
 the stored mode. The DB column default (`per_ingredient`) is never relied upon —
 the service always writes an explicit value.
 
+Each ingredient row's kcal, protein, carbs and fat fields show their unit inside, at the
+end («145 kcal», «15 g proteína»; placeholder «0»): a placeholder alone left a row filled
+from search, barcode or AI as four bare numbers. Web `UnitField` in
+`components/meals/nutrition-fields.tsx` (the unit is also the field's `aria-label`; the
+quantity field is «Cantidad»), Android `DecimalField(unit = …)` in `ui/FormFields.kt`
+(the unit in `CompactField`'s trailing slot, read by TalkBack with the value). «Solo el
+total» keeps its labels above the fields.
+
 **Why persisted `resolved_*` columns:** stats and the export file become trivial
 `SUM(...)` queries over one column instead of re-parsing JSONB on every request.
 
@@ -851,15 +859,15 @@ expired and keeps local data. Statistics are computed on the phone, so `/api/sta
 
 | Page | File | Highlights |
 |---|---|---|
-| Comidas | `app/page.tsx` | Day navigation (double-click/double-tap the date → today), one day summary card (`DaySummaryCard` in `components/nutrition-recommendations.tsx`, Android `DaySummaryCard`): a header «Objetivos de hoy» («Objetivos de ese día» on a past day) with «ⓘ Cómo se calculan» on its right — in the header so it reads as being about every target, not the totals next to it —, a bar each for calories (with the goal) and protein, what was eaten as the big number («2707 kcal consumidas», also when over) with the range next to it, and what is missing or over in words under the bar, the expenditure notices on today, then carbs and fat as plain totals in two equal columns (label above, value under it, tabular figures, so the values line up and the layout does not change with the numbers; with no targets — no weight — calories, protein, carbs and fat as a 2 × 2 grid, with no header or link). «Cómo se calculan» opens «Cómo se calculan tus objetivos», a sheet with where the ranges come from (range and estimated average, the expenditure the target uses, measured expenditure, TDEE, BMR, protein per kg, a link to the full methodology): the user's numbers one tap away, so the day's meals start on the first screen (message → numbers → methodology). A past day shows the targets it had, §8.1.1. Then the meal list (each card: its ingredients as one line each — the name, then fixed-width, end-aligned columns for the quantity, kcal and «x g prot.», sized in rem so they grow with the font, as Android's `IngredientCell`; carbs and fat only in the card's totals, since four labelled macros per row left no room for the name on a phone; a single ingredient shows no numbers, they equal the totals — then edit, «Guardar como plantilla» — saved at once under the meal's title via `mealContent`, with an Undo toast that deletes it — and delete), delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet`: «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast. The templates come right under the three sources (repeating a meal is the fastest way to log); «Gestionar» shows an edit and a delete button on each, and holding a template (or a right click: Base UI `ContextMenu`; Android `TemplateChip`, a long-press `DropdownMenu`) stays a shortcut to Editar and Borrar without going to Ajustes: the sheet closes, then the page shows `TemplateForm` or the delete confirm with an Undo (`restoreTemplate`), as Ajustes does |
-| Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight chart (`components/weight-fat-chart.tsx`, Android `chart/WeightFatChart.kt`: one axis at a time; the 7-day trend bold, each weigh-in a light dot with no line between them; «Peso» / «Grasa corporal» chips when there are body-fat measurements); daily calories chart (logged days only) with the target band (it steps where a day's target changed, §8.1.1), its axis fitted to the days and the band rather than from 0, and a legend naming each day, the 7-day average and the range (`components/chart-legend.tsx`); «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets = mean of the logged days' own targets, measured expenditure; a line when fat is outside 20–35 % of calories, §8.4.1); weigh-ins of the period with edit/delete; floating add-weight button (`components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
+| Comidas | `app/page.tsx` | Day navigation (on another day the reserved line under the date says «Volver a hoy» and goes back — on Android a tap on the date does too; double-click/double-tap the date → today), one day summary card (`DaySummaryCard` in `components/nutrition-recommendations.tsx`, Android `DaySummaryCard`): a header «Objetivos de hoy» («Objetivos de ese día» on a past day) with «ⓘ Cómo se calculan» on its right — in the header so it reads as being about every target, not the totals next to it —, a bar each for calories (with the goal) and protein, what was eaten as the big number («2707 kcal consumidas», also when over) with the range next to it, and what is missing or over in words under the bar (a past day with no meals says «Sin comidas registradas» in gray, once, under calories: an unlogged day is not a day without food; `nothingLogged`), the expenditure notices on today, then carbs and fat as plain totals in two equal columns (label above, value under it, tabular figures, so the values line up and the layout does not change with the numbers; with no targets — no weight — calories, protein, carbs and fat as a 2 × 2 grid, with no header or link). «Cómo se calculan» opens «Cómo se calculan tus objetivos», a sheet with where the ranges come from: the range and estimated average, then the chain from the inputs to the range in two lines with the user's numbers («Gasto usado: 89 % tu gasto medido (2625) + 11 % el de tu perfil (2615) ≈ 2624 kcal/día», or «el de tu perfil, TMB × actividad = TDEE» before there is a measurement; «Definición: −400 kcal (−500 a −300) → 2224 de media, rango 2124–2324», offsets taken from the numbers shown, so the BMR floor shows too; `expenditureChain` / `goalChain`, `t.calorias.chain*`), protein per kg, «Ver el cálculo» on today (Perfil's dialog: BMR, activity, TDEE and the measured expenditure with its ±, as formulas; `ExpenditureCalculationButton`, Android `ExpenditureCalculationSheet`) and the full methodology. Four nearly equal expenditure figures side by side used to say nothing about how they made the target: the user's numbers one tap away, so the day's meals start on the first screen (message → numbers → methodology). A past day shows the targets it had, §8.1.1. Then the meal list (each card: its ingredients as one row each — the name, up to two lines before «…» (one line left about 13 characters on a phone), then fixed-width, end-aligned columns for the quantity, kcal and «x g prot.», sized in rem so they grow with the font, as Android's `IngredientCell`; carbs and fat only in the card's totals, since four labelled macros per row left no room for the name on a phone; a single ingredient shows no numbers, they equal the totals — then edit, «Guardar como plantilla» — saved at once under the meal's title via `mealContent`, with an Undo toast that deletes it — and delete), delete confirm then an Undo toast (`api.restoreMeal`: same id, then the day's order; also `restoreWeight` / `restoreTemplate` in Progreso and Ajustes, and the demo store). The floating + opens `AddFoodSheet` (on another day its title names the day, «Añadir comida · dom, 4 oct», and so does «Nueva comida»: `formatDateKeyWeekdayShort`, Android `formatDateWeekdayShort`; after browsing old days, today's lunch could land on one of them): «Escribir a mano» → `MealForm` (the review form every source ends in; asks «¿Descartar los cambios?» when closed with edits), «Copiar de otro día» and templates create meals directly via `lib/meal-payload.ts` (`copyMealPayload`) with an Undo toast. The templates come right under the three sources (repeating a meal is the fastest way to log); «Gestionar» shows an edit and a delete button on each, and holding a template (or a right click: Base UI `ContextMenu`; Android `TemplateChip`, a long-press `DropdownMenu`) stays a shortcut to Editar and Borrar without going to Ajustes: the sheet closes, then the page shows `TemplateForm` or the delete confirm with an Undo (`restoreTemplate`), as Ajustes does |
+| Progreso | `app/progreso/page.tsx` | Weight and statistics on one page (`/peso`, `/estadisticas` redirect in `next.config.ts`). One range selector drives everything: weight card (current, trend, change, rate, body fat) + weight chart (`components/weight-fat-chart.tsx`, Android `chart/WeightFatChart.kt`: one axis at a time; the 7-day trend bold, each weigh-in a light dot with no line between them; a weigh-in taken otherwise than most of the range (fasted or not, `inTrend` false in `StatsSummary.weights`) is a hollow dot, left out of the trend and «Cambio» (`buildStatsFromData`: `movingAverageByDays(…, counts)`; one dot a day, a counted one first) with one line under the chart, `progreso.otherWeighInsNote` (METHODOLOGY.md §4); «Peso» / «Grasa corporal» chips when there are body-fat measurements); daily calories chart (logged days only) with the target band (it steps where a day's target changed, §8.1.1), its axis fitted to the days and the band rather than from 0, and a legend naming each day, the 7-day average and the range (`components/chart-legend.tsx`); «Promedio de macros» over logged days (`macroAverages`, «Días registrados: N de M», kcal split, targets = mean of the logged days' own targets, measured expenditure, a button that opens «Ver el cálculo», where its ± is explained; a line when fat is outside 20–35 % of calories, §8.4.1); weigh-ins of the period with edit/delete; floating add-weight button, round like Comidas' + with the scale icon, named «Registrar peso» for screen readers and as a tooltip (the labelled one, ~210 px wide in French, covered the chart's last days; `components/weight-form-dialog.tsx`); ⓘ links to /metodologia |
 | Ajustes | `app/ajustes/page.tsx` | A grouped list, the same as Android: a short heading per group and one card of rows (`components/settings/settings-list.tsx`: `SettingsGroup`, `SettingsRow` — icon, title, a line under it, an arrow or a control), every setting on the page and one tap away. **Cuenta** (who is logged in, logout; in the demo «Salir de la demo»), **Personal** (Perfil, IA, Open Food Facts, templates: collapsed, with the manager and the new-template dialog), **Tus datos** («Exportar mis datos», one file, §5.11; no import on the web; in the demo the row is off and says why on itself), **Aplicación** (theme — Sistema / Claro / Oscuro, the default first, as on Android — the only place to switch it; language, `language-row.tsx`; the tutorial), **Acerca de** (Metodología, the website `WEBSITE_URL` from `lib/links.ts`, source code, «Administración» for admins), then one quiet last line, «Creado por jordanmontt», linking to `AUTHOR_URL` |
-| IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly |
-| Open Food Facts | `app/ajustes/open-food-facts/page.tsx` | The user's own Open Food Facts account for the products they add (checked with `/cgi/auth.pl`, then kept in `localStorage["bw:off-account"]`, this browser only); without one they go as Blackwater Macros (§8.5) |
-| Perfil | `app/ajustes/perfil/page.tsx` | Goal selector with one line on what the goal does (§8.2.1), calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
+| IA | `app/ajustes/ia/page.tsx` | Ajustes → Inteligencia artificial on its own page, like Android's screen: `AiSettingsCard` (provider, key, model dropdown, model in this browser, «El coach puede ver mis datos»). «Configurar la IA» links from the coach and «Foto o texto» open it directly, with `?from=coach` / `?from=hoy` (`lib/ai-settings-origin.ts`): the back arrow then returns there («Volver a Coach») and the menu keeps that tab, instead of dropping the user in Ajustes. The query is read with `useSearchParam` (`lib/use-search-param.ts`, `useSyncExternalStore`): Next's `useSearchParams` needs a Suspense boundary on a static page. Android pops its back stack, which already returns to the caller. The Coach's empty state without AI says it once: what the coach does, three example questions (they lead to the setup and wait in the box afterwards; the list's name says so), one sentence and «Configurar la IA» |
+| Open Food Facts | `app/ajustes/open-food-facts/page.tsx` | The user's own Open Food Facts account for the products they add (checked with `/cgi/auth.pl`, then kept in `localStorage["bw:off-account"]`, this browser only; in the demo, the tab); without one they go as Blackwater Macros (§8.5) |
+| Perfil | `app/ajustes/perfil/page.tsx` | Goal selector with one line on what the goal does (§8.2.1), calorie profile form (debounced autosave with validation; changes count from today, with a note linking to `/metodologia#past-days`) and the calorie/protein recommendations: the calorie range as the headline (as on Today), the estimated average with the weight the BMR uses («Con tu último peso: 81,7 kg»), the expenditure check's line with «Ver el cálculo» (BMR, activity, TDEE and the measured expenditure as formulas live there; before a measurement, one line «TMB × actividad = TDEE»), then protein. About ten lines of small numbers used to sit here. Nested under `/ajustes` so the Ajustes tab stays active; same split as Android |
 | Admin | `app/admin/page.tsx` | Admins only (403 «No tienes permiso…» otherwise): lists users with role badge, create/edit/delete dialogs; guards mirror the service (no self-demote/delete, ≥1 admin) |
 | Login | `app/login/page.tsx` | Only reachable when logged out: proxy redirect + `Cache-Control: no-store` + client-side session re-check (see §4.5). Also hosts the «Explora datos de demo» entry (see §6.1) |
-| Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, why past days keep their targets at `#past-days`, protein, measured expenditure, the profile check at `#check`) with the reasoning and Crossref-checked citations. Android: `MethodologyScreen.kt`, same content and reference list |
+| Metodología | `app/metodologia/page.tsx` | Client page (a server component would always render Spanish, see i18n), its tab title set in the request's language by `metodologia/layout.tsx`: every formula (stats, BMR + factorial PAL, why past days keep their targets at `#past-days`, protein, measured expenditure, the profile check at `#check`) with the reasoning and Crossref-checked citations. Every section is an `<h2>` (Android: a `heading()`) with an anchor, the same ids on both (`sections()` / `SECTIONS`: `scale`, `moving-average`, `rate`, `daily`, `protein`, `calories`, `recomposition`, `past-days`, `measured`, `adaptive`, `check`, `fat`, `ai`, `sources`, `references`), and an «En esta página» index at the top links to each: about 11 000 px of text with one heading left screen readers nothing to jump between. Today's «Metodología completa» opens `#calories`. Android: `MethodologyScreen.kt`, same content and reference list |
 
 ### Client data layer (`lib/api.ts`)
 
@@ -891,12 +899,20 @@ delegates to `lib/demo-api.ts` (a client-side equivalent of the API) backed by
 - **Isolation & persistence:** demo data lives in **sessionStorage** (`per-tab`,
   survives in-tab reloads) plus the `bw_demo` cookie. Each tab gets its own
   isolated copy; everything resets when the tab/browser closes or when site
-  cookies are cleared.
+  cookies are cleared. What the app otherwise keeps in `localStorage` as the user's
+  data — recent foods, own products (§8.5), the Open Food Facts account — goes
+  through `userDataStorage()` (`lib/demo-store.ts`), which in the demo is the tab's
+  `sessionStorage`: the demo never sees the browser's own copies, and a real login
+  in the same browser never sees the demo's. `exitDemoMode()` also removes those
+  (`bw:*` keys in `sessionStorage`).
 - **Mutability:** users can add/edit/delete meals, weights, and templates, and
   update the calorie profile freely (its history stays empty: the demo profile is
   not kept). All writes go through `lib/demo-store.ts`,
   which reuses `storedMealContent` (`lib/meal-payload.ts`) so totals are computed
-  identically to the server. Nothing is ever sent to the network.
+  identically to the server. Nothing is ever sent to the network: a product added
+  from a label stays in the tab and is never sent to Open Food Facts
+  (`sendOwnProducts` returns at once), and the form and the portion screen say so
+  in place of the consent and status lines (`t.newProduct.demoNotSent`).
 - **Exit:** a persistent `DemoBanner` (rendered in `layout.tsx` on every app
   page) shows «Estás en modo demo…» with a **«Iniciar sesión»** button that calls
   `exitDemoMode()` (clears the cookie + storage) and returns to `/login`. The
@@ -923,6 +939,27 @@ card (and therefore the `/admin` page) is unreachable in demo mode.
   `role="switch"` in Admin — Safari 17.4+ draws it as an iOS switch — and
   `datetime-local`), native scrollbars, and `accent-color` so they are tinted with the
   app green (no custom Base UI Select/Switch).
+
+### Accessibility (web)
+
+- **Where you are:** the main menu marks the current page's tab with `aria-current="page"`
+  (`components/app-nav.tsx`; Ajustes' subpages count as Ajustes). Android's bottom bar
+  already says «seleccionado».
+- **Library texts in the app's language:** dnd-kit's keyboard instructions and its
+  announcements while a meal is moved (`dragAccessibility` in `app/page.tsx`:
+  `t.hoy.drag*`, with the meal's title and place) and sonner's region label
+  (`containerAriaLabel`, `t.common.notifications`). Their defaults are English.
+- **Charts** carry a one-sentence name with the user's numbers (Recharts `title`, rendered
+  as the svg's `<title>`): `chartSummary` in `components/weight-fat-chart.tsx` («Peso: la
+  tendencia pasa de 83,4 a 81,8 kg entre el 26 oct y el 24 nov»), and the calorie chart's
+  average over the logged days (`t.stats.*ChartSummary`).
+- **Icon buttons** name what they act on («Editar Desayuno», `t.meal.*Named`, with the
+  same text as a tooltip), since a screen reader lists buttons out of their cards. On a
+  touch screen every icon button is at least 44 px (`pointer-coarse:min-*-11` in
+  `components/ui/button.tsx`), whatever its drawn size.
+- **Focus:** keyboard focus is 2 px in the full `--ring` colour: `:focus-visible` outline in
+  `globals.css`, and `focus-visible:ring-2 ring-ring` on the controls that draw their own
+  ring (button, input, select, textarea, badge). At 50 % it vanished on the pale chips.
 
 ### Numbers on screen and in inputs (web and Android, every language)
 
@@ -1399,7 +1436,8 @@ calories and protein; this says when the fat they leave is outside the adult ran
     sends `app_name`, `app_version` and `app_uuid` (a random id per install/browser, so
     moderators can block one install, not the app). Without the app password everything
     stays pending.
-  - **Kept on the device:** web `localStorage["bw:own-products"]` (`lib/foods/own-products.ts`),
+  - **Kept on the device:** web `localStorage["bw:own-products"]` (`lib/foods/own-products.ts`;
+    in the demo the tab's `sessionStorage`, and nothing is sent, §6.1),
     Android `own_products` prefs (`data/foods/OwnProducts.kt`); 50 at most (the oldest sent
     ones are forgotten). Not synced: Open Food Facts is where the product lives. The copy
     exists because a write can fail (Open Food Facts asks apps to queue writes until
@@ -1460,7 +1498,7 @@ calories and protein; this says when the fat they leave is outside the adult ran
     Food Facts», sent and retried the same way.
 - A picked food + grams becomes one ingredient row (`foodToIngredient`) in the review
   form; inside the form «Buscar alimento» appends more. Recent picks: `localStorage`
-  (web) / SharedPreferences (Android), 20 max.
+  (web; in the demo the tab's `sessionStorage`, §6.1) / SharedPreferences (Android), 20 max.
 
 ## 8.6 AI providers and keys
 
@@ -2149,7 +2187,8 @@ every language (§6). The export file's names are English (a file format, §5.11
 - **Cards:** `AppCard` (surfaceContainer + hairline `outlineVariant` border) everywhere.
 - **Text fields:** `CompactField` / `CompactTextArea` — 40 dp high, caret in the primary
   color (the default black caret is invisible in dark mode), fainter placeholders, a
-  2 dp primary border on the focused field.
+  2 dp primary border on the focused field. A number's unit goes inside the field, at the
+  end (`DecimalField(unit = …)`, the ingredient rows; §3 «The two meal entry modes»).
 - **Numbers:** one format in every language, the same as the web: «1,6 g», «12 345 kcal»
   (§6 «Numbers on screen and in inputs»). Number fields turn a typed `.` into `,`.
 - **Confirmations:** `ConfirmDialog` (Android) / `components/confirm-dialog.tsx` (web) for

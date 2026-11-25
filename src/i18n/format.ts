@@ -37,6 +37,14 @@ export function formatDateKeyLong(key: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** «dom, 4 oct» / «Sun 4 Oct»: which day a new meal goes to, in a title. */
+export function formatDateKeyWeekdayShort(key: string): string {
+  return formatter(
+    "weekdayShort",
+    (locale) => new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" }),
+  ).format(new Date(`${key}T00:00:00`));
+}
+
 /** «27 sept» / «27 Sept». */
 export function formatDateKeyShort(key: string): string {
   return formatter("short", (locale) => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" })).format(

@@ -44,6 +44,12 @@ class StatsTest {
         assertThat(movingAverageByDays(emptyList(), 7)).isEmpty()
     }
 
+    @Test
+    fun movingAverageByDays_countsLeavesPointsOutButGivesThemTheirWindowsMean() {
+        val points = days("2026-03-01", listOf(80.0, 81.5, 80.0))
+        assertThat(movingAverageByDays(points, 7, listOf(true, false, true))).containsExactly(80.0, 80.0, 80.0).inOrder()
+    }
+
     // --- Rate of change (kg/week) ---
 
     @Test

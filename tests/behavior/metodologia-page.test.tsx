@@ -8,7 +8,8 @@ import { en } from "@/i18n/en";
  * Requisitos de «Metodología»: se lee en el idioma elegido (antes salía siempre
  * en español porque la página se generaba en el servidor), y explica la
  * comprobación del perfil con sus fuentes en el ancla que abre su «¿Por qué?»,
- * y por qué los días pasados conservan sus objetivos (enlazado desde Perfil).
+ * y por qué los días pasados conservan sus objetivos (enlazado desde Perfil). Cada
+ * sección es un encabezado con su ancla, y un índice arriba lleva a todas.
  */
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ back: vi.fn(), push: vi.fn() }) }));
@@ -20,8 +21,25 @@ describe("Metodología", () => {
     applyLanguage("en");
     render(<MetodologiaPage />);
     expect(screen.getByRole("heading", { level: 1, name: en.metodologia.title })).toBeInTheDocument();
-    expect(screen.getByText(en.metodologia.scaleVsTrendTitle)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: en.metodologia.scaleVsTrendTitle })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: en.metodologia.scaleVsTrendTitle })).toHaveAttribute("href", "#scale");
     expect(t.metodologia.title).toBe(en.metodologia.title);
+  });
+
+  it("cada sección es un encabezado con su ancla, y el índice de arriba lleva a todas", () => {
+    const { container } = render(<MetodologiaPage />);
+    const headings = screen.getAllByRole("heading", { level: 2 });
+    // The index's own title, then one per section.
+    expect(headings[0]).toHaveTextContent(t.metodologia.onThisPage);
+    const index = screen.getByRole("heading", { name: t.metodologia.onThisPage }).closest("[data-slot=card]")!;
+    const links = [...index.querySelectorAll("a")];
+    expect(links).toHaveLength(headings.length - 1);
+    for (const link of links) {
+      const section = container.querySelector(link.getAttribute("href")!);
+      expect(section).not.toBeNull();
+      expect(section!.querySelector("h2")!.textContent!.trim()).toBe(link.textContent!.trim());
+    }
+    expect(container.querySelector("#calories h2")).toHaveTextContent(t.metodologia.tdeeTitle);
   });
 
   it("explica cómo se compara el perfil con los datos, en /metodologia#check, con sus fuentes", () => {

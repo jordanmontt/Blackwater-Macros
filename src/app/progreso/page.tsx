@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { TOOLTIP_STYLE } from "@/components/chart-style";
 import { WeightFatChart, type WeightChartSeries, type WeightFatRow } from "@/components/weight-fat-chart";
+import { ExpenditureCalculationButton } from "@/components/expenditure-check";
 import { ChartLegend } from "@/components/chart-legend";
 import { FatShareNotice } from "@/components/fat-share";
 import { WeightFormDialog } from "@/components/weight-form-dialog";
@@ -182,13 +183,17 @@ export default function ProgresoPage() {
         onConfirm={() => void handleDeleteConfirmed()}
       />
 
-      {/* Labelled: a bare «+» here did not say it logs a weigh-in. */}
+      {/* Round like Comidas' +: the labelled button (about 210 px in French) covered the chart's last
+          days. The scale icon, not a bare «+», says it logs a weigh-in; the name is for screen readers
+          and the tooltip. */}
       <Button
         onClick={() => openForm(null)}
-        className="fixed right-[max(1rem,calc(50%-21rem+1rem))] bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 h-14 gap-2 rounded-full bg-tertiary px-5 text-base text-tertiary-foreground shadow-lg hover:bg-tertiary/90 md:bottom-6"
+        aria-label={t.peso.addTitle}
+        title={t.peso.addTitle}
+        size="icon"
+        className="fixed right-[max(1rem,calc(50%-21rem+1rem))] bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 size-14 rounded-full bg-tertiary text-tertiary-foreground shadow-lg hover:bg-tertiary/90 md:bottom-6"
       >
-        <WeightIcon className="size-5" />
-        {t.peso.addTitle}
+        <WeightIcon className="size-6" />
       </Button>
     </main>
   );
@@ -201,7 +206,13 @@ function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () =>
   const rows = useMemo<WeightFatRow[]>(() => {
     const map = new Map<string, WeightFatRow>();
     for (const point of summary.weights) {
-      map.set(point.date, { date: point.date, weight: point.weight, weightTrend: point.trend });
+      const shown = map.get(point.date);
+      // One dot a day: a weigh-in that counts in the trend wins over one taken otherwise.
+      if (shown && shown.inTrend !== false && point.inTrend === false) {
+        shown.weightTrend = point.trend;
+      } else {
+        map.set(point.date, { date: point.date, weight: point.weight, weightTrend: point.trend, inTrend: point.inTrend });
+      }
     }
     for (const point of summary.bodyFat) {
       map.set(point.date, { ...(map.get(point.date) ?? { date: point.date }), bodyFatPct: point.bodyFatPct });
@@ -265,6 +276,9 @@ function WeightSection({ summary, onAdd }: { summary: StatsSummary; onAdd: () =>
             <div className="h-60 sm:h-72">
               <WeightFatChart data={rows} series={hasBodyFat ? series : "weight"} />
             </div>
+            {(!hasBodyFat || series === "weight") && rows.some((row) => row.inTrend === false) ? (
+              <p className="text-xs text-muted-foreground">{t.progreso.otherWeighInsNote}</p>
+            ) : null}
           </>
         ) : null}
       </CardContent>
@@ -338,7 +352,16 @@ function CaloriesSection({
       <CardContent className="space-y-1 px-2" data-testid="calories-chart">
         <div className="h-56 sm:h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={rows} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
+          <ComposedChart
+            data={rows}
+            margin={{ top: 16, right: 12, bottom: 0, left: 0 }}
+            title={formatTemplate(t.stats.caloriesChartSummary, {
+              avg: String(Math.round(rows.reduce((sum, row) => sum + row.calories, 0) / rows.length)),
+              n: String(rows.length),
+              start: formatDateKeyShort(rows[0].date),
+              end: formatDateKeyShort(rows[rows.length - 1].date),
+            })}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="date"
@@ -497,12 +520,14 @@ function MacrosCard({
         <p className="text-xs text-muted-foreground">{t.progreso.perLoggedDay}</p>
         {fatShare ? <FatShareNotice check={fatShare} /> : null}
         {measured ? (
-          <p className="text-sm">
+          // The ± and where the number comes from are one tap away, in «Ver el cálculo».
+          <ExpenditureCalculationButton className="block text-left text-sm">
             {formatTemplate(t.progreso.measured, {
               n: formatNumber(measured.tdee),
               margin: formatNumber(measured.margin),
-            })}
-          </p>
+            })}{" "}
+            <span className="whitespace-nowrap text-xs font-medium text-primary">{t.expenditureCheck.seeCalculation}</span>
+          </ExpenditureCalculationButton>
         ) : null}
       </CardContent>
     </Card>

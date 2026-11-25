@@ -67,7 +67,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <OnboardingRedirect />
             <div className="flex-1 pb-20 md:pb-6">{children}</div>
             <AppNav />
-            <Toaster position="top-center" richColors />
+            <Toaster position="top-center" richColors containerAriaLabel={t.common.notifications} />
           </LanguageGate>
         </ThemeProvider>
       </body>

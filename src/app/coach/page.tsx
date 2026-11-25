@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { downscalePhoto, MAX_PHOTOS } from "@/lib/ai/images";
 import type { AiImage } from "@/lib/core/ai-providers";
 import { formatTemplate, t } from "@/i18n";
+import { aiSettingsHref } from "@/lib/ai-settings-origin";
 
 /**
  * Coach: a chat about food, the diet and progress.
@@ -129,18 +130,19 @@ export default function CoachPage() {
                   size="sm"
                   className="h-auto rounded-full py-1.5 whitespace-normal"
                   nativeButton={false}
-                  render={<Link href="/ajustes/ia" onClick={() => savePendingQuestion(example)} />}
+                  render={<Link href={aiSettingsHref("coach")} onClick={() => savePendingQuestion(example)} />}
                 >
                   {example}
                 </Button>
               </li>
             ))}
           </ul>
-          <p className="max-w-sm text-xs text-muted-foreground">{t.coach.examplesNotReady}</p>
-          <Button nativeButton={false} render={<Link href="/ajustes/ia" />}>
+          {/* One sentence and the button: it used to say «configure the AI» three times. What a
+              question chip does is the list's name for screen readers. */}
+          <p className="max-w-sm text-xs text-muted-foreground">{t.coach.notConfigured}</p>
+          <Button nativeButton={false} render={<Link href={aiSettingsHref("coach")} />}>
             <SparklesIcon /> {t.coach.configure}
           </Button>
-          <p className="max-w-sm text-xs text-muted-foreground">{t.coach.notConfigured}</p>
         </section>
       ) : (
         <>

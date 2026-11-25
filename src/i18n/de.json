@@ -72,6 +72,12 @@
     "semiSkimmedMilk": "Teilentrahmte Milch"
   },
   "hoy": {
+    "nothingLogged": "Keine Mahlzeiten erfasst",
+    "dragInstructions": "Um eine Mahlzeit zu verschieben, drücke die Leertaste oder Enter. Bewege sie mit den Pfeiltasten und drücke erneut Leertaste oder Enter, um sie abzulegen, oder Escape zum Abbrechen.",
+    "dragStart": "{title} wird verschoben.",
+    "dragOver": "{title}: Position {n} von {total}.",
+    "dragEnd": "{title} ist jetzt an Position {n} von {total}.",
+    "dragCancel": "Abgebrochen: {title} kehrt an seinen Platz zurück.",
     "title": "Mahlzeiten",
     "addMeal": "Essen hinzufügen",
     "emptyDay": "An diesem Tag hast du noch keine Mahlzeit erfasst.",
@@ -100,6 +106,9 @@
     "templates": "Vorlagen"
   },
   "meal": {
+    "editNamed": "{title} bearbeiten",
+    "saveAsTemplateNamed": "{title} als Vorlage speichern",
+    "deleteNamed": "{title} löschen",
     "newTitle": "Neue Mahlzeit",
     "editTitle": "Mahlzeit bearbeiten",
     "titleLabel": "Titel",
@@ -114,6 +123,7 @@
     "ingredientsLabel": "Zutaten",
     "ingredientNamePlaceholder": "4 Eier",
     "quantityPlaceholder": "(z. B. 30 g)",
+    "quantityLabel": "Menge",
     "caloriesPlaceholder": "kcal",
     "proteinPlaceholder": "g Protein",
     "carbsPlaceholder": "g Kohlenhydrate",
@@ -243,6 +253,7 @@
     "consent": "Beim Speichern wird es zu Open Food Facts hinzugefügt, damit es jeder findet, der es scannt: Name, Marke, Werte und das Foto der Tabelle, unter einer offenen Lizenz. Nichts über dich.",
     "consentExisting": "Beim Speichern werden die Werte und das Foto der Tabelle diesem Produkt bei Open Food Facts hinzugefügt, unter einer offenen Lizenz. Nichts über dich.",
     "consentCorrection": "Beim Speichern werden deine Werte und das Foto der Tabelle an dieses Produkt bei Open Food Facts gesendet, unter einer offenen Lizenz. Sein Verlauf behält die vorherigen Werte. Nichts über dich.",
+    "demoNotSent": "Im Demomodus werden Produkte nicht an Open Food Facts gesendet: Sie bleiben nur in diesem Tab.",
     "save": "Speichern und Menge wählen",
     "saveEdit": "Änderungen speichern",
     "noPhoto": "Ohne Foto können die Freiwilligen von Open Food Facts die Werte nicht prüfen.",
@@ -315,6 +326,7 @@
     "weightTitle": "Gewicht",
     "trend": "Trend",
     "change": "Veränderung",
+    "otherWeighInsNote": "Hohle Punkte sind Wiegungen, die anders gemacht wurden als die meisten (nüchtern oder nicht): Sie zählen weder für den Trend noch für die Veränderung.",
     "rate": "Tempo",
     "bodyFat": "Körperfett",
     "caloriesTitle": "Tägliche Kalorien",
@@ -340,6 +352,9 @@
     "noMeals": "Noch keine Mahlzeiten in diesem Zeitraum."
   },
   "stats": {
+    "weightChartSummary": "Gewicht: Der Trend geht zwischen {start} und {end} von {from} auf {to} kg.",
+    "bodyFatChartSummary": "Körperfett: zwischen {start} und {end} von {from} % auf {to} %.",
+    "caloriesChartSummary": "Tägliche Kalorien: im Schnitt {avg} kcal an {n} erfassten Tagen, zwischen {start} und {end}.",
     "range7": "7 Tage",
     "range30": "30 Tage",
     "range90": "90 Tage",
@@ -368,6 +383,9 @@
     "noWeight": "Erfasse dein Gewicht, um Empfehlungen zu sehen"
   },
   "calorias": {
+    "chainBlend": "Verwendeter Verbrauch: {data} % dein gemessener Verbrauch ({measured}) + {profile} % der deines Profils ({tdee}) ≈ {expenditure} kcal/Tag",
+    "chainProfile": "Verwendeter Verbrauch: der deines Profils, GU {bmr} × Aktivität {pal} = {tdee} kcal/Tag (noch kein gemessener Verbrauch)",
+    "chainGoal": "{goal}: {offset} kcal ({offsetMin} bis {offsetMax}) → im Schnitt {target}, Bereich {min}–{max}",
     "recommendationTitle": "Kalorienempfehlung",
     "noProfile": "Gib deine Daten ein, um deine optimalen Kalorien zu kennen",
     "bmr": "Grundumsatz (GU)",
@@ -459,6 +477,7 @@
     "missingWeightSpan": "Tage, die deine Wiegungen abdecken: {days} (14 sind nötig, damit Wasserschwankungen den Trend nicht bestimmen)."
   },
   "metodologia": {
+    "onThisPage": "Auf dieser Seite",
     "title": "Methodik",
     "aiTitle": "KI-Schätzungen",
     "aiBody": [
@@ -473,11 +492,11 @@
     ],
     "intro": "Wie die Statistiken und die Kalorien- und Proteinempfehlungen berechnet werden, mit den genauen Formeln und den Quellen, auf denen sie beruhen.",
     "scaleVsTrendTitle": "Waagengewicht vs. Trend",
-    "scaleVsTrendBody": "Das «aktuelle Gewicht» ist deine letzte Messung im Zeitraum. Der «Trend» ist der jüngste Wert des gleitenden 7-Tage-Durchschnitts. Die «Veränderung» vergleicht die erste und die letzte Messung des gewählten Zeitraums, und das «Tempo» ist die Steigung der unten beschriebenen Regression.",
+    "scaleVsTrendBody": "Das «aktuelle Gewicht» ist deine letzte Messung im Zeitraum. Der «Trend» ist der jüngste Wert des gleitenden 7-Tage-Durchschnitts. Die «Veränderung» vergleicht die erste und die letzte Messung des gewählten Zeitraums, und das «Tempo» ist die Steigung der unten beschriebenen Regression. Trend und Veränderung nutzen nur die Wiegungen, die so gemacht wurden wie die meisten im Zeitraum (nüchtern oder nicht): Eine Wiegung nach dem Essen zeigt mehr an, ohne dass du zugenommen hast, und der Durchschnitt mit den anderen gleicht das nicht aus. Im Diagramm sind die übrigen hohle Punkte. Das Tempo nutzt alle, vergleicht aber jede Art nur mit ihresgleichen.",
     "movingAvgTitle": "Gleitender 7-Tage-Durchschnitt (Trend)",
     "movingAvgFormulaLabel": "Für jeden Tag d:",
     "movingAvgWindow": "W(d) = { Einträge mit Datum in [d − 6, d] }",
-    "movingAvgBody": "Alle Einträge, deren Datum im 7-Tage-Fenster mit Ende d liegt, werden gemittelt. Tage ohne Einträge zählen nicht und werden nicht mit Nullen aufgefüllt: Wenn du dich in jener Woche nur 3-mal gewogen hast, ist es der Durchschnitt dieser 3 Einträge. Das glättet das tägliche Rauschen (Wasser, Salz, Darminhalt) und zeigt den echten Trend, der sich langsam ändert. Regelmäßiges Wiegen geht mit mehr Gewichtsverlust einher, ohne negative psychische Folgen (Zheng et al. 2015); der Durchschnitt macht aus diesen Messungen einen Trend, der nicht mit jeder Tageszahl springt. The Hacker's Diet hat dieselbe Idee eines «Trendgewichts» mit einem exponentiellen gleitenden Durchschnitt bekannt gemacht; hier wird ein einfacher 7-Tage-Durchschnitt verwendet, der leichter zu lesen ist.",
+    "movingAvgBody": "Die Einträge, deren Datum im 7-Tage-Fenster mit Ende d liegt, werden gemittelt (nur die, die wie die meisten gemacht wurden, siehe oben). Tage ohne Einträge zählen nicht und werden nicht mit Nullen aufgefüllt: Wenn du dich in jener Woche nur 3-mal gewogen hast, ist es der Durchschnitt dieser 3 Einträge. Das glättet das tägliche Rauschen (Wasser, Salz, Darminhalt) und zeigt den echten Trend, der sich langsam ändert. Regelmäßiges Wiegen geht mit mehr Gewichtsverlust einher, ohne negative psychische Folgen (Zheng et al. 2015); der Durchschnitt macht aus diesen Messungen einen Trend, der nicht mit jeder Tageszahl springt. The Hacker's Diet hat dieselbe Idee eines «Trendgewichts» mit einem exponentiellen gleitenden Durchschnitt bekannt gemacht; hier wird ein einfacher 7-Tage-Durchschnitt verwendet, der leichter zu lesen ist.",
     "rateTitle": "Wöchentliches Tempo (kg/Woche)",
     "rateFormulaLabel": "Steigung nach der Methode der kleinsten Quadrate:",
     "rateFormula": "Tempo = β × 7 [kg/Woche]",
@@ -764,6 +783,7 @@
     "estimateQuery": "«{q}» mit KI schätzen"
   },
   "perfil": {
+    "withLatestWeight": "Mit deinem letzten Gewicht: {kg} kg",
     "title": "Profil",
     "description": "Dein Ziel, deine Körperdaten und die Kalorien- und Proteinempfehlungen.",
     "backToSettings": "Zurück zu den Einstellungen",
@@ -810,6 +830,9 @@
     "action": "Installieren"
   },
   "common": {
+    "backTo": "Zurück zu {page}",
+    "backToToday": "Zurück zu heute",
+    "notifications": "Benachrichtigungen",
     "today": "Heute",
     "loading": "Wird geladen…",
     "retry": "Erneut versuchen",

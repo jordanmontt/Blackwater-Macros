@@ -11,7 +11,8 @@ import { t } from "@/i18n";
  *  - buscar encuentra alimentos genéricos en español (también por sinónimos:
  *    «banana» → «Plátano») y productos de Open Food Facts,
  *  - elegir uno pide la cantidad y abre el formulario de revisión ya relleno,
- *    que se guarda como una comida normal por ingredientes,
+ *    con la unidad dentro de cada número (kcal, g proteína…), que se guarda como
+ *    una comida normal por ingredientes,
  *  - el código de barras se puede escribir si no hay cámara; si no existe, lo dice,
  *  - desde el formulario, «Buscar alimento» añade otro alimento a la misma comida.
  */
@@ -123,7 +124,13 @@ describe("Añadir comida: buscar y código de barras", () => {
 
     const form = await screen.findByRole("dialog", { name: t.meal.newTitle });
     expect(within(form).getByLabelText(t.meal.titleLabel)).toHaveValue("Plátano");
-    expect(within(form).getByDisplayValue("120 g")).toBeInTheDocument();
+    expect(within(form).getByRole("textbox", { name: t.meal.quantityLabel })).toHaveValue("120 g");
+    // Every number keeps its unit once filled in («107 kcal», not a bare «107»), for the eye and screen readers.
+    expect(within(form).getByRole("textbox", { name: t.meal.caloriesPlaceholder })).toHaveValue("107");
+    expect(within(form).getByRole("textbox", { name: t.meal.proteinPlaceholder })).toHaveValue("1,3");
+    expect(within(form).getByRole("textbox", { name: t.meal.carbsPlaceholder })).toHaveValue("27,4");
+    expect(within(form).getByRole("textbox", { name: t.meal.fatPlaceholder })).toHaveValue("0,4");
+    expect(within(form).getByText(t.meal.proteinPlaceholder)).toBeVisible();
     await user.click(within(form).getByRole("button", { name: t.meal.save }));
 
     await waitFor(() =>

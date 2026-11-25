@@ -14,8 +14,9 @@ interface DayNavigatorProps {
 
 /**
  * ‹ date › with the arrows at fixed places: the date takes the space between them and
- * the «Hoy» line is always reserved, so a longer date or another day never moves the
- * arrows (tapping back through many days keeps the thumb on the same spot).
+ * the line under it is always there — «Hoy» on today, «Volver a hoy» on any other day —
+ * so a longer date or another day never moves the arrows (tapping back through many
+ * days keeps the thumb on the same spot). Double-clicking the date also goes to today.
  */
 export function DayNavigator({ value, onChange }: DayNavigatorProps) {
   const today = useMemo(() => todayKey(), []);
@@ -40,9 +41,19 @@ export function DayNavigator({ value, onChange }: DayNavigatorProps) {
         }}
       >
         <span className="truncate text-sm font-medium">{formatDateKeyLong(value)}</span>
-        <span className={isToday ? "text-xs text-primary" : "invisible text-xs"} aria-hidden={!isToday}>
-          {t.common.today}
-        </span>
+        {isToday ? (
+          <span className="text-xs text-primary">{t.common.today}</span>
+        ) : (
+          // Same line, same height: the arrows never move. The padding, taken back by the
+          // negative margin, makes the target 44 px tall without growing the line.
+          <button
+            type="button"
+            className="-mx-2 -my-3.5 px-2 py-3.5 text-xs text-primary hover:underline"
+            onClick={() => onChange(today)}
+          >
+            {t.common.backToToday}
+          </button>
+        )}
       </div>
       <Button
         variant="ghost"

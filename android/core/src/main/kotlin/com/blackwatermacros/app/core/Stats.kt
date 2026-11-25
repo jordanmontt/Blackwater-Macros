@@ -14,15 +14,17 @@ data class DataPoint(val date: String, val value: Double)
  * Trailing moving average over a calendar window. For each point, averages all
  * points whose date falls within `windowDays` ending at that point's date
  * (inclusive). Tolerant of gaps: missing days simply contribute no value.
+ * `counts`: which points enter the averages (all when null); every point still
+ * gets the average of its window.
  */
-fun movingAverageByDays(points: List<DataPoint>, windowDays: Int): List<Double?> {
+fun movingAverageByDays(points: List<DataPoint>, windowDays: Int, counts: List<Boolean>? = null): List<Double?> {
     val windowStartOffsets = points.map { addDaysToKey(it.date, -(windowDays - 1)) }
     return points.mapIndexed { i, point ->
         val start = windowStartOffsets[i]
         val valuesInWindow = ArrayList<Double>()
         for (j in 0..i) {
             // ISO YYYY-MM-DD keys compare chronologically as strings.
-            if (points[j].date >= start) {
+            if (points[j].date >= start && counts?.get(j) != false) {
                 valuesInWindow.add(points[j].value)
             }
         }

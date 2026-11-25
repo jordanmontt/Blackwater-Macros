@@ -32,6 +32,7 @@ import { AiError } from "@/lib/ai/client";
 import { downscalePhoto } from "@/lib/ai/images";
 import { readLabel } from "@/lib/ai/label";
 import { isAiReady, useAiSettings } from "@/lib/ai/settings";
+import { useDemoMode } from "@/lib/use-demo-mode";
 import { formatNumber } from "@/i18n/format";
 import { cn, normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -130,6 +131,7 @@ export function NewProductForm({
   onSave: (product: NewProduct, photo: AiImage | null, lang: string) => void;
 }) {
   const settings = useAiSettings();
+  const demoMode = useDemoMode();
   const aiReady = isAiReady(settings);
   const start = initial ?? correction?.base ?? null;
   const [name, setName] = useState(start?.name ?? known.name ?? "");
@@ -332,7 +334,7 @@ export function NewProductForm({
                 type="button"
                 onClick={() => setViewing(true)}
                 aria-label={t.newProduct.viewPhoto}
-                className="relative size-19 shrink-0 overflow-hidden rounded-lg border outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="relative size-19 shrink-0 overflow-hidden rounded-lg border outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- an in-memory data URL or Open Food Facts' image */}
                 <img
@@ -562,7 +564,13 @@ export function NewProductForm({
       ) : null}
 
       <p className="border-t pt-3 text-xs text-muted-foreground">
-        {correction ? t.newProduct.consentCorrection : existing ? t.newProduct.consentExisting : t.newProduct.consent}
+        {demoMode
+          ? t.newProduct.demoNotSent
+          : correction
+            ? t.newProduct.consentCorrection
+            : existing
+              ? t.newProduct.consentExisting
+              : t.newProduct.consent}
       </p>
       {askPhoto ? (
         <div ref={photoReminder} className="space-y-3 rounded-xl border border-primary/50 bg-primary/5 p-3">

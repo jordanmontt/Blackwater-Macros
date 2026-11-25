@@ -95,8 +95,6 @@
     <string name="error_walking_minutes">Entre 0 y 480 min</string>
     <string name="rec_calories_title">Recomendación de calorías</string>
     <string name="rec_protein_title">Recomendación de proteína</string>
-    <string name="rec_bmr">Metabolismo basal (TMB): %1$s kcal/día</string>
-    <string name="rec_tdee">Gasto calórico diario estimado (TDEE): %1$s kcal/día</string>
     <string name="rec_per_kg">%1$s – %2$s g/kg</string>
     <string name="rec_per_kg_lean">%1$s – %2$s g/kg de masa magra (%3$s kg)</string>
     <string name="rec_per_kg_reference">%1$s – %2$s g/kg de tu peso de referencia con IMC 25 (%3$s kg)</string>
@@ -143,9 +141,7 @@
     <string name="admin_error_password">La contraseña debe tener al menos 8 caracteres.</string>
     <string name="meth_intro">Cómo se calculan las estadísticas y las recomendaciones de calorías y proteína, con las fórmulas exactas y las referencias en las que se basan.</string>
     <string name="meth_scale_title">Peso en báscula vs tendencia</string>
-    <string name="meth_scale_body">El «peso actual» es tu último pesaje del periodo. La «tendencia» es el valor más reciente de la media móvil de 7 días. El «cambio» compara el primer y el último pesaje del periodo seleccionado, y el «ritmo» es la pendiente de la regresión descrita más abajo.</string>
     <string name="meth_ma_window">W(d) = { entradas con fecha en [d − 6, d] }</string>
-    <string name="meth_ma_body">Se promedian todas tus entradas cuya fecha cae dentro de la ventana de 7 días que termina en d. Los días sin registro no cuentan ni se rellenan con ceros: si solo te pesaste 3 veces esa semana, la media es de esas 3 entradas. Esto atenúa el ruido diario (agua, sal, contenido intestinal) y deja ver la tendencia real, que cambia despacio. Pesarse con regularidad se asocia a una mayor pérdida de peso, sin efectos psicológicos negativos (Zheng et al. 2015); la media convierte esos pesajes en una tendencia que no salta con el dato de cada día. The Hacker\'s Diet popularizó esta misma idea de «peso de tendencia», aunque con una media móvil exponencial; aquí se usa una media simple de 7 días, más fácil de interpretar.</string>
     <string name="meth_rate_title">Ritmo semanal (kg/semana)</string>
     <string name="meth_rate_formula">ritmo = β × 7 [kg/semana]</string>
     <string name="meth_rate_body">x son los días transcurridos desde la primera entrada del rango e y el peso registrado. La pendiente β se multiplica por 7 para expresarla por semana. La regresión usa tus entradas crudas del rango visible: captura mejor la dirección a largo plazo que comparar solo dos puntos concretos.</string>

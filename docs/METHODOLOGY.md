@@ -646,10 +646,23 @@ so the measured value comes out somewhat low (§2.4): the target errs on the low
 
 ## 4. Progress statistics (`stats.ts`, `stats-builder.ts`, `progress.ts`)
 
-- **Current weight:** the latest weigh-in in the selected period.
-- **Change:** the last minus the first weigh-in of the period.
-- **Trend (7-day moving average):** for each weigh-in on day d, the mean of all entries
-  dated d − 6 … d. Days without entries are neither counted nor filled with zeros.
+- **Current weight:** the latest weigh-in in the selected period, as the scale read it.
+- **Usual weigh-ins.** The trend and the change use only the weigh-ins taken the way most
+  of the period's were, fasted or not (a tie counts as fasted). Research weighs people
+  the same way every time (morning, after voiding, before eating, light clothing, the same
+  scale); trial protocols reschedule a visit rather than use a non-fasted weight. A
+  weigh-in after a meal is not random noise but a steady extra amount (the weight rises
+  about 0.5–1 kg through the day with food and drink), so averaging it with the others
+  does not cancel it. The two accepted answers are to analyse only the standard
+  measurements, or to give each condition its own level and compare within it. The
+  trend and the change take the first: with only a few weigh-ins of the other kind their
+  level is too noisy to estimate, and a corrected line would show weights the scale never
+  read. The rate takes the second (§3). On the chart the others are hollow dots, with one
+  line saying so.
+- **Change:** the last minus the first usual weigh-in of the period.
+- **Trend (7-day moving average):** for each weigh-in on day d, the mean of the usual
+  entries dated d − 6 … d. Days without entries are neither counted nor filled with zeros.
+  The other weigh-ins also get that value, so the line carries on past them.
   - Regular self-weighing is associated with more weight loss and no negative
     psychological effects (Zheng et al. 2015). The average turns those weigh-ins into a
     trend that does not jump with each day's number.
@@ -658,8 +671,8 @@ so the measured value comes out somewhat low (§2.4): the target errs on the low
 - **Weekly rate:** the slope of the weigh-ins in the visible range, compared only within
   weigh-ins taken alike (§3), × 7. It captures the long-term direction better than two
   single points, and a switch to fasted weigh-ins doesn't show as a loss.
-- **Raw entries versus daily means.** The moving average uses every entry, so a day
-  weighed twice counts twice. That is harmless for a display. The rate, the measured
+- **Raw entries versus daily means.** The moving average uses every usual entry, so a day
+  weighed twice that way counts twice. That is harmless for a display. The rate, the measured
   expenditure and the coach projection first average same-day weigh-ins taken alike into
   one point.
 - **Macro averages:** the mean over the days with food logged (calories > 0), shown with

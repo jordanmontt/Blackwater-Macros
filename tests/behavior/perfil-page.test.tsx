@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PerfilPage from "@/app/ajustes/perfil/page";
 import { formatTemplate, t } from "@/i18n";
+import { formatNumber } from "@/i18n/format";
 import { clearCache } from "@/lib/client-cache";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import { buildStatsFromData } from "@/lib/core/stats-builder";
@@ -124,7 +125,7 @@ describe("pantalla Perfil", () => {
     expect(await screen.findByText(t.ajustes.proteinRecLabel)).toBeInTheDocument();
   });
 
-  it("con el perfil completo explica el factor de actividad y qué falta para el gasto medido", async () => {
+  it("con el perfil completo dice de dónde sale su gasto (TMB × actividad) y qué falta para el gasto medido", async () => {
     vi.mocked(api.session).mockResolvedValueOnce({
       username: "ana",
       isAdmin: false,
@@ -140,8 +141,8 @@ describe("pantalla Perfil", () => {
     });
     render(<PerfilPage />);
 
-    // 3 × 60 min de gym y 30 min de caminata → 1,49 × TMB
-    expect(await screen.findByText("Factor de actividad: 1,49 × TMB")).toBeInTheDocument();
+    // 3 × 60 min de gym y 30 min de caminata → 1,49 × TMB, in one line until there is a measured expenditure.
+    expect(await screen.findByText(/^Gasto usado: el de tu perfil, TMB \d+ × actividad 1,49 = \d+ kcal\/día/)).toBeInTheDocument();
     // Sin comidas ni pesajes recientes: dice exactamente qué falta para comparar perfil y datos.
     expect(await screen.findByText(t.expenditureCheck.notEnoughIntro)).toBeInTheDocument();
     expect(screen.getByText(formatTemplate(t.expenditureCheck.missingMeals, { days: 0 }))).toBeInTheDocument();
@@ -205,12 +206,12 @@ describe("pantalla Perfil", () => {
     measuredScenario();
     render(<PerfilPage />);
 
-    // Profile 2608 ± 10 % and measured 3370 ± 177: the data weigh 89 % → 3288.
-    const used = await screen.findByRole("link", { name: (name) => name.startsWith(t.calorias.targetExpenditure) });
-    expect(used).toHaveTextContent(formatTemplate(t.calorias.targetExpenditureValue, { n: "3288", share: "89" }));
-    expect(screen.getByText("3188 – 3388 kcal/día")).toBeInTheDocument();
-    // All weigh-ins taken alike: nothing to say about it.
-    expect(screen.queryByTestId("weigh-in-conditions")).toBeNull();
+    // Profile 2608 ± 10 % and measured 3370 ± 177: the data weigh 89 % → 3288, maintenance 3188–3388.
+    // The range is the headline, as on Today; the BMR, TDEE and measured lines are in «Ver el cálculo».
+    expect(await screen.findByTestId("profile-target-range")).toHaveTextContent("3188 – 3388");
+    expect(screen.getByText((_, el) => el?.tagName === "P" && el.textContent === `${formatTemplate(t.calorias.estimatedAverageValue, { n: "3288" })} · ${formatTemplate(t.perfil.withLatestWeight, { kg: formatNumber(80, 1) })}`)).toBeInTheDocument();
+    expect(screen.queryByText(t.calorias.measuredTdee, { exact: false })).toBeNull();
+    expect(screen.queryByText(/TMB \d+ × actividad/)).toBeNull();
   });
 
   it("con pesajes en ayunas y sin ayunar dice que solo compara los tomados igual", async () => {
@@ -218,7 +219,12 @@ describe("pantalla Perfil", () => {
     measuredScenario((i) => (i < 17 ? { fasted: false, weightKg: 80 + (0.7 / 7) * (34 - i) + 0.8 } : {}));
     render(<PerfilPage />);
 
-    expect(await screen.findByTestId("weigh-in-conditions")).toHaveTextContent(t.calorias.conditionsFasting);
+    // Said in «Ver el cálculo», next to the measured expenditure it explains.
+    const user = userEvent.setup();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(`^(${t.expenditureCheck.seeCalculation}|${t.expenditureCheck.why.replace("?", "\\?")})$`) }),
+    );
+    expect(await screen.findByRole("dialog")).toHaveTextContent(t.calorias.conditionsFasting);
   });
 
   it("con el perfil incompleto pide los datos que faltan", async () => {

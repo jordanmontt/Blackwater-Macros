@@ -3,7 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import HoyPage from "@/app/page";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
-import { formatNumber } from "@/i18n/format";
+import { formatDateKeyWeekdayShort, formatNumber } from "@/i18n/format";
 import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
 
 /**
@@ -95,6 +95,22 @@ describe("pantalla Hoy", () => {
     expect(screen.getByText("Comida")).toBeInTheDocument();
   });
 
+  it("para un lector de pantalla, los botones nombran su comida y mover comidas se explica en el idioma de la app", async () => {
+    render(<HoyPage />);
+    await screen.findByText("Desayuno");
+
+    for (const title of ["Desayuno", "Comida"]) {
+      expect(screen.getByRole("button", { name: formatTemplate(t.meal.editNamed, { title }) })).toHaveAttribute(
+        "title",
+        formatTemplate(t.meal.editNamed, { title }),
+      );
+      expect(screen.getByRole("button", { name: formatTemplate(t.meal.deleteNamed, { title }) })).toBeInTheDocument();
+    }
+    // dnd-kit's own instructions are English («To pick up a draggable item…»).
+    expect(screen.getByText(t.hoy.dragInstructions)).toBeInTheDocument();
+    expect(screen.queryByText(/To pick up a draggable item/)).toBeNull();
+  });
+
   it("cada comida muestra sus propias calorías y proteína", async () => {
     render(<HoyPage />);
 
@@ -118,7 +134,10 @@ describe("pantalla Hoy", () => {
     ]);
     render(<HoyPage />);
 
-    const row = (await screen.findByText("Pechuga de pollo a la plancha")).closest("li")!;
+    const name = await screen.findByText("Pechuga de pollo a la plancha");
+    // The whole name, on up to two lines before «…» (one line left ~13 characters on a phone).
+    expect(name).toHaveClass("line-clamp-2");
+    const row = name.closest("li")!;
     expect(within(row).getByText("150 g")).toBeInTheDocument();
     expect(within(row).getByText("250 kcal")).toBeInTheDocument();
     expect(within(row).getByText(formatTemplate(t.hoy.proteinShort, { n: formatNumber(35.2, 1) }))).toBeInTheDocument();
@@ -136,6 +155,20 @@ describe("pantalla Hoy", () => {
 
     expect(api.listMeals).toHaveBeenLastCalledWith(expect.any(String), expect.any(String));
     expect(vi.mocked(api.listMeals).mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("en otro día, «Añadir comida» y «Nueva comida» dicen a qué día va la comida", async () => {
+    const user = userEvent.setup();
+    render(<HoyPage />);
+    await screen.findByText("Desayuno");
+    await user.click(screen.getByRole("button", { name: t.common.previousDay }));
+    await screen.findByText("Desayuno");
+    const day = formatDateKeyWeekdayShort(addDaysToKey(todayKey(), -1));
+
+    await user.click(screen.getAllByRole("button", { name: t.hoy.addMeal })[0]);
+    const sheet = await screen.findByRole("dialog", { name: `${t.addFood.title} · ${day}` });
+    await user.click(within(sheet).getByRole("button", { name: new RegExp(`^${t.addFood.manual}`) }));
+    expect(await screen.findByRole("dialog", { name: `${t.meal.newTitle} · ${day}` })).toBeInTheDocument();
   });
 
   async function openAddSheet(user: ReturnType<typeof userEvent.setup>) {
@@ -213,7 +246,7 @@ describe("pantalla Hoy", () => {
     render(<HoyPage />);
     await screen.findByText("Desayuno");
 
-    await user.click(screen.getAllByRole("button", { name: t.meal.delete })[0]);
+    await user.click(screen.getByRole("button", { name: formatTemplate(t.meal.deleteNamed, { title: "Desayuno" }) }));
     const confirm = await screen.findByRole("alertdialog");
     expect(vi.mocked(api.deleteMeal)).not.toHaveBeenCalled();
     await user.click(within(confirm).getByRole("button", { name: t.meal.delete }));
@@ -236,7 +269,7 @@ describe("pantalla Hoy", () => {
     render(<HoyPage />);
     await screen.findByText("Desayuno");
 
-    await user.click(screen.getAllByRole("button", { name: t.meal.saveAsTemplate })[0]);
+    await user.click(screen.getByRole("button", { name: formatTemplate(t.meal.saveAsTemplateNamed, { title: "Desayuno" }) }));
     expect(vi.mocked(api.createTemplate)).toHaveBeenCalledWith({
       name: "Desayuno",
       title: "Desayuno",

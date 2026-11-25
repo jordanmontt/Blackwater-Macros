@@ -67,7 +67,6 @@ fun ProfileScreen(onBack: () -> Unit, onOpenMethodology: (section: String?) -> U
                     RecommendationsCard(
                         loaded,
                         onOpenCheck = { onOpenMethodology(CHECK_SECTION) },
-                        onOpenAdaptive = { onOpenMethodology(ADAPTIVE_SECTION) },
                     )
                     Spacer(Modifier.height(24.dp))
                 }
@@ -207,7 +206,7 @@ private fun RowScope.NumberField(
 }
 
 @Composable
-private fun RecommendationsCard(loaded: ProfileUiState.Loaded, onOpenCheck: () -> Unit, onOpenAdaptive: () -> Unit) {
+private fun RecommendationsCard(loaded: ProfileUiState.Loaded, onOpenCheck: () -> Unit) {
     val calorie = loaded.calorieRec
     val protein = loaded.proteinRec
     if (calorie == null && protein == null) return
@@ -223,32 +222,26 @@ private fun RecommendationsCard(loaded: ProfileUiState.Loaded, onOpenCheck: () -
                         goal = calorie.goal,
                         rangeValue = "${formatNumber(calorie.targetMin)} – ${formatNumber(calorie.targetMax)}",
                         rangeUnit = kcalDay,
-                        detail = stringResource(R.string.rec_estimated_average, "${formatNumber(calorie.target)} $kcalDay"),
+                        // The range first; the weight the BMR uses next to the average (web the same).
+                        detail = stringResource(R.string.rec_estimated_average, "${formatNumber(calorie.target)} $kcalDay") +
+                            (loaded.inputs?.let { " · " + stringResource(R.string.profile_with_latest_weight, formatNumber(it.weightKg, 1)) } ?: ""),
                         current = 0.0,
                         rangeMin = calorie.targetMin,
                         rangeMax = calorie.targetMax,
                         showBar = false,
                     )
-                    CardDescription(stringResource(R.string.rec_bmr, formatNumber(calorie.bmr)))
-                    CardDescription(stringResource(R.string.rec_activity_factor, formatNumber(calorie.activityFactor, 2)))
-                    CardDescription(stringResource(R.string.rec_tdee, formatNumber(calorie.tdee)))
-                    val measured = loaded.expenditure
-                    if (measured != null) {
-                        CardDescription(
-                            stringResource(R.string.rec_measured_tdee, formatNumber(measured.tdee), formatNumber(measured.margin)),
-                        )
-                        val rate = measured.weightChangePerWeek
+                    // BMR, activity, TDEE and the measured expenditure are in «Ver el cálculo»; before
+                    // there is a measurement, the profile's formula in one line.
+                    if (loaded.expenditure == null) {
                         CardDescription(
                             stringResource(
-                                R.string.rec_measured_detail,
-                                formatNumber(measured.avgIntake),
-                                formatNumber(measured.loggedDays.toDouble()),
-                                (if (rate > 0) "+" else "") + formatNumber(rate, 2),
+                                R.string.rec_chain_profile,
+                                formatNumber(calorie.bmr),
+                                formatNumber(calorie.activityFactor, 2),
+                                formatNumber(calorie.tdee),
                             ),
                         )
-                        weighInConditionsText(measured)?.let { CardDescription(it) }
                     }
-                    TargetExpenditureLine(calorie, onOpenAdaptive)
                     ExpenditureCheckStatus(loaded.check, loaded.inputs, onOpenCheck)
                 }
             }

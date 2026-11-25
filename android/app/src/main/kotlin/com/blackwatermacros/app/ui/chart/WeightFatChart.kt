@@ -81,7 +81,8 @@ enum class WeightChartSeries { WEIGHT, BODY_FAT }
 /**
  * Progreso's weight chart, like the web `WeightFatChart`. [WeightChartSeries.WEIGHT]:
  * the 7-day trend, the line that says where the weight is going, bold; each weigh-in
- * a light dot with no line between them (day-to-day water and food make it zig-zag).
+ * a light dot with no line between them (day-to-day water and food make it zig-zag),
+ * a ring when it was taken otherwise than most and stays out of the trend.
  * [WeightChartSeries.BODY_FAT]: the body fat measurements on their own axis. One axis
  * at a time: kg and % on two axes with overlapping ranges were hard to read.
  */
@@ -94,6 +95,8 @@ fun WeightFatChart(
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val axisColor = MaterialTheme.colorScheme.outlineVariant
     val surfaceColor = MaterialTheme.colorScheme.surface
+    // The card's colour (`AppCard`), inside a ring.
+    val cardColor = MaterialTheme.colorScheme.surfaceContainer
     val weighInColor = labelColor.copy(alpha = 0.7f)
     val weightLabel = stringResource(R.string.chart_weigh_ins)
     val trendLabel = stringResource(R.string.chart_trend)
@@ -189,11 +192,22 @@ fun WeightFatChart(
                 )
             }
             dots.forEach { (i, v) ->
-                drawCircle(
-                    color = if (isWeight) weighInColor else Chart2,
-                    radius = 2.5.dp.toPx(),
-                    center = Offset(xIndex(i), y(v)),
-                )
+                if (isWeight && !data[i].inTrend) {
+                    // Taken otherwise than most: a ring, outside the trend (web `WeighInDot`).
+                    drawCircle(color = cardColor, radius = 2.75.dp.toPx(), center = Offset(xIndex(i), y(v)))
+                    drawCircle(
+                        color = weighInColor,
+                        radius = 2.75.dp.toPx(),
+                        center = Offset(xIndex(i), y(v)),
+                        style = Stroke(width = 1.25.dp.toPx()),
+                    )
+                } else {
+                    drawCircle(
+                        color = if (isWeight) weighInColor else Chart2,
+                        radius = 2.5.dp.toPx(),
+                        center = Offset(xIndex(i), y(v)),
+                    )
+                }
             }
             drawDateLabels(data.map { it.date }, ::xIndex, axisPaint, chartWidth, plotHeight)
 

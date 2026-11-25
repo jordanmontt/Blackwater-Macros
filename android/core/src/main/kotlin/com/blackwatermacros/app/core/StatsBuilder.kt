@@ -77,15 +77,21 @@ fun buildStatsFromData(
         DataPoint(date = localDateOf(row.measuredAt), value = row.weightKg)
     }
 
-    val trendValues = movingAverageByDays(weightPoints, TREND_WINDOW_DAYS)
+    // The trend and the change use only the weigh-ins taken the usual way: one after
+    // dinner weighs more without any weight gained, and averaging doesn't cancel that.
+    val usuallyFasted = usualCondition(inRange)
+    val inTrend = inRange.map { it.fasted == usuallyFasted }
+    val trendValues = movingAverageByDays(weightPoints, TREND_WINDOW_DAYS, inTrend)
     val weightSeries = weightPoints.mapIndexed { i, point ->
         WeightPoint(
             date = point.date,
             weight = round2(point.value),
             // Two decimals like the weight: at 0.1 kg the chart's bold trend line drew stairs.
             trend = trendValues[i]?.let { round2(it) },
+            inTrend = inTrend[i],
         )
     }
+    val trendPoints = weightPoints.filterIndexed { i, _ -> inTrend[i] }
 
     // --- Body fat % series (only entries with valid body fat data) ---
     val bodyFatRows = inRange.filter { it.bodyFatPct != null && it.bodyFatPct!! > 0 && it.bodyFatPct!! < 100 }
@@ -102,7 +108,8 @@ fun buildStatsFromData(
     }
 
     val lastValue = weightPoints.lastOrNull()?.value
-    val firstValue = weightPoints.firstOrNull()?.value
+    val firstUsual = trendPoints.firstOrNull()?.value
+    val lastUsual = trendPoints.lastOrNull()?.value
     val lastTrend = trendValues.reversed().firstOrNull { it != null }
     // The rate compares only weigh-ins taken alike, as the measured expenditure does.
     val ratePerWeekKg = slopeWithinGroups(
@@ -120,7 +127,7 @@ fun buildStatsFromData(
     val weightSummary = CompositionStats(
         currentWeightKg = lastValue?.let { round2(it) },
         currentTrendKg = lastTrend?.let { round1(it) },
-        changeSinceStartKg = if (firstValue != null && lastValue != null) round2(lastValue - firstValue) else null,
+        changeSinceStartKg = if (firstUsual != null && lastUsual != null) round2(lastUsual - firstUsual) else null,
         ratePerWeekKg = ratePerWeekKg?.let { round2(it) },
         minKg = if (weightPoints.isNotEmpty()) round2(weightPoints.minOf { it.value }) else null,
         maxKg = if (weightPoints.isNotEmpty()) round2(weightPoints.maxOf { it.value }) else null,
@@ -166,3 +173,9 @@ private fun <T> maxBy(items: List<T>, selector: (T) -> Double): T? {
 /** The local calendar day (in the system default zone) of an instant. */
 private fun localDateOf(instant: Instant): String =
     toDateKey(instant.atZone(ZoneId.systemDefault()).toLocalDate())
+
+/**
+ * How most weigh-ins of the range were taken: fasted (true) or not. A tie counts
+ * as fasted, the recommended way (mirror of the web's `usualCondition`).
+ */
+private fun usualCondition(rows: List<StatsWeight>): Boolean = rows.count { it.fasted } * 2 >= rows.size

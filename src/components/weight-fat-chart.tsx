@@ -2,7 +2,7 @@
 
 import { CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatDateKeyShort, formatNumber } from "@/i18n/format";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 import { ChartLegend } from "./chart-legend";
 import { TOOLTIP_STYLE } from "./chart-style";
 
@@ -10,6 +10,8 @@ export interface WeightFatRow {
   date: string;
   weight?: number | null;
   weightTrend?: number | null;
+  /** False: taken otherwise than most weigh-ins (fasted or not); drawn hollow, outside the trend. */
+  inTrend?: boolean;
   bodyFatPct?: number | null;
 }
 
@@ -23,7 +25,8 @@ const BODY_FAT_COLOR = "var(--chart-2)";
 /**
  * Progreso's weight chart. `weight`: the 7-day trend, the line that says where
  * the weight is going, bold; each weigh-in a light dot with no line between
- * them (day-to-day water and food make it zig-zag). `bodyFat`: the body fat
+ * them (day-to-day water and food make it zig-zag), hollow when it was taken
+ * otherwise than most and stays out of the trend. `bodyFat`: the body fat
  * measurements on their own axis. One axis at a time: kg and % on two axes
  * with overlapping ranges were hard to read.
  */
@@ -33,7 +36,7 @@ export function WeightFatChart({ data, series = "weight" }: { data: WeightFatRow
     <div className="flex h-full flex-col gap-1">
       <div className="min-h-0 flex-1">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
+          <ComposedChart data={data} margin={{ top: 16, right: 12, bottom: 0, left: 0 }} title={chartSummary(data, series)}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="date"
@@ -66,7 +69,7 @@ export function WeightFatChart({ data, series = "weight" }: { data: WeightFatRow
                   dataKey="weight"
                   name={t.stats.legendWeight}
                   stroke="none"
-                  dot={{ r: 2.5, fill: WEIGH_IN_COLOR, stroke: "none" }}
+                  dot={WeighInDot}
                   activeDot={{ r: 4 }}
                   isAnimationActive={false}
                 />
@@ -106,4 +109,31 @@ export function WeightFatChart({ data, series = "weight" }: { data: WeightFatRow
       />
     </div>
   );
+}
+
+/** A weigh-in: a filled dot, or a ring when it stays out of the trend. */
+function WeighInDot({ cx, cy, payload, index }: { cx?: number; cy?: number; payload?: WeightFatRow; index?: number }) {
+  if (cx === undefined || cy === undefined || payload?.weight == null) return <g key={index} />;
+  return payload.inTrend === false ? (
+    <circle key={index} cx={cx} cy={cy} r={2.75} fill="var(--card)" stroke={WEIGH_IN_COLOR} strokeWidth={1.25} />
+  ) : (
+    <circle key={index} cx={cx} cy={cy} r={2.5} fill={WEIGH_IN_COLOR} stroke="none" />
+  );
+}
+
+/** The chart in one sentence with the user's numbers, its name for screen readers. */
+export function chartSummary(data: WeightFatRow[], series: WeightChartSeries): string {
+  const isWeight = series === "weight";
+  const points = data
+    .map((row) => ({ date: row.date, value: isWeight ? (row.weightTrend ?? row.weight) : row.bodyFatPct }))
+    .filter((point): point is { date: string; value: number } => point.value !== null && point.value !== undefined);
+  const first = points[0];
+  const last = points.at(-1);
+  if (!first || !last) return isWeight ? t.stats.legendWeight : t.stats.legendBodyFat;
+  return formatTemplate(isWeight ? t.stats.weightChartSummary : t.stats.bodyFatChartSummary, {
+    from: formatNumber(first.value, 1),
+    to: formatNumber(last.value, 1),
+    start: formatDateKeyShort(first.date),
+    end: formatDateKeyShort(last.date),
+  });
 }

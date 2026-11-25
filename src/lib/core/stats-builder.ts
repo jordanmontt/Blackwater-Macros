@@ -84,13 +84,19 @@ export function buildStatsFromData(
     value: row.weightKg,
   }));
 
-  const trendValues = movingAverageByDays(weightPoints, TREND_WINDOW_DAYS);
+  // The trend and the change use only the weigh-ins taken the usual way: one after
+  // dinner weighs more without any weight gained, and averaging doesn't cancel that.
+  const usuallyFasted = usualCondition(inRange);
+  const inTrend = inRange.map((row) => isFasted(row) === usuallyFasted);
+  const trendValues = movingAverageByDays(weightPoints, TREND_WINDOW_DAYS, inTrend);
   const weightSeries = weightPoints.map((point, i) => ({
     date: point.date,
     weight: round2(point.value),
     // Two decimals like the weight: at 0.1 kg the chart's bold trend line drew stairs.
     trend: trendValues[i] === null ? null : round2(trendValues[i] as number),
+    inTrend: inTrend[i],
   }));
+  const trendPoints = weightPoints.filter((_, i) => inTrend[i]);
 
   // --- Body fat % series (only entries with valid body fat data) ---
   const bodyFatRows = inRange.filter(
@@ -108,7 +114,8 @@ export function buildStatsFromData(
   }));
 
   const lastValue = weightPoints.at(-1)?.value ?? null;
-  const firstValue = weightPoints[0]?.value ?? null;
+  const firstUsual = trendPoints[0]?.value ?? null;
+  const lastUsual = trendPoints.at(-1)?.value ?? null;
   const lastTrend = [...trendValues].reverse().find((v) => v !== null) ?? null;
   // The rate compares only weigh-ins taken alike, as the measured expenditure does.
   const slope = slopeWithinGroups(
@@ -132,7 +139,7 @@ export function buildStatsFromData(
     currentWeightKg: lastValue === null ? null : round2(lastValue),
     currentTrendKg: lastTrend === null ? null : round1(lastTrend),
     changeSinceStartKg:
-      firstValue !== null && lastValue !== null ? round2(lastValue - firstValue) : null,
+      firstUsual !== null && lastUsual !== null ? round2(lastUsual - firstUsual) : null,
     ratePerWeekKg: ratePerWeekKg === null ? null : round2(ratePerWeekKg),
     minKg: weightPoints.length
       ? round2(weightPoints.reduce((min, p) => Math.min(min, p.value), Infinity))
@@ -172,6 +179,21 @@ export function buildStatsFromData(
       avg: round2(week.avg),
     })),
   };
+}
+
+/**
+ * How most weigh-ins of the range were taken: fasted (true) or not. A tie counts
+ * as fasted, the recommended way. Someone who always weighs after eating has all
+ * their weigh-ins alike, so they all count.
+ */
+function usualCondition(rows: StatsWeight[]): boolean {
+  const fasted = rows.filter(isFasted).length;
+  return fasted * 2 >= rows.length;
+}
+
+/** Older rows without the flag count as fasted, as in `groupWeighIns`. */
+function isFasted(row: StatsWeight): boolean {
+  return row.fasted !== false;
 }
 
 function averageOf(values: number[]): number | null {

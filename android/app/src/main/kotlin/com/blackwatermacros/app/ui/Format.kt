@@ -51,6 +51,9 @@ fun formatDateLong(key: String): String =
 /** "Jun 15" / "15 jun". */
 fun formatDateShort(key: String): String = pattern("dMMM").format(LocalDate.parse(key))
 
+/** "Sun, Oct 4" / "dom, 4 oct": which day a new meal goes to, in a title (web `formatDateKeyWeekdayShort`). */
+fun formatDateWeekdayShort(key: String): String = pattern("EEEdMMM").format(LocalDate.parse(key))
+
 /** "Jun 15, 2026" / "15 jun 2026". */
 fun formatDateWithYear(key: String): String = pattern("dMMMy").format(LocalDate.parse(key))
 

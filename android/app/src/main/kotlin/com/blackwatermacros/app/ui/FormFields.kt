@@ -96,15 +96,16 @@ internal fun IngredientEditor(
                 )
             }
         }
+        // The unit stays inside each field («145 kcal»), so a filled-in row still says what each value is.
         Spacer(Modifier.height(5.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DecimalField(item.calories, stringResource(R.string.unit_kcal), Modifier.weight(1f)) { onChange(item.copy(calories = it)) }
-            DecimalField(item.protein, stringResource(R.string.macro_g_protein), Modifier.weight(1f)) { onChange(item.copy(protein = it)) }
+            DecimalField(item.calories, "0", Modifier.weight(1f), unit = stringResource(R.string.unit_kcal)) { onChange(item.copy(calories = it)) }
+            DecimalField(item.protein, "0", Modifier.weight(1f), unit = stringResource(R.string.macro_g_protein)) { onChange(item.copy(protein = it)) }
         }
         Spacer(Modifier.height(5.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DecimalField(item.carbs, stringResource(R.string.macro_g_carbs), Modifier.weight(1f)) { onChange(item.copy(carbs = it)) }
-            DecimalField(item.fat, stringResource(R.string.macro_g_fat), Modifier.weight(1f)) { onChange(item.copy(fat = it)) }
+            DecimalField(item.carbs, "0", Modifier.weight(1f), unit = stringResource(R.string.macro_g_carbs)) { onChange(item.copy(carbs = it)) }
+            DecimalField(item.fat, "0", Modifier.weight(1f), unit = stringResource(R.string.macro_g_fat)) { onChange(item.copy(fat = it)) }
         }
     }
 }
@@ -128,9 +129,19 @@ internal fun MacroTotalGrid(values: List<String>, onValue: (Int, String) -> Unit
     }
 }
 
+/** `unit`: shown at the end inside the field, as the web's `UnitField`; TalkBack reads it with the value. */
 @Composable
-private fun DecimalField(value: String, placeholder: String, modifier: Modifier, onValue: (String) -> Unit) {
-    CompactField(value = value, onValueChange = onValue, placeholder = placeholder, decimal = true, modifier = modifier)
+private fun DecimalField(value: String, placeholder: String, modifier: Modifier = Modifier, unit: String? = null, onValue: (String) -> Unit) {
+    CompactField(
+        value = value,
+        onValueChange = onValue,
+        placeholder = placeholder,
+        decimal = true,
+        modifier = modifier,
+        trailingIcon = unit?.let { text ->
+            { Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, softWrap = false) }
+        },
+    )
 }
 
 /**

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { CheckCircle2Icon, InfoIcon, ScaleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { KCAL_PER_KG, approximateGap, onlyWeighInsMissing, showsGapNotice } from
 import type { CalorieProfile, ExpenditureCheck, ExpenditureEstimate, Gender, MissingExpenditureData } from "@/lib/core/types";
 import { todayKey } from "@/lib/core/dates";
 import { useExpenditureNotices } from "@/lib/expenditure-notices";
+import { useExpenditureCheck } from "@/lib/use-measured-expenditure";
+import { useRecommendations } from "@/lib/use-recommendations";
 import { cn } from "@/lib/utils";
 
 /**
@@ -192,6 +194,28 @@ export function ExpenditureCheckStatus({
       </p>
       <ExpenditureCheckDialog open={open} onOpenChange={setOpen} check={check} inputs={inputs} />
     </div>
+  );
+}
+
+/**
+ * Anything that opens «Ver el cálculo» (Perfil's dialog: BMR, activity, TDEE, the
+ * measured expenditure and its ±, step by step with the user's numbers): the
+ * «Cómo se calculan» sheet on Today and Progreso's «Gasto medido» line. Plain
+ * text while there is nothing to show yet.
+ */
+export function ExpenditureCalculationButton({ children, className }: { children: ReactNode; className?: string }) {
+  const today = useRecommendations();
+  const check = useExpenditureCheck(today.calorieRec);
+  const [open, setOpen] = useState(false);
+  if (check === null) return <span className={className}>{children}</span>;
+  const inputs = formulaInputs(today.profile, today.latestWeight?.weightKg ?? null, new Date().getFullYear());
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className={className}>
+        {children}
+      </button>
+      <ExpenditureCheckDialog open={open} onOpenChange={setOpen} check={check} inputs={inputs} />
+    </>
   );
 }
 

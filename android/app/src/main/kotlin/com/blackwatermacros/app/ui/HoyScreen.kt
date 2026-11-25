@@ -47,9 +47,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
@@ -323,7 +325,12 @@ fun HoyScreen(
             appendRequest = null
         }
         MealFormSheet(
-            heading = stringResource(if (editing != null) R.string.meal_edit else R.string.meal_new),
+            heading = when {
+                editing != null -> stringResource(R.string.meal_edit)
+                // Another day is named, as in «Añadir comida».
+                day != todayKey() -> "${stringResource(R.string.meal_new)} · ${formatDateWeekdayShort(day)}"
+                else -> stringResource(R.string.meal_new)
+            },
             initial = editing?.toFormValue() ?: reviewInitial,
             prefilled = editing == null && reviewInitial != null,
             onDismiss = ::closeForm,
@@ -405,7 +412,7 @@ private fun EmptyDayContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        DaySummaryCard(day, totals, onOpenProfile, onOpenWeight, onOpenMethodology)
+        DaySummaryCard(day, totals, onOpenProfile, onOpenWeight, onOpenMethodology, nothingLogged = true)
         Spacer(Modifier.height(12.dp))
         Surface(
             onClick = onAdd,
@@ -475,13 +482,24 @@ internal fun DayNavigator(
             IconButton(onClick = onPrev) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = stringResource(R.string.day_previous))
             }
-            // Double-tap the date to jump back to today from any other day.
+            // On any other day the line under the date says «Volver a hoy», and a tap on the
+            // date (the line included: a big target) goes back; a double tap does too (web the same).
+            val backToToday = stringResource(R.string.day_back_to_today)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(8.dp))
-                    .pointerInput(onToday) { detectTapGestures(onDoubleTap = { onToday() }) }
+                    .pointerInput(onToday, isToday) {
+                        detectTapGestures(onTap = { if (!isToday) onToday() }, onDoubleTap = { onToday() })
+                    }
+                    .then(
+                        if (isToday) Modifier
+                        else Modifier.semantics {
+                            role = Role.Button
+                            onClick(label = backToToday) { onToday(); true }
+                        },
+                    )
                     .padding(horizontal = 8.dp, vertical = 2.dp),
             ) {
                 Text(
@@ -492,12 +510,11 @@ internal fun DayNavigator(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = stringResource(R.string.today),
-                    modifier = Modifier
-                        .padding(top = 2.dp)
-                        .then(if (isToday) Modifier else Modifier.alpha(0f).clearAndSetSemantics {}),
+                    text = if (isToday) stringResource(R.string.today) else backToToday,
+                    modifier = Modifier.padding(top = 2.dp),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
                 )
             }
             IconButton(onClick = onNext) {

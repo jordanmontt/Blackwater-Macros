@@ -68,3 +68,6 @@ public/wasm/
 
 # Claude Code: per-person worktrees, previews and local settings
 .claude/
+
+# Juggler: local session state
+.juggler/

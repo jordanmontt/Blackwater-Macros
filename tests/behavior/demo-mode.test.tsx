@@ -15,6 +15,7 @@ import {
   getDemoSettings,
 } from "@/lib/demo-store";
 import type { MealPayload } from "@/lib/api";
+import { recentFoods, rememberFood, type FoodChoice } from "@/lib/foods/foods-client";
 import { applyLanguage, currentLanguage, dictionaryFor } from "@/i18n";
 
 /**
@@ -24,10 +25,17 @@ import { applyLanguage, currentLanguage, dictionaryFor } from "@/i18n";
  *  - el dataset de ejemplo está poblado y anclado al día actual (el día de hoy
  *    no está vacío),
  *  - se puede añadir/editar/borrar datos y todo queda en la sesión,
+ *  - lo que se guarda fuera del store (alimentos recientes, productos propios, la
+ *    cuenta de Open Food Facts) también queda en la pestaña: no se mezcla con lo del
+ *    navegador ni sobrevive a la pestaña,
  *  - al salir del modo demo se limpia la cookie y los datos locales.
  */
 
 const TODAY = "2026-08-28";
+
+function food(name: string): FoodChoice {
+  return { key: `generic:${name}`, code: null, name, brand: null, per100g: { calories: 100, protein: 1, carbs: 20, fat: 0 }, servingGrams: null, source: "generic", incomplete: false };
+}
 
 function mealPayload(partial: Partial<MealPayload> = {}): MealPayload {
   return {
@@ -155,7 +163,21 @@ describe("modo demo local", () => {
   it("al salir se limpian los datos locales de la sesión", () => {
     enterDemoMode();
     createDemoMeal(mealPayload());
+    rememberFood(food("Plátano"));
     exitDemoMode();
     expect(sessionStorage.length).toBe(0);
+  });
+
+  it("los alimentos recientes de la demo quedan en la pestaña, aparte de los del navegador", () => {
+    localStorage.clear();
+    rememberFood(food("Arroz"));
+    enterDemoMode();
+    expect(recentFoods()).toEqual([]);
+    rememberFood(food("Plátano"));
+    expect(recentFoods().map((item) => item.name)).toEqual(["Plátano"]);
+    expect(sessionStorage.getItem("bw:recent-foods")).not.toBeNull();
+    exitDemoMode();
+    expect(recentFoods().map((item) => item.name)).toEqual(["Arroz"]);
+    localStorage.clear();
   });
 });

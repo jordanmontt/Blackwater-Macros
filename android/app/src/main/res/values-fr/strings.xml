@@ -95,8 +95,6 @@
     <string name="error_walking_minutes">Entre 0 et 480 min</string>
     <string name="rec_calories_title">Recommandation de calories</string>
     <string name="rec_protein_title">Recommandation de protéines</string>
-    <string name="rec_bmr">Métabolisme de base (MB) : %1$s kcal/jour</string>
-    <string name="rec_tdee">Dépense énergétique quotidienne estimée (DEJ) : %1$s kcal/jour</string>
     <string name="rec_per_kg">%1$s – %2$s g/kg</string>
     <string name="rec_per_kg_lean">%1$s – %2$s g/kg de masse maigre (%3$s kg)</string>
     <string name="rec_per_kg_reference">%1$s – %2$s g/kg de votre poids de référence à IMC 25 (%3$s kg)</string>
@@ -143,9 +141,7 @@
     <string name="admin_error_password">Le mot de passe doit contenir au moins 8 caractères.</string>
     <string name="meth_intro">Comment sont calculées les statistiques et les recommandations de calories et de protéines, avec les formules exactes et les références sur lesquelles elles reposent.</string>
     <string name="meth_scale_title">Poids sur la balance vs tendance</string>
-    <string name="meth_scale_body">Le « poids actuel » est votre dernière pesée de la période. La « tendance » est la valeur la plus récente de la moyenne mobile sur 7 jours. La « variation » compare la première et la dernière pesée de la période choisie, et le « rythme » est la pente de la régression décrite plus bas.</string>
     <string name="meth_ma_window">W(d) = { entrées datées dans [d − 6, d] }</string>
-    <string name="meth_ma_body">Toutes vos entrées datées dans la fenêtre de 7 jours se terminant le jour d sont moyennées. Les jours sans entrée ne sont ni comptés ni remplacés par des zéros : si vous ne vous êtes pesé que 3 fois cette semaine-là, la moyenne porte sur ces 3 entrées. Cela lisse le bruit quotidien (eau, sel, contenu intestinal) et fait apparaître la vraie tendance, qui évolue lentement. Se peser régulièrement est associé à une perte de poids plus importante, sans effets psychologiques négatifs (Zheng et al. 2015) ; la moyenne transforme ces pesées en une tendance qui ne saute pas avec la valeur de chaque jour. The Hacker\'s Diet a popularisé cette même idée de « poids de tendance », mais avec une moyenne mobile exponentielle ; ici on utilise une moyenne simple sur 7 jours, plus facile à interpréter.</string>
     <string name="meth_rate_title">Rythme hebdomadaire (kg/semaine)</string>
     <string name="meth_rate_formula">rythme = β × 7 [kg/semaine]</string>
     <string name="meth_rate_body">x est le nombre de jours écoulés depuis la première entrée de la période et y le poids enregistré. La pente β est multipliée par 7 pour l\'exprimer par semaine. La régression utilise vos entrées brutes de la période affichée : elle capte mieux la direction à long terme que la comparaison de deux points.</string>

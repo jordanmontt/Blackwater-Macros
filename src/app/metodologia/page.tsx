@@ -2,12 +2,7 @@
 
 import { PageHeader } from "@/components/page-header";
 import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DropletIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ClosePageButton } from "@/components/close-page-button";
 import { t } from "@/i18n";
 
@@ -18,11 +13,29 @@ export default function MetodologiaPage() {
 
       <p className="text-sm text-muted-foreground">{t.metodologia.intro}</p>
 
-      <MethodologyCard icon={<ScaleIcon />} title={t.metodologia.scaleVsTrendTitle}>
+      {/* An index: the page is long, and each section has an anchor others link to (Today → #calories). */}
+      <Card>
+        <CardHeader className="pb-2">
+          <h2 className="text-base font-medium leading-snug">{t.metodologia.onThisPage}</h2>
+        </CardHeader>
+        <CardContent>
+          <ol className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
+            {sections().map(([id, title]) => (
+              <li key={id}>
+                <a href={`#${id}`} className="inline-flex min-h-9 items-center text-primary hover:underline">
+                  {title}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </CardContent>
+      </Card>
+
+      <MethodologyCard id="scale" icon={<ScaleIcon />} title={t.metodologia.scaleVsTrendTitle}>
         <p>{t.metodologia.scaleVsTrendBody}</p>
       </MethodologyCard>
 
-      <MethodologyCard icon={<SigmaIcon />} title={t.metodologia.movingAvgTitle}>
+      <MethodologyCard id="moving-average" icon={<SigmaIcon />} title={t.metodologia.movingAvgTitle}>
         <p className="font-medium">{t.metodologia.movingAvgFormulaLabel}</p>
         <FormulaBlock>
           MA(d) = (w<sub>1</sub> + w<sub>2</sub> + … + w<sub>n</sub>) / n
@@ -32,7 +45,7 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.movingAvgBody}</p>
       </MethodologyCard>
 
-      <MethodologyCard icon={<TrendingUpIcon />} title={t.metodologia.rateTitle}>
+      <MethodologyCard id="rate" icon={<TrendingUpIcon />} title={t.metodologia.rateTitle}>
         <p className="font-medium">{t.metodologia.rateFormulaLabel}</p>
         <FormulaBlock>
           β = Σ(x<sub>i</sub> − x̄)(y<sub>i</sub> − ȳ) / Σ(x<sub>i</sub> − x̄)<sup>2</sup>
@@ -42,11 +55,11 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.rateBody}</p>
       </MethodologyCard>
 
-      <MethodologyCard icon={<UtensilsCrossedIcon />} title={t.metodologia.nutritionTitle}>
+      <MethodologyCard id="daily" icon={<UtensilsCrossedIcon />} title={t.metodologia.nutritionTitle}>
         <p>{t.metodologia.nutritionBody}</p>
       </MethodologyCard>
 
-      <MethodologyCard icon={<DumbbellIcon />} title={t.metodologia.proteinRecTitle}>
+      <MethodologyCard id="protein" icon={<DumbbellIcon />} title={t.metodologia.proteinRecTitle}>
         <p>{t.metodologia.proteinRecBody}</p>
         <p>{t.metodologia.proteinRecRanges}</p>
         <p>{t.metodologia.proteinRecFfm}</p>
@@ -54,7 +67,7 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.proteinRecAbove}</p>
       </MethodologyCard>
 
-      <MethodologyCard icon={<FlameIcon />} title={t.metodologia.tdeeTitle}>
+      <MethodologyCard id="calories" icon={<FlameIcon />} title={t.metodologia.tdeeTitle}>
         <p>{t.metodologia.tdeeBody}</p>
         <FormulaLines text={t.metodologia.tdeeFormula} />
         <p>{t.metodologia.tdeeActivity}</p>
@@ -74,7 +87,7 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.pastDaysFix}</p>
       </MethodologyCard>
 
-      <MethodologyCard icon={<ActivityIcon />} title={t.metodologia.measuredTitle}>
+      <MethodologyCard id="measured" icon={<ActivityIcon />} title={t.metodologia.measuredTitle}>
         <p>{t.metodologia.measuredBody}</p>
         <FormulaLines text={t.metodologia.measuredFormula} />
         <p>{t.metodologia.measuredData}</p>
@@ -112,23 +125,23 @@ export default function MetodologiaPage() {
         <p>{t.metodologia.fatShown}</p>
       </MethodologyCard>
 
-      <MethodologyCard icon={<SparklesIcon />} title={t.metodologia.aiTitle}>
+      <MethodologyCard id="ai" icon={<SparklesIcon />} title={t.metodologia.aiTitle}>
         {t.metodologia.aiBody.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
       </MethodologyCard>
 
-      <MethodologyCard icon={<DatabaseIcon />} title={t.metodologia.sourcesTitle}>
+      <MethodologyCard id="sources" icon={<DatabaseIcon />} title={t.metodologia.sourcesTitle}>
         {t.metodologia.sourcesBody.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
       </MethodologyCard>
 
-      <Card>
+      <Card id="references" className="scroll-mt-4 md:scroll-mt-16">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
+          <h2 className="flex items-center gap-2 text-base font-medium leading-snug">
             <BookOpenIcon className="size-4" /> {t.metodologia.referencesTitle}
-          </CardTitle>
+          </h2>
         </CardHeader>
         <CardContent>
           <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
@@ -436,23 +449,47 @@ function FormulaLines({ text }: { text: string }) {
   );
 }
 
+/**
+ * Every section with its anchor, in page order: the index at the top (Android
+ * `MethodologyScreen` the same ids). A function: the titles follow the app's language.
+ */
+const sections = (): [id: string, title: string][] => [
+  ["scale", t.metodologia.scaleVsTrendTitle],
+  ["moving-average", t.metodologia.movingAvgTitle],
+  ["rate", t.metodologia.rateTitle],
+  ["daily", t.metodologia.nutritionTitle],
+  ["protein", t.metodologia.proteinRecTitle],
+  ["calories", t.metodologia.tdeeTitle],
+  ["recomposition", t.metodologia.recompTitle],
+  ["past-days", t.metodologia.pastDaysTitle],
+  ["measured", t.metodologia.measuredTitle],
+  ["adaptive", t.metodologia.adaptiveTitle],
+  ["check", t.metodologia.checkTitle],
+  ["fat", t.metodologia.fatTitle],
+  ["ai", t.metodologia.aiTitle],
+  ["sources", t.metodologia.sourcesTitle],
+  ["references", t.metodologia.referencesTitle],
+];
+
 function MethodologyCard({
   id,
   icon,
   title,
   children,
 }: {
-  id?: string;
+  id: string;
   icon: React.ReactNode;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <Card id={id} className="scroll-mt-4">
+    // Below the sticky top bar on desktop when opened at its anchor.
+    <Card id={id} className="scroll-mt-4 md:scroll-mt-16">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
+        {/* A real heading: screen readers jump from section to section. */}
+        <h2 className="flex items-center gap-2 text-base font-medium leading-snug">
           {icon} {title}
-        </CardTitle>
+        </h2>
       </CardHeader>
       <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground [&_p]:text-muted-foreground">
         {children}

@@ -26,7 +26,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +50,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,6 +82,7 @@ import androidx.compose.runtime.setValue
 fun ProgressScreen(
     modifier: Modifier = Modifier,
     onOpenMethodology: (section: String?) -> Unit = {},
+    onOpenProfile: () -> Unit = {},
     viewModel: ProgressViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -116,14 +121,15 @@ fun ProgressScreen(
             )
         },
         floatingActionButton = {
-            // Labelled: a bare «+» here did not say it logs a weigh-in.
-            ExtendedFloatingActionButton(
+            // Round like Comidas' +: the labelled button covered the chart's last days. The scale
+            // icon, not a bare «+», says it logs a weigh-in; TalkBack reads its name (web the same).
+            FloatingActionButton(
                 onClick = { openForm(null) },
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary,
-                icon = { Icon(Icons.Filled.MonitorWeight, contentDescription = null) },
-                text = { Text(stringResource(R.string.weight_add)) },
-            )
+            ) {
+                Icon(Icons.Filled.MonitorWeight, contentDescription = stringResource(R.string.weight_add))
+            }
         },
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding)) {
@@ -138,6 +144,7 @@ fun ProgressScreen(
                     onEdit = { openForm(it) },
                     onDelete = { deletingWeight = it },
                     onOpenMethodology = onOpenMethodology,
+                    onOpenProfile = onOpenProfile,
                 )
             }
         }
@@ -196,6 +203,7 @@ private fun ProgressContent(
     onEdit: (WeightDTO) -> Unit,
     onDelete: (WeightDTO) -> Unit,
     onOpenMethodology: (String?) -> Unit,
+    onOpenProfile: () -> Unit,
 ) {
     Column(
         Modifier
@@ -214,7 +222,7 @@ private fun ProgressContent(
         if (averages == null) {
             DashedMessage(stringResource(R.string.progress_no_meals))
         } else {
-            MacrosCard(progress, averages, onOpenMethodology)
+            MacrosCard(progress, averages, onOpenMethodology, onOpenProfile)
         }
         if (progress.hasAnyWeight) {
             WeighInList(progress.groupedWeights, onEdit, onDelete)
@@ -298,6 +306,14 @@ private fun WeightCard(progress: Progress) {
                     Spacer(Modifier.height(8.dp))
                 }
                 WeightFatChart(progress.weightRows, Modifier.fillMaxWidth(), if (hasBodyFat) series else WeightChartSeries.WEIGHT)
+                if ((!hasBodyFat || series == WeightChartSeries.WEIGHT) && progress.weightRows.any { !it.inTrend }) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        stringResource(R.string.progress_other_weigh_ins_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -352,7 +368,8 @@ private fun CaloriesCard(progress: Progress) {
 }
 
 @Composable
-private fun MacrosCard(progress: Progress, averages: MacroAverages, onOpenMethodology: (String?) -> Unit) {
+private fun MacrosCard(progress: Progress, averages: MacroAverages, onOpenMethodology: (String?) -> Unit, onOpenProfile: () -> Unit) {
+    var calculationOpen by remember { mutableStateOf(false) }
     AppCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
             CardTitle(
@@ -420,9 +437,28 @@ private fun MacrosCard(progress: Progress, averages: MacroAverages, onOpenMethod
             }
             progress.expenditure?.let {
                 Spacer(Modifier.height(6.dp))
+                // The ± and where the number comes from are one tap away, in «Ver el cálculo» (web the same).
+                val seeCalculation = stringResource(R.string.check_see_calculation)
                 Text(
-                    stringResource(R.string.rec_measured_tdee, formatNumber(it.tdee), formatNumber(it.margin)),
+                    buildAnnotatedString {
+                        append(stringResource(R.string.rec_measured_tdee, formatNumber(it.tdee), formatNumber(it.margin)))
+                        append(" ")
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)) {
+                            append(seeCalculation)
+                        }
+                    },
                     style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.Button) { calculationOpen = true }
+                        .padding(vertical = 6.dp),
+                )
+            }
+            if (calculationOpen) {
+                ExpenditureCalculationSheet(
+                    onDismiss = { calculationOpen = false },
+                    onOpenProfile = onOpenProfile,
+                    onOpenMethodology = { onOpenMethodology(CHECK_SECTION) },
                 )
             }
         }

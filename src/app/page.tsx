@@ -2,7 +2,16 @@
 
 import { PageHeader } from "@/components/page-header";
 import { useCallback, useMemo, useState } from "react";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type UniqueIdentifier,
+} from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -237,7 +246,7 @@ export default function HoyPage() {
       </div>
 
       <section aria-label={t.hoy.dailyTotals} className="mt-4">
-        <DaySummaryCard day={selectedDay} totals={totals} />
+        <DaySummaryCard day={selectedDay} totals={totals} nothingLogged={meals !== null && meals.length === 0} />
       </section>
 
       <section className="mt-5 space-y-3" aria-label={t.hoy.title}>
@@ -252,7 +261,12 @@ export default function HoyPage() {
             {t.hoy.emptyDay}
           </button>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+            accessibility={dragAccessibility(meals)}
+          >
             <SortableContext items={meals.map((m) => m.id)} strategy={verticalListSortingStrategy}>
               {meals.map((meal) => (
                 <MealCard
@@ -350,4 +364,29 @@ export default function HoyPage() {
       </Button>
     </main>
   );
+}
+
+/**
+ * What a screen reader hears while a meal is moved with the keyboard, in the app's
+ * language (dnd-kit's own texts are English): the meal's title and its place.
+ */
+function dragAccessibility(meals: MealDTO[]) {
+  const title = (id: UniqueIdentifier) => meals.find((meal) => meal.id === id)?.title ?? "";
+  const place = (id: UniqueIdentifier) => ({
+    n: String(meals.findIndex((meal) => meal.id === id) + 1),
+    total: String(meals.length),
+  });
+  return {
+    screenReaderInstructions: { draggable: t.hoy.dragInstructions },
+    announcements: {
+      onDragStart: ({ active }: { active: { id: UniqueIdentifier } }) =>
+        formatTemplate(t.hoy.dragStart, { title: title(active.id) }),
+      onDragOver: ({ active, over }: { active: { id: UniqueIdentifier }; over: { id: UniqueIdentifier } | null }) =>
+        over ? formatTemplate(t.hoy.dragOver, { title: title(active.id), ...place(over.id) }) : undefined,
+      onDragEnd: ({ active, over }: { active: { id: UniqueIdentifier }; over: { id: UniqueIdentifier } | null }) =>
+        over ? formatTemplate(t.hoy.dragEnd, { title: title(active.id), ...place(over.id) }) : undefined,
+      onDragCancel: ({ active }: { active: { id: UniqueIdentifier } }) =>
+        formatTemplate(t.hoy.dragCancel, { title: title(active.id) }),
+    },
+  };
 }

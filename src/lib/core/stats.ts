@@ -14,14 +14,22 @@ export interface DataPoint {
  * days without entries simply contribute no value instead of breaking the
  * average. This is the standard "trend weight" smoothing used by weight
  * trackers to remove day-to-day water-weight noise.
+ *
+ * `counts`: which points enter the averages (all when missing). Every point
+ * still gets the average of its window, so a line drawn through them carries on
+ * past the points left out.
  */
-export function movingAverageByDays(points: DataPoint[], windowDays: number): (number | null)[] {
+export function movingAverageByDays(
+  points: DataPoint[],
+  windowDays: number,
+  counts?: readonly boolean[],
+): (number | null)[] {
   const windowStartOffsets = points.map((point) => addDaysToKey(point.date, -(windowDays - 1)));
   return points.map((point, i) => {
     const start = windowStartOffsets[i];
     const valuesInWindow: number[] = [];
     for (let j = 0; j <= i; j++) {
-      if (points[j].date >= start) {
+      if (points[j].date >= start && counts?.[j] !== false) {
         valuesInWindow.push(points[j].value);
       }
     }

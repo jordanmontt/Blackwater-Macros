@@ -103,14 +103,18 @@ describe("Coach", () => {
     vi.unstubAllGlobals();
   });
 
-  it("sin IA configurada dice qué hace el coach, con ejemplos, y lleva a Ajustes", () => {
+  it("sin IA configurada dice qué hace el coach, con ejemplos, y lleva a configurarla (y de vuelta)", () => {
     render(<CoachPage />);
     expect(screen.getByRole("heading", { name: t.coach.emptyTitle })).toBeInTheDocument();
     expect(screen.getByText(t.coach.emptyBody)).toBeInTheDocument();
+    // One sentence and the button, not «configure the AI» three times.
     expect(screen.getByText(t.coach.notConfigured)).toBeInTheDocument();
-    expect(screen.getByText(t.coach.configure).closest("a")).toHaveAttribute("href", "/ajustes/ia");
+    expect(screen.queryByText(t.coach.examplesNotReady)).toBeNull();
+    expect(screen.getByRole("list", { name: t.coach.examplesNotReady })).toBeInTheDocument();
+    // The IA page knows it was opened from here, to come back.
+    expect(screen.getByText(t.coach.configure).closest("a")).toHaveAttribute("href", "/ajustes/ia?from=coach");
     // Each example also leads to the setup.
-    expect(screen.getByText(t.coach.examples[0]).closest("a")).toHaveAttribute("href", "/ajustes/ia");
+    expect(screen.getByText(t.coach.examples[0]).closest("a")).toHaveAttribute("href", "/ajustes/ia?from=coach");
   });
 
   it("una pregunta tocada antes de configurar la IA espera en el cuadro, sin enviarse sola", async () => {

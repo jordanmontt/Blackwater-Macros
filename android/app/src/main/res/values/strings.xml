@@ -96,8 +96,6 @@
     <string name="error_walking_minutes">Between 0 and 480 min</string>
     <string name="rec_calories_title">Calorie recommendation</string>
     <string name="rec_protein_title">Protein recommendation</string>
-    <string name="rec_bmr">Basal metabolic rate (BMR): %1$s kcal/day</string>
-    <string name="rec_tdee">Estimated daily energy expenditure (TDEE): %1$s kcal/day</string>
     <string name="rec_per_kg">%1$s – %2$s g/kg</string>
     <string name="rec_per_kg_lean">%1$s – %2$s g/kg of lean mass (%3$s kg)</string>
     <string name="rec_per_kg_reference">%1$s – %2$s g/kg of your reference weight at BMI 25 (%3$s kg)</string>
@@ -144,9 +142,7 @@
     <string name="admin_error_password">The password must be at least 8 characters.</string>
     <string name="meth_intro">How the statistics and the calorie and protein recommendations are calculated, with the exact formulas and the references they are based on.</string>
     <string name="meth_scale_title">Scale weight vs trend</string>
-    <string name="meth_scale_body">«Current weight» is your latest weigh-in in the period. «Trend» is the most recent value of the 7-day moving average. «Change» compares the first and last weigh-ins of the selected period, and «rate» is the slope of the regression described below.</string>
     <string name="meth_ma_window">W(d) = { entries dated in [d − 6, d] }</string>
-    <string name="meth_ma_body">All your entries dated within the 7-day window ending on d are averaged. Days without entries are neither counted nor filled with zeros: if you only weighed yourself 3 times that week, the average is of those 3 entries. This smooths out daily noise (water, salt, gut content) and reveals the real trend, which changes slowly. Regular self-weighing is associated with more weight loss and with no negative psychological effects (Zheng et al. 2015); the average turns those weigh-ins into a trend that does not jump with each day\'s number. The Hacker\'s Diet popularised the same «trend weight» idea, though with an exponential moving average; here a simple 7-day average is used, which is easier to interpret.</string>
     <string name="meth_rate_title">Weekly rate (kg/week)</string>
     <string name="meth_rate_formula">rate = β × 7 [kg/week]</string>
     <string name="meth_rate_body">x is the number of days since the first entry in the range and y the recorded weight. The slope β is multiplied by 7 to express it per week. The regression uses your raw entries in the visible range: it captures the long-term direction better than comparing just two points.</string>

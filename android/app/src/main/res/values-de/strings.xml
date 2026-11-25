@@ -95,8 +95,6 @@
     <string name="error_walking_minutes">Zwischen 0 und 480 min</string>
     <string name="rec_calories_title">Kalorienempfehlung</string>
     <string name="rec_protein_title">Eiweißempfehlung</string>
-    <string name="rec_bmr">Grundumsatz (GU): %1$s kcal/Tag</string>
-    <string name="rec_tdee">Geschätzter täglicher Energieverbrauch (TDEE): %1$s kcal/Tag</string>
     <string name="rec_per_kg">%1$s – %2$s g/kg</string>
     <string name="rec_per_kg_lean">%1$s – %2$s g/kg fettfreie Masse (%3$s kg)</string>
     <string name="rec_per_kg_reference">%1$s – %2$s g/kg deines Referenzgewichts bei BMI 25 (%3$s kg)</string>
@@ -143,9 +141,7 @@
     <string name="admin_error_password">Das Passwort muss mindestens 8 Zeichen lang sein.</string>
     <string name="meth_intro">Wie die Statistiken und die Kalorien- und Proteinempfehlungen berechnet werden – mit den genauen Formeln und den Quellen, auf denen sie beruhen.</string>
     <string name="meth_scale_title">Waagengewicht vs. Trend</string>
-    <string name="meth_scale_body">„Aktuelles Gewicht“ ist deine letzte Wägung im Zeitraum. „Trend“ ist der jüngste Wert des gleitenden 7-Tage-Durchschnitts. „Veränderung“ vergleicht die erste und die letzte Wägung des gewählten Zeitraums, und das „Tempo“ ist die Steigung der unten beschriebenen Regression.</string>
     <string name="meth_ma_window">W(d) = { Einträge mit Datum in [d − 6, d] }</string>
-    <string name="meth_ma_body">Alle deine Einträge, deren Datum im 7-Tage-Fenster bis zum Tag d liegt, werden gemittelt. Tage ohne Eintrag werden weder gezählt noch mit Nullen aufgefüllt: Hast du dich in der Woche nur dreimal gewogen, ist der Durchschnitt der dieser drei Einträge. Das glättet das tägliche Rauschen (Wasser, Salz, Darminhalt) und zeigt den echten Trend, der sich langsam ändert. Regelmäßiges Wiegen geht mit mehr Gewichtsverlust einher, ohne negative psychische Folgen (Zheng et al. 2015); der Durchschnitt macht aus diesen Messungen einen Trend, der nicht mit jeder Tageszahl springt. The Hacker\'s Diet hat dieselbe Idee des „Trendgewichts“ bekannt gemacht, allerdings mit einem exponentiellen gleitenden Durchschnitt; hier wird ein einfacher 7-Tage-Durchschnitt verwendet, der leichter zu deuten ist.</string>
     <string name="meth_rate_title">Wöchentliche Rate (kg/Woche)</string>
     <string name="meth_rate_formula">Rate = β × 7 [kg/Woche]</string>
     <string name="meth_rate_body">x ist die Anzahl der Tage seit dem ersten Eintrag im Zeitraum, y das erfasste Gewicht. Die Steigung β wird mit 7 multipliziert, um sie pro Woche anzugeben. Die Regression nutzt deine Rohdaten im sichtbaren Zeitraum und erfasst die langfristige Richtung besser als der Vergleich zweier Punkte.</string>

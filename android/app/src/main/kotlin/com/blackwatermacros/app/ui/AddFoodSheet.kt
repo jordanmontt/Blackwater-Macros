@@ -231,22 +231,24 @@ fun AddFoodSheet(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }
+                val title = stringResource(
+                    when (view) {
+                        AddFoodView.MENU -> R.string.add_food_title
+                        AddFoodView.COPY -> R.string.add_food_copy
+                        AddFoodView.SEARCH -> R.string.food_search
+                        AddFoodView.BARCODE -> R.string.food_barcode
+                        AddFoodView.PORTION -> R.string.food_portion_title
+                        AddFoodView.PHOTO -> R.string.photo_title
+                        AddFoodView.NEW_PRODUCT -> when {
+                            draft?.initial != null -> R.string.new_product_edit_title
+                            draft?.correction != null -> R.string.new_product_correct_title
+                            else -> R.string.new_product_title
+                        }
+                    },
+                )
                 Text(
-                    stringResource(
-                        when (view) {
-                            AddFoodView.MENU -> R.string.add_food_title
-                            AddFoodView.COPY -> R.string.add_food_copy
-                            AddFoodView.SEARCH -> R.string.food_search
-                            AddFoodView.BARCODE -> R.string.food_barcode
-                            AddFoodView.PORTION -> R.string.food_portion_title
-                            AddFoodView.PHOTO -> R.string.photo_title
-                            AddFoodView.NEW_PRODUCT -> when {
-                                draft?.initial != null -> R.string.new_product_edit_title
-                                draft?.correction != null -> R.string.new_product_correct_title
-                                else -> R.string.new_product_title
-                            }
-                        },
-                    ),
+                    // Another day is named: after browsing old days, today's lunch could land on one of them.
+                    if (view == AddFoodView.MENU && day != todayKey()) "$title · ${formatDateWeekdayShort(day)}" else title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                 )

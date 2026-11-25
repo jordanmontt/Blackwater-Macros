@@ -38,6 +38,11 @@ describe("tendencia de peso (media móvil de 7 días)", () => {
   it("devuelve una lista vacía si no hay datos", () => {
     expect(movingAverageByDays([], 7)).toEqual([]);
   });
+
+  it("con `counts`, los puntos excluidos no entran en la media pero reciben la de su ventana", () => {
+    const points = days("2026-03-01", [80, 81.5, 80]);
+    expect(movingAverageByDays(points, 7, [true, false, true])).toEqual([80, 80, 80]);
+  });
 });
 
 describe("ritmo de cambio (kg/semana)", () => {

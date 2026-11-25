@@ -72,6 +72,12 @@
     "semiSkimmedMilk": "Semi-skimmed milk"
   },
   "hoy": {
+    "nothingLogged": "No meals logged",
+    "dragInstructions": "To move a meal, press the space bar or Enter. Move it with the arrow keys and press space or Enter again to drop it, or Escape to cancel.",
+    "dragStart": "Moving {title}.",
+    "dragOver": "{title}: position {n} of {total}.",
+    "dragEnd": "{title} is now at position {n} of {total}.",
+    "dragCancel": "Cancelled: {title} goes back to its place.",
     "title": "Meals",
     "addMeal": "Add food",
     "emptyDay": "You have not logged any meal on this day yet.",
@@ -100,6 +106,9 @@
     "templates": "Templates"
   },
   "meal": {
+    "editNamed": "Edit {title}",
+    "saveAsTemplateNamed": "Save {title} as template",
+    "deleteNamed": "Delete {title}",
     "newTitle": "New meal",
     "editTitle": "Edit meal",
     "titleLabel": "Title",
@@ -114,6 +123,7 @@
     "ingredientsLabel": "Ingredients",
     "ingredientNamePlaceholder": "4 eggs",
     "quantityPlaceholder": "(e.g. 30 g)",
+    "quantityLabel": "Quantity",
     "caloriesPlaceholder": "kcal",
     "proteinPlaceholder": "g protein",
     "carbsPlaceholder": "g carbs",
@@ -243,6 +253,7 @@
     "consent": "Saving adds it to Open Food Facts, so anyone who scans it finds it: the name, brand, values and label photo, under an open licence. Nothing about you.",
     "consentExisting": "Saving adds the values and the label photo to this product on Open Food Facts, under an open licence. Nothing about you.",
     "consentCorrection": "Saving sends your values and the label photo to this product on Open Food Facts, under an open licence. Its history keeps the previous values. Nothing about you.",
+    "demoNotSent": "In demo mode products aren't sent to Open Food Facts: they're only kept in this tab.",
     "save": "Save and choose amount",
     "saveEdit": "Save changes",
     "noPhoto": "Without a photo, Open Food Facts volunteers can't check the values.",
@@ -315,6 +326,7 @@
     "weightTitle": "Weight",
     "trend": "Trend",
     "change": "Change",
+    "otherWeighInsNote": "Hollow dots are weigh-ins taken differently from most (fasted or not): they don't count in the trend or the change.",
     "rate": "Rate",
     "bodyFat": "Body fat",
     "caloriesTitle": "Daily calories",
@@ -340,6 +352,9 @@
     "noMeals": "No meals in this period yet."
   },
   "stats": {
+    "weightChartSummary": "Weight: the trend goes from {from} to {to} kg between {start} and {end}.",
+    "bodyFatChartSummary": "Body fat: from {from} % to {to} % between {start} and {end}.",
+    "caloriesChartSummary": "Daily calories: {avg} kcal on average over {n} logged days, between {start} and {end}.",
     "range7": "7 days",
     "range30": "30 days",
     "range90": "90 days",
@@ -368,6 +383,9 @@
     "noWeight": "Log your weight to see recommendations"
   },
   "calorias": {
+    "chainBlend": "Expenditure used: {data} % your measured expenditure ({measured}) + {profile} % your profile's ({tdee}) ≈ {expenditure} kcal/day",
+    "chainProfile": "Expenditure used: your profile's, BMR {bmr} × activity {pal} = {tdee} kcal/day (no measured expenditure yet)",
+    "chainGoal": "{goal}: {offset} kcal ({offsetMin} to {offsetMax}) → {target} on average, range {min}–{max}",
     "recommendationTitle": "Calorie recommendation",
     "noProfile": "Enter your data to know your optimal calories",
     "bmr": "Basal metabolic rate (BMR)",
@@ -459,6 +477,7 @@
     "missingWeightSpan": "Days covered by your weigh-ins: {days} (14 are needed, so water swings don't dominate the trend)."
   },
   "metodologia": {
+    "onThisPage": "On this page",
     "title": "Methodology",
     "aiTitle": "AI estimates",
     "aiBody": [
@@ -473,11 +492,11 @@
     ],
     "intro": "How the statistics and the calorie and protein recommendations are calculated, with the exact formulas and the references they rest on.",
     "scaleVsTrendTitle": "Scale weight vs trend",
-    "scaleVsTrendBody": "The «current weight» is your last weigh-in of the period. The «trend» is the latest value of the 7-day moving average. The «change» compares the first and last weigh-in of the selected period, and the «rate» is the slope of the regression described below.",
+    "scaleVsTrendBody": "The «current weight» is your last weigh-in of the period. The «trend» is the latest value of the 7-day moving average. The «change» compares the first and last weigh-in of the selected period, and the «rate» is the slope of the regression described below. The trend and the change only use the weigh-ins taken the way most of the period's were (fasted or not): a weigh-in after a meal reads higher without any weight gained, and averaging it with the others doesn't cancel that. On the chart, the others are hollow. The rate does use them all, but compares each kind only with its own.",
     "movingAvgTitle": "7-day moving average (trend)",
     "movingAvgFormulaLabel": "For each day d:",
     "movingAvgWindow": "W(d) = { entries dated in [d − 6, d] }",
-    "movingAvgBody": "All your entries whose date falls in the 7-day window ending on d are averaged. Days without entries neither count nor are filled with zeros: if you weighed yourself only 3 times that week, the average is of those 3 entries. This smooths daily noise (water, salt, gut content) and shows the real trend, which changes slowly. Regular self-weighing is associated with more weight loss and with no negative psychological effects (Zheng et al. 2015); the average turns those weigh-ins into a trend that does not jump with each day's number. The Hacker's Diet popularised the same idea of a «trend weight», with an exponential moving average; here a simple 7-day average is used, which is easier to read.",
+    "movingAvgBody": "Your entries whose date falls in the 7-day window ending on d are averaged (only those taken the way most were, see above). Days without entries neither count nor are filled with zeros: if you weighed yourself only 3 times that week, the average is of those 3 entries. This smooths daily noise (water, salt, gut content) and shows the real trend, which changes slowly. Regular self-weighing is associated with more weight loss and with no negative psychological effects (Zheng et al. 2015); the average turns those weigh-ins into a trend that does not jump with each day's number. The Hacker's Diet popularised the same idea of a «trend weight», with an exponential moving average; here a simple 7-day average is used, which is easier to read.",
     "rateTitle": "Weekly rate (kg/week)",
     "rateFormulaLabel": "Ordinary least-squares slope:",
     "rateFormula": "rate = β × 7 [kg/week]",
@@ -764,6 +783,7 @@
     "estimateQuery": "Estimate «{q}» with AI"
   },
   "perfil": {
+    "withLatestWeight": "With your latest weight: {kg} kg",
     "title": "Profile",
     "description": "Your goal, your body data and the calorie and protein recommendations.",
     "backToSettings": "Back to Settings",
@@ -810,6 +830,9 @@
     "action": "Install"
   },
   "common": {
+    "backTo": "Back to {page}",
+    "backToToday": "Back to today",
+    "notifications": "Notifications",
     "today": "Today",
     "loading": "Loading…",
     "retry": "Retry",

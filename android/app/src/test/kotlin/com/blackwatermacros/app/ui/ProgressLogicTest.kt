@@ -17,8 +17,9 @@ import org.junit.Test
 
 /**
  * The Progreso screen's numbers (mirror of `tests/behavior/progreso-page.test.tsx`):
- * one period for everything, averages over logged days only, weigh-ins of the period,
- * and each day compared with the target it had.
+ * one period for everything, averages over logged days only, weigh-ins of the period
+ * (one taken otherwise than most drawn as a ring, outside the trend), and each day
+ * compared with the target it had.
  */
 class ProgressLogicTest {
 
@@ -61,6 +62,24 @@ class ProgressLogicTest {
         assertThat(week.groupedWeights.map { it.first }).containsExactly(addDaysToKey(today, -2))
         assertThat(week.averages!!.totalDays).isEqualTo(7)
         assertThat(week.hasAnyWeight).isTrue()
+    }
+
+    @Test
+    fun `a weigh-in taken otherwise than most is a ring and stays out of the trend`() {
+        fun at(daysAgo: Int, hour: Int, kg: Double, fasted: Boolean = true) =
+            WeightDTO("w$daysAgo-$hour", "${addDaysToKey(today, -daysAgo)}T$hour:00:00Z", kg, null, null, "", fasted = fasted)
+        val rows = listOf(
+            at(5, 10, 80.0),
+            at(3, 10, 80.0),
+            at(3, 14, 81.4, fasted = false), // the same day after lunch: the fasted dot is the one shown
+            at(2, 14, 81.6, fasted = false), // a day with only one after a meal: a ring
+            at(1, 10, 80.0),
+        )
+        val progress = buildProgress(StatsRangeOption.R30D, emptyList(), rows, profile, today)
+        assertThat(progress.weightRows.map { it.weight }).containsExactly(80.0, 80.0, 81.6, 80.0).inOrder()
+        assertThat(progress.weightRows.map { it.inTrend }).containsExactly(true, true, false, true).inOrder()
+        assertThat(progress.summary.weight.currentTrendKg).isEqualTo(80.0)
+        assertThat(progress.summary.weight.changeSinceStartKg).isEqualTo(0.0)
     }
 
     @Test

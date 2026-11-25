@@ -44,6 +44,12 @@ import androidx.compose.ui.res.stringResource
 import com.blackwatermacros.app.R
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.clickable
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -61,6 +67,9 @@ const val ADAPTIVE_SECTION = "adaptive"
 /** The section «Fat: between 20 and 35 % of calories», opened from the fat line in Progreso. */
 const val FAT_SECTION = "fat"
 
+/** The calories section (BMR, TDEE and the goal), opened from Today's «Metodología completa». */
+const val CALORIES_SECTION = "calories"
+
 /**
  * [section] opens the page on that section: [CHECK_SECTION], [PAST_DAYS_SECTION],
  * [ADAPTIVE_SECTION] or [FAT_SECTION] (web `/metodologia#check`, `#past-days`, `#adaptive`, `#fat`).
@@ -73,6 +82,9 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
     LaunchedEffect(sectionTop) {
         if (sectionTop != null) scroll.animateScrollTo(sectionTop)
     }
+    val scope = rememberCoroutineScope()
+    // Every section reports where it starts, for the index and the links that open one (web: the anchors).
+    fun at(id: String) = Modifier.onGloballyPositioned { sectionTops[id] = it.positionInParent().y.toInt() }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -96,20 +108,24 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            MethodCard(Icons.Filled.MonitorWeight, R.string.meth_scale_title, R.string.meth_scale_body)
+            // The page is long: an index to every section (web the same, with the same ids).
+            IndexCard { id -> scope.launch { sectionTops[id]?.let { scroll.animateScrollTo(it) } } }
+            MethodCard(Icons.Filled.MonitorWeight, R.string.meth_scale_title, R.string.meth_scale_body, modifier = at("scale"))
             MethodCard(
                 Icons.Filled.Functions,
                 R.string.meth_ma_title,
                 R.string.meth_ma_body,
                 formula = listOf("MA(d) = (w₁ + w₂ + … + wₙ) / n", stringResource(R.string.meth_ma_window)),
+                modifier = at("moving-average"),
             )
             MethodCard(
                 Icons.AutoMirrored.Filled.TrendingUp,
                 R.string.meth_rate_title,
                 R.string.meth_rate_body,
                 formula = listOf("β = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)²", stringResource(R.string.meth_rate_formula)),
+                modifier = at("rate"),
             )
-            MethodCard(Icons.Filled.Restaurant, R.string.meth_daily_title, R.string.meth_daily_body)
+            MethodCard(Icons.Filled.Restaurant, R.string.meth_daily_title, R.string.meth_daily_body, modifier = at("daily"))
             MethodCard(
                 Icons.Filled.FitnessCenter,
                 R.string.meth_protein_title,
@@ -120,6 +136,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_protein_rec_reference),
                     stringResource(R.string.meth_protein_rec_above),
                 ),
+                modifier = at("protein"),
             )
             MethodCard(
                 Icons.Filled.LocalFireDepartment,
@@ -133,6 +150,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_tdee_total),
                 ),
                 afterRes = R.string.meth_tdee_after,
+                modifier = at("calories"),
             )
             MethodCard(
                 Icons.Filled.SwapVert,
@@ -142,6 +160,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_recomp_cut),
                     stringResource(R.string.meth_recomp_scale),
                 ),
+                modifier = at("recomposition"),
             )
             MethodCard(
                 Icons.Filled.History,
@@ -151,9 +170,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_past_days_scale),
                     stringResource(R.string.meth_past_days_fix),
                 ),
-                modifier = Modifier.onGloballyPositioned {
-                    sectionTops[PAST_DAYS_SECTION] = it.positionInParent().y.toInt()
-                },
+                modifier = at(PAST_DAYS_SECTION),
             )
             MethodCard(
                 Icons.Filled.MonitorHeart,
@@ -167,6 +184,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_measured_conditions),
                     stringResource(R.string.meth_measured_limits),
                 ),
+                modifier = at("measured"),
             )
             MethodCard(
                 Icons.Filled.Tune,
@@ -178,9 +196,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_adaptive_why),
                     stringResource(R.string.meth_adaptive_weekly),
                 ),
-                modifier = Modifier.onGloballyPositioned {
-                    sectionTops[ADAPTIVE_SECTION] = it.positionInParent().y.toInt()
-                },
+                modifier = at(ADAPTIVE_SECTION),
             )
             MethodCard(
                 Icons.AutoMirrored.Filled.CompareArrows,
@@ -193,9 +209,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_check_causes),
                     stringResource(R.string.meth_check_shown),
                 ),
-                modifier = Modifier.onGloballyPositioned {
-                    sectionTops[CHECK_SECTION] = it.positionInParent().y.toInt()
-                },
+                modifier = at(CHECK_SECTION),
             )
             MethodCard(
                 Icons.Filled.WaterDrop,
@@ -207,13 +221,11 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                     stringResource(R.string.meth_fat_carbs),
                     stringResource(R.string.meth_fat_shown),
                 ),
-                modifier = Modifier.onGloballyPositioned {
-                    sectionTops[FAT_SECTION] = it.positionInParent().y.toInt()
-                },
+                modifier = at(FAT_SECTION),
             )
-            MethodCard(Icons.Filled.AutoAwesome, R.string.meth_ai_title, R.string.meth_ai_body)
-            MethodCard(Icons.Filled.Storage, R.string.meth_sources_title, R.string.meth_sources_body)
-            ReferencesCard()
+            MethodCard(Icons.Filled.AutoAwesome, R.string.meth_ai_title, R.string.meth_ai_body, modifier = at("ai"))
+            MethodCard(Icons.Filled.Storage, R.string.meth_sources_title, R.string.meth_sources_body, modifier = at("sources"))
+            ReferencesCard(at("references"))
             Spacer(Modifier.height(24.dp))
             }
         }
@@ -226,7 +238,53 @@ private fun SectionTitle(icon: ImageVector, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurface)
         Spacer(Modifier.width(8.dp))
-        Text(text, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        // A heading: TalkBack jumps from section to section.
+        Text(text, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
+    }
+}
+
+/** Every section's id and title, in page order (web `sections()` in `app/metodologia/page.tsx`). */
+private val SECTIONS = listOf(
+    "scale" to R.string.meth_scale_title,
+    "moving-average" to R.string.meth_ma_title,
+    "rate" to R.string.meth_rate_title,
+    "daily" to R.string.meth_daily_title,
+    "protein" to R.string.meth_protein_title,
+    CALORIES_SECTION to R.string.meth_tdee_title,
+    "recomposition" to R.string.meth_recomp_title,
+    PAST_DAYS_SECTION to R.string.meth_past_days_title,
+    "measured" to R.string.meth_measured_title,
+    ADAPTIVE_SECTION to R.string.meth_adaptive_title,
+    CHECK_SECTION to R.string.meth_check_title,
+    FAT_SECTION to R.string.meth_fat_title,
+    "ai" to R.string.meth_ai_title,
+    "sources" to R.string.meth_sources_title,
+    "references" to R.string.meth_references,
+)
+
+/** «En esta página»: one link per section. */
+@Composable
+private fun IndexCard(onOpen: (String) -> Unit) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Text(
+                stringResource(R.string.meth_on_this_page),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.semantics { heading() },
+            )
+            SECTIONS.forEach { (id, title) ->
+                Text(
+                    stringResource(title),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.Button) { onOpen(id) }
+                        .padding(vertical = 10.dp),
+                )
+            }
+        }
     }
 }
 
@@ -295,9 +353,9 @@ private fun FormulaBlock(lines: List<String>) {
 }
 
 @Composable
-private fun ReferencesCard() {
+private fun ReferencesCard(modifier: Modifier = Modifier) {
     AppCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {
             SectionTitle(Icons.AutoMirrored.Filled.MenuBook, stringResource(R.string.meth_references))

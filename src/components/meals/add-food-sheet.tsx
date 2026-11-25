@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatDateKeyShort, formatNumber } from "@/i18n/format";
+import { formatDateKeyShort, formatDateKeyWeekdayShort, formatNumber } from "@/i18n/format";
 import { ContextMenu } from "@base-ui/react/context-menu";
 import { ArrowLeftIcon, CameraIcon, CopyIcon, PencilIcon, PencilLineIcon, ScanBarcodeIcon, SearchIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +20,7 @@ import type { NewProduct, OffCorrection, OffKnown } from "@/lib/core/new-product
 import type { MealEstimate } from "@/lib/core/ai-schema";
 import { api } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
-import { addDaysToKey } from "@/lib/core/dates";
+import { addDaysToKey, todayKey } from "@/lib/core/dates";
 import { copyMealPayload } from "@/lib/meal-payload";
 import type { IngredientInput, MealDTO, MealTemplateDTO } from "@/lib/core/types";
 import { currentLanguage, formatTemplate, t } from "@/i18n";
@@ -119,7 +119,8 @@ export function AddFoodSheet({
   }
 
   const titles: Record<View, string> = {
-    menu: t.addFood.title,
+    // Another day is named: after browsing old days, today's lunch could land on one of them.
+    menu: day === todayKey() ? t.addFood.title : `${t.addFood.title} · ${formatDateKeyWeekdayShort(day)}`,
     copy: t.addFood.copy,
     search: t.addFood.search,
     barcode: t.addFood.barcode,

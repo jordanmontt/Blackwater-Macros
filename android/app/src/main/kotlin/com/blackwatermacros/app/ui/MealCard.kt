@@ -126,11 +126,13 @@ fun MealCard(
                                 .padding(vertical = 3.dp),
                             verticalAlignment = Alignment.Top,
                         ) {
+                            // Two lines before «…»: on a phone the number columns leave the name ~13
+                            // characters, and the name is what tells the rows apart (web the same).
                             Text(
                                 text = ingredient.name,
                                 modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodySmall,
-                                maxLines = 1,
+                                maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                             )
                             // Fixed-width, end-aligned columns so every row lines up whatever the text.

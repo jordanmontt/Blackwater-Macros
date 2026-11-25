@@ -12,6 +12,7 @@ import {
 } from "@/lib/core/foods";
 import { offKnownProduct, parseOffCorrection, type OffCorrection, type OffKnown } from "@/lib/core/new-product";
 import { OFF_SERVER, ownChoice, ownProduct } from "@/lib/foods/own-products";
+import { userDataStorage } from "@/lib/demo-store";
 
 /** A food the user picked from search or a barcode, before choosing the portion. */
 export interface FoodChoice {
@@ -146,10 +147,10 @@ export function productChoice(product: FoodProduct): FoodChoice {
 const RECENT_KEY = "bw:recent-foods";
 const RECENT_MAX = 20;
 
-/** Foods picked recently on this device (shown when the search box is empty). */
+/** Foods picked recently on this device (shown when the search box is empty); in the demo, in this tab only. */
 export function recentFoods(): FoodChoice[] {
   try {
-    const raw = localStorage.getItem(RECENT_KEY);
+    const raw = userDataStorage().getItem(RECENT_KEY);
     const list = raw ? (JSON.parse(raw) as FoodChoice[]) : [];
     return Array.isArray(list) ? list.slice(0, RECENT_MAX) : [];
   } catch {
@@ -160,7 +161,7 @@ export function recentFoods(): FoodChoice[] {
 export function rememberFood(choice: FoodChoice): void {
   try {
     const next = [choice, ...recentFoods().filter((item) => item.key !== choice.key)].slice(0, RECENT_MAX);
-    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    userDataStorage().setItem(RECENT_KEY, JSON.stringify(next));
   } catch {
     // Private mode or full storage: recents are a convenience only.
   }

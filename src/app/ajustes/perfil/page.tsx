@@ -16,8 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, errorText } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
-import { ExpenditureCheckStatus, formulaInputs, weighInConditionsText } from "@/components/expenditure-check";
-import { proteinPerKgText, TargetExpenditure } from "@/components/nutrition-recommendations";
+import { ExpenditureCheckStatus, formulaInputs } from "@/components/expenditure-check";
+import { proteinPerKgText } from "@/components/nutrition-recommendations";
 import { useExpenditureCheck, useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import type { CalorieProfile, Goal, WeightDTO } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
@@ -349,51 +349,27 @@ export default function PerfilPage() {
                   <p className="flex items-center gap-1.5 text-sm font-medium">
                     <FlameIcon className="size-3.5" /> {t.calorias.target}
                   </p>
-                  <p className="text-2xl font-semibold tabular-nums">
-                    {formatNumber(calorieRec.target)} <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
+                  {/* The range first, as on Today; how it is built is in «Ver el cálculo» (or, before
+                      there is a measured expenditure, the one line of the profile's formula). */}
+                  <p className="text-2xl font-semibold tabular-nums" data-testid="profile-target-range">
+                    {formatNumber(calorieRec.targetMin)} – {formatNumber(calorieRec.targetMax)}{" "}
+                    <span className="text-sm font-normal text-muted-foreground">{t.calorias.perDay}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatNumber(calorieRec.targetMin)} – {formatNumber(calorieRec.targetMax)} {t.calorias.perDay}
+                    {formatTemplate(t.calorias.estimatedAverageValue, { n: formatNumber(calorieRec.target) })}
+                    {latestWeight !== null
+                      ? ` · ${formatTemplate(t.perfil.withLatestWeight, { kg: formatNumber(latestWeight, 1) })}`
+                      : null}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatTemplate(t.common.labelValue, { label: t.calorias.bmr, value: formatNumber(calorieRec.bmr) })}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatTemplate(t.calorias.activityFactor, { n: formatNumber(calorieRec.activityFactor, 2) })}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatTemplate(t.common.labelValue, { label: t.calorias.tdee, value: formatNumber(calorieRec.tdee) })}
-                  </p>
-                  {measured ? (
-                    <>
-                      <p className="text-xs text-muted-foreground">
-                        {formatTemplate(t.common.labelValue, {
-                          label: t.calorias.measuredTdee,
-                          value: formatTemplate(t.calorias.measuredTdeeValue, {
-                            n: formatNumber(measured.tdee),
-                            margin: formatNumber(measured.margin),
-                          }),
-                        })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatTemplate(t.calorias.measuredTdeeDetail, {
-                          intake: formatNumber(measured.avgIntake),
-                          days: measured.loggedDays,
-                          rate: `${measured.weightChangePerWeek > 0 ? "+" : ""}${formatNumber(measured.weightChangePerWeek, 2)}`,
-                        })}
-                      </p>
-                      {weighInConditionsText(measured) ? (
-                        <p className="text-xs text-muted-foreground" data-testid="weigh-in-conditions">
-                          {weighInConditionsText(measured)}
-                        </p>
-                      ) : null}
-                    </>
-                  ) : null}
-                  {calorieRec.dataShare > 0 ? (
-                    <div className="text-xs text-muted-foreground">
-                      <TargetExpenditure rec={calorieRec} />
-                    </div>
-                  ) : null}
+                  {measured ? null : (
+                    <p className="text-xs text-muted-foreground">
+                      {formatTemplate(t.calorias.chainProfile, {
+                        bmr: formatNumber(calorieRec.bmr),
+                        pal: formatNumber(calorieRec.activityFactor, 2),
+                        tdee: formatNumber(calorieRec.tdee),
+                      })}
+                    </p>
+                  )}
                   <ExpenditureCheckStatus
                     check={check}
                     inputs={formulaInputs(calorieProfile, latestWeight, new Date().getFullYear())}

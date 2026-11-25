@@ -332,6 +332,7 @@ export function NutritionEntryFields({
                     />
                     <Input
                       placeholder={t.meal.quantityPlaceholder}
+                      aria-label={t.meal.quantityLabel}
                       className="w-24 shrink-0"
                       value={item.quantity}
                       onChange={(event) =>
@@ -354,45 +355,25 @@ export function NutritionEntryFields({
                   </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    inputMode="decimal"
-                    placeholder={t.meal.caloriesPlaceholder}
+                  <UnitField
+                    unit={t.meal.caloriesPlaceholder}
                     value={item.calories}
-                    onChange={(event) =>
-                      updateIngredient(index, {
-                        calories: normalizeDecimal(event.target.value),
-                      })
-                    }
+                    onChange={(calories) => updateIngredient(index, { calories })}
                   />
-                  <Input
-                    inputMode="decimal"
-                    placeholder={t.meal.proteinPlaceholder}
+                  <UnitField
+                    unit={t.meal.proteinPlaceholder}
                     value={item.protein}
-                    onChange={(event) =>
-                      updateIngredient(index, {
-                        protein: normalizeDecimal(event.target.value),
-                      })
-                    }
+                    onChange={(protein) => updateIngredient(index, { protein })}
                   />
-                  <Input
-                    inputMode="decimal"
-                    placeholder={t.meal.carbsPlaceholder}
+                  <UnitField
+                    unit={t.meal.carbsPlaceholder}
                     value={item.carbs}
-                    onChange={(event) =>
-                      updateIngredient(index, {
-                        carbs: normalizeDecimal(event.target.value),
-                      })
-                    }
+                    onChange={(carbs) => updateIngredient(index, { carbs })}
                   />
-                  <Input
-                    inputMode="decimal"
-                    placeholder={t.meal.fatPlaceholder}
+                  <UnitField
+                    unit={t.meal.fatPlaceholder}
                     value={item.fat}
-                    onChange={(event) =>
-                      updateIngredient(index, {
-                        fat: normalizeDecimal(event.target.value),
-                      })
-                    }
+                    onChange={(fat) => updateIngredient(index, { fat })}
                   />
                 </div>
               </div>
@@ -485,5 +466,28 @@ export function NutritionEntryFields({
         </Button>
       </div>
     </form>
+  );
+}
+
+/**
+ * A number field with its unit inside, at the end («145 kcal», «15 g proteína»):
+ * once a food fills the row, the values still say what they are. The unit is
+ * also the field's name for screen readers.
+ */
+function UnitField({ unit, value, onChange }: { unit: string; value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="flex h-8 min-w-0 cursor-text items-center rounded-lg border border-input transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring dark:bg-input/30">
+      <Input
+        inputMode="decimal"
+        placeholder="0"
+        aria-label={unit}
+        className="h-full min-w-0 flex-1 border-0 bg-transparent pr-1 focus-visible:ring-0 dark:bg-transparent"
+        value={value}
+        onChange={(event) => onChange(normalizeDecimal(event.target.value))}
+      />
+      <span aria-hidden="true" className="shrink-0 whitespace-nowrap pr-2.5 text-xs text-muted-foreground">
+        {unit}
+      </span>
+    </label>
   );
 }

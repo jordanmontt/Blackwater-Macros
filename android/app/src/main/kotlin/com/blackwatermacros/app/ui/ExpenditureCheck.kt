@@ -36,6 +36,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -271,6 +273,30 @@ private fun Bullet(text: String, marker: String = "•") {
         Text(marker, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(18.dp))
         Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
+}
+
+/**
+ * «Ver el cálculo» opened from outside Perfil: Today's «Cómo se calculan» and
+ * Progreso's measured line (web `ExpenditureCalculationButton`). The check and the
+ * formula's inputs are this week's, from [RecommendationsViewModel].
+ */
+@Composable
+internal fun ExpenditureCalculationSheet(
+    onDismiss: () -> Unit,
+    onOpenProfile: () -> Unit,
+    onOpenMethodology: () -> Unit,
+    viewModel: RecommendationsViewModel = viewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val ready = state as? RecommendationsUiState.Ready
+    val check = ready?.check ?: return
+    ExpenditureCheckSheet(
+        check = check,
+        inputs = ready.inputs,
+        onDismiss = onDismiss,
+        onReviewActivity = { onDismiss(); onOpenProfile() },
+        onOpenMethodology = { onDismiss(); onOpenMethodology() },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

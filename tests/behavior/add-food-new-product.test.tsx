@@ -31,7 +31,9 @@ import { formatTemplate, t } from "@/i18n";
  *  - un producto que Open Food Facts tiene con valores que no coinciden con la tabla
  *    se corrige desde la cantidad («Corregir valores»): el formulario parte de sus
  *    valores, muestra lo que tenía junto a cada valor cambiado, no guarda sin cambios
- *    y envía la corrección en la base que Open Food Facts guarda (sin nombre ni marca).
+ *    y envía la corrección en la base que Open Food Facts guarda (sin nombre ni marca),
+ *  - en el modo demo nada se envía a Open Food Facts: el producto queda en la pestaña
+ *    y el formulario y la cantidad lo dicen.
  * `fetch` está simulado: nunca se llama a Open Food Facts de verdad.
  */
 
@@ -79,6 +81,7 @@ vi.mock("@/lib/ai/images", async (importOriginal) => ({
 }));
 
 import { clearCache } from "@/lib/client-cache";
+import { enterDemoMode, exitDemoMode } from "@/lib/demo-store";
 
 const UNKNOWN = "7771234000123";
 const KNOWN_WITHOUT_NUTRITION = "8410000000017";
@@ -310,6 +313,35 @@ describe("Añadir comida: añadir un producto que Open Food Facts no tiene", () 
     offline = false;
     window.dispatchEvent(new Event("online"));
     expect(await screen.findByText(t.newProduct.status.sent)).toBeInTheDocument();
+  });
+
+  it("en el modo demo no se envía a Open Food Facts y queda solo en la pestaña", async () => {
+    enterDemoMode();
+    try {
+      const user = userEvent.setup();
+      render(
+        <>
+          <OwnProductUploads />
+          <HoyPage />
+        </>,
+      );
+      await lookUp(user, UNKNOWN);
+      await user.click(await screen.findByRole("button", { name: t.addFood.addProduct }));
+      expect(await screen.findByText(t.newProduct.demoNotSent)).toBeInTheDocument();
+      expect(screen.queryByText(t.newProduct.consent)).toBeNull();
+      await fillMilk(user);
+      await saveWithoutPhoto(user);
+
+      expect(await screen.findByText(t.newProduct.yourProduct)).toBeInTheDocument();
+      expect(screen.getByText(t.newProduct.demoNotSent)).toBeInTheDocument();
+      window.dispatchEvent(new Event("online"));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+      expect(localStorage.getItem("bw:own-products")).toBeNull();
+      expect(JSON.parse(sessionStorage.getItem("bw:own-products")!)[0].product.code).toBe(UNKNOWN);
+    } finally {
+      exitDemoMode();
+    }
   });
 
   it("el siguiente escaneo y la búsqueda lo encuentran; «Editar» corrige y reenvía", async () => {

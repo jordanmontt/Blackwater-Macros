@@ -15,6 +15,8 @@ import {
 } from "@/components/meals/nutrition-fields";
 import { api, errorText, type MealPayload } from "@/lib/api";
 import type { MealDTO } from "@/lib/core/types";
+import { todayKey } from "@/lib/core/dates";
+import { formatDateKeyWeekdayShort } from "@/i18n/format";
 import { t } from "@/i18n";
 
 interface MealFormProps {
@@ -70,7 +72,13 @@ export function MealForm({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={requestOpenChange} title={meal ? t.meal.editTitle : t.meal.newTitle}>
+      <Sheet open={open} onOpenChange={requestOpenChange} title={
+          meal
+            ? t.meal.editTitle
+            : logDate === todayKey()
+              ? t.meal.newTitle
+              : `${t.meal.newTitle} · ${formatDateKeyWeekdayShort(logDate)}`
+        }>
         {open && notice ? (
           <p role="note" className="mb-3 flex gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm">
             <SparklesIcon className="mt-0.5 size-4 shrink-0 text-primary" />

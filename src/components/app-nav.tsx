@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { HomeIcon, MessageCircleIcon, SettingsIcon, TrendingUpIcon } from "lucide-react";
 import { t } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { AI_SETTINGS_ORIGINS, aiSettingsOrigin } from "@/lib/ai-settings-origin";
+import { useSearchParam } from "@/lib/use-search-param";
 
 const items = [
   { href: "/", label: t.nav.hoy, icon: HomeIcon },
@@ -20,18 +22,22 @@ const items = [
  */
 export function AppNav() {
   const pathname = usePathname();
+  // The IA page opened from Coach or Comidas keeps that tab: the user has not gone to Ajustes.
+  const origin = aiSettingsOrigin(useSearchParam("from"));
   if (pathname === "/login" || pathname === "/bienvenida") return null;
+  const current = pathname.startsWith("/ajustes/ia") && origin ? AI_SETTINGS_ORIGINS[origin].href : pathname;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-background/80 md:sticky md:inset-x-auto md:bottom-auto md:top-0 md:order-first md:w-full md:border-t-0 md:border-b md:pb-0">
       <ul className="mx-auto flex max-w-2xl items-stretch justify-around md:justify-center md:gap-2 md:px-4">
         {items.map((item) => {
           const active =
-            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            item.href === "/" ? current === "/" : current.startsWith(item.href);
           return (
             <li key={item.href} className="flex-1 md:flex-none">
               <Link
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex flex-col items-center gap-0.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground md:flex-row md:gap-2 md:rounded-md md:px-3 md:py-2",
                   active && "text-foreground md:bg-tertiary-container md:text-tertiary-container-foreground",
