@@ -38,6 +38,10 @@ import com.blackwatermacros.app.R
  * the content's scroll, gets vetoed every frame and springs back while the finger
  * keeps pulling, which made a long form jump up and down. Turning the sheet's
  * gestures off while there is input avoids that fight altogether.
+ *
+ * The same while [contentScrolls] (content taller than the screen): a drag on the
+ * form went partly to its scroll and partly to the sheet, which lagged the finger
+ * and shook up and down (Nov 2026). Then the form only scrolls, and the handle closes.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +50,8 @@ fun GuardedBottomSheet(
     /** What the dialog says will be lost. */
     discardBody: String,
     onDismiss: () -> Unit,
+    /** The content is taller than the sheet and scrolls: only the handle drags it closed. */
+    contentScrolls: Boolean = false,
     content: @Composable ColumnScope.(requestDismiss: () -> Unit) -> Unit,
 ) {
     var confirmDiscard by remember { mutableStateOf(false) }
@@ -73,9 +79,9 @@ fun GuardedBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        sheetGesturesEnabled = !hasUnsavedInput,
+        sheetGesturesEnabled = !hasUnsavedInput && !contentScrolls,
         containerColor = MaterialTheme.colorScheme.surface,
-        dragHandle = { GuardedDragHandle(guarded = hasUnsavedInput, onSwipeDown = requestDismiss) },
+        dragHandle = { GuardedDragHandle(guarded = hasUnsavedInput || contentScrolls, onSwipeDown = requestDismiss) },
     ) {
         content(requestDismiss)
     }
@@ -97,7 +103,7 @@ fun GuardedBottomSheet(
 
 /**
  * The usual handle. While [guarded] the sheet itself does not drag, so a swipe
- * down on the handle asks to close instead (the dialog), as on iOS.
+ * down on the handle closes it instead (asking first if there is input, as on iOS).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

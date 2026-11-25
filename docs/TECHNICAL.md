@@ -2363,7 +2363,11 @@ every language (§6). The export file's names are English (a file format, §5.11
   Don't veto the swipe with `confirmValueChange` instead (deprecated): the sheet keeps
   following the content's scroll and jumps up and down on long forms. Let a sheet take its
   content's height (no `fillMaxHeight(0.9f)`): with a fixed fraction, a long meal scrolled
-  to the bottom made the sheet jump up and down by itself.
+  to the bottom made the sheet jump up and down by itself. A meal form taller than the
+  screen (two or more foods) also turns the sheet's gestures off (`contentScrolls` =
+  the form's `ScrollState.maxValue > 0`), edits or not: a drag on the form went partly to
+  its scroll and partly to the sheet, which lagged the finger and shook. Then the form
+  only scrolls and the handle closes it; a short form still drags closed.
 - **Orientation:** portrait only (`screenOrientation="portrait"` in the manifest); no
   screen has a landscape layout.
 - **Password fields** (login, admin user forms) are hidden by default with an eye button to

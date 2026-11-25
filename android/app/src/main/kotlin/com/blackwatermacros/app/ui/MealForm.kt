@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -143,11 +144,15 @@ fun MealFormSheet(
     notice: String? = null,
 ) {
     var dirty by remember { mutableStateOf(prefilled) }
+    val scroll = rememberScrollState()
 
     GuardedBottomSheet(
         hasUnsavedInput = dirty,
         discardBody = stringResource(R.string.discard_body),
         onDismiss = onDismiss,
+        // Two or more foods make the form taller than the screen: then it scrolls, and only
+        // the handle drags the sheet (a drag on the form shook it, GuardedBottomSheet).
+        contentScrolls = scroll.maxValue > 0,
     ) { requestDismiss ->
         // Sized by its content, no fixed height: at 90% of the screen, a long form
         // scrolled to the bottom made the sheet jump up and down by itself.
@@ -160,6 +165,7 @@ fun MealFormSheet(
             onSearchFood = onSearchFood,
             appendRequest = appendRequest,
             notice = notice,
+            scroll = scroll,
         )
     }
 }
@@ -175,6 +181,7 @@ private fun MealFormFields(
     onSearchFood: (() -> Unit)? = null,
     appendRequest: Pair<Long, List<WireIngredient>>? = null,
     notice: String? = null,
+    scroll: ScrollState = rememberScrollState(),
 ) {
     val totalOnly = initial?.entryMode == WireEntryMode.TOTAL_ONLY
     var mode by rememberSaveable { mutableStateOf(initial?.entryMode ?: WireEntryMode.PER_INGREDIENT) }
@@ -220,7 +227,7 @@ private fun MealFormFields(
     Column(
         Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scroll)
             .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
     ) {
         Text(heading, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
