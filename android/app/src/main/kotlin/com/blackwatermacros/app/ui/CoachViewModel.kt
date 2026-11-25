@@ -176,7 +176,9 @@ fun historyForModel(messages: List<ChatMessage>, newImages: Int = 0): List<AiMes
         // A question without an answer (failed, stopped before any text, or answered by the app) is left out too.
         if (message.role == AiRole.USER && next != null && (next.error != null || next.foodReply != null || next.text.isBlank())) return@forEachIndexed
         if (message.role == AiRole.ASSISTANT && message.text.isBlank()) return@forEachIndexed
-        turns += AiMessage(message.role, message.modelText, message.images)
+        // A question as the model read it; an answer as it was written (it grows piece by piece,
+        // so its [ChatMessage.modelText], set when it was created empty, is not it).
+        turns += AiMessage(message.role, if (message.role == AiRole.USER) message.modelText else message.text, message.images)
     }
     val recent = turns.takeLast(COACH_HISTORY_MESSAGES).toMutableList()
     var room = (MAX_PHOTOS - newImages).coerceAtLeast(0)

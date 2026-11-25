@@ -153,8 +153,11 @@ class CoachTest {
         sendAndWait("¿Qué ceno?")
         assertThat(body()["contents"]!!.jsonArray).hasSize(1)
         sendAndWait("¿Cuánta proteína?")
-        assertThat(body()["contents"]!!.jsonArray.map { it.jsonObject["role"].toString() })
+        val contents = body()["contents"]!!.jsonArray
+        assertThat(contents.map { it.jsonObject["role"].toString() })
             .containsExactly("\"user\"", "\"model\"", "\"user\"").inOrder()
+        // The earlier answer goes along as it was written (it arrived piece by piece).
+        assertThat(contents[1].jsonObject["parts"].toString()).contains("Una ensalada.")
 
         viewModel.reset()
         assertThat(viewModel.state.value).isEqualTo(ChatState())
