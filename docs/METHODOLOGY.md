@@ -769,8 +769,10 @@ model never computes a number here**:
   meals match by their title, with the meal's totals. The answer lists the names counted,
   so a wrong match is visible.
 - **Averages over logged days.** A day counts as logged when it has meals with calories.
-  Unlogged days are not zero (principle 5, §0): «per logged day» is the divisor, and «about N days a
-  week» is days eaten ÷ logged days × 7.
+  Unlogged days are not zero (principle 5, §0): «per logged day» is the divisor. «About N times a
+  week» is entries ÷ logged days × 7 and «about N days a week» is days eaten ÷ logged days × 7;
+  the result gives both, so the model never has to work one out from the other (on 25 Nov 2026
+  it called 5.5 days a week «5.5 veces por semana» when 35 entries in 28 days are 8.8).
 - **How many days.** Below **7 logged days** there is no average (the app says how many
   there are); **7–13** are given as a rough hint; 14 covers two weekly cycles. Without a
   period: the last **28 days**; weekdays vs weekend and food vs weight: **56 days**

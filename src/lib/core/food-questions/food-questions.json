@@ -90,7 +90,7 @@
     "counted": "Logged names counted: {names}.",
     "countedMore": "Logged names counted: {names}, and {more} more.",
     "few": "Only {logged} days with meals logged: present the numbers as a rough hint, not a firm average.",
-    "foodDays": "Eaten on {eatenDays} of the {logged} logged days (about {perWeek} days a week), {times} times in all.",
+    "foodDays": "Eaten {times} times in all, about {timesPerWeek} times a week, on {eatenDays} of the {logged} logged days (about {perWeek} days a week).",
     "amount": "Amount in {unit}: {total} {unit} in {entries} entries; {perEatenDay} {unit} per day it was eaten, {perLoggedDay} {unit} per logged day.",
     "withoutAmount": "{n} of the entries have no amount in g or ml, so they are left out of the amounts.",
     "foodNutrition": "These foods bring {calories} kcal per logged day ({share}% of the calories logged), {protein} g protein, {carbs} g carbs and {fat} g fat per logged day.",

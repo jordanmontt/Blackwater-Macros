@@ -43,10 +43,12 @@ object FoodStats : Analysis {
         lines += countedLines(found)
         lines += fill(
             t("foodDays"),
+            "times" to items.size,
+            // Both: «¿cuántas veces por semana?» counts entries, not days (a model once mixed them up).
+            "timesPerWeek" to num(round1(items.size.toDouble() / logged * 7)),
             "eatenDays" to eatenDays,
             "logged" to logged,
             "perWeek" to num(round1(eatenDays.toDouble() / logged * 7)),
-            "times" to items.size,
         )
         for (unit in AmountUnit.entries) {
             val withUnit = items.filter { it.amount?.unit == unit }

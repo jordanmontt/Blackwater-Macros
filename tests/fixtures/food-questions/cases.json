@@ -208,7 +208,7 @@
       "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"chocolate milk\",\"leche chocolatada\",\"cacao\"]}",
       "answer": {
         "kind": "result",
-        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Leche chocolatada Pil, Cacao con leche.\nEaten on 16 of the 22 logged days (about 5.1 days a week), 16 times in all.\nAmount in ml: 2600 ml in 13 entries; 200 ml per day it was eaten, 118 ml per logged day.\n3 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 113 kcal per logged day (9% of the calories logged), 4.5 g protein, 16.4 g carbs and 3 g fat per logged day.",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Leche chocolatada Pil, Cacao con leche.\nEaten 16 times in all, about 5.1 times a week, on 16 of the 22 logged days (about 5.1 days a week).\nAmount in ml: 2600 ml in 13 entries; 200 ml per day it was eaten, 118 ml per logged day.\n3 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 113 kcal per logged day (9% of the calories logged), 4.5 g protein, 16.4 g carbs and 3 g fat per logged day.",
         "details": {
           "analysis": "food_stats",
           "groups": [
@@ -250,7 +250,7 @@
       "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"huevo\"],\"from\":\"2026-01-01\",\"to\":\"2026-01-31\"}",
       "answer": {
         "kind": "result",
-        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-01-01 to 2026-01-31 (31 days, 25 with meals logged).\nLogged names counted: Huevos.\nEaten on 18 of the 25 logged days (about 5 days a week), 18 times in all.\n18 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 101 kcal per logged day (7% of the calories logged), 8.6 g protein, 0.7 g carbs and 7.2 g fat per logged day.",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-01-01 to 2026-01-31 (31 days, 25 with meals logged).\nLogged names counted: Huevos.\nEaten 18 times in all, about 5 times a week, on 18 of the 25 logged days (about 5 days a week).\n18 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 101 kcal per logged day (7% of the calories logged), 8.6 g protein, 0.7 g carbs and 7.2 g fat per logged day.",
         "details": {
           "analysis": "food_stats",
           "groups": [
@@ -291,7 +291,7 @@
       "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"pizza\"]}",
       "answer": {
         "kind": "result",
-        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Pizza.\nEaten on 6 of the 22 logged days (about 1.9 days a week), 6 times in all.\n6 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 245 kcal per logged day (19% of the calories logged), 9.5 g protein, 27.3 g carbs and 9.5 g fat per logged day.",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Pizza.\nEaten 6 times in all, about 1.9 times a week, on 6 of the 22 logged days (about 1.9 days a week).\n6 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 245 kcal per logged day (19% of the calories logged), 9.5 g protein, 27.3 g carbs and 9.5 g fat per logged day.",
         "details": {
           "analysis": "food_stats",
           "groups": [
@@ -332,7 +332,7 @@
       "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"avena\"],\"from\":\"2026-02-17\",\"to\":\"2026-03-01\"}",
       "answer": {
         "kind": "result",
-        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-17 to 2026-03-01 (13 days, 10 with meals logged).\nLogged names counted: Avena.\nOnly 10 days with meals logged: present the numbers as a rough hint, not a firm average.\nEaten on 10 of the 10 logged days (about 7 days a week), 10 times in all.\nAmount in g: 600 g in 10 entries; 60 g per day it was eaten, 60 g per logged day.\nThese foods bring 230 kcal per logged day (17% of the calories logged), 8 g protein, 40 g carbs and 4 g fat per logged day.",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-17 to 2026-03-01 (13 days, 10 with meals logged).\nLogged names counted: Avena.\nOnly 10 days with meals logged: present the numbers as a rough hint, not a firm average.\nEaten 10 times in all, about 7 times a week, on 10 of the 10 logged days (about 7 days a week).\nAmount in g: 600 g in 10 entries; 60 g per day it was eaten, 60 g per logged day.\nThese foods bring 230 kcal per logged day (17% of the calories logged), 8 g protein, 40 g carbs and 4 g fat per logged day.",
         "details": {
           "analysis": "food_stats",
           "groups": [
@@ -478,7 +478,7 @@
       "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"arroz\"],\"from\":\"2026-02-02\",\"to\":\"2026-12-31\"}",
       "answer": {
         "kind": "result",
-        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Arroz.\nEaten on 22 of the 22 logged days (about 7 days a week), 22 times in all.\nAmount in g: 3400 g in 17 entries; 200 g per day it was eaten, 155 g per logged day.\n5 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 260 kcal per logged day (20% of the calories logged), 5 g protein, 56 g carbs and 1 g fat per logged day.",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Arroz.\nEaten 22 times in all, about 7 times a week, on 22 of the 22 logged days (about 7 days a week).\nAmount in g: 3400 g in 17 entries; 200 g per day it was eaten, 155 g per logged day.\n5 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 260 kcal per logged day (20% of the calories logged), 5 g protein, 56 g carbs and 1 g fat per logged day.",
         "details": {
           "analysis": "food_stats",
           "groups": [
@@ -492,6 +492,49 @@
           ],
           "counted": [
             "Arroz"
+          ],
+          "moreCounted": 0,
+          "withoutAmount": 5,
+          "few": false,
+          "split": null
+        }
+      }
+    },
+    {
+      "name": "food_stats: two foods on the same days, times a week and days a week differ",
+      "model": "{\"analysis\":\"food_stats\",\"foods\":[\"avena\",\"arroz\"]}",
+      "request": {
+        "analysis": "food_stats",
+        "foods": [
+          "avena",
+          "arroz"
+        ],
+        "metric": null,
+        "split": null,
+        "from": null,
+        "to": null,
+        "from2": null,
+        "to2": null,
+        "at": null
+      },
+      "requestJson": "{\"analysis\":\"food_stats\",\"foods\":[\"avena\",\"arroz\"]}",
+      "answer": {
+        "kind": "result",
+        "text": "FOOD LOG RESULT, computed by the app from the user's log for the question above. Use these numbers as they are; do not recompute them or add others. Days without anything logged are not counted as zero.\nPeriod: 2026-02-02 to 2026-03-01 (28 days, 22 with meals logged).\nLogged names counted: Arroz, Avena.\nEaten 44 times in all, about 14 times a week, on 22 of the 22 logged days (about 7 days a week).\nAmount in g: 4720 g in 39 entries; 215 g per day it was eaten, 215 g per logged day.\n5 of the entries have no amount in g or ml, so they are left out of the amounts.\nThese foods bring 490 kcal per logged day (37% of the calories logged), 13 g protein, 96 g carbs and 5 g fat per logged day.",
+        "details": {
+          "analysis": "food_stats",
+          "groups": [
+            {
+              "label": "period",
+              "from": "2026-02-02",
+              "to": "2026-03-01",
+              "loggedDays": 22,
+              "totalDays": 28
+            }
+          ],
+          "counted": [
+            "Arroz",
+            "Avena"
           ],
           "moreCounted": 0,
           "withoutAmount": 5,

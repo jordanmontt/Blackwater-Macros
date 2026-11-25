@@ -123,7 +123,7 @@ describe("Coach: preguntas sobre lo que comes", () => {
     // Step 3: the question with the app's numbers; the model does not compute them.
     const asked = request(1).body.contents.at(-1).parts.at(-1).text as string;
     expect(asked.startsWith("¿Cuánta leche chocolatada tomo?\n\nFOOD LOG RESULT")).toBe(true);
-    expect(asked).toContain("Eaten on 14 of the 14 logged days");
+    expect(asked).toContain("Eaten 14 times in all, about 7 times a week, on 14 of the 14 logged days");
     expect(asked).toContain("Amount in ml: 2800 ml in 14 entries; 200 ml per day it was eaten");
 
     // On screen the question reads as typed; the details are the app's own words.

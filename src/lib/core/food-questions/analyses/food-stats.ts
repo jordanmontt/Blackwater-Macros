@@ -34,7 +34,14 @@ export const foodStats: Analysis = {
     const lines = [
       periodLine(period),
       ...countedLines(found),
-      fill(T.foodDays, { eatenDays, logged, perWeek: num(round1((eatenDays / logged) * 7)), times: items.length }),
+      fill(T.foodDays, {
+        times: items.length,
+        // Both: «¿cuántas veces por semana?» counts entries, not days (a model once mixed them up).
+        timesPerWeek: num(round1((items.length / logged) * 7)),
+        eatenDays,
+        logged,
+        perWeek: num(round1((eatenDays / logged) * 7)),
+      }),
     ];
     for (const unit of UNITS) {
       const withUnit = items.filter((item) => item.amount?.unit === unit);

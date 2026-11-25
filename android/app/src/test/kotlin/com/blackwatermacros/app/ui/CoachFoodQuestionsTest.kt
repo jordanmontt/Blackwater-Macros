@@ -156,7 +156,7 @@ class CoachFoodQuestionsTest {
         // Step 3: the question with the app's numbers.
         val asked = sent().body.lastUserText()
         assertThat(asked).startsWith("¿Cuánta leche chocolatada tomo?\n\nFOOD LOG RESULT")
-        assertThat(asked).contains("Eaten on 14 of the 14 logged days")
+        assertThat(asked).contains("Eaten 14 times in all, about 7 times a week, on 14 of the 14 logged days")
         assertThat(asked).contains("Amount in ml: 2800 ml in 14 entries; 200 ml per day it was eaten")
 
         // On screen the question reads as typed, and the answer carries «Cómo se calculó».
