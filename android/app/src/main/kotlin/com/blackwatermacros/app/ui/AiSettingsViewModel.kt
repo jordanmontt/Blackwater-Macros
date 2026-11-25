@@ -178,6 +178,8 @@ class AiSettingsViewModel(
 
     fun setCoachSeesData(value: Boolean) = update { it.copy(coachSeesData = value) }
 
+    fun setCoachSeesFood(value: Boolean) = update { it.copy(coachSeesFood = value) }
+
     fun runTest() {
         testJob?.cancel()
         _test.value = AiTestState.Testing

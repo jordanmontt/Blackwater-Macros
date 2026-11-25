@@ -198,7 +198,8 @@ kotlin {
  * (`src/i18n/<lang>.json`), so they are written once per language.
  * `strings-from-web.json` names, for each Android string, its path in those
  * dictionaries and, for texts with «{name}» markers, the order and type of the
- * format arguments («n:d» → `%1$d`). Android-only texts stay in `strings.xml`.
+ * format arguments («n:d» → `%1$d`). A list of texts (Metodología's paragraphs) becomes
+ * one string with a blank line between them. Android-only texts stay in `strings.xml`.
  * See docs/TECHNICAL.md «i18n».
  */
 abstract class GenerateWebStrings : DefaultTask() {
@@ -229,8 +230,10 @@ abstract class GenerateWebStrings : DefaultTask() {
                 val path = if (spec is List<*>) spec.first() as String else spec as String
                 val args = if (spec is List<*>) spec.drop(1).map { it as String } else emptyList()
                 val found = path.split('.').fold<String, Any?>(dictionary) { node, key -> (node as? Map<*, *>)?.get(key) }
+                // A list of texts is a list of paragraphs (Metodología): one string, a blank line between them.
+                val paragraphs = (found as? List<*>)?.takeIf { list -> list.all { it is String } }?.joinToString("\n\n")
                 var text = escapeAndroidString(
-                    found as? String ?: throw GradleException("strings-from-web.json: «$name» → «$path» is not a text in $lang.json"),
+                    found as? String ?: paragraphs ?: throw GradleException("strings-from-web.json: «$name» → «$path» is not a text in $lang.json"),
                     hasArgs = args.isNotEmpty(),
                 )
                 args.forEachIndexed { index, arg ->

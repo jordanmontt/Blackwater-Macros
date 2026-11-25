@@ -489,6 +489,14 @@
       "L'app demande une réponse dans un format fixe, vérifie qu'elle contient des aliments et des macros valides et ouvre toujours le formulaire de vérification avant d'enregistrer : rien de ce que dit l'IA n'est enregistré sans votre confirmation. Les modèles locaux sont plus petits que ceux du cloud et se trompent davantage.",
       "Le coach utilise les chiffres calculés par l'app (vos objectifs, la dépense mesurée et la projection de poids) au lieu de calculer les siens. La projection à 30 jours prolonge la droite de tendance des 4 dernières semaines avec sa marge de 95 % ; elle ne tient pas compte des changements futurs de votre alimentation. Ce n'est pas un avis médical."
     ],
+    "foodTitle": "Questions sur vos repas",
+    "foodBody": [
+      "Le coach répond aux questions sur ce que vous avez noté (« Combien de lait chocolaté est-ce que je bois ? », « Est-ce que je mange plus le week-end ? ») en trois étapes. D'abord, le modèle de langage transforme votre question en une demande : quoi calculer (combien et à quelle fréquence, vos aliments principaux, ce que vous avez mangé certains jours, une comparaison, ou un aliment et votre poids), pour quels aliments et sur quelle période. Ensuite, l'application fait tous les calculs avec vos repas, sur votre appareil. Enfin, le modèle explique ces chiffres : il n'en calcule aucun.",
+      "Les aliments sont cherchés par leur nom, sans accents ni majuscules : chaque mot cherché doit commencer un mot du nom (« lait choco » trouve « Lait chocolaté »). Les repas « Total seulement » comptent par leur titre. Sous chaque réponse, « Comment c'est calculé » montre les noms comptés, la période et les jours notés.",
+      "Les moyennes portent sur les jours avec des repas notés : un jour non noté ne compte pas comme zéro, car on ne sait pas ce que vous avez mangé. Avec moins de 7 jours notés, il n'y a pas de moyenne ; de 7 à 13, elle est donnée comme une indication. Sans période, ce sont les 4 dernières semaines ; pour comparer la semaine et le week-end, ou un aliment avec votre poids, 8 semaines. Les quantités ne s'additionnent qu'en g ou ml (« 200 ml », « 1,5 kg ») : « 1 tasse » ou « 2 x 30 g » ne sont pas devinés, et la réponse dit combien d'entrées sont restées de côté.",
+      "Un aliment et votre poids : l'application coupe la période le jour que vous indiquez ou, sinon, le lendemain de la dernière fois que vous avez noté l'aliment (vous avez arrêté), la première fois (vous avez commencé) ou au milieu. Chaque côté demande au moins 3 semaines, et la tendance du poids se calcule comme la dépense mesurée : au moins 4 jours avec une pesée répartis sur 14 jours, en ne comparant que des pesées prises dans les mêmes conditions. Que votre poids change en même temps qu'un aliment ne prouve pas que l'aliment en soit la cause : les calories totales changent aussi, et l'application les montre à côté.",
+      "Avec un modèle dans le cloud, les noms et quantités de vos aliments sont envoyés au fournisseur ; avec un modèle local, rien ne quitte votre appareil. Vous pouvez le désactiver dans Réglages → IA → « Le coach peut voir ce que je mange »."
+    ],
     "sourcesTitle": "Sources des données",
     "sourcesBody": [
       "Aliments génériques (hors ligne) : Swiss Food Composition Database de l'Office fédéral de la sécurité alimentaire et des affaires vétérinaires (OSAV, Suisse) et table Ciqual 2020 de l'Anses (France, Licence Ouverte / Etalab 2.0). Les noms en espagnol sont ajoutés par ce projet.",
@@ -659,6 +667,10 @@
     "engineBrowser": "Ce navigateur",
     "coachSeesData": "Le coach peut voir mes données",
     "coachSeesDataHint": "Chaque question envoie un résumé : profil, repas des 14 derniers jours et poids.",
+    "coachSeesFood": "Le coach peut voir ce que je mange",
+    "coachSeesFoodCloud": "Pour répondre à des questions comme « Combien de lait est-ce que je bois ? », les noms et quantités de vos aliments sont envoyés à {provider}. Nous recommandons un modèle local : ainsi rien ne quitte votre appareil.",
+    "coachSeesFoodLocal": "Pour répondre à des questions comme « Combien de lait est-ce que je bois ? », le modèle local lit vos repas sur votre appareil : rien n'en sort.",
+    "coachSeesFoodNeedsData": "Activez d'abord « Le coach peut voir mes données ».",
     "errors": {
       "not_configured": "Configurez l'IA dans Réglages.",
       "invalid_key": "La clé n'est pas valide ou n'a pas l'autorisation.",
@@ -716,7 +728,52 @@
     "memoryOnly": "La conversation n'est pas enregistrée : elle disparaît à la fermeture de la page.",
     "copy": "Copier le message",
     "copied": "Message copié",
-    "copyFailed": "Le navigateur n'a pas autorisé la copie. Sélectionnez le texte."
+    "copyFailed": "Le navigateur n'a pas autorisé la copie. Sélectionnez le texte.",
+    "food": {
+      "quoted": "« {text} »",
+      "unclear": "Je n'ai pas bien compris ce que vous voulez savoir sur vos repas. Pouvez-vous le dire autrement ? Par exemple : {example}",
+      "example": "Combien de fois par semaine je mange « {food} » ?",
+      "exampleGeneric": "Quels aliments me donnent le plus de protéines ?",
+      "noMatch": "Je n'ai pas trouvé {foods} dans ce que vous avez noté du {from} au {to}.",
+      "lastSeen": "La dernière fois que vous l'avez noté, c'était le {date}.",
+      "similar": "Noms proches que vous avez notés : {names}.",
+      "notEnough": "Pour une moyenne, il me faut au moins {min} jours avec des repas notés du {from} au {to}, et il y en a {n}.",
+      "notEnoughGroups": "Pour comparer, il me faut au moins {min} jours avec des repas notés dans chaque partie, et il y a : {groups}.",
+      "groupCount": "{label}, {n}",
+      "notEnoughSides": "Pour voir comment votre poids a changé, il me faut au moins {min} jours de chaque côté du {at}.",
+      "notEnoughWeighIns": "Pour voir comment votre poids a changé, il me faut plus de pesées autour du {at} : au moins {n} jours avec une pesée répartis sur {span} jours, avant ou après.",
+      "howTitle": "Comment c'est calculé",
+      "analyses": {
+        "food_stats": "Combien et à quelle fréquence vous mangez un aliment.",
+        "ranking": "Vos aliments principaux.",
+        "day_log": "Ce que vous avez mangé ces jours-là.",
+        "compare": "Une comparaison.",
+        "food_vs_weight": "Un aliment et la tendance de votre poids."
+      },
+      "group": "{label} : du {from} au {to}, {logged} jours sur {days} avec des repas notés.",
+      "labels": {
+        "period": "Période",
+        "weekdays": "En semaine",
+        "weekend": "Week-end",
+        "first": "Première période",
+        "second": "Deuxième période",
+        "before": "Avant",
+        "after": "Après"
+      },
+      "counted": "Compté : {names}.",
+      "countedMore": "Compté : {names} et {more} autres.",
+      "withoutAmount": "{n} entrées sans quantité en g ou ml ne comptent pas dans les quantités.",
+      "few": "Peu de jours notés : prenez-le comme une indication, pas comme une moyenne sûre.",
+      "split": {
+        "asked": "Avant et après le {at}, le jour que vous avez indiqué.",
+        "stopped": "Avant et après le {at} : le lendemain de la dernière fois que vous l'avez noté.",
+        "started": "Avant et après le {at} : la première fois que vous l'avez noté.",
+        "halves": "Avant et après le {at}, le milieu de la période : vous l'avez noté tout du long."
+      },
+      "unlogged": "Les jours sans rien de noté ne comptent pas comme zéro.",
+      "association": "Que deux choses changent en même temps ne prouve pas que l'une cause l'autre.",
+      "methodology": "Comment ça marche"
+    }
   },
   "onboarding": {
     "skip": "Passer",

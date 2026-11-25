@@ -489,6 +489,14 @@
       "The app asks for a fixed answer format, checks that it has valid foods and macros and always opens the review form before saving: nothing the AI says is logged unless you confirm it. Local models are smaller than cloud ones and make more mistakes.",
       "The coach uses the numbers the app computes (your targets, measured expenditure and weight projection) instead of working out its own. The 30-day projection extends the trend line of the last 4 weeks with its 95 % margin; it does not account for future changes in your diet. It is not medical advice."
     ],
+    "foodTitle": "Questions about your meals",
+    "foodBody": [
+      "The coach answers questions about what you logged (“How much chocolate milk do I drink?”, “Do I eat more at the weekend?”) in three steps. First, the language model turns your question into a request: what to compute (how much and how often, your top foods, what you ate on some days, a comparison, or a food and your weight), for which foods and over which period. Second, the app does all the arithmetic with your meals, on your device. Third, the model explains those numbers: it computes none of them.",
+      "Foods are found by name, ignoring accents and capitals: each word searched for must start a word of the name (“choc milk” finds “Chocolate milk”). “Total only” meals count by their title. Under every answer, “How it was worked out” shows the names that were counted, the period and the days logged.",
+      "Averages are taken over the days with meals logged: a day not logged doesn't count as zero, because nobody knows what you ate. With fewer than 7 days logged there is no average; with 7 to 13 it is given as a hint. Without a period the last 4 weeks are used; to compare weekdays and the weekend, or a food with your weight, 8 weeks. Amounts are only added up when they are in g or ml (“200 ml”, “1.5 kg”): “1 cup” or “2 x 30 g” are not guessed, and the answer says how many entries were left out.",
+      "A food and your weight: the app splits the period on the day you name or, otherwise, on the day after you last logged the food (you stopped), the first time (you started) or in the middle. Each side needs at least 3 weeks, and the weight trend is worked out like the measured expenditure: at least 4 days with a weigh-in spread over 14 days, comparing only weigh-ins taken alike. Your weight changing at the same time as a food doesn't prove the food is the cause: total calories change too, and the app shows them alongside.",
+      "With a cloud model, the names and amounts of your foods are sent to the provider; with a local model nothing leaves your device. You can turn it off in Settings → AI → “The coach can see what I eat”."
+    ],
     "sourcesTitle": "Data sources",
     "sourcesBody": [
       "Generic foods (offline): Swiss Food Composition Database of the Swiss Federal Food Safety and Veterinary Office (FSVO) and the Ciqual 2020 table by Anses (France, Licence Ouverte / Etalab 2.0). Spanish names are added by this project.",
@@ -659,6 +667,10 @@
     "engineBrowser": "This browser",
     "coachSeesData": "The coach can see my data",
     "coachSeesDataHint": "Each question sends a summary: profile, meals of the last 14 days and weight.",
+    "coachSeesFood": "The coach can see what I eat",
+    "coachSeesFoodCloud": "To answer questions like “How much milk do I drink?”, the names and amounts of your foods are sent to {provider}. We recommend a local model: then nothing leaves your device.",
+    "coachSeesFoodLocal": "To answer questions like “How much milk do I drink?”, the local model reads your meals on your device: nothing leaves it.",
+    "coachSeesFoodNeedsData": "Turn on “The coach can see my data” first.",
     "errors": {
       "not_configured": "Set up AI in Settings.",
       "invalid_key": "The key is not valid or has no permission.",
@@ -716,7 +728,52 @@
     "memoryOnly": "The conversation is not saved: it is gone when you close the page.",
     "copy": "Copy message",
     "copied": "Message copied",
-    "copyFailed": "The browser didn't allow copying. Select the text instead."
+    "copyFailed": "The browser didn't allow copying. Select the text instead.",
+    "food": {
+      "quoted": "“{text}”",
+      "unclear": "I didn't quite get what you want to know about your meals. Could you put it another way? For example: {example}",
+      "example": "How many times a week do I eat “{food}”?",
+      "exampleGeneric": "Which foods give me the most protein?",
+      "noMatch": "I didn't find {foods} in what you logged from {from} to {to}.",
+      "lastSeen": "You last logged it on {date}.",
+      "similar": "Similar names you did log: {names}.",
+      "notEnough": "For an average I need at least {min} days with meals logged from {from} to {to}, and there are {n}.",
+      "notEnoughGroups": "To compare I need at least {min} days with meals logged in each part, and there are: {groups}.",
+      "groupCount": "{label}, {n}",
+      "notEnoughSides": "To see how your weight changed I need at least {min} days on each side of {at}.",
+      "notEnoughWeighIns": "To see how your weight changed I need more weigh-ins around {at}: at least {n} days with a weigh-in spread over {span} days, before or after.",
+      "howTitle": "How it was worked out",
+      "analyses": {
+        "food_stats": "How much and how often you eat a food.",
+        "ranking": "Your top foods.",
+        "day_log": "What you ate on those days.",
+        "compare": "A comparison.",
+        "food_vs_weight": "A food and your weight trend."
+      },
+      "group": "{label}: {from} to {to}, {logged} of {days} days with meals logged.",
+      "labels": {
+        "period": "Period",
+        "weekdays": "Weekdays",
+        "weekend": "Weekend",
+        "first": "First period",
+        "second": "Second period",
+        "before": "Before",
+        "after": "After"
+      },
+      "counted": "Counted: {names}.",
+      "countedMore": "Counted: {names} and {more} more.",
+      "withoutAmount": "{n} entries without an amount in g or ml are left out of the amounts.",
+      "few": "Few days logged: take it as a hint, not a firm average.",
+      "split": {
+        "asked": "Before and after {at}, the day you named.",
+        "stopped": "Before and after {at}: the day after you last logged it.",
+        "started": "Before and after {at}: the first time you logged it.",
+        "halves": "Before and after {at}, the middle of the period: you logged it all along."
+      },
+      "unlogged": "Days with nothing logged don't count as zero.",
+      "association": "Two things changing together doesn't prove one causes the other.",
+      "methodology": "How it works"
+    }
   },
   "onboarding": {
     "skip": "Skip",

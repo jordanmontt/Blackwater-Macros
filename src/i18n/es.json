@@ -489,6 +489,14 @@
       "La app pide la respuesta en un formato fijo, comprueba que tenga alimentos y macros válidos y siempre abre el formulario de revisión antes de guardar: nada de lo que dice la IA se registra sin que lo confirmes. Los modelos locales son más pequeños que los de la nube y se equivocan más.",
       "El coach usa los números que calcula la app (tus objetivos, el gasto medido y la proyección de peso) en lugar de calcular los suyos. La proyección a 30 días prolonga la recta de tendencia de las últimas 4 semanas con su margen del 95 %; no tiene en cuenta cambios futuros en tu dieta. No es consejo médico."
     ],
+    "foodTitle": "Preguntas sobre tus comidas",
+    "foodBody": [
+      "El coach responde preguntas sobre lo que registraste («¿Cuánta leche chocolatada tomo?», «¿Como más el fin de semana?») en tres pasos. Primero, el modelo de lenguaje convierte tu pregunta en una petición: qué calcular (cuánto y con qué frecuencia, tus alimentos principales, lo que comiste unos días, una comparación, o un alimento y tu peso), de qué alimentos y en qué período. Segundo, la app hace todas las cuentas con tus comidas, en tu dispositivo. Tercero, el modelo explica esas cifras: no calcula ninguna.",
+      "Los alimentos se buscan por su nombre, sin tildes ni mayúsculas: cada palabra buscada tiene que empezar una palabra del nombre («leche choco» encuentra «Leche chocolatada»). Las comidas «Solo total» cuentan por su título. Debajo de cada respuesta, «Cómo se calculó» muestra los nombres que se contaron, el período y los días registrados.",
+      "Las medias se hacen sobre los días con comidas registradas: un día sin registrar no cuenta como cero, porque no se sabe qué comiste. Con menos de 7 días registrados no hay media; entre 7 y 13 se da como una pista. Sin período, se miran las últimas 4 semanas; para comparar entre semana y fin de semana, o un alimento con tu peso, 8 semanas. Las cantidades solo se suman cuando están en g o ml («200 ml», «1,5 kg»): «1 taza» o «2 x 30 g» no se adivinan, y se dice cuántos registros quedaron fuera.",
+      "Un alimento y tu peso: la app divide el período el día que indicas o, si no, el día después de la última vez que registraste el alimento (lo dejaste), la primera vez (empezaste) o la mitad. Cada lado necesita al menos 3 semanas, y la tendencia del peso se calcula como el gasto medido: al menos 4 días con pesaje repartidos en 14 días, comparando solo pesajes tomados igual. Que tu peso cambie a la vez que un alimento no prueba que el alimento sea la causa: también cambian las calorías totales, que la app pone al lado.",
+      "Con un modelo en la nube, los nombres y cantidades de tus alimentos se envían al proveedor; con un modelo local no sale nada de tu dispositivo. Puedes apagarlo en Ajustes → IA → «El coach puede ver lo que como»."
+    ],
     "sourcesTitle": "Fuentes de datos",
     "sourcesBody": [
       "Alimentos genéricos (sin conexión): Swiss Food Composition Database de la Oficina Federal de Seguridad Alimentaria y Veterinaria de Suiza (FSVO) y tabla Ciqual 2020 de Anses (Francia, Licence Ouverte / Etalab 2.0). Los nombres en español los añade este proyecto.",
@@ -659,6 +667,10 @@
     "engineBrowser": "Este navegador",
     "coachSeesData": "El coach puede ver mis datos",
     "coachSeesDataHint": "Con cada pregunta se envía un resumen: perfil, comidas de los últimos 14 días y peso.",
+    "coachSeesFood": "El coach puede ver lo que como",
+    "coachSeesFoodCloud": "Para responder preguntas como «¿Cuánta leche tomo?», los nombres y cantidades de tus alimentos se envían a {provider}. Te recomendamos un modelo local: así nada sale de tu dispositivo.",
+    "coachSeesFoodLocal": "Para responder preguntas como «¿Cuánta leche tomo?», el modelo local lee tus comidas en tu dispositivo: nada sale de él.",
+    "coachSeesFoodNeedsData": "Activa antes «El coach puede ver mis datos».",
     "errors": {
       "not_configured": "Configura la IA en Ajustes.",
       "invalid_key": "La clave no es válida o no tiene permiso.",
@@ -716,7 +728,52 @@
     "memoryOnly": "La conversación no se guarda: se borra al cerrar la página.",
     "copy": "Copiar mensaje",
     "copied": "Mensaje copiado",
-    "copyFailed": "El navegador no permitió copiar. Selecciona el texto."
+    "copyFailed": "El navegador no permitió copiar. Selecciona el texto.",
+    "food": {
+      "quoted": "«{text}»",
+      "unclear": "No entendí bien qué quieres saber de tus comidas. ¿Puedes decirlo de otra forma? Por ejemplo: {example}",
+      "example": "¿Cuántas veces por semana como «{food}»?",
+      "exampleGeneric": "¿Qué alimentos me dan más proteína?",
+      "noMatch": "No encontré {foods} en lo que registraste del {from} al {to}.",
+      "lastSeen": "La última vez que lo registraste fue el {date}.",
+      "similar": "Nombres parecidos que sí registraste: {names}.",
+      "notEnough": "Para una media necesito al menos {min} días con comidas registradas del {from} al {to}, y hay {n}.",
+      "notEnoughGroups": "Para comparar necesito al menos {min} días con comidas registradas en cada parte, y hay: {groups}.",
+      "groupCount": "{label}, {n}",
+      "notEnoughSides": "Para ver cómo cambió tu peso necesito al menos {min} días a cada lado del {at}.",
+      "notEnoughWeighIns": "Para ver cómo cambió tu peso necesito más pesajes alrededor del {at}: al menos {n} días con pesaje repartidos en {span} días, antes o después.",
+      "howTitle": "Cómo se calculó",
+      "analyses": {
+        "food_stats": "Cuánto y con qué frecuencia comes un alimento.",
+        "ranking": "Tus alimentos principales.",
+        "day_log": "Lo que comiste esos días.",
+        "compare": "Una comparación.",
+        "food_vs_weight": "Un alimento y la tendencia de tu peso."
+      },
+      "group": "{label}: del {from} al {to}, {logged} de {days} días con comidas registradas.",
+      "labels": {
+        "period": "Período",
+        "weekdays": "Entre semana",
+        "weekend": "Fin de semana",
+        "first": "Primer período",
+        "second": "Segundo período",
+        "before": "Antes",
+        "after": "Después"
+      },
+      "counted": "Contado: {names}.",
+      "countedMore": "Contado: {names} y {more} más.",
+      "withoutAmount": "{n} registros sin cantidad en g o ml no cuentan en las cantidades.",
+      "few": "Pocos días registrados: tómalo como una pista, no como una media firme.",
+      "split": {
+        "asked": "Antes y después del {at}, el día que indicaste.",
+        "stopped": "Antes y después del {at}: el día después de la última vez que lo registraste.",
+        "started": "Antes y después del {at}: la primera vez que lo registraste.",
+        "halves": "Antes y después del {at}, la mitad del período: lo registraste todo el tiempo."
+      },
+      "unlogged": "Los días sin nada registrado no cuentan como cero.",
+      "association": "Que dos cosas cambien a la vez no prueba que una cause la otra.",
+      "methodology": "Cómo funciona"
+    }
   },
   "onboarding": {
     "skip": "Saltar",

@@ -281,6 +281,7 @@ private fun AppNavHost(
         composable(AppTab.COACH.route) {
             CoachScreen(
                 onOpenAiSettings = { navController.navigate("ia") },
+                onOpenMethodology = { section -> navController.navigate("metodologia?section=$section") },
                 modifier = Modifier.padding(innerPadding),
             )
         }

@@ -489,6 +489,14 @@
       "Die App verlangt eine Antwort in einem festen Format, prüft, dass sie gültige Lebensmittel und Makros enthält, und öffnet vor dem Speichern immer das Prüfformular: Nichts, was die KI sagt, wird ohne deine Bestätigung erfasst. Lokale Modelle sind kleiner als Cloud-Modelle und irren sich häufiger.",
       "Der Coach verwendet die Zahlen, die die App berechnet (deine Ziele, den gemessenen Verbrauch und die Gewichtsprognose), statt eigene zu berechnen. Die 30-Tage-Prognose verlängert die Trendlinie der letzten 4 Wochen mit ihrem 95-%-Spielraum; künftige Änderungen deiner Ernährung berücksichtigt sie nicht. Das ist kein medizinischer Rat."
     ],
+    "foodTitle": "Fragen zu deinen Mahlzeiten",
+    "foodBody": [
+      "Der Coach beantwortet Fragen zu deinen Einträgen („Wie viel Schokomilch trinke ich?“, „Esse ich am Wochenende mehr?“) in drei Schritten. Zuerst macht das Sprachmodell aus deiner Frage eine Anfrage: was berechnet werden soll (wie viel und wie oft, deine wichtigsten Lebensmittel, was du an einigen Tagen gegessen hast, ein Vergleich, oder ein Lebensmittel und dein Gewicht), für welche Lebensmittel und über welchen Zeitraum. Dann rechnet die App alles mit deinen Mahlzeiten aus, auf deinem Gerät. Zuletzt erklärt das Modell diese Zahlen: es berechnet keine davon.",
+      "Lebensmittel werden über ihren Namen gesucht, ohne Akzente und Großschreibung: jedes gesuchte Wort muss ein Wort des Namens beginnen („schoko“ findet „Schokomilch“). Mahlzeiten „Nur Gesamtwert“ zählen über ihren Titel. Unter jeder Antwort zeigt „So wurde gerechnet“ die gezählten Namen, den Zeitraum und die eingetragenen Tage.",
+      "Durchschnitte beziehen sich auf die Tage mit eingetragenen Mahlzeiten: ein Tag ohne Eintrag zählt nicht als null, denn niemand weiß, was du gegessen hast. Mit weniger als 7 eingetragenen Tagen gibt es keinen Durchschnitt; mit 7 bis 13 wird er als Hinweis gegeben. Ohne Zeitraum werden die letzten 4 Wochen genommen; für den Vergleich von Wochentagen und Wochenende oder eines Lebensmittels mit deinem Gewicht 8 Wochen. Mengen werden nur in g oder ml zusammengezählt („200 ml“, „1,5 kg“): „1 Tasse“ oder „2 x 30 g“ werden nicht geraten, und die Antwort sagt, wie viele Einträge außen vor blieben.",
+      "Ein Lebensmittel und dein Gewicht: die App teilt den Zeitraum an dem Tag, den du nennst, sonst am Tag nach deinem letzten Eintrag des Lebensmittels (du hast aufgehört), an deinem ersten (du hast angefangen) oder in der Mitte. Jede Seite braucht mindestens 3 Wochen, und der Gewichtstrend wird wie der gemessene Verbrauch berechnet: mindestens 4 Tage mit einer Wiegung, verteilt über 14 Tage, wobei nur gleich gemachte Wiegungen verglichen werden. Dass sich dein Gewicht gleichzeitig mit einem Lebensmittel ändert, beweist nicht, dass das Lebensmittel die Ursache ist: auch die Gesamtkalorien ändern sich, und die App zeigt sie daneben.",
+      "Mit einem Cloud-Modell werden die Namen und Mengen deiner Lebensmittel an den Anbieter gesendet; mit einem lokalen Modell verlässt nichts dein Gerät. Du kannst es unter Einstellungen → KI → „Der Coach darf sehen, was ich esse“ ausschalten."
+    ],
     "sourcesTitle": "Datenquellen",
     "sourcesBody": [
       "Allgemeine Lebensmittel (offline): Schweizer Nährwertdatenbank des Bundesamts für Lebensmittelsicherheit und Veterinärwesen (BLV, Schweiz) und die Ciqual-Tabelle 2020 der Anses (Frankreich, Licence Ouverte / Etalab 2.0). Die spanischen Namen ergänzt dieses Projekt.",
@@ -659,6 +667,10 @@
     "engineBrowser": "Dieser Browser",
     "coachSeesData": "Der Coach darf meine Daten sehen",
     "coachSeesDataHint": "Jede Frage sendet eine Zusammenfassung: Profil, Mahlzeiten der letzten 14 Tage und Gewicht.",
+    "coachSeesFood": "Der Coach darf sehen, was ich esse",
+    "coachSeesFoodCloud": "Um Fragen wie „Wie viel Milch trinke ich?“ zu beantworten, werden die Namen und Mengen deiner Lebensmittel an {provider} gesendet. Wir empfehlen ein lokales Modell: dann verlässt nichts dein Gerät.",
+    "coachSeesFoodLocal": "Um Fragen wie „Wie viel Milch trinke ich?“ zu beantworten, liest das lokale Modell deine Mahlzeiten auf deinem Gerät: nichts verlässt es.",
+    "coachSeesFoodNeedsData": "Schalte zuerst „Der Coach darf meine Daten sehen“ ein.",
     "errors": {
       "not_configured": "Richte die KI in den Einstellungen ein.",
       "invalid_key": "Der Schlüssel ist ungültig oder hat keine Berechtigung.",
@@ -716,7 +728,52 @@
     "memoryOnly": "Das Gespräch wird nicht gespeichert: Es verschwindet, wenn du die Seite schließt.",
     "copy": "Nachricht kopieren",
     "copied": "Nachricht kopiert",
-    "copyFailed": "Der Browser hat das Kopieren nicht erlaubt. Markiere den Text."
+    "copyFailed": "Der Browser hat das Kopieren nicht erlaubt. Markiere den Text.",
+    "food": {
+      "quoted": "„{text}“",
+      "unclear": "Ich habe nicht genau verstanden, was du über deine Mahlzeiten wissen möchtest. Kannst du es anders sagen? Zum Beispiel: {example}",
+      "example": "Wie oft pro Woche esse ich „{food}“?",
+      "exampleGeneric": "Welche Lebensmittel geben mir am meisten Protein?",
+      "noMatch": "Ich habe {foods} in deinen Einträgen vom {from} bis {to} nicht gefunden.",
+      "lastSeen": "Zuletzt eingetragen hast du es am {date}.",
+      "similar": "Ähnliche Namen, die du eingetragen hast: {names}.",
+      "notEnough": "Für einen Durchschnitt brauche ich mindestens {min} Tage mit eingetragenen Mahlzeiten vom {from} bis {to}, und es sind {n}.",
+      "notEnoughGroups": "Für einen Vergleich brauche ich mindestens {min} Tage mit eingetragenen Mahlzeiten in jedem Teil, und es sind: {groups}.",
+      "groupCount": "{label}, {n}",
+      "notEnoughSides": "Um zu sehen, wie sich dein Gewicht verändert hat, brauche ich mindestens {min} Tage auf jeder Seite des {at}.",
+      "notEnoughWeighIns": "Um zu sehen, wie sich dein Gewicht verändert hat, brauche ich mehr Wiegungen um den {at}: mindestens {n} Tage mit einer Wiegung, verteilt über {span} Tage, davor oder danach.",
+      "howTitle": "So wurde gerechnet",
+      "analyses": {
+        "food_stats": "Wie viel und wie oft du ein Lebensmittel isst.",
+        "ranking": "Deine wichtigsten Lebensmittel.",
+        "day_log": "Was du an diesen Tagen gegessen hast.",
+        "compare": "Ein Vergleich.",
+        "food_vs_weight": "Ein Lebensmittel und dein Gewichtstrend."
+      },
+      "group": "{label}: vom {from} bis {to}, {logged} von {days} Tagen mit eingetragenen Mahlzeiten.",
+      "labels": {
+        "period": "Zeitraum",
+        "weekdays": "Wochentage",
+        "weekend": "Wochenende",
+        "first": "Erster Zeitraum",
+        "second": "Zweiter Zeitraum",
+        "before": "Davor",
+        "after": "Danach"
+      },
+      "counted": "Gezählt: {names}.",
+      "countedMore": "Gezählt: {names} und {more} weitere.",
+      "withoutAmount": "{n} Einträge ohne Menge in g oder ml zählen bei den Mengen nicht mit.",
+      "few": "Wenige Tage eingetragen: nimm es als Hinweis, nicht als sicheren Durchschnitt.",
+      "split": {
+        "asked": "Vor und nach dem {at}, dem Tag, den du genannt hast.",
+        "stopped": "Vor und nach dem {at}: der Tag nach deinem letzten Eintrag davon.",
+        "started": "Vor und nach dem {at}: dein erster Eintrag davon.",
+        "halves": "Vor und nach dem {at}, der Mitte des Zeitraums: du hast es die ganze Zeit eingetragen."
+      },
+      "unlogged": "Tage ohne Einträge zählen nicht als null.",
+      "association": "Dass sich zwei Dinge gleichzeitig ändern, beweist nicht, dass das eine das andere verursacht.",
+      "methodology": "So funktioniert es"
+    }
   },
   "onboarding": {
     "skip": "Überspringen",

@@ -5,7 +5,7 @@ a measured expenditure and a weight projection: every formula, why it was chosen
 it comes from and where it stops being reliable.
 
 - **Code:** `src/lib/core/calories.ts`, `protein.ts`, `expenditure.ts`, `stats.ts`,
-  `stats-builder.ts`, `progress.ts`, `coach.ts` (web), mirrored 1:1 in Kotlin
+  `stats-builder.ts`, `progress.ts`, `coach.ts`, `food-questions/` (web), mirrored 1:1 in Kotlin
   `android/core` (see [TECHNICAL.md](./TECHNICAL.md) §8 and §11.1).
 - **User-facing text:** the Metodología page (web `metodologia.*` in `src/i18n/*.json` plus
   the formula blocks and references in `src/app/metodologia/page.tsx`; Android `meth_*`
@@ -51,6 +51,7 @@ need individual guidance.
 | Weight trend | 7-day moving average | Zheng 2015; Walker 2005 |
 | Weekly rate | Slope within weigh-ins taken alike × 7 | Montgomery 2021 |
 | Coach projection | Trend line extended 30 days with its 95 % confidence band | Montgomery 2021 |
+| Questions about your meals | The model only reads the question; the app counts over logged days (≥ 7, a hint below 14), amounts only in g or ml, food vs weight as an association | §3 rules for the weight trend |
 | Macro energy split | 4 / 4 / 9 kcal per g | Atwater general factors |
 | Fat share | Period's average outside 20–35 % of calories, ≥ 7 logged days: one line in Progreso, no target | IOM 2005; WHO 2023; Hooper 2020; Whittaker & Wu 2021; Hall & Guo 2017; Gardner 2018 |
 
@@ -748,6 +749,50 @@ margin(x) = 1.96 × σ × √(1/n_g + (x − x̄_g)² / Sxx)    (n_g, x̄_g: the
   `4P + 4C + 9F` (for items of 20 kcal or more).
 - **Review.** Every estimate opens the review form before anything is saved.
 
+### 6.1 Questions about your meals (`food-questions/`)
+
+The coach answers questions about the food log («How much chocolate milk do I drink?»,
+«Do I eat more at the weekend?», «Did my weight change since I stopped beer?»). Language
+models add up dozens of entries badly and present a wrong average as a fact, so **the
+model never computes a number here**:
+
+1. The model turns the question into a request from a fixed list (how much and how often,
+   top foods, what was eaten on some days, a comparison, a food and the weight trend):
+   which foods (search words) and which period.
+2. The app computes it from the log on the device (TECHNICAL.md §8.7).
+3. The model explains the result, which travels with the question as text it must quote.
+   With nothing to compute (no match, too few days, an unreadable request), the app
+   answers itself, and under every answer «How it was worked out» says what was counted.
+
+- **Matching.** Names are compared without accents or capitals; every searched word must
+  start a word of the logged name («leche choco» finds «Leche chocolatada»). «Total only»
+  meals match by their title, with the meal's totals. The answer lists the names counted,
+  so a wrong match is visible.
+- **Averages over logged days.** A day counts as logged when it has meals with calories.
+  Unlogged days are not zero (principle 5, §0): «per logged day» is the divisor, and «about N days a
+  week» is days eaten ÷ logged days × 7.
+- **How many days.** Below **7 logged days** there is no average (the app says how many
+  there are); **7–13** are given as a rough hint; 14 covers two weekly cycles. Without a
+  period: the last **28 days**; weekdays vs weekend and food vs weight: **56 days**
+  (28 days have only 8 weekend days, too few once some go unlogged).
+- **Amounts.** Only quantities in g or ml with a single number are added up («200 ml»,
+  «1,5 kg», «33 cl»); «1 cup (250 ml)», «2 x 30 g» or «2 eggs» are left out rather than
+  guessed, and the answer says how many entries were. Grams and millilitres are reported
+  separately (no density is assumed).
+- **Comparisons.** Each side needs ≥ 7 logged days. The difference is second minus first,
+  in the metric's unit per logged day, with its percentage of the first.
+- **A food and the weight.** The period is split on the day the user names; otherwise on
+  the day after the food was last logged (if that is ≥ 14 days before the end: stopped),
+  on the first day it was logged (if ≥ 14 days after the start: started), or in the
+  middle. Each side needs ≥ 21 days and ≥ 7 logged days. Each side's weight trend uses
+  the measured expenditure's rules and fit (§3: ≥ 4 weigh-in days spanning ≥ 14 days,
+  compared only within weigh-ins taken alike), with its 95 % margin. Total calories per
+  logged day are shown next to it, and the text says it is an association, not a cause:
+  weight follows total energy balance, which usually changes with the food.
+- **What leaves the device.** With a cloud model, the question goes to the provider in
+  step 1, and in step 3 the result: food names and amounts. With a local model nothing
+  leaves the device. «The coach can see what I eat» turns it off.
+
 ## 7. Rounding
 
 - **Energy:** BMR, TDEE and targets are rounded to whole kcal. The margin is also a whole
@@ -760,6 +805,14 @@ margin(x) = 1.96 × σ × √(1/n_g + (x − x̄_g)² / Sxx)    (n_g, x̄_g: the
 ---
 
 ## 8. Review log
+
+- **2026-11-25, questions about your meals (§6.1).**
+  - *Added:* the coach answers questions about the food log with numbers the app computes
+    (the model only chooses what to compute and explains the result).
+  - *Rules chosen:* averages over logged days; no average below 7 logged days, a hint below
+    14; 28 days by default, 56 for weekdays vs weekend and food vs weight; amounts only in
+    g or ml; the weight trend with §3's rules on each side of the split; food vs weight
+    said as an association, with total calories alongside.
 
 - **2026-09-28, second review.**
   - *Checked against the sources:* every constant, formula and worked example above.

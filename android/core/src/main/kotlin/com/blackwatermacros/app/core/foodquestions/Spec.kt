@@ -47,7 +47,10 @@ data class FoodQuestionRules(
     val similarNamesShown: Int,
     val maxSearchWords: Int,
     val resultMaxChars: Int,
+    /** Thinking cloud models spend part of it before answering. */
     val requestMaxTokens: Int,
+    /** The phone's and the browser's models: the request is a few lines of JSON. */
+    val localRequestMaxTokens: Int,
 )
 
 data class AnalysisSpec(val description: String, val fields: List<String>, val required: List<String>)
@@ -87,6 +90,7 @@ object FoodQuestionsSpec {
             maxSearchWords = n("maxSearchWords"),
             resultMaxChars = n("resultMaxChars"),
             requestMaxTokens = n("requestMaxTokens"),
+            localRequestMaxTokens = n("localRequestMaxTokens"),
         )
     }
 

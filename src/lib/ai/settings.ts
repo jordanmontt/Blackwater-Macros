@@ -21,6 +21,12 @@ export interface AiSettings {
   baseUrl: string;
   /** The coach receives a summary of your data with each question. */
   coachSeesData: boolean;
+  /**
+   * The coach may read the food log to answer questions about it («¿Cuánta leche
+   * tomo?»): food names and amounts, to the provider when it runs in the cloud.
+   * Only with [coachSeesData].
+   */
+  coachSeesFood: boolean;
   /** The coach runs in the cloud or on the model downloaded into this browser. */
   coachEngine: "cloud" | "browser";
   /** Which model to download into this browser (`BROWSER_MODELS` id; empty = the default). */
@@ -35,6 +41,7 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   models: {},
   baseUrl: "",
   coachSeesData: true,
+  coachSeesFood: true,
   coachEngine: "cloud",
   browserModel: "",
 };
@@ -49,6 +56,7 @@ function parse(raw: string | null): AiSettings {
       models: typeof value.models === "object" && value.models ? value.models : {},
       baseUrl: typeof value.baseUrl === "string" ? value.baseUrl : "",
       coachSeesData: value.coachSeesData !== false,
+      coachSeesFood: value.coachSeesFood !== false,
       coachEngine: value.coachEngine === "browser" ? "browser" : "cloud",
       browserModel: typeof value.browserModel === "string" ? value.browserModel : "",
     };

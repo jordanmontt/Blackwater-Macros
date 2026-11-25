@@ -14,7 +14,8 @@
     "similarNamesShown": 5,
     "maxSearchWords": 8,
     "resultMaxChars": 1200,
-    "requestMaxTokens": 4096
+    "requestMaxTokens": 4096,
+    "localRequestMaxTokens": 512
   },
   "requestPrompt": [
     "You turn a question about the user's own food log into a request for the app Blackwater Macros. The app computes every number from the log; you only choose what to compute.",

@@ -1,5 +1,7 @@
 package com.blackwatermacros.app.ui
 
+import androidx.compose.ui.draw.alpha
+import com.blackwatermacros.app.data.ai.AiEngineChoice
 import android.content.Intent
 import androidx.core.net.toUri
 import androidx.compose.foundation.clickable
@@ -210,6 +212,33 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
                             fontWeight = FontWeight.Medium,
                         )
                         CardDescription(stringResource(R.string.ai_coach_sees_data_hint))
+                    }
+                }
+                // Food names and amounts leave the phone only with a cloud coach: the text says where they go.
+                val seesFood = settings.coachSeesData && settings.coachSeesFood
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                        .clickable(enabled = settings.coachSeesData) { viewModel.setCoachSeesFood(!settings.coachSeesFood) }
+                        .alpha(if (settings.coachSeesData) 1f else 0.6f),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Checkbox(checked = seesFood, onCheckedChange = null, enabled = settings.coachSeesData, modifier = Modifier.padding(top = 2.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.ai_coach_sees_food),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                        )
+                        CardDescription(
+                            when {
+                                !settings.coachSeesData -> stringResource(R.string.ai_coach_sees_food_needs_data)
+                                settings.coachEngine == AiEngineChoice.DEVICE -> stringResource(R.string.ai_coach_sees_food_local)
+                                else -> stringResource(R.string.ai_coach_sees_food_cloud, stringResource(settings.provider.shortLabelRes()))
+                            },
+                        )
                     }
                 }
             }

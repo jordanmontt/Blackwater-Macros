@@ -45,6 +45,12 @@ data class AiSettings(
     val baseUrl: String = "",
     /** The coach receives a summary of your data with each question. */
     val coachSeesData: Boolean = true,
+    /**
+     * The coach may read the food log to answer questions about it («¿Cuánta leche
+     * tomo?»): food names and amounts, to the provider when it runs in the cloud.
+     * Only with [coachSeesData].
+     */
+    val coachSeesFood: Boolean = true,
     val photoEngine: AiEngineChoice = AiEngineChoice.CLOUD,
     val coachEngine: AiEngineChoice = AiEngineChoice.CLOUD,
 ) {
@@ -123,6 +129,7 @@ class AiSettingsStore(private val prefs: SharedPreferences, private val cipher: 
             putString(KEY_PROVIDER, next.provider.id)
             putString(KEY_BASE_URL, next.baseUrl)
             putBoolean(KEY_COACH_DATA, next.coachSeesData)
+            putBoolean(KEY_COACH_FOOD, next.coachSeesFood)
             putString(KEY_PHOTO_ENGINE, next.photoEngine.id)
             putString(KEY_COACH_ENGINE, next.coachEngine.id)
             for (provider in AiProvider.entries) {
@@ -147,6 +154,7 @@ class AiSettingsStore(private val prefs: SharedPreferences, private val cipher: 
         }.toMap(),
         baseUrl = prefs.getString(KEY_BASE_URL, null).orEmpty(),
         coachSeesData = prefs.getBoolean(KEY_COACH_DATA, true),
+        coachSeesFood = prefs.getBoolean(KEY_COACH_FOOD, true),
         photoEngine = AiEngineChoice.fromId(prefs.getString(KEY_PHOTO_ENGINE, null)),
         coachEngine = AiEngineChoice.fromId(prefs.getString(KEY_COACH_ENGINE, null)),
     )
@@ -159,6 +167,7 @@ class AiSettingsStore(private val prefs: SharedPreferences, private val cipher: 
         private const val KEY_MODEL = "model."
         private const val KEY_BASE_URL = "baseUrl"
         private const val KEY_COACH_DATA = "coachSeesData"
+        private const val KEY_COACH_FOOD = "coachSeesFood"
         private const val KEY_PHOTO_ENGINE = "photoEngine"
         private const val KEY_COACH_ENGINE = "coachEngine"
     }

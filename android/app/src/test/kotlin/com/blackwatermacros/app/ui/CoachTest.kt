@@ -76,7 +76,8 @@ class CoachTest {
         val account = AccountStore(context.getSharedPreferences("coach-account", Context.MODE_PRIVATE).also { it.edit().clear().commit() })
         repository = AppRepository(db, account, onLocalChange = {})
         settings = AiSettingsStore(context.getSharedPreferences("coach-ai", Context.MODE_PRIVATE).also { it.edit().clear().commit() }, PlainCipher)
-        settings.update { it.copy(provider = AiProvider.GEMINI, apiKeys = mapOf(AiProvider.GEMINI to "fake-key")) }
+        // Questions about the food log have their own tests (CoachFoodQuestionsTest): off here.
+        settings.update { it.copy(provider = AiProvider.GEMINI, apiKeys = mapOf(AiProvider.GEMINI to "fake-key"), coachSeesFood = false) }
         val mock = server.url("/")
         val client = AiClient(
             OkHttpClient.Builder()

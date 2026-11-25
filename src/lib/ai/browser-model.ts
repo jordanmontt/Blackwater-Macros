@@ -231,6 +231,36 @@ export async function* browserChatStream(
   }
 }
 
+/**
+ * A whole JSON answer from the model in this browser (food questions' step 1):
+ * WebLLM's JSON mode makes the model write a valid JSON object.
+ */
+export async function browserCompleteJson(system: string, text: string, maxTokens: number, signal?: AbortSignal): Promise<string> {
+  if (state.status !== "ready") throw new Error("No model in this browser");
+  const current = await load(state.model);
+  const onAbort = () => current.interruptGenerate();
+  signal?.addEventListener("abort", onAbort);
+  try {
+    const reply = await current.chat.completions.create({
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: text },
+      ],
+      stream: false,
+      max_tokens: maxTokens,
+      // Filling a form: the likeliest answer, not a varied one.
+      temperature: 0,
+      response_format: { type: "json_object" },
+      extra_body: { enable_thinking: false },
+    });
+    const answer = withoutThinking()(reply.choices[0]?.message?.content ?? "");
+    if (!answer.trim()) throw new AiError("empty");
+    return answer;
+  } finally {
+    signal?.removeEventListener("abort", onAbort);
+  }
+}
+
 function getBrowserModelState(): BrowserModelState {
   return state;
 }

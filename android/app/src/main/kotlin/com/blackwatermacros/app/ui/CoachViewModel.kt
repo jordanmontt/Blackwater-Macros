@@ -21,6 +21,22 @@ import com.blackwatermacros.app.core.buildCoachContext
 import com.blackwatermacros.app.core.buildCoachSystemPrompt
 import com.blackwatermacros.app.core.todayKey
 import com.blackwatermacros.app.core.weekStartOf
+import com.blackwatermacros.app.core.foodquestions.FoodQuestionsSpec
+import com.blackwatermacros.app.core.EntryMode
+import com.blackwatermacros.app.data.MealDTO
+import com.blackwatermacros.app.data.WeightDTO
+import com.blackwatermacros.app.data.WireEntryMode
+import com.blackwatermacros.app.core.foodquestions.FoodAnswer
+import com.blackwatermacros.app.core.foodquestions.FoodDetails
+import com.blackwatermacros.app.core.foodquestions.FoodLog
+import com.blackwatermacros.app.core.foodquestions.FoodLogMeal
+import com.blackwatermacros.app.core.foodquestions.FoodRequest
+import com.blackwatermacros.app.core.foodquestions.answerFoodRequest
+import com.blackwatermacros.app.core.foodquestions.buildFoodRequestPrompt
+import com.blackwatermacros.app.core.foodquestions.foodQuestionMessage
+import com.blackwatermacros.app.core.foodquestions.mostLoggedFood
+import com.blackwatermacros.app.core.foodquestions.parseFoodRequest
+import com.blackwatermacros.app.data.ai.AiSettings
 import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.core.AiImage
 import com.blackwatermacros.app.data.ai.AiClient
@@ -62,7 +78,50 @@ data class ChatMessage(
     /** Photos sent with a question: small JPEGs in memory only (never stored). */
     val images: List<AiImage> = emptyList(),
     val previews: List<ImageBitmap> = emptyList(),
+    /** On a question about the food log: the request read from it, for follow-ups («¿y el mes pasado?»). */
+    val foodRequest: FoodRequest? = null,
+    /** On the answer to a question about the food log: «Cómo se calculó». */
+    val foodDetails: FoodDetails? = null,
+    /** The app answered itself (nothing to compute): the model never sees this turn. */
+    val foodReply: FoodReply? = null,
 )
+
+/**
+ * What the app says itself to a question about the food log when there is nothing
+ * to compute; the screen writes it in the app's language (web `replyText`).
+ */
+sealed interface FoodReply {
+    /** The question could not be read as a request; [exampleFood] is for an example to copy. */
+    data class Unclear(val exampleFood: String?) : FoodReply
+
+    /** Nothing matched, or too few days or weigh-ins. */
+    data class Answer(val answer: FoodAnswer) : FoodReply
+}
+
+/** An example question about [food], one of the user's own; a general one without any. */
+data class FoodExample(val food: String?)
+
+/** A meal as food questions read it. */
+internal fun foodLogMeal(meal: MealDTO) = FoodLogMeal(
+    logDate = meal.logDate,
+    title = meal.title,
+    entryMode = if (meal.entryMode == WireEntryMode.TOTAL_ONLY) EntryMode.TOTAL_ONLY else EntryMode.PER_INGREDIENT,
+    ingredients = meal.ingredients.map { IngredientInput(it.name, it.quantity, it.calories, it.protein, it.carbs, it.fat) },
+    resolvedCalories = meal.resolvedCalories,
+    resolvedProtein = meal.resolvedProtein,
+    resolvedCarbs = meal.resolvedCarbs,
+    resolvedFat = meal.resolvedFat,
+)
+
+/**
+ * What the coach does with a question once the app has read it against the food log
+ * (web `FoodStep`): answer as usual, let the model explain the app's numbers, or reply itself.
+ */
+sealed interface FoodStep {
+    data object Normal : FoodStep
+    data class Numbers(val request: FoodRequest, val modelText: String, val details: FoodDetails) : FoodStep
+    data class Reply(val request: FoodRequest?, val reply: FoodReply, val details: FoodDetails?) : FoodStep
+}
 
 data class ChatState(val messages: List<ChatMessage> = emptyList(), val streaming: Boolean = false)
 
@@ -112,9 +171,10 @@ fun fitHistoryToBudget(history: List<AiMessage>, fixedTokens: Int, budgetTokens:
 fun historyForModel(messages: List<ChatMessage>, newImages: Int = 0): List<AiMessage> {
     val turns = mutableListOf<AiMessage>()
     messages.forEachIndexed { index, message ->
-        if (message.error != null) return@forEachIndexed
+        if (message.error != null || message.foodReply != null) return@forEachIndexed
         val next = messages.getOrNull(index + 1)
-        if (message.role == AiRole.USER && next != null && (next.error != null || next.text.isBlank())) return@forEachIndexed
+        // A question without an answer (failed, stopped before any text, or answered by the app) is left out too.
+        if (message.role == AiRole.USER && next != null && (next.error != null || next.foodReply != null || next.text.isBlank())) return@forEachIndexed
         if (message.role == AiRole.ASSISTANT && message.text.isBlank()) return@forEachIndexed
         turns += AiMessage(message.role, message.modelText, message.images)
     }
@@ -212,6 +272,7 @@ class CoachViewModel(
         val photos = _photos.value
         if ((typed.isEmpty() && photos.isEmpty()) || _state.value.streaming) return
         val history = historyForModel(_state.value.messages, photos.size)
+        val previous = _state.value.messages.lastOrNull { it.foodRequest != null }?.foodRequest
         val asked = ChatMessage(
             id = nextId++,
             role = AiRole.USER,
@@ -228,8 +289,24 @@ class CoachViewModel(
         job = viewModelScope.launch {
             try {
                 val current = settings.current
+                var question = AiMessage(AiRole.USER, asked.modelText, asked.images)
+                // A question about the food log (not one about a photo): the app reads it first (steps 1-2).
+                if (current.coachSeesData && current.coachSeesFood && asked.images.isEmpty()) {
+                    when (val food = readFoodQuestion(current, asked.modelText, previous)) {
+                        is FoodStep.Reply -> {
+                            patchQuestion { it.copy(foodRequest = food.request) }
+                            patchLast { it.copy(foodReply = food.reply, foodDetails = food.details) }
+                            return@launch
+                        }
+                        is FoodStep.Numbers -> {
+                            question = question.copy(text = food.modelText)
+                            patchQuestion { it.copy(foodRequest = food.request, modelText = food.modelText) }
+                            patchLast { it.copy(foodDetails = food.details) }
+                        }
+                        FoodStep.Normal -> Unit
+                    }
+                }
                 val system = coachSystemPrompt()
-                val question = AiMessage(AiRole.USER, asked.modelText, asked.images)
                 val answer = if (current.coachEngine == AiEngineChoice.DEVICE && local != null) {
                     if (asked.images.isNotEmpty() && !local.supportsImages()) throw AiException(AiFailure.NO_VISION)
                     val questionTokens = localQuestionTokens(question)
@@ -294,6 +371,61 @@ class CoachViewModel(
         }
     }
 
+    /**
+     * An example question about one of the user's own foods (web `useFoodExample`), from
+     * the last 4 weeks; null when the coach may not read the food log.
+     */
+    val foodExample: StateFlow<FoodExample?> = combine(repository.allMeals(), settings.settings) { meals, current ->
+        if (current.coachSeesData && current.coachSeesFood) FoodExample(mostLoggedFood(meals.map(::foodLogMeal), todayKey())) else null
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Sets fields of the question being answered (the message before the answer). */
+    private fun patchQuestion(update: (ChatMessage) -> ChatMessage) {
+        val messages = _state.value.messages
+        if (messages.size < 2) return
+        _state.value = _state.value.copy(messages = messages.dropLast(2) + update(messages[messages.size - 2]) + messages.last())
+    }
+
+    /**
+     * Steps 1 and 2 of a food question (web `readFoodQuestion`): the model turns [question]
+     * into a request (in the cloud, or on the phone in a short conversation of its own), the
+     * app computes it from the log. [previous] is the conversation's last request.
+     */
+    private suspend fun readFoodQuestion(current: AiSettings, question: String, previous: FoodRequest?): FoodStep {
+        val today = todayKey()
+        val system = buildFoodRequestPrompt(today, language(), previous)
+        val raw = if (current.coachEngine == AiEngineChoice.DEVICE && local != null) {
+            local.completeAside(system, question)
+        } else {
+            client.complete(
+                current.config,
+                AiInput(system, listOf(AiMessage(AiRole.USER, question)), json = true, stream = false, maxTokens = FoodQuestionsSpec.rules.requestMaxTokens),
+            )
+        }
+        val log = loadFoodLog(today)
+        val unclear = FoodStep.Reply(null, FoodReply.Unclear(mostLoggedFood(log.meals, today)), null)
+        val request = parseFoodRequest(raw) ?: return unclear
+        if (request.analysis == null) return FoodStep.Normal
+        return when (val answer = answerFoodRequest(log, request)) {
+            null -> unclear.copy(request = request)
+            is FoodAnswer.Result -> FoodStep.Numbers(request, foodQuestionMessage(question, answer.text), answer.details)
+            is FoodAnswer.NoMatch -> FoodStep.Reply(request, FoodReply.Answer(answer), null)
+            is FoodAnswer.NotEnough -> FoodStep.Reply(request, FoodReply.Answer(answer), answer.details)
+        }
+    }
+
+    /** Everything food questions may read: every meal up to today and every weigh-in. */
+    private suspend fun loadFoodLog(today: String): FoodLog = FoodLog(
+        today = today,
+        meals = repository.allMeals().first().filter { it.logDate <= today }.map(::foodLogMeal),
+        weights = coachWeights(repository.weights().first()).filter { it.date <= today },
+    )
+
+    /** The weigh-ins as the coach reads them, oldest first. */
+    private fun coachWeights(weightDtos: List<WeightDTO>): List<CoachWeight> =
+        weightDtos.mapNotNull { w -> localDateKey(w.measuredAt)?.let { CoachWeight(it, w.weightKg, w.bodyFatPct, w.fasted, w.measuredAt, w.timeZone) } }
+            .sortedBy { it.date }
+
     private suspend fun coachSystemPrompt(): String {
         val context = if (settings.current.coachSeesData) buildCoachContext(loadCoachInput()) else null
         return buildCoachSystemPrompt(language(), context)
@@ -329,11 +461,7 @@ class CoachViewModel(
                     resolvedFat = meal.resolvedFat,
                 )
             },
-            weights = weightDtos.mapNotNull { w ->
-                localDateKey(w.measuredAt)?.let { CoachWeight(it, w.weightKg, w.bodyFatPct, w.fasted, w.measuredAt, w.timeZone) }
-            }
-                .filter { it.date in weightFrom..today }
-                .sortedBy { it.date },
+            weights = coachWeights(weightDtos).filter { it.date in weightFrom..today },
         )
     }
 }

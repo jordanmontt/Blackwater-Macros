@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Functions
 import androidx.compose.material.icons.filled.History
@@ -224,6 +225,7 @@ fun MethodologyScreen(onBack: () -> Unit, section: String? = null) {
                 modifier = at(FAT_SECTION),
             )
             MethodCard(Icons.Filled.AutoAwesome, R.string.meth_ai_title, R.string.meth_ai_body, modifier = at("ai"))
+            MethodCard(Icons.Filled.QuestionAnswer, R.string.meth_food_title, R.string.meth_food_body, modifier = at(FOOD_QUESTIONS_SECTION))
             MethodCard(Icons.Filled.Storage, R.string.meth_sources_title, R.string.meth_sources_body, modifier = at("sources"))
             ReferencesCard(at("references"))
             Spacer(Modifier.height(24.dp))
@@ -258,6 +260,7 @@ private val SECTIONS = listOf(
     CHECK_SECTION to R.string.meth_check_title,
     FAT_SECTION to R.string.meth_fat_title,
     "ai" to R.string.meth_ai_title,
+    FOOD_QUESTIONS_SECTION to R.string.meth_food_title,
     "sources" to R.string.meth_sources_title,
     "references" to R.string.meth_references,
 )

@@ -15,7 +15,9 @@ import { formatTemplate, t } from "@/i18n";
  *  - la guía de la clave gratis de Google enlaza a AI Studio,
  *  - el modelo se elige de la lista que da el proveedor para tu clave (guardada en
  *    este navegador), con «Predeterminado» y «Otro…» para escribir un nombre,
- *  - «El coach puede ver mis datos» se puede desactivar,
+ *  - «El coach puede ver mis datos» se puede desactivar, y «El coach puede ver lo
+ *    que como» dice adónde van tus alimentos (al proveedor, o a ninguna parte con
+ *    un modelo local),
  *  - las respuestas en streaming llegan por trozos aunque se corten a mitad de línea.
  * Nunca se llama a un proveedor real: `fetch` está simulado.
  */
@@ -148,6 +150,30 @@ describe("Ajustes → IA", () => {
     expect(toggle).toBeChecked();
     await user.click(toggle);
     expect(getAiSettings().coachSeesData).toBe(false);
+  });
+
+  it("«El coach puede ver lo que como» dice adónde van tus alimentos y depende de ver tus datos", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem("bw:ai", JSON.stringify({ provider: "gemini", apiKeys: { gemini: "k" } }));
+    render(<AiSettingsCard />);
+    const food = screen.getByRole("checkbox", { name: new RegExp(t.ai.coachSeesFood) });
+    expect(food).toBeChecked();
+    // In the cloud: food names and amounts go to the provider, and a local model is recommended.
+    expect(screen.getByText(formatTemplate(t.ai.coachSeesFoodCloud, { provider: t.ai.providerShort.gemini }))).toBeInTheDocument();
+    await user.click(food);
+    expect(getAiSettings().coachSeesFood).toBe(false);
+    await user.click(food);
+    // Without «mis datos» the coach reads nothing, food included.
+    await user.click(screen.getByRole("checkbox", { name: new RegExp(t.ai.coachSeesData) }));
+    expect(screen.getByRole("checkbox", { name: new RegExp(t.ai.coachSeesFood) })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: new RegExp(t.ai.coachSeesFood) })).not.toBeChecked();
+    expect(screen.getByText(t.ai.coachSeesFoodNeedsData)).toBeInTheDocument();
+  });
+
+  it("con el modelo del navegador, lo que comes no sale del dispositivo", () => {
+    localStorage.setItem("bw:ai", JSON.stringify({ coachEngine: "browser" }));
+    render(<AiSettingsCard />);
+    expect(screen.getByText(t.ai.coachSeesFoodLocal)).toBeInTheDocument();
   });
 });
 

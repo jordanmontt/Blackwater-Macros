@@ -9,6 +9,8 @@ import { aiLanguage } from "@/lib/ai/estimate";
 import { browserChatStream } from "@/lib/ai/browser-model";
 import { aiConfigOf, getAiSettings } from "@/lib/ai/settings";
 import { MAX_PHOTOS } from "@/lib/ai/images";
+import { readFoodQuestion } from "@/lib/ai/food-questions";
+import type { FoodDetails, FoodRequest } from "@/lib/core/food-questions";
 import { t } from "@/i18n";
 
 export interface ChatMessage {
@@ -21,6 +23,14 @@ export interface ChatMessage {
   error?: AiFailure;
   /** The provider's (or the browser model's) own words about the failure. */
   errorDetail?: string;
+  /** On a question about the food log: what the model read (the words and the app's numbers). */
+  modelText?: string;
+  /** On a question about the food log: the request read from it, for follow-ups («¿y el mes pasado?»). */
+  foodRequest?: FoodRequest;
+  /** On the answer to a question about the food log: «Cómo se calculó». */
+  foodDetails?: FoodDetails;
+  /** The app answered itself (nothing to compute): the model never sees this turn. */
+  byApp?: boolean;
 }
 
 export interface ChatState {
@@ -70,10 +80,10 @@ export function getChatState(): ChatState {
 export function historyForModel(messages: ChatMessage[], newImages = 0): AiMessage[] {
   const turns: AiMessage[] = [];
   messages.forEach((message, index) => {
-    if (message.error) return;
+    if (message.error || message.byApp) return;
     const next = messages[index + 1];
-    // A question without an answer (failed or stopped before any text) is left out too.
-    if (message.role === "user" && next && (next.error || next.text.trim() === "")) return;
+    // A question without an answer (failed, stopped before any text, or answered by the app) is left out too.
+    if (message.role === "user" && next && (next.error || next.byApp || next.text.trim() === "")) return;
     if (message.role === "assistant" && message.text.trim() === "") return;
     turns.push({ role: message.role, text: modelText(message), images: message.images });
   });
@@ -90,17 +100,35 @@ export function historyForModel(messages: ChatMessage[], newImages = 0): AiMessa
   return recent;
 }
 
-/** A photo sent without words still needs a question for the model. */
+/**
+ * What the model reads for a message: the app's numbers with a food question,
+ * and a question for a photo sent without words.
+ */
 function modelText(message: ChatMessage): string {
+  if (message.modelText !== undefined) return message.modelText;
   return message.text.trim() === "" && message.images?.length ? t.coach.photoPrompt : message.text;
+}
+
+/** The conversation's last request about the food log, for a follow-up. */
+function previousFoodRequest(messages: ChatMessage[]): FoodRequest | null {
+  return messages.findLast((message) => message.foodRequest !== undefined)?.foodRequest ?? null;
+}
+
+/** Sets fields of the question being answered (the message before the answer). */
+function patchQuestion(update: Partial<ChatMessage>) {
+  const messages = state.messages.slice();
+  const index = messages.length - 2;
+  messages[index] = { ...messages[index], ...update };
+  set({ ...state, messages });
 }
 
 export async function sendCoachMessage(text: string, images: AiImage[] = []): Promise<void> {
   const typed = text.trim();
   if ((typed === "" && images.length === 0) || state.streaming) return;
   const history = historyForModel(state.messages, images.length);
+  const previous = previousFoodRequest(state.messages);
   const asked: ChatMessage = { id: nextId++, role: "user", text: typed, images: images.length > 0 ? images : undefined };
-  const question = modelText(asked);
+  let question = modelText(asked);
   set({
     messages: [
       ...state.messages,
@@ -113,6 +141,21 @@ export async function sendCoachMessage(text: string, images: AiImage[] = []): Pr
   const signal = controller.signal;
   try {
     const settings = getAiSettings();
+    // A question about the food log (not one about a photo): the app reads it first (steps 1–2).
+    if (settings.coachSeesData && settings.coachSeesFood && images.length === 0) {
+      const food = await readFoodQuestion(settings, typed, previous, signal);
+      if (signal.aborted) return;
+      if (food.kind === "reply") {
+        patchQuestion({ foodRequest: food.request ?? undefined });
+        patchLast((message) => ({ ...message, text: food.text, byApp: true, foodDetails: food.details ?? undefined }));
+        return;
+      }
+      if (food.kind === "numbers") {
+        question = food.modelText;
+        patchQuestion({ foodRequest: food.request, modelText: food.modelText });
+        patchLast((message) => ({ ...message, foodDetails: food.details }));
+      }
+    }
     const context = settings.coachSeesData ? await loadCoachContext() : null;
     const system = buildCoachSystemPrompt(aiLanguage(), context);
     const messages: AiMessage[] = [...history, { role: "user", text: question, images: asked.images }];

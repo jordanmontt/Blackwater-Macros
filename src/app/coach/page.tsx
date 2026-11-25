@@ -15,6 +15,10 @@ import { downscalePhoto, MAX_PHOTOS } from "@/lib/ai/images";
 import type { AiImage } from "@/lib/core/ai-providers";
 import { formatTemplate, t } from "@/i18n";
 import { aiSettingsHref } from "@/lib/ai-settings-origin";
+import { foodDetailsLines, foodExampleQuestion } from "@/lib/ai/food-questions";
+import { api } from "@/lib/api";
+import { addDaysToKey, todayKey } from "@/lib/core/dates";
+import type { FoodDetails } from "@/lib/core/food-questions";
 
 /**
  * Coach: a chat about food, the diet and progress.
@@ -51,6 +55,31 @@ function clearPendingQuestion() {
 /** Only this page writes the pending question, and it re-renders itself when it does. */
 const subscribeNever = () => () => {};
 
+/**
+ * An example question about one of the user's own foods («¿Cuántas veces por
+ * semana como «Avena»?»), from the last 4 weeks; null while loading or when the
+ * coach may not read the food log.
+ */
+function useFoodExample(enabled: boolean): string | null {
+  const [example, setExample] = useState<string | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let alive = true;
+    const today = todayKey();
+    api.listMeals(addDaysToKey(today, -27), today).then(
+      (meals) => {
+        if (alive) setExample(foodExampleQuestion({ meals, today }));
+      },
+      // No example then: the usual ones stay.
+      () => undefined,
+    );
+    return () => {
+      alive = false;
+    };
+  }, [enabled]);
+  return enabled ? example : null;
+}
+
 export default function CoachPage() {
   const settings = useAiSettings();
   const chat = useCoachChat();
@@ -66,6 +95,8 @@ export default function CoachPage() {
   // Once the coach is ready, a question tapped before setup waits in the box until edited or sent.
   const pending = useSyncExternalStore(subscribeNever, readPendingQuestion, () => null);
   const text = draft ?? (ready ? (pending ?? "") : "");
+  const foodExample = useFoodExample(settings.coachSeesData && settings.coachSeesFood);
+  const examples = foodExample === null ? t.coach.examples : [foodExample, ...t.coach.examples];
 
   useEffect(() => {
     if (onBrowser) void checkBrowserModel();
@@ -123,7 +154,7 @@ export default function CoachPage() {
           <h2 className="text-base font-semibold">{t.coach.emptyTitle}</h2>
           <p className="max-w-sm text-sm text-muted-foreground">{t.coach.emptyBody}</p>
           <ul className="flex flex-col items-center gap-2" aria-label={t.coach.examplesNotReady}>
-            {t.coach.examples.slice(0, 3).map((example) => (
+            {examples.slice(0, 3).map((example) => (
               <li key={example}>
                 <Button
                   variant="outline"
@@ -151,7 +182,7 @@ export default function CoachPage() {
             <section className="space-y-3">
               <p className="text-sm text-muted-foreground">{t.coach.intro}</p>
               <div className="flex flex-wrap gap-2">
-                {t.coach.examples.map((example) => (
+                {examples.map((example) => (
                   <Button
                     key={example}
                     variant="outline"
@@ -319,7 +350,10 @@ function MessageBubble({ message, pending }: { message: ChatMessage; pending: bo
             {message.text ? <p className="whitespace-pre-wrap">{message.text}</p> : null}
           </>
         ) : (
-          <SimpleMarkdown text={message.text} />
+          <>
+            <SimpleMarkdown text={message.text} />
+            {message.foodDetails && !pending ? <FoodDetailsPanel details={message.foodDetails} /> : null}
+          </>
         )}
       </div>
       {copyable ? (
@@ -342,6 +376,26 @@ function MessageBubble({ message, pending }: { message: ChatMessage; pending: bo
         </Button>
       ) : null}
     </li>
+  );
+}
+
+/**
+ * «Cómo se calculó» under an answer about the food log: what the app counted,
+ * written by the app (never by the model), with a link to the methodology.
+ */
+function FoodDetailsPanel({ details }: { details: FoodDetails }) {
+  return (
+    <details className="mt-2 border-t pt-1.5 text-xs text-muted-foreground">
+      <summary className="cursor-pointer py-1 font-medium">{t.coach.food.howTitle}</summary>
+      <ul className="mt-1 space-y-1">
+        {foodDetailsLines(details).map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </ul>
+      <Link href="/metodologia#food-questions" className="mt-1.5 inline-flex min-h-9 items-center text-primary hover:underline">
+        {t.coach.food.methodology}
+      </Link>
+    </details>
   );
 }
 

@@ -248,6 +248,25 @@ class LocalEngine(private val context: Context, private val guard: ModelRunGuard
         }
 
     /**
+     * A whole answer in a short conversation of its own, opened next to the coach's kept
+     * one and closed at once (food questions' step 1: the question becomes a request).
+     * The kept conversation stays, so the coach's answer right after does not read its
+     * system prompt and earlier turns again.
+     */
+    suspend fun completeAside(system: String, text: String): String =
+        withContext(Dispatchers.IO) {
+            mutex.withLock {
+                withEngine(vision = false) { engine ->
+                    engine.createConversation(config(system, emptyList())).use { conversation ->
+                        val answer = StringBuilder()
+                        conversation.sendMessageAsync(contents(text, emptyList())).collect { answer.append(it.text()) }
+                        answer.toString()
+                    }
+                }
+            }
+        }
+
+    /**
      * Frees the model's memory as soon as no request is running (at once when idle):
      * the app going to the background (the camera opening, too) calls it. A loaded
      * model holds ~4 GB; left loaded in the background, Android killed the app to make

@@ -1,7 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
-import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DropletIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DropletIcon, DumbbellIcon, FlameIcon, HistoryIcon, MessageCircleQuestionIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { BackPageButton } from "@/components/close-page-button";
 import { t } from "@/i18n";
@@ -127,6 +127,12 @@ export default function MetodologiaPage() {
 
       <MethodologyCard id="ai" icon={<SparklesIcon />} title={t.metodologia.aiTitle}>
         {t.metodologia.aiBody.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+      </MethodologyCard>
+
+      <MethodologyCard id="food-questions" icon={<MessageCircleQuestionIcon />} title={t.metodologia.foodTitle}>
+        {t.metodologia.foodBody.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
       </MethodologyCard>
@@ -467,6 +473,7 @@ const sections = (): [id: string, title: string][] => [
   ["check", t.metodologia.checkTitle],
   ["fat", t.metodologia.fatTitle],
   ["ai", t.metodologia.aiTitle],
+  ["food-questions", t.metodologia.foodTitle],
   ["sources", t.metodologia.sourcesTitle],
   ["references", t.metodologia.referencesTitle],
 ];

@@ -12,7 +12,8 @@ import { AiError, testAi } from "@/lib/ai/client";
 import { AI_PROVIDERS, aiConfigOf, saveAiSettings, useAiSettings } from "@/lib/ai/settings";
 import { BrowserModelSection } from "@/components/settings/browser-model-section";
 import { ModelPicker } from "@/components/settings/model-picker";
-import { t } from "@/i18n";
+import { cn } from "@/lib/utils";
+import { formatTemplate, t } from "@/i18n";
 
 type TestState =
   | { status: "idle" }
@@ -189,6 +190,30 @@ export function AiSettingsCard({ embedded = false }: { embedded?: boolean }) {
           <span className="space-y-0.5">
             <span className="block text-sm font-medium">{t.ai.coachSeesData}</span>
             <span className="block text-xs text-muted-foreground">{t.ai.coachSeesDataHint}</span>
+          </span>
+        </label>
+
+        {/* Food names and amounts leave the device only with a cloud coach: the text says where they go. */}
+        <label className={cn("flex items-start gap-3 rounded-lg border p-3", settings.coachSeesData ? "" : "opacity-60")}>
+          <input
+            type="checkbox"
+            className="mt-0.5 size-4 accent-primary"
+            checked={settings.coachSeesData && settings.coachSeesFood}
+            disabled={!settings.coachSeesData}
+            onChange={(event) => {
+              const checked = event.target.checked;
+              update((current) => ({ ...current, coachSeesFood: checked }));
+            }}
+          />
+          <span className="space-y-0.5">
+            <span className="block text-sm font-medium">{t.ai.coachSeesFood}</span>
+            <span className="block text-xs text-muted-foreground">
+              {!settings.coachSeesData
+                ? t.ai.coachSeesFoodNeedsData
+                : settings.coachEngine === "browser"
+                  ? t.ai.coachSeesFoodLocal
+                  : formatTemplate(t.ai.coachSeesFoodCloud, { provider: t.ai.providerShort[provider] })}
+            </span>
           </span>
         </label>
       </CardContent>

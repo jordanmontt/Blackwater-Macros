@@ -113,6 +113,8 @@ fun AiProvider.shortLabelRes(): Int = when (this) {
 @Composable
 fun CoachScreen(
     onOpenAiSettings: () -> Unit,
+    /** Opens Methodology at a section («Cómo se calculó» → food questions). */
+    onOpenMethodology: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CoachViewModel = viewModel(viewModelStoreOwner = LocalActivity.current as ComponentActivity),
 ) {
@@ -120,6 +122,9 @@ fun CoachScreen(
     val settings by viewModel.aiSettings.collectAsStateWithLifecycle()
     val engine by viewModel.engine.collectAsStateWithLifecycle()
     val localModel by viewModel.localModelSpec.collectAsStateWithLifecycle()
+    val foodExample by viewModel.foodExample.collectAsStateWithLifecycle()
+    // With the food log readable, an example about one of the user's own foods comes first.
+    val examples = listOfNotNull(foodExample?.let { foodExampleQuestion(it) }) + stringArrayResource(R.array.coach_examples)
     var draft by rememberSaveable { mutableStateOf("") }
     val listState = rememberLazyListState()
     val lastLength = state.messages.lastOrNull()?.text?.length ?: 0
@@ -194,6 +199,7 @@ fun CoachScreen(
         Column(Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
             if (engine == null) {
                 CoachSetupInvite(
+                    examples = examples,
                     onExample = { example ->
                         viewModel.pendingQuestion = example
                         onOpenAiSettings()
@@ -207,7 +213,7 @@ fun CoachScreen(
                 Column(Modifier.weight(1f).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(R.string.coach_intro), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        stringArrayResource(R.array.coach_examples).forEach { example ->
+                        examples.forEach { example ->
                             OutlinedButton(onClick = { send(example) }, shape = RoundedCornerShape(50), contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)) {
                                 Text(example, style = MaterialTheme.typography.labelLarge)
                             }
@@ -224,7 +230,7 @@ fun CoachScreen(
                 ) {
                     items(state.messages, key = { it.id }) { message ->
                         val pending = state.streaming && message.id == state.messages.last().id
-                        MessageBubble(message, pending)
+                        MessageBubble(message, pending, onOpenMethodology = { onOpenMethodology(FOOD_QUESTIONS_SECTION) })
                     }
                 }
             }
@@ -335,13 +341,13 @@ fun CoachScreen(
 }
 
 @Composable
-private fun MessageBubble(message: ChatMessage, pending: Boolean) {
+private fun MessageBubble(message: ChatMessage, pending: Boolean, onOpenMethodology: () -> Unit) {
     val mine = message.role == AiRole.USER
     val shape = RoundedCornerShape(18.dp)
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
     // Long-press copies the whole message, as in messaging apps.
-    val copyable = copyText(message)
+    val copyable = message.foodReply?.let { foodReplyText(it) } ?: copyText(message)
     val copiedText = stringResource(R.string.coach_copied)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start) {
         Box(
@@ -373,15 +379,20 @@ private fun MessageBubble(message: ChatMessage, pending: Boolean) {
                 )
                 .padding(horizontal = 14.dp, vertical = 9.dp),
         ) {
-            MessageContent(message, pending, mine)
+            MessageContent(message, pending, mine, onOpenMethodology)
         }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MessageContent(message: ChatMessage, pending: Boolean, mine: Boolean) {
+private fun MessageContent(message: ChatMessage, pending: Boolean, mine: Boolean, onOpenMethodology: () -> Unit) {
     when {
+        // The app answered itself (nothing to compute): its own words, and what it counted when there is something to show.
+        message.foodReply != null -> Column {
+            Text(foodReplyText(message.foodReply), style = MaterialTheme.typography.bodyMedium)
+            message.foodDetails?.let { FoodDetailsPanel(it, onOpenMethodology) }
+        }
         message.error != null -> Column {
             // An answer that stopped early keeps what arrived, with the reason under it.
             if (message.text.isNotBlank()) {
@@ -423,7 +434,10 @@ private fun MessageContent(message: ChatMessage, pending: Boolean, mine: Boolean
                 Text(message.text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary)
             }
         }
-        else -> Text(simpleMarkdown(message.text), style = MaterialTheme.typography.bodyMedium)
+        else -> Column {
+            Text(simpleMarkdown(message.text), style = MaterialTheme.typography.bodyMedium)
+            if (message.foodDetails != null && !pending) FoodDetailsPanel(message.foodDetails, onOpenMethodology)
+        }
     }
 }
 
@@ -458,7 +472,7 @@ internal fun simpleMarkdown(text: String): AnnotatedString = buildAnnotatedStrin
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CoachSetupInvite(onExample: (String) -> Unit, onOpenAiSettings: () -> Unit) {
+private fun CoachSetupInvite(examples: List<String>, onExample: (String) -> Unit, onOpenAiSettings: () -> Unit) {
     val primary = MaterialTheme.colorScheme.primary
     Column(
         Modifier
@@ -486,7 +500,7 @@ private fun CoachSetupInvite(onExample: (String) -> Unit, onOpenAiSettings: () -
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        stringArrayResource(R.array.coach_examples).take(3).forEach { example ->
+        examples.take(3).forEach { example ->
             OutlinedButton(
                 onClick = { onExample(example) },
                 shape = RoundedCornerShape(50),

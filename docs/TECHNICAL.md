@@ -71,6 +71,7 @@ src/
     core/                   # PURE algorithms, zero deps — single source of truth, ported to Kotlin
       one file per domain (nutrition, stats, calories, ai-providers…) — list in §11.1
     api.ts demo-store.ts demo-api.ts use-demo-mode.ts utils.ts use-mounted.ts
+    core/food-questions/    # The coach's questions about the food log (§8.7): a shared JSON + one file per analysis
     meal-payload.ts         # A meal's/template's content as sent and stored (mealContent, storedMealContent)
     local-json-store.ts     # A JSON value in localStorage as a useSyncExternalStore store (AI settings, model lists)
     foods/own-products.ts   # Products added from a label: kept in this browser, sent straight to Open Food Facts (§8.5)
@@ -1036,7 +1037,8 @@ Android string shared with the web, its path in the dictionaries and its format 
 order (`["progreso.loggedDays", "n:d", "m:d"]` → `Días registrados: %1$d de %2$d`). At build
 time `:app:generateWebStrings` (`app/build.gradle.kts`, no Node needed) writes them as
 `values*/strings_web.xml` into a generated resource folder; it fails the build if a path or a
-`{marker}` is missing. Android-only texts (plurals, screens the web doesn't have, texts worded
+`{marker}` is missing. A list in the JSON (Metodología's paragraphs) becomes one string with a
+blank line between the paragraphs. Android-only texts (plurals, screens the web doesn't have, texts worded
 for a phone) stay in `res/values*/strings.xml`. A text that should read the same on both:
 put it in the JSON and add one map line; never copy it into `strings.xml`.
 
@@ -1564,6 +1566,7 @@ calories and protein; this says when the fat they leave is outside the adult ran
 | D11 | The coach receives a compact summary of the user's data, toggle «El coach puede ver mis datos» (on by default). |
 | D12 | First steps: on a fresh Android install / first web login with an incomplete profile; «Iniciar sesión» first on Android. |
 | D13 | A product Open Food Facts lacks is added from its label and always sent to Open Food Facts (no «this device only» option: the text above Save is the consent), with the app's shared account or the user's own; the device keeps only a copy for the next scan, editing and pending uploads (§8.5). Values that don't match the label are corrected the same way, in the basis Open Food Facts stores. |
+| D14 | Questions about the food log: the model only turns the question into a request, the app computes, the model explains (§8.7); switch «El coach puede ver lo que como», on by default. |
 
 **What the coach sees** (`buildCoachContext`, core, exact text tested): profile (the goal
 worded by whether the user does strength training, plus a recomposition note when they do,
@@ -1592,7 +1595,7 @@ app language, no medical claims.
   `truncated` at the token limit, the provider's own error kind, or `interrupted` when it
   just ends (connection cut). Android streams use `flowOnKeepingItems` (`AiClient.kt`), not
   plain `flowOn`: a failure there cancels the collector before it reads the buffered pieces.
-- **Settings** (one key + model per provider, base URL, «El coach puede ver mis datos»):
+- **Settings** (one key + model per provider, base URL, «El coach puede ver mis datos», «El coach puede ver lo que como»):
   web `lib/ai/settings.ts` in `localStorage["bw:ai"]` (per browser; in the demo the
   tab's `sessionStorage`, §6.1, so a key typed there goes with the tab), card
   `components/settings/ai-settings-card.tsx` in Ajustes; Android `data/ai/AiSettingsStore.kt`
@@ -1628,7 +1631,7 @@ app language, no medical claims.
   `buildCoachSystemPrompt(language, buildCoachContext(input))`, the input read fresh from the
   same data as the Comidas card (profile, targets, measured expenditure, 4 weeks of meals,
   60 days of weigh-ins); with «El coach puede ver mis datos» off the data is neither read
-  nor sent. The last 20 good turns go along as history. Cloud answers get
+  nor sent. A question about the food log first goes through §8.7 (two more steps). The last 20 good turns go along as history. Cloud answers get
   `COACH_MAX_TOKENS` = 8192 output tokens (the default models reason first, and that hidden
   thinking counts against the budget). An answer that stops early keeps its text in the
   bubble with the reason under it, and is not resent as history. The phone's model reads prompt, history and answer
@@ -1727,6 +1730,97 @@ app language, no medical claims.
   («Descargando tus datos…», up to 15 s): an account with a complete profile and a weigh-in
   skips «Tus datos»; the AI step always shows (the key is per phone). «Ver
   tutorial» in Ajustes on both.
+
+---
+
+## 8.7 Food questions (`lib/core/food-questions/`)
+
+The coach answers questions about the user's own food log («¿Cuánta leche chocolatada tomo?»,
+«¿Como más el fin de semana?», «¿Cambió mi peso desde que dejé la cerveza?»). The model never
+computes a number: small local models add up badly and a wrong average would read as a fact.
+The statistics rules are in [METHODOLOGY.md](./METHODOLOGY.md) §6.1.
+
+**Three steps per question** (web `lib/ai/coach-chat.ts` → `lib/ai/food-questions.ts`, Android
+`CoachViewModel.readFoodQuestion`):
+
+1. **The question becomes a request.** A separate, short call: system prompt
+   `buildFoodRequestPrompt(today, language, previous)` (no data summary, so it fits the phone's
+   4096-token window), the question as the only message, JSON mode. Cloud: `aiComplete` /
+   `AiClient.complete` with `requestMaxTokens` (thinking models spend part of it); browser:
+   `browserCompleteJson` (WebLLM's JSON mode); phone: `LocalEngine.completeAside`, a short
+   conversation of its own **next to** the coach's kept one (which stays, so the answer in step 3
+   does not read the system prompt again). `parseFoodRequest` reads the answer: an analysis from
+   the registry or `none`, its fields (search words, dates `YYYY-MM-DD`, metric, split); a field
+   the analysis does not use is dropped, a wrong value, a missing required field or a period
+   that ends before it starts makes it unreadable. `previous` is the conversation's last request
+   (kept on the question's `ChatMessage.foodRequest`) so «¿y el mes pasado?» keeps the foods.
+2. **The app computes it** from the whole log (web `loadFoodLog`: every meal up to today and
+   every weigh-in; Android: the phone's database): `answerFoodRequest(log, request)` →
+   `result` (a text block for the model plus `FoodDetails`), `no_match`, `not_enough`, or null
+   (not answerable as asked).
+3. **The model explains it.** The usual coach call (same system prompt and history); the
+   question is sent as `foodQuestionMessage(question, result)`: the user's words, a blank line,
+   «FOOD LOG RESULT…» (≤ `resultMaxChars` = 1200 characters, ≈ 400 tokens, cut at whole lines).
+   It is kept as the question's `modelText`, so follow-ups and the phone's kept conversation
+   read the same text; the bubble shows the words as typed.
+
+**When the app answers itself** (no model call in step 3): an unreadable request or one not
+answerable as asked («No entendí bien… Por ejemplo: ¿Cuántas veces por semana como «Avena»?»,
+with the user's most-logged food), `no_match` (what was searched, the period, when it was last
+logged, similar names) and `not_enough` (how many days there are and how many are needed). These
+replies (`byApp` on the web, `ChatMessage.foodReply` on Android, written in the app language by
+the screen) and their questions are **left out of the history** the model sees, like failed
+answers, so the phone's kept conversation stays valid. `none` → the question is answered as
+before. A question with photos skips step 1.
+
+**«Cómo se calculó»** under the answer (web `FoodDetailsPanel`, Android `FoodDetailsPanel` in
+`ui/CoachFood.kt`), closed until tapped, written by the app from `FoodDetails`: the analysis, each
+part of the log with its logged days, where a food-vs-weight period was split and why, the names
+counted, entries without an amount, «few days», «unlogged days are not zero», «an association is
+not a cause», and a link to Metodología → «Preguntas sobre tus comidas» (`#food-questions`).
+
+**The switch** «El coach puede ver lo que como» (`AiSettings.coachSeesFood`, on by default,
+only with «El coach puede ver mis datos»): its line says where food names and amounts go: to the
+provider in the cloud, recommending a local model; nowhere with the browser's or the phone's
+model. Off: no step 1.
+
+**Example question.** With the switch on, the Coach's examples start with one about the user's
+own most-logged food of the last 4 weeks (`mostLoggedFood`; web `useFoodExample`, Android
+`CoachViewModel.foodExample`), or «¿Qué alimentos me dan más proteína?» with an empty log.
+
+**Built to grow: one registry, one data file.**
+
+- `food-questions.json` holds everything that can be data, for both platforms: the rules (minimum
+  days, default periods, caps), the step-1 prompt, each analysis's description, fields and
+  required fields, the examples, and the result's text templates. The web imports it;
+  Android's `:core` bundles the same file as a resource (`processResources` in
+  `core/build.gradle.kts`) and reads it with `FoodQuestionsSpec`. The step-1 prompt is generated
+  from it, so a new analysis is described to the model by adding its entry.
+- Code, written twice (TypeScript in `lib/core/food-questions/`, Kotlin in `:core`
+  `foodquestions/`): `log` (food items, «Solo total» titles, name matching, g/ml amounts, date
+  ranges), `request` (prompt and parsing), `answer` (shared helpers, `FoodAnswer`,
+  `FoodDetails`, the `Analysis` interface), one file per analysis in `analyses/`, and the
+  registry `ANALYSES` (`index.ts` / `FoodQuestions.kt`).
+- Shared expectations: `tests/fixtures/food-questions/` (a sample log, the step-1 prompt, and
+  cases: the model's raw answer → the request → the app's answer, with exact texts). Both
+  `tests/unit/food-questions.test.ts` and `FoodQuestionsTest.kt` read them, so the two
+  implementations cannot drift. The fixtures were written by the TypeScript code and checked by
+  hand; regenerate them only on purpose, and review the diff.
+
+**Adding an analysis:**
+
+1. Its entry in `food-questions.json` → `analyses` (description, fields, required) and any new
+   result templates; new fields also go in `fields` (and in `FoodRequest` / `parseFoodRequest`
+   on both platforms).
+2. One file in `analyses/` per platform, implementing `Analysis.answer`, plus one line in
+   `ANALYSES` (and an `AnalysisId` entry in Kotlin).
+3. Cases in `tests/fixtures/food-questions/` (both suites pick them up) and an example in the
+   JSON if the model needs one.
+4. Its name for «Cómo se calculó»: `coach.food.analyses.<id>` in the five `src/i18n/*.json` and
+   one line in `android/app/strings-from-web.json`; Metodología and METHODOLOGY.md §6.1 if it
+   adds a rule.
+
+The coach screens, the providers and the AI clients do not change.
 
 ---
 
@@ -1865,6 +1959,7 @@ mirror with the same inputs and the same expected numbers (reproducing `Math.rou
 | `ai-schema.test.ts` | `parseMealEstimate`, prompts, `estimateToIngredients` | `AiSchemaTest.kt` |
 | `progress.test.ts` | `macroAverages` | `ProgressTest.kt` |
 | `numbers.test.ts` | `formatDecimal`, `normalizeDecimal` (the one number format, §6) | `NumbersTest.kt` |
+| `food-questions.test.ts` (+ `tests/fixtures/food-questions/`, read by both) | food questions (§8.7): amounts, names, matching, the step-1 prompt, every shared case (request → answer, exact text), the registry | `foodquestions/FoodQuestionsTest.kt` |
 | `coach.test.ts` (+ `coach.fixture.ts`) | `weightProjection`, `buildCoachContext` (exact text; goal text with and without strength training), `buildCoachSystemPrompt` | `CoachTest.kt` |
 | `dates.test.ts` | date keys, `weekStartOf`, `parseLocalDateTime`, `datetime-local` values | `DatesTest.kt` |
 | `stats.test.ts` | moving average, weekly rate, series | `StatsTest.kt` |
@@ -1876,6 +1971,9 @@ Kotlin implementation and its Kotlin test **together**. Enforced by `npm run cor
 (`scripts/check-core-sync.ts`), driven by `android/test-sync/manifest.json` (one row per pair):
 it warns locally and **fails CI** when only one side changed; `npm run hooks:install` adds a
 pre-commit reminder. Adding or renaming a core domain = updating the manifest and this table.
+
+Food questions go further (§8.7): their rules, prompt and text templates are one JSON file both
+platforms read, and their expectations are fixture files both test suites read.
 
 Porting notes: JSON is read as `kotlinx.serialization.json` element trees (no compiler plugin in
 `:core`); regexes run on Android's ICU engine, not the JVM's — avoid JVM-only syntax such as
@@ -1909,6 +2007,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/ai/local/LocalModelTest.kt` | On-device model: resumable download, SHA-256 check, device support and the low-RAM warning, engine routing, model outside backups, what counts as an out-of-memory kill |
 | `data/ai/local/LocalModelCatalogTest.kt` | The site's model catalog: valid entries become models, wrong ones are skipped (non-Hugging Face URL, bad checksum, path tricks, newer app), merge with the built-in list, `hidden`; the committed file matches the built-in models |
 | `ui/CoachTest.kt` | Coach (mirrors `coach-page.test.tsx`): streamed answer with the data summary, history until «Nueva conversación», copying a whole message (also one still being written), failures not resent, a cut-off answer keeps its text and its reason, the phone model's history fits its window, no data without permission, photos (alone with the default question, and in the history), Markdown |
+| `ui/CoachFoodQuestionsTest.kt` | Questions about the food log (mirrors `coach-food-questions.test.tsx`): step 1 is a short JSON request, the answer reads the app's numbers, «Cómo se calculó», the app's own replies (no match, not understood with an example of the user's food) are not resent, `none` answers as usual, no step 1 without the switch, a follow-up carries the previous request |
 | `ui/OnboardingTest.kt` | First steps (mirrors `onboarding.test.tsx`): only a fresh install sees them; they open on the welcome page, also from «Ver tutorial» with an account (which neither syncs nor skips ahead); ranges; «Tus datos» saves profile + weight; after logging in, an account with data skips «Tus datos» |
 | `data/NetworkHostsTest.kt` | Every host in the app's code is in the list the README promises (privacy) |
 | `data/update/UpdateCheckerTest.kt` | New version notice: versions compare by number, GitHub asked at most once a day and never by another key's build (F-Droid) or with the switch off, «Not now» hides only that version, errors stay silent; «Check now» asks right away even with the switch off, says up to date / failed (keeping what it knew), shows the newest version and brings back one hidden with «Not now» |
@@ -1937,6 +2036,7 @@ Web behavior tests describe user requirements; when one exists on both platforms
 | `progreso-page` | `ProgressLogicTest` |
 | `recommendations-card`, `perfil-page` | `ValidationTest` (`recommend`) |
 | `coach-page`, `add-food-photo`, `ai-settings`, `onboarding` | `CoachTest`, `MealEstimatorTest`, `AiClientTest` + `ModelListStoreTest`, `OnboardingTest` |
+| `coach-food-questions` | `CoachFoodQuestionsTest` |
 | `add-food-new-product` | `OwnProductsTest`, `NewProductViewModelTest` (the form's layout and focus, the photo viewer and «Cambiar foto» menu: not automated, checked on a device) |
 | `unit/local-models-catalog` | `LocalModelCatalogTest` |
 | other `*-page.test.tsx` (screens) | not automated — Compose UI tests are a known gap; screens are checked on a device |
@@ -2000,6 +2100,7 @@ Gotchas:
 | New field on meals/templates/weights (synced) | DB column + zod schema + DTO (web); Android: wire DTO, Room entity **+ `Migration`** (bump `LocalDatabase` version; never destructive: local-only users have no other copy), mappers, `FakeServer`; add a round-trip case to `OfflineSyncTest` |
 | New page | `src/app/<slug>/page.tsx`, nav entry in `components/app-nav.tsx`, copy in the five `i18n/*.json`; proxy already protects it. Android: screen + route in `MainActivity`, texts as in «New UI text» |
 | New UI text | add it to the five `src/i18n/*.json` (a missing key fails the build; `i18n.test.ts` checks `{placeholders}`). Android: map it in `android/app/strings-from-web.json` (`"key": "path"`, or `["path", "n:d"]` with arguments) and use `stringResource`; Android-only texts and plurals go in the five `res/values*/strings.xml` (`TranslationsTest`) |
+| New question the coach answers from the food log | «Adding an analysis» in §8.7: an entry in `food-questions.json`, one file per platform in `analyses/`, one line in `ANALYSES`, cases in `tests/fixtures/food-questions/`, its name in the five `src/i18n/*.json` + `strings-from-web.json` |
 | Change the logo | edit `scripts/logo/render.html`, run `scripts/logo/render-icons.sh` (writes every Android and web icon); seasonal logo: `render-icons.sh <variant>`, back with no argument |
 | Release the Android app | docs/RELEASING.md (tag → signed GitHub Release + website; F-Droid builds the tag) |
 | Real migrations | switch from `db:push` to `db:generate` + `db:migrate` (both scripted already) once schema changes risk data loss |

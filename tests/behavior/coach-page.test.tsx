@@ -81,8 +81,12 @@ function sse(pieces: string[], finishReason: string | null = "STOP"): Response {
   );
 }
 
+/** Questions about the food log have their own tests (coach-food-questions.test.tsx): off here. */
 function configure(extra: Record<string, unknown> = {}) {
-  localStorage.setItem("bw:ai", JSON.stringify({ provider: "gemini", apiKeys: { gemini: "fake-key" }, ...extra }));
+  localStorage.setItem(
+    "bw:ai",
+    JSON.stringify({ provider: "gemini", apiKeys: { gemini: "fake-key" }, coachSeesFood: false, ...extra }),
+  );
 }
 
 function requestBody(call: number) {
