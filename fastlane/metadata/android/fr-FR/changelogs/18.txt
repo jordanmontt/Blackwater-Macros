@@ -1,0 +1,4 @@
+• Interrogez le coach sur ce que vous mangez : « Combien de lait chocolaté je bois ? ». L'app compte dans votre journal et montre comment ; l'IA explique seulement.
+• Les pesées ont « À jeun » : la tendance et la dépense mesurée ne comparent que les pesées prises de la même façon. La masse grasse aussi.
+• Formulaire de repas et Progrès plus clairs, heure des pesées et plein de petites corrections.
+• Sur le téléphone, le coach répond plus vite aux questions suivantes.

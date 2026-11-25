@@ -1,0 +1,4 @@
+• Ask the coach about what you eat: “How much chocolate milk do I drink?”. The app counts from your log and shows how; the AI only explains.
+• Weigh-ins have a «Fasted» switch: the trend and your measured expenditure compare only weigh-ins taken the same way. Body fat too.
+• Clearer meal form and Progress, weigh-in times and many small fixes.
+• On the phone, the coach's follow-ups are faster.
