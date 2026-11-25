@@ -483,6 +483,8 @@
   },
   "metodologia": {
     "onThisPage": "On this page",
+    "indexCount": "{n} sections",
+    "indexGroups": { "weight": "Weight", "food": "Food and calories", "ai": "AI", "sources": "Sources" },
     "title": "Methodology",
     "aiTitle": "AI estimates",
     "aiBody": [

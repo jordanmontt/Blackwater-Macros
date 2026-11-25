@@ -1,10 +1,10 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
-import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DropletIcon, DumbbellIcon, FlameIcon, HistoryIcon, MessageCircleQuestionIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, SunriseIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, ChevronDownIcon, DatabaseIcon, DropletIcon, DumbbellIcon, FlameIcon, HistoryIcon, MessageCircleQuestionIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, SunriseIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { BackPageButton } from "@/components/close-page-button";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 
 export default function MetodologiaPage() {
   return (
@@ -13,22 +13,38 @@ export default function MetodologiaPage() {
 
       <p className="text-sm text-muted-foreground">{t.metodologia.intro}</p>
 
-      {/* An index: the page is long, and each section has an anchor others link to (Today → #calories). */}
-      <Card>
-        <CardHeader className="pb-2">
-          <h2 className="text-base font-medium leading-snug">{t.metodologia.onThisPage}</h2>
-        </CardHeader>
-        <CardContent>
-          <ol className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
-            {sections().map(([id, title]) => (
-              <li key={id}>
-                <a href={`#${id}`} className="inline-flex min-h-9 items-center text-primary hover:underline">
-                  {title}
-                </a>
-              </li>
+      {/* An index: the page is long, and each section has an anchor others link to (Today → #calories).
+          Closed, it is one line, so the first section shows at once; open, a compact list in groups. */}
+      <Card className="py-0">
+        <details className="group">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 text-sm [&::-webkit-details-marker]:hidden">
+            <span>
+              <span className="font-medium">{t.metodologia.onThisPage}</span>
+              <span className="text-muted-foreground">
+                {" · "}
+                {formatTemplate(t.metodologia.indexCount, { n: sectionGroups().flatMap((group) => group.sections).length })}
+              </span>
+            </span>
+            <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+          </summary>
+          <nav aria-label={t.metodologia.onThisPage} className="grid gap-x-6 gap-y-2 px-4 pb-3 sm:grid-cols-2">
+            {sectionGroups().map((group) => (
+              <div key={group.title}>
+                <p className="mt-1 text-xs text-muted-foreground">{group.title}</p>
+                <ul className="text-sm">
+                  {group.sections.map(({ id, icon: Icon, title }) => (
+                    <li key={id}>
+                      <a href={`#${id}`} className="flex min-h-8 items-center gap-2 text-primary hover:underline">
+                        <Icon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                        {title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ol>
-        </CardContent>
+          </nav>
+        </details>
       </Card>
 
       <MethodologyCard id="scale" icon={<ScaleIcon />} title={t.metodologia.scaleVsTrendTitle}>
@@ -461,28 +477,50 @@ function FormulaLines({ text }: { text: string }) {
   );
 }
 
+type SectionIcon = React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+
 /**
- * Every section with its anchor, in page order: the index at the top (Android
- * `MethodologyScreen` the same ids). A function: the titles follow the app's language.
+ * Every section with its anchor and icon, in page order, in the index's groups (Android
+ * `SECTION_GROUPS` in `MethodologyScreen.kt`, the same ids). A function: the titles follow the app's language.
  */
-const sections = (): [id: string, title: string][] => [
-  ["scale", t.metodologia.scaleVsTrendTitle],
-  ["fasted", t.metodologia.fastedTitle],
-  ["moving-average", t.metodologia.movingAvgTitle],
-  ["rate", t.metodologia.rateTitle],
-  ["daily", t.metodologia.nutritionTitle],
-  ["protein", t.metodologia.proteinRecTitle],
-  ["calories", t.metodologia.tdeeTitle],
-  ["recomposition", t.metodologia.recompTitle],
-  ["past-days", t.metodologia.pastDaysTitle],
-  ["measured", t.metodologia.measuredTitle],
-  ["adaptive", t.metodologia.adaptiveTitle],
-  ["check", t.metodologia.checkTitle],
-  ["fat", t.metodologia.fatTitle],
-  ["ai", t.metodologia.aiTitle],
-  ["food-questions", t.metodologia.foodTitle],
-  ["sources", t.metodologia.sourcesTitle],
-  ["references", t.metodologia.referencesTitle],
+const sectionGroups = (): { title: string; sections: { id: string; icon: SectionIcon; title: string }[] }[] => [
+  {
+    title: t.metodologia.indexGroups.weight,
+    sections: [
+      { id: "scale", icon: ScaleIcon, title: t.metodologia.scaleVsTrendTitle },
+      { id: "fasted", icon: SunriseIcon, title: t.metodologia.fastedTitle },
+      { id: "moving-average", icon: SigmaIcon, title: t.metodologia.movingAvgTitle },
+      { id: "rate", icon: TrendingUpIcon, title: t.metodologia.rateTitle },
+    ],
+  },
+  {
+    title: t.metodologia.indexGroups.food,
+    sections: [
+      { id: "daily", icon: UtensilsCrossedIcon, title: t.metodologia.nutritionTitle },
+      { id: "protein", icon: DumbbellIcon, title: t.metodologia.proteinRecTitle },
+      { id: "calories", icon: FlameIcon, title: t.metodologia.tdeeTitle },
+      { id: "recomposition", icon: ArrowUpDownIcon, title: t.metodologia.recompTitle },
+      { id: "past-days", icon: HistoryIcon, title: t.metodologia.pastDaysTitle },
+      { id: "measured", icon: ActivityIcon, title: t.metodologia.measuredTitle },
+      { id: "adaptive", icon: SlidersHorizontalIcon, title: t.metodologia.adaptiveTitle },
+      { id: "check", icon: ArrowLeftRightIcon, title: t.metodologia.checkTitle },
+      { id: "fat", icon: DropletIcon, title: t.metodologia.fatTitle },
+    ],
+  },
+  {
+    title: t.metodologia.indexGroups.ai,
+    sections: [
+      { id: "ai", icon: SparklesIcon, title: t.metodologia.aiTitle },
+      { id: "food-questions", icon: MessageCircleQuestionIcon, title: t.metodologia.foodTitle },
+    ],
+  },
+  {
+    title: t.metodologia.indexGroups.sources,
+    sections: [
+      { id: "sources", icon: DatabaseIcon, title: t.metodologia.sourcesTitle },
+      { id: "references", icon: BookOpenIcon, title: t.metodologia.referencesTitle },
+    ],
+  },
 ];
 
 function MethodologyCard({

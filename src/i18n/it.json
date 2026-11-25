@@ -483,6 +483,8 @@
   },
   "metodologia": {
     "onThisPage": "In questa pagina",
+    "indexCount": "{n} sezioni",
+    "indexGroups": { "weight": "Peso", "food": "Alimentazione e calorie", "ai": "IA", "sources": "Fonti" },
     "title": "Metodologia",
     "aiTitle": "Stime dell'IA",
     "aiBody": [

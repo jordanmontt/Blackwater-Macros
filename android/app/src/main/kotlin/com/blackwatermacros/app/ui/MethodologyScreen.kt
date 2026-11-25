@@ -1,6 +1,17 @@
 package com.blackwatermacros.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -257,48 +268,124 @@ private fun SectionTitle(icon: ImageVector, text: String) {
     }
 }
 
-/** Every section's id and title, in page order (web `sections()` in `app/metodologia/page.tsx`). */
-private val SECTIONS = listOf(
-    "scale" to R.string.meth_scale_title,
-    FASTED_SECTION to R.string.meth_fasted_title,
-    "moving-average" to R.string.meth_ma_title,
-    "rate" to R.string.meth_rate_title,
-    "daily" to R.string.meth_daily_title,
-    "protein" to R.string.meth_protein_title,
-    CALORIES_SECTION to R.string.meth_tdee_title,
-    "recomposition" to R.string.meth_recomp_title,
-    PAST_DAYS_SECTION to R.string.meth_past_days_title,
-    "measured" to R.string.meth_measured_title,
-    ADAPTIVE_SECTION to R.string.meth_adaptive_title,
-    CHECK_SECTION to R.string.meth_check_title,
-    FAT_SECTION to R.string.meth_fat_title,
-    "ai" to R.string.meth_ai_title,
-    FOOD_QUESTIONS_SECTION to R.string.meth_food_title,
-    "sources" to R.string.meth_sources_title,
-    "references" to R.string.meth_references,
+/** One section in the index: its id (the web anchor), icon and title. */
+internal data class IndexEntry(val id: String, val icon: ImageVector, @StringRes val title: Int)
+
+/** A group of the index: its small heading and its sections. */
+internal data class IndexGroup(@StringRes val title: Int, val sections: List<IndexEntry>)
+
+/**
+ * Every section in page order, in the index's groups, with the same icons as the cards
+ * (web `sectionGroups()` in `app/metodologia/page.tsx`, the same ids and groups).
+ */
+internal val SECTION_GROUPS = listOf(
+    IndexGroup(
+        R.string.meth_index_weight,
+        listOf(
+            IndexEntry("scale", Icons.Filled.MonitorWeight, R.string.meth_scale_title),
+            IndexEntry(FASTED_SECTION, Icons.Filled.WbTwilight, R.string.meth_fasted_title),
+            IndexEntry("moving-average", Icons.Filled.Functions, R.string.meth_ma_title),
+            IndexEntry("rate", Icons.AutoMirrored.Filled.TrendingUp, R.string.meth_rate_title),
+        ),
+    ),
+    IndexGroup(
+        R.string.meth_index_food,
+        listOf(
+            IndexEntry("daily", Icons.Filled.Restaurant, R.string.meth_daily_title),
+            IndexEntry("protein", Icons.Filled.FitnessCenter, R.string.meth_protein_title),
+            IndexEntry(CALORIES_SECTION, Icons.Filled.LocalFireDepartment, R.string.meth_tdee_title),
+            IndexEntry("recomposition", Icons.Filled.SwapVert, R.string.meth_recomp_title),
+            IndexEntry(PAST_DAYS_SECTION, Icons.Filled.History, R.string.meth_past_days_title),
+            IndexEntry("measured", Icons.Filled.MonitorHeart, R.string.meth_measured_title),
+            IndexEntry(ADAPTIVE_SECTION, Icons.Filled.Tune, R.string.meth_adaptive_title),
+            IndexEntry(CHECK_SECTION, Icons.AutoMirrored.Filled.CompareArrows, R.string.meth_check_title),
+            IndexEntry(FAT_SECTION, Icons.Filled.WaterDrop, R.string.meth_fat_title),
+        ),
+    ),
+    IndexGroup(
+        R.string.meth_index_ai,
+        listOf(
+            IndexEntry("ai", Icons.Filled.AutoAwesome, R.string.meth_ai_title),
+            IndexEntry(FOOD_QUESTIONS_SECTION, Icons.Filled.QuestionAnswer, R.string.meth_food_title),
+        ),
+    ),
+    IndexGroup(
+        R.string.meth_index_sources,
+        listOf(
+            IndexEntry("sources", Icons.Filled.Storage, R.string.meth_sources_title),
+            IndexEntry("references", Icons.AutoMirrored.Filled.MenuBook, R.string.meth_references),
+        ),
+    ),
 )
 
-/** «En esta página»: one link per section. */
+/**
+ * «En esta página»: closed, one line with how many sections there are, so the first section
+ * shows at once; open, a compact list in groups (web the same, a `<details>`).
+ */
 @Composable
 private fun IndexCard(onOpen: (String) -> Unit) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    val count = SECTION_GROUPS.sumOf { it.sections.size }
     AppCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Text(
-                stringResource(R.string.meth_on_this_page),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.semantics { heading() },
-            )
-            SECTIONS.forEach { (id, title) ->
+        Column(Modifier.animateContentSize()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(role = Role.Button) { open = !open }
+                    .heightIn(min = 48.dp)
+                    .padding(horizontal = 16.dp),
+            ) {
                 Text(
-                    stringResource(title),
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(stringResource(R.string.meth_on_this_page)) }
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                            append(" · ")
+                            append(stringResource(R.string.meth_index_count, count))
+                        }
+                    },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(role = Role.Button) { onOpen(id) }
-                        .padding(vertical = 10.dp),
+                    modifier = Modifier.weight(1f),
                 )
+                Icon(
+                    if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (open) {
+                Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp)) {
+                    SECTION_GROUPS.forEach { group ->
+                        Text(
+                            stringResource(group.title),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 6.dp, bottom = 2.dp),
+                        )
+                        group.sections.forEach { entry ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(role = Role.Button) { onOpen(entry.id) }
+                                    .heightIn(min = 36.dp),
+                            ) {
+                                Icon(
+                                    entry.icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    stringResource(entry.title),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

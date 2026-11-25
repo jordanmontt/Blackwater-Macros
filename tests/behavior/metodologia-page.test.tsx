@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import MetodologiaPage from "@/app/metodologia/page";
-import { applyLanguage, t } from "@/i18n";
+import { applyLanguage, formatTemplate, t } from "@/i18n";
 import { en } from "@/i18n/en";
 
 /**
@@ -10,7 +10,7 @@ import { en } from "@/i18n/en";
  * comprobación del perfil con sus fuentes en el ancla que abre su «¿Por qué?»,
  * por qué los días pasados conservan sus objetivos (enlazado desde Perfil) y por qué
  * pesarse en ayunas (enlazado desde el pesaje). Cada
- * sección es un encabezado con su ancla, y un índice arriba lleva a todas.
+ * sección es un encabezado con su ancla, y un índice arriba (cerrado, en grupos) lleva a todas.
  */
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ back: vi.fn(), push: vi.fn() }) }));
@@ -36,17 +36,30 @@ describe("Metodología", () => {
   it("cada sección es un encabezado con su ancla, y el índice de arriba lleva a todas", () => {
     const { container } = render(<MetodologiaPage />);
     const headings = screen.getAllByRole("heading", { level: 2 });
-    // The index's own title, then one per section.
-    expect(headings[0]).toHaveTextContent(t.metodologia.onThisPage);
-    const index = screen.getByRole("heading", { name: t.metodologia.onThisPage }).closest("[data-slot=card]")!;
+    const index = screen.getByRole("navigation", { name: t.metodologia.onThisPage });
     const links = [...index.querySelectorAll("a")];
-    expect(links).toHaveLength(headings.length - 1);
-    for (const link of links) {
+    // One link per section, in page order.
+    expect(links).toHaveLength(headings.length);
+    links.forEach((link, i) => {
       const section = container.querySelector(link.getAttribute("href")!);
-      expect(section).not.toBeNull();
-      expect(section!.querySelector("h2")!.textContent!.trim()).toBe(link.textContent!.trim());
-    }
+      expect(section!.querySelector("h2")).toBe(headings[i]);
+      expect(headings[i].textContent!.trim()).toBe(link.textContent!.trim());
+    });
     expect(container.querySelector("#calories h2")).toHaveTextContent(t.metodologia.tdeeTitle);
+  });
+
+  it("el índice empieza cerrado en una línea con cuántas secciones hay, y abierto las agrupa", () => {
+    render(<MetodologiaPage />);
+    const details = screen.getByRole("navigation", { name: t.metodologia.onThisPage }).closest("details")!;
+    // Closed: the first section shows at once instead of a screen of links.
+    expect(details.open).toBe(false);
+    const sections = screen.getAllByRole("heading", { level: 2 }).length;
+    expect(details.querySelector("summary")).toHaveTextContent(
+      `${t.metodologia.onThisPage} · ${formatTemplate(t.metodologia.indexCount, { n: sections })}`,
+    );
+    const groups = Object.values(t.metodologia.indexGroups);
+    expect(groups).toHaveLength(4);
+    for (const group of groups) expect(within(details).getByText(group)).toBeInTheDocument();
   });
 
   it("explica por qué pesarse en ayunas y qué hacer si no, en /metodologia#fasted (enlazado desde el pesaje)", () => {

@@ -483,6 +483,8 @@
   },
   "metodologia": {
     "onThisPage": "Auf dieser Seite",
+    "indexCount": "{n} Abschnitte",
+    "indexGroups": { "weight": "Gewicht", "food": "Ernährung und Kalorien", "ai": "KI", "sources": "Quellen" },
     "title": "Methodik",
     "aiTitle": "KI-Schätzungen",
     "aiBody": [
