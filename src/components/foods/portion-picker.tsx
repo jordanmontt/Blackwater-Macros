@@ -99,11 +99,13 @@ export function PortionPicker({
           value={text}
           onChange={(event) => setText(normalizeDecimal(event.target.value))}
         />
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => setText("100")}>
-            100 g
-          </Button>
-          {choice.servingGrams ? (
+        {/* A choice only when there are two amounts: without a serving the field already starts at 100 g,
+            and a lone «100 g» looked like it should do something (Android the same). */}
+        {choice.servingGrams ? (
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => setText("100")}>
+              100 g
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -113,8 +115,8 @@ export function PortionPicker({
             >
               {formatTemplate(t.addFood.serving, { g: formatNumber(choice.servingGrams, 1) })}
             </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
 
       <dl className="grid grid-cols-4 gap-2 rounded-xl border p-3 text-center" data-testid="portion-totals">
@@ -167,7 +169,7 @@ function OwnProductStatus({ own }: { own: OwnProduct }) {
   }
   if (own.state === "sent") {
     return (
-      <p className="flex items-center gap-1 text-xs text-green-700 dark:text-green-400" role="status">
+      <p className="flex items-center gap-1 text-xs text-green-800 dark:text-green-400" role="status">
         <CheckIcon className="size-3.5" /> {own.correction ? t.newProduct.status.sentCorrection : t.newProduct.status.sent}
       </p>
     );

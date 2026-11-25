@@ -144,6 +144,12 @@ export function WeightFormDialog({
               <span className="block text-xs text-muted-foreground">{t.peso.fastedHint}</span>
             </span>
           </label>
+          {/* The switch copies the last weigh-in; after noon that habit may not hold. A question, never a block. */}
+          {form.fasted && Number(form.datetime.slice(11, 13)) >= 12 ? (
+            <p className="-mt-2 text-xs text-muted-foreground" role="status">
+              {t.peso.fastedAfterNoon}
+            </p>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="bodyfat-input">{t.peso.bodyFatLabel}</Label>
             <Input

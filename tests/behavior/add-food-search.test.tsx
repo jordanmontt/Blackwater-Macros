@@ -4,13 +4,14 @@ import userEvent from "@testing-library/user-event";
 import HoyPage from "@/app/page";
 import type { FoodProduct } from "@/lib/core/foods";
 import type { MealDTO, MealTemplateDTO } from "@/lib/core/types";
-import { t } from "@/i18n";
+import { formatTemplate, t } from "@/i18n";
 
 /**
  * Requisitos de «Buscar» y «Código de barras» en «Añadir comida»:
  *  - buscar encuentra alimentos genéricos en español (también por sinónimos:
  *    «banana» → «Plátano») y productos de Open Food Facts,
- *  - elegir uno pide la cantidad y abre el formulario de revisión ya relleno,
+ *  - elegir uno pide la cantidad (con «100 g» y «1 ración» solo si tiene ración) y abre
+ *    el formulario de revisión ya relleno,
  *    con la unidad dentro de cada número (kcal, g proteína…), que se guarda como
  *    una comida normal por ingredientes,
  *  - el código de barras se puede escribir si no hay cámara; si no existe, lo dice,
@@ -93,6 +94,26 @@ async function openSheet(user: ReturnType<typeof userEvent.setup>) {
   return screen.findByRole("dialog", { name: t.addFood.title });
 }
 
+/** A camera that films but never finds a code: enough for the scanner to run. */
+function stubCamera() {
+  vi.stubGlobal("BarcodeDetector", class {
+    async detect() {
+      return [];
+    }
+  });
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop() {} }] })) },
+  });
+  vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+  // happy-dom only takes a real MediaStream here.
+  if (Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "srcObject")?.set) {
+    vi.spyOn(HTMLMediaElement.prototype, "srcObject", "set").mockImplementation(() => {});
+  } else {
+    Object.defineProperty(HTMLMediaElement.prototype, "srcObject", { configurable: true, set() {} });
+  }
+}
+
 describe("Añadir comida: buscar y código de barras", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -104,6 +125,9 @@ describe("Añadir comida: buscar y código de barras", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    // The stubbed camera, if a test added one.
+    delete (navigator as { mediaDevices?: unknown }).mediaDevices;
   });
 
   it("busca «banana», elige «Plátano», indica los gramos y guarda la comida revisada", async () => {
@@ -117,6 +141,8 @@ describe("Añadir comida: buscar y código de barras", () => {
 
     const grams = await screen.findByLabelText(t.addFood.gramsLabel);
     expect(grams).toHaveValue("100");
+    // No serving size: the field already says 100 g, so there are no amount buttons to choose from.
+    expect(screen.queryByRole("button", { name: "100 g" })).toBeNull();
     await user.clear(grams);
     await user.type(grams, "120");
     expect(screen.getByTestId("portion-totals")).toHaveTextContent("107");
@@ -165,6 +191,9 @@ describe("Añadir comida: buscar y código de barras", () => {
 
     expect(vi.mocked(api.searchFoods)).toHaveBeenCalledWith("yogur", "es");
     expect(await screen.findByLabelText(t.addFood.gramsLabel)).toHaveValue("125");
+    // With a serving there is a real choice: 100 g or one serving.
+    expect(screen.getByRole("button", { name: "100 g" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: formatTemplate(t.addFood.serving, { g: "125" }) })).toBeInTheDocument();
   });
 
   it("sin cámara deja escribir el código de barras y encuentra el producto", async () => {
@@ -174,7 +203,8 @@ describe("Añadir comida: buscar y código de barras", () => {
 
     await user.click(within(sheet).getByRole("button", { name: new RegExp(`^${t.addFood.barcode}`) }));
     expect(await screen.findByText(t.addFood.cameraError)).toBeInTheDocument();
-    await user.type(screen.getByLabelText(t.addFood.manualCode), "8480000592170");
+    // Without a camera, typing is the way: no «or» in front of it.
+    await user.type(screen.getByLabelText(t.addFood.typeCode), "8480000592170");
     await user.click(screen.getByRole("button", { name: t.addFood.lookUp }));
 
     expect(await screen.findByText("Yogur griego natural")).toBeInTheDocument();
@@ -187,15 +217,18 @@ describe("Añadir comida: buscar y código de barras", () => {
     const sheet = await openSheet(user);
 
     await user.click(within(sheet).getByRole("button", { name: new RegExp(`^${t.addFood.barcode}`) }));
-    await user.type(await screen.findByLabelText(t.addFood.manualCode), "1234567890123");
+    await user.type(await screen.findByLabelText(t.addFood.typeCode), "1234567890123");
     await user.click(screen.getByRole("button", { name: t.addFood.lookUp }));
 
     expect(await screen.findByText(t.addFood.notFound)).toBeInTheDocument();
+    // No camera here: «Escanear otro» would do nothing.
+    expect(screen.queryByRole("button", { name: t.addFood.scanAgain })).toBeNull();
     await user.click(screen.getByRole("button", { name: t.addFood.searchByName }));
     expect(await screen.findByRole("searchbox", { name: t.addFood.search })).toBeInTheDocument();
   });
 
   it("una etiqueta de la tienda (producto pesado allí) se explica, y se puede escanear otro", async () => {
+    stubCamera();
     const user = userEvent.setup();
     render(<HoyPage />);
     const sheet = await openSheet(user);

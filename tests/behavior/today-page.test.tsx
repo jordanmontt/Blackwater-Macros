@@ -117,7 +117,8 @@ describe("pantalla Hoy", () => {
     // el valor aparece tanto en el resumen de ingredientes como en la insignia de la comida
     expect((await screen.findAllByText("475 kcal")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("850 kcal").length).toBeGreaterThan(0);
-    expect(screen.getByText("32 g · Proteína")).toBeInTheDocument(); // redondeo visible
+    // Label first, as on the day card; rounded.
+    expect(screen.getByText(`${t.hoy.protein} 32 g`)).toBeInTheDocument();
   });
 
   it("cada ingrediente muestra su nombre, cantidad, kcal y proteína; hidratos y grasa van en los totales", async () => {
@@ -143,7 +144,7 @@ describe("pantalla Hoy", () => {
     expect(within(row).getByText(formatTemplate(t.hoy.proteinShort, { n: formatNumber(35.2, 1) }))).toBeInTheDocument();
     // Four labelled macros per row left no room for the name on a phone.
     expect(row).not.toHaveTextContent(t.hoy.carbs);
-    expect(screen.getByText(`72 g · ${t.hoy.carbs}`)).toBeInTheDocument();
+    expect(screen.getByText(`${t.hoy.carbs} 72 g`)).toBeInTheDocument();
   });
 
   it("al cambiar de día se cargan las comidas de ese otro día", async () => {

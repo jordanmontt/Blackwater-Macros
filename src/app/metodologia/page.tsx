@@ -3,13 +3,13 @@
 import { PageHeader } from "@/components/page-header";
 import { ActivityIcon, ArrowLeftRightIcon, ArrowUpDownIcon, BookOpenIcon, DatabaseIcon, DropletIcon, DumbbellIcon, FlameIcon, HistoryIcon, ScaleIcon, SigmaIcon, SlidersHorizontalIcon, SparklesIcon, TrendingUpIcon, UtensilsCrossedIcon } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ClosePageButton } from "@/components/close-page-button";
+import { BackPageButton } from "@/components/close-page-button";
 import { t } from "@/i18n";
 
 export default function MetodologiaPage() {
   return (
     <main className="mx-auto w-full max-w-2xl space-y-4 px-4 pt-4 pb-12 md:pt-6">
-      <PageHeader title={t.metodologia.title} end={<ClosePageButton />} />
+      <PageHeader title={t.metodologia.title} start={<BackPageButton />} />
 
       <p className="text-sm text-muted-foreground">{t.metodologia.intro}</p>
 

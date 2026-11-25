@@ -2,7 +2,7 @@
 
 import { PageHeader } from "@/components/page-header";
 import { useMemo, useState } from "react";
-import { formatDateKeyLong, formatDateKeyShort, formatNumber } from "@/i18n/format";
+import { formatDateKeyLong, formatDateKeyShort, formatNumber, formatTime } from "@/i18n/format";
 import Link from "next/link";
 import { InfoIcon, PencilIcon, WeightIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -415,9 +415,10 @@ function CaloriesSection({
               }
               labelFormatter={(value) => formatDateKeyShort(String(value))}
             />
-            <Line type="monotone" dataKey="calories" name={t.stats.dailyIntake} stroke={INTAKE_COLOR} strokeWidth={1.5} dot={{ r: 2 }} />
+            {/* Straight segments: a smoothed curve between days drew amounts nobody ate (Android the same). */}
+            <Line type="linear" dataKey="calories" name={t.stats.dailyIntake} stroke={INTAKE_COLOR} strokeWidth={1.5} dot={{ r: 2 }} />
             <Line
-              type="monotone"
+              type="linear"
               dataKey="tendencia"
               name={t.stats.trendLine}
               stroke={TREND_COLOR}
@@ -511,9 +512,20 @@ function MacrosCard({
               <div className="bg-[var(--chart-3)]" style={{ width: `${averages.split.carbs}%` }} />
               <div className="bg-[var(--chart-4)]" style={{ width: `${averages.split.fat}%` }} />
             </div>
-            <p className="text-xs text-muted-foreground" data-testid="macro-split">
-              {t.hoy.protein} {averages.split.protein} % · {t.hoy.carbs} {averages.split.carbs} % · {t.hoy.fat}{" "}
-              {averages.split.fat} %
+            {/* Each share with its colour's swatch: the bar alone said it by colour only. */}
+            <p className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground" data-testid="macro-split">
+              {(
+                [
+                  [t.hoy.protein, averages.split.protein, "bg-[var(--chart-2)]"],
+                  [t.hoy.carbs, averages.split.carbs, "bg-[var(--chart-3)]"],
+                  [t.hoy.fat, averages.split.fat, "bg-[var(--chart-4)]"],
+                ] as const
+              ).map(([label, share, swatch]) => (
+                <span key={label} className="inline-flex items-center gap-1.5">
+                  <span aria-hidden className={cn("size-2.5 rounded-sm", swatch)} />
+                  {label} {share} %
+                </span>
+              ))}
             </p>
           </div>
         ) : null}
@@ -571,17 +583,29 @@ function WeightEntries({
           <ul className="mt-1.5 divide-y overflow-hidden rounded-xl border">
             {[...entries].reverse().map((entry) => (
               <li key={entry.id} className="flex items-center gap-3 bg-card px-3 py-2.5">
-                <span className="font-medium tabular-nums">
-                  {formatNumber(entry.weightKg, 1)} kg
-                  {entry.bodyFatPct !== null && (
-                    <span className="hidden text-muted-foreground min-[400px]:inline">
-                      {" "}· {formatTemplate(t.peso.bodyFatValue, { value: formatNumber(entry.bodyFatPct, 1) })}
+                {/* The time first: one day can hold a fasted and a not-fasted weigh-in. Body fat after the
+                    weight from 400 px; on narrower phones on its own line, never hidden (Android the same). */}
+                <div className="shrink-0">
+                  <p className="font-medium tabular-nums">
+                    <span className="mr-1.5 text-xs font-normal text-muted-foreground">
+                      {formatTime(new Date(entry.measuredAt))}
                     </span>
+                    {formatNumber(entry.weightKg, 1)} kg
+                    {entry.bodyFatPct !== null && (
+                      <span className="hidden font-normal text-muted-foreground min-[400px]:inline">
+                        {" "}· {formatTemplate(t.peso.bodyFatValue, { value: formatNumber(entry.bodyFatPct, 1) })}
+                      </span>
+                    )}
+                    {entry.fasted === false && (
+                      <span className="text-xs font-normal text-muted-foreground"> · {t.peso.notFastedTag}</span>
+                    )}
+                  </p>
+                  {entry.bodyFatPct !== null && (
+                    <p className="text-xs text-muted-foreground tabular-nums min-[400px]:hidden">
+                      {formatTemplate(t.peso.bodyFatValue, { value: formatNumber(entry.bodyFatPct, 1) })}
+                    </p>
                   )}
-                  {entry.fasted === false && (
-                    <span className="text-xs font-normal text-muted-foreground"> · {t.peso.notFastedTag}</span>
-                  )}
-                </span>
+                </div>
                 {entry.note ? (
                   <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{entry.note}</span>
                 ) : (

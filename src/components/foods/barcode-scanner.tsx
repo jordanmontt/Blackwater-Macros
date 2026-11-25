@@ -58,6 +58,8 @@ export function BarcodeScanner({
   const [code, setCode] = useState("");
   const [known, setKnown] = useState<OffKnown>({ name: null, brand: null, lang: null });
   const [attempt, setAttempt] = useState(0);
+  // No camera here (blocked, missing or refused): typing the code is the only way, so no «or» and no «scan another».
+  const [noCamera, setNoCamera] = useState(false);
 
   async function lookUp(value: string) {
     setStatus("lookingUp");
@@ -106,7 +108,10 @@ export function BarcodeScanner({
           }
         }, 300);
       } catch {
-        if (!stopped) setStatus("cameraError");
+        if (!stopped) {
+          setStatus("cameraError");
+          setNoCamera(true);
+        }
       }
     }
     void start();
@@ -166,17 +171,19 @@ export function BarcodeScanner({
             <Button variant="outline" size="sm" onClick={onPhoto}>
               {t.addFood.takePhoto}
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setCode("");
-                setStatus("starting");
-                setAttempt((n) => n + 1);
-              }}
-            >
-              {t.addFood.scanAgain}
-            </Button>
+            {noCamera ? null : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setCode("");
+                  setStatus("starting");
+                  setAttempt((n) => n + 1);
+                }}
+              >
+                {t.addFood.scanAgain}
+              </Button>
+            )}
           </div>
         </div>
       ) : (
@@ -194,8 +201,8 @@ export function BarcodeScanner({
       >
         <Input
           inputMode="numeric"
-          aria-label={t.addFood.manualCode}
-          placeholder={t.addFood.manualCode}
+          aria-label={noCamera ? t.addFood.typeCode : t.addFood.manualCode}
+          placeholder={noCamera ? t.addFood.typeCode : t.addFood.manualCode}
           value={code}
           onChange={(event) => setCode(event.target.value)}
         />

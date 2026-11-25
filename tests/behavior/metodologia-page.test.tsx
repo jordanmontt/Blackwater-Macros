@@ -26,6 +26,12 @@ describe("Metodología", () => {
     expect(t.metodologia.title).toBe(en.metodologia.title);
   });
 
+  it("se sale con ← al principio, como Perfil e IA, no con un ✕", () => {
+    render(<MetodologiaPage />);
+    expect(screen.getByRole("button", { name: t.addFood.back })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: t.common.close })).toBeNull();
+  });
+
   it("cada sección es un encabezado con su ancla, y el índice de arriba lleva a todas", () => {
     const { container } = render(<MetodologiaPage />);
     const headings = screen.getAllByRole("heading", { level: 2 });

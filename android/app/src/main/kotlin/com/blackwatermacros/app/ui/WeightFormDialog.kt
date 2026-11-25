@@ -144,6 +144,14 @@ fun WeightFormDialog(
                     }
                     Switch(checked = fasted, onCheckedChange = null)
                 }
+                // The switch copies the last weigh-in; after noon that habit may not hold (web the same).
+                if (fasted && measuredAt.hour >= 12) {
+                    Text(
+                        stringResource(R.string.weight_fasted_after_noon),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 LabeledField(stringResource(R.string.weight_note_optional), Modifier.fillMaxWidth()) {
                     CompactTextArea(value = noteText, onValueChange = { noteText = it }, modifier = Modifier.fillMaxWidth())
                 }

@@ -45,6 +45,11 @@ export function formatDateKeyWeekdayShort(key: string): string {
   ).format(new Date(`${key}T00:00:00`));
 }
 
+/** «07:40» / «7:40 AM»: the time of a moment, in the device's time zone and the language's clock. */
+export function formatTime(value: Date): string {
+  return formatter("time", (locale) => new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" })).format(value);
+}
+
 /** «27 sept» / «27 Sept». */
 export function formatDateKeyShort(key: string): string {
   return formatter("short", (locale) => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" })).format(

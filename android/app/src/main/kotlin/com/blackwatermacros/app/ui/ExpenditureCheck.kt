@@ -384,6 +384,15 @@ private fun CheckDetails(
                     (if (inputs.gender == Gender.MALE) "+ 5" else "− 161") + " = ${formatNumber(check.bmr)} kcal",
             )
             StepText(stringResource(R.string.check_activity_label, inputs.gymDaysPerWeek, inputs.gymSessionMinutes, inputs.walkingMinutesPerDay))
+            // Where the formula's gym minutes come from (the week's sessions spread over 7 days; web the same).
+            Equation(
+                stringResource(
+                    R.string.check_gym_per_day,
+                    inputs.gymDaysPerWeek,
+                    inputs.gymSessionMinutes,
+                    formatNumber(inputs.gymDaysPerWeek * inputs.gymSessionMinutes / 7.0, 1),
+                ),
+            )
             Equation(palEquation(inputs, check.activityFactor))
         }
         StepText(stringResource(R.string.check_formula_label))

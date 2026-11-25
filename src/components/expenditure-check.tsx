@@ -353,6 +353,14 @@ function ExpenditureCheckDetails({ check, inputs }: { check: Measured; inputs: F
                 walking: inputs.walkingMinutesPerDay,
               })}
             </p>
+            {/* Where the formula's gym minutes come from (the week's sessions spread over 7 days). */}
+            <Equation>
+              {formatTemplate(t.expenditureCheck.gymPerDay, {
+                days: inputs.gymDaysPerWeek,
+                minutes: inputs.gymSessionMinutes,
+                perDay: formatNumber((inputs.gymDaysPerWeek * inputs.gymSessionMinutes) / 7, 1),
+              })}
+            </Equation>
             <Equation>{palEquation(inputs, check.activityFactor)}</Equation>
           </>
         ) : null}

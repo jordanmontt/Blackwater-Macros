@@ -1,9 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProgresoPage from "@/app/progreso/page";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
-import { formatNumber } from "@/i18n/format";
+import { formatNumber, formatTime } from "@/i18n/format";
 import { buildStatsFromData } from "@/lib/core/stats-builder";
 import type { CalorieProfile, MealDTO, ProfilePeriod, StatsRange, WeightDTO } from "@/lib/core/types";
 import { calculateCalorieRecommendation } from "@/lib/core/calories";
@@ -142,10 +142,11 @@ describe("pantalla Progreso", () => {
     expect(screen.getByText(formatNumber(18.5, 1))).toBeInTheDocument(); // grasa
     expect(screen.getByTestId("grafico-peso")).toHaveAttribute("data-puntos", "2");
     expect(screen.queryByText(t.progreso.otherWeighInsNote)).toBeNull();
-    // The list says the body fat in the app's language, not always in Spanish.
-    expect(
-      screen.getByText(new RegExp(formatTemplateText(t.peso.bodyFatValue, { value: formatNumber(18.5, 1) }))),
-    ).toBeInTheDocument();
+    // The list says the body fat in the app's language, not always in Spanish: after the weight from
+    // 400 px, on its own line on narrower phones (never hidden), and the time of each weigh-in.
+    const fat = screen.getAllByText(new RegExp(formatTemplateText(t.peso.bodyFatValue, { value: formatNumber(18.5, 1) })));
+    expect(fat.map((el) => el.className)).toEqual([expect.stringContaining("min-[400px]:inline"), expect.stringContaining("min-[400px]:hidden")]);
+    expect(screen.getAllByText(formatTime(new Date(at(daysAgo(1))))).length).toBeGreaterThan(0);
   });
 
   it("con medidas de grasa, el gráfico pasa del peso a la grasa; sin ellas no hay que elegir", async () => {
@@ -194,6 +195,8 @@ describe("pantalla Progreso", () => {
     expect(screen.getByTestId("macro-split")).toHaveTextContent("27 %");
     expect(screen.getByTestId("macro-split")).toHaveTextContent("44 %");
     expect(screen.getByTestId("macro-split")).toHaveTextContent("29 %");
+    // Each share has its colour's swatch, not only the bar.
+    expect(screen.getByTestId("macro-split").querySelectorAll("[aria-hidden]")).toHaveLength(3);
     // Perfil completo → objetivos de calorías y proteína junto a la media.
     expect(await screen.findAllByText(/^objetivo \S+–\S+$/)).toHaveLength(2);
     expect(screen.getByTestId("calories-chart")).toBeInTheDocument();
@@ -332,6 +335,22 @@ describe("pantalla Progreso", () => {
     expect(vi.mocked(api.createWeight)).toHaveBeenCalledWith(
       expect.objectContaining({ weightKg: 79.6, fasted: true, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
     );
+  });
+
+  it("después del mediodía, «En ayunas» marcado pregunta si de verdad (sin impedir guardar)", async () => {
+    const user = userEvent.setup();
+    weights = [weightDto({ id: "w-1", measuredAt: at(daysAgo(1)), weightKg: 80 })];
+    render(<ProgresoPage />);
+    await user.click(await screen.findByRole("button", { name: t.peso.addTitle }));
+    const dialog = await screen.findByRole("dialog");
+    const when = within(dialog).getByLabelText(t.peso.datetimeLabel);
+
+    fireEvent.change(when, { target: { value: `${today}T08:30` } });
+    expect(within(dialog).queryByText(t.peso.fastedAfterNoon)).toBeNull();
+    fireEvent.change(when, { target: { value: `${today}T20:30` } });
+    expect(within(dialog).getByText(t.peso.fastedAfterNoon)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("switch"));
+    expect(within(dialog).queryByText(t.peso.fastedAfterNoon)).toBeNull();
   });
 
   it("editar un pesaje cambia «En ayunas» y conserva su zona horaria", async () => {

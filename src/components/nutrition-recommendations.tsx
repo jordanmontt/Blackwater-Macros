@@ -36,7 +36,7 @@ function intakeStatus(
   overIsFine = false,
 ): { statusLabel: string; statusColor: string; overIsFine: boolean } {
   if (current >= rangeMin && current <= rangeMax) {
-    return { statusLabel: inRangeLabel, statusColor: "text-green-700 dark:text-green-400", overIsFine };
+    return { statusLabel: inRangeLabel, statusColor: "text-green-800 dark:text-green-400", overIsFine };
   }
   if (current < rangeMin) {
     const missingMin = formatNumber(Math.round(rangeMin - current), 0);

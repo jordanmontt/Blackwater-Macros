@@ -167,18 +167,19 @@ fun MealCard(
                     modifier = Modifier.weight(1f),
                 )
                 MacroBadge(
-                    text = "${formatNumber(meal.resolvedProtein, 1)} g · ${stringResource(R.string.macro_protein)}",
+                    // Label first, as on the day card and in Progreso (web the same).
+                    text = "${stringResource(R.string.macro_protein)} ${formatNumber(meal.resolvedProtein, 1)} g",
                     modifier = Modifier.weight(1f),
                 )
             }
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 MacroBadge(
-                    text = "${formatNumber(meal.resolvedCarbs, 1)} g · ${stringResource(R.string.macro_carbs)}",
+                    text = "${stringResource(R.string.macro_carbs)} ${formatNumber(meal.resolvedCarbs, 1)} g",
                     modifier = Modifier.weight(1f),
                 )
                 MacroBadge(
-                    text = "${formatNumber(meal.resolvedFat, 1)} g · ${stringResource(R.string.macro_fat)}",
+                    text = "${stringResource(R.string.macro_fat)} ${formatNumber(meal.resolvedFat, 1)} g",
                     modifier = Modifier.weight(1f),
                 )
             }

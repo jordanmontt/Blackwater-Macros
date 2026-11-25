@@ -25,11 +25,13 @@ export function DemoBanner() {
   }
 
   return (
-    <div className="border-b bg-primary/5 px-4 py-2">
+    <div className="border-b bg-primary/5 px-4 py-1.5 sm:py-2">
       <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3">
+        {/* One line on phones: the full sentence took about 130 px (16 % of the screen) on every page. */}
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <SparklesIcon className="size-4 shrink-0 text-primary" />
-          <span>{t.demo.banner}</span>
+          <span className="sm:hidden">{t.demo.bannerShort}</span>
+          <span className="hidden sm:inline">{t.demo.banner}</span>
         </p>
         <Button variant="outline" size="sm" onClick={handleExit} className="shrink-0">
           {t.demo.exit}

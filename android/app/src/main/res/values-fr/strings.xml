@@ -8,7 +8,6 @@
     <string name="form_help_total_only">Saisissez uniquement le total des calories, protéines, glucides et lipides du repas.</string>
     <string name="form_notes_optional">Notes (facultatif)</string>
     <string name="form_notes_placeholder">Notes</string>
-    <string name="ingredient_quantity_placeholder">30 g</string>
     <string name="macro_g_protein">g protéines</string>
     <string name="total_protein_g">Protéines (g)</string>
     <string name="total_carbs_g">Glucides (g)</string>
@@ -17,7 +16,6 @@
     <string name="error_invalid_number">Certains nombres ne sont pas valides.</string>
     <string name="progress_macros">Moyenne des macros</string>
     <string name="progress_split">Répartition des calories</string>
-    <string name="progress_split_values">Protéines %1$s %% · Glucides %2$s %% · Lipides %3$s %%</string>
     <string name="progress_per_logged_day">Moyenne par jour saisi.</string>
     <string name="progress_entries">Pesées</string>
     <string name="progress_no_entries_in_range">Aucune pesée sur cette période.</string>
@@ -40,7 +38,6 @@
     <string name="food_portion_title">Quelle quantité ?</string>
     <string name="food_incomplete">Certains macros manquent dans la source : ils comptent pour 0.</string>
     <string name="food_credits">Données : Swiss Food Composition Database (OSAV), Ciqual (Anses) et Open Food Facts (ODbL).</string>
-    <string name="food_manual_code">Ou saisissez le code</string>
     <string name="food_look_up">Chercher</string>
     <string name="food_camera_error">La caméra n\'est pas disponible. Saisissez le code de l\'emballage.</string>
     <string name="meal_reorder">Réorganiser le repas</string>
@@ -224,7 +221,6 @@
     <string name="photo_max">Jusqu\'à %1$d photos. Elles ne sont pas conservées : elles sont envoyées à votre fournisseur d\'IA puis supprimées.</string>
     <string name="photo_describe">Décrivez votre repas</string>
     <string name="photo_describe_placeholder">Ex. : avec une cuillère d\'huile, pain complet…</string>
-    <string name="photo_not_configured">Pour estimer avec des photos, configurez l\'IA avec une clé (Google en donne une gratuitement).</string>
     <string name="photo_notice">Estimation de l\'IA (confiance %1$s) : vérifiez les quantités.</string>
     <string name="photo_notice_plain">Estimation de l\'IA : vérifiez les quantités.</string>
     <string name="ai_error_unreadable">L\'IA n\'a pas renvoyé d\'estimation valide. Réessayez ou saisissez-la à la main.</string>

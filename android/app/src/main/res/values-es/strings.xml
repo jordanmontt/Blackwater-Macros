@@ -8,7 +8,6 @@
     <string name="form_help_total_only">Introduce únicamente el total de calorías, proteína, carbohidratos y grasa de la comida.</string>
     <string name="form_notes_optional">Notas (opcional)</string>
     <string name="form_notes_placeholder">Notas</string>
-    <string name="ingredient_quantity_placeholder">30 g</string>
     <string name="macro_g_protein">g proteína</string>
     <string name="total_protein_g">Proteína (g)</string>
     <string name="total_carbs_g">Carbohidratos (g)</string>
@@ -17,7 +16,6 @@
     <string name="error_invalid_number">Algunos números no son válidos.</string>
     <string name="progress_macros">Promedio de macros</string>
     <string name="progress_split">Reparto de las calorías</string>
-    <string name="progress_split_values">Proteína %1$s %% · Carbohidratos %2$s %% · Grasa %3$s %%</string>
     <string name="progress_per_logged_day">Media por día registrado.</string>
     <string name="progress_entries">Registros de peso</string>
     <string name="progress_no_entries_in_range">No hay pesajes en este periodo.</string>
@@ -40,7 +38,6 @@
     <string name="food_portion_title">¿Cuánto?</string>
     <string name="food_incomplete">Faltan algunos macros en la fuente: cuentan como 0.</string>
     <string name="food_credits">Datos: Swiss Food Composition Database (FSVO), Ciqual (Anses) y Open Food Facts (ODbL).</string>
-    <string name="food_manual_code">O escribe el código</string>
     <string name="food_look_up">Buscar</string>
     <string name="food_camera_error">No se puede usar la cámara. Escribe el código del envase.</string>
     <string name="meal_reorder">Reordenar comida</string>
@@ -224,7 +221,6 @@
     <string name="photo_max">Hasta %1$d fotos. No se guardan: se envían a tu proveedor de IA y se descartan.</string>
     <string name="photo_describe">Describe tu comida</string>
     <string name="photo_describe_placeholder">Ej.: con una cucharada de aceite, pan integral…</string>
-    <string name="photo_not_configured">Para estimar con fotos, configura la IA con una clave (Google la da gratis).</string>
     <string name="photo_notice">Estimación de la IA (confianza %1$s): revisa las cantidades.</string>
     <string name="photo_notice_plain">Estimación de la IA: revisa las cantidades.</string>
     <string name="ai_error_unreadable">La IA no devolvió una estimación válida. Inténtalo de nuevo o escríbelo a mano.</string>

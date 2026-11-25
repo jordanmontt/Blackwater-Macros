@@ -8,7 +8,6 @@
     <string name="form_help_total_only">Inserisci solo il totale di calorie, proteine, carboidrati e grassi del pasto.</string>
     <string name="form_notes_optional">Note (facoltative)</string>
     <string name="form_notes_placeholder">Note</string>
-    <string name="ingredient_quantity_placeholder">30 g</string>
     <string name="macro_g_protein">g proteine</string>
     <string name="total_protein_g">Proteine (g)</string>
     <string name="total_carbs_g">Carboidrati (g)</string>
@@ -17,7 +16,6 @@
     <string name="error_invalid_number">Alcuni numeri non sono validi.</string>
     <string name="progress_macros">Media dei macro</string>
     <string name="progress_split">Ripartizione delle calorie</string>
-    <string name="progress_split_values">Proteine %1$s %% · Carboidrati %2$s %% · Grassi %3$s %%</string>
     <string name="progress_per_logged_day">Media per giorno registrato.</string>
     <string name="progress_entries">Pesate</string>
     <string name="progress_no_entries_in_range">Nessuna pesata in questo periodo.</string>
@@ -40,7 +38,6 @@
     <string name="food_portion_title">Quanto?</string>
     <string name="food_incomplete">Mancano alcuni macro nella fonte: contano come 0.</string>
     <string name="food_credits">Dati: Swiss Food Composition Database (USAV), Ciqual (Anses) e Open Food Facts (ODbL).</string>
-    <string name="food_manual_code">Oppure scrivi il codice</string>
     <string name="food_look_up">Cerca</string>
     <string name="food_camera_error">La fotocamera non è disponibile. Scrivi il codice della confezione.</string>
     <string name="meal_reorder">Riordina pasto</string>
@@ -224,7 +221,6 @@
     <string name="photo_max">Fino a %1$d foto. Non vengono conservate: vanno al tuo fornitore di IA e poi vengono eliminate.</string>
     <string name="photo_describe">Descrivi il tuo pasto</string>
     <string name="photo_describe_placeholder">Es.: con un cucchiaio d\'olio, pane integrale…</string>
-    <string name="photo_not_configured">Per stimare con le foto, configura l\'IA con una chiave (Google la dà gratis).</string>
     <string name="photo_notice">Stima dell\'IA (affidabilità %1$s): controlla le quantità.</string>
     <string name="photo_notice_plain">Stima dell\'IA: controlla le quantità.</string>
     <string name="ai_error_unreadable">L\'IA non ha restituito una stima valida. Riprova o scrivila a mano.</string>

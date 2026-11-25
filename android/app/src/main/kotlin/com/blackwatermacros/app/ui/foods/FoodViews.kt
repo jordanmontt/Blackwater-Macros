@@ -226,9 +226,11 @@ fun PortionView(
             decimal = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { text = "100" }, shape = RoundedCornerShape(50)) { Text("100 g") }
-            choice.servingGrams?.let { serving ->
+        // A choice only when there are two amounts: without a serving the field already starts at
+        // 100 g, and a lone «100 g» looked like it should do something (web the same).
+        choice.servingGrams?.let { serving ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { text = "100" }, shape = RoundedCornerShape(50)) { Text("100 g") }
                 OutlinedButton(onClick = { text = toDecimalInput(serving) }, shape = RoundedCornerShape(50)) {
                     Text(stringResource(R.string.food_serving, formatNumber(serving, 1)))
                 }
@@ -461,7 +463,8 @@ fun BarcodeView(
             CompactField(
                 value = code,
                 onValueChange = { onCodeChange(it.filter(Char::isDigit)) },
-                placeholder = stringResource(R.string.food_manual_code),
+                // Without the camera there is no «or»: typing is the way.
+                placeholder = stringResource(if (granted) R.string.food_manual_code else R.string.food_type_code),
                 enabled = lookup !is BarcodeLookup.Loading,
                 keyboardType = KeyboardType.Number,
                 modifier = Modifier.weight(1f),

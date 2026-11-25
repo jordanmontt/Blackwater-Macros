@@ -3,6 +3,7 @@ package com.blackwatermacros.app.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -414,16 +415,12 @@ private fun MacrosCard(progress: Progress, averages: MacroAverages, onOpenMethod
                     SplitSegment(split.fat, ChartBlue)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(
-                    stringResource(
-                        R.string.progress_split_values,
-                        formatNumber(split.protein),
-                        formatNumber(split.carbs),
-                        formatNumber(split.fat),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                // Each share with its colour's swatch: the bar alone said it by colour only (web the same).
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SplitLegend(ChartClay, "${stringResource(R.string.macro_protein)} ${formatNumber(split.protein)} %")
+                    SplitLegend(ChartGold, "${stringResource(R.string.macro_carbs)} ${formatNumber(split.carbs)} %")
+                    SplitLegend(ChartBlue, "${stringResource(R.string.macro_fat)} ${formatNumber(split.fat)} %")
+                }
             }
             Spacer(Modifier.height(8.dp))
             Text(
@@ -545,6 +542,12 @@ private fun WeighInRow(entry: WeightDTO, onEdit: (WeightDTO) -> Unit, onDelete: 
             .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            // The time first: one day can hold a fasted and a not-fasted weigh-in (web the same).
+            Text(
+                formatTime(entry.measuredAt) + "  ",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Text("${formatNumber(entry.weightKg, 1)} kg", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
             entry.bodyFatPct?.let {
                 Text(
@@ -586,5 +589,15 @@ private fun WeighInRow(entry: WeightDTO, onEdit: (WeightDTO) -> Unit, onDelete: 
                 modifier = Modifier.padding(bottom = 6.dp),
             )
         }
+    }
+}
+
+/** One share of the calorie split: its colour's swatch, then «Proteína 26 %». */
+@Composable
+private fun SplitLegend(color: Color, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(10.dp).clip(RoundedCornerShape(2.dp)).background(color))
+        Spacer(Modifier.width(6.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

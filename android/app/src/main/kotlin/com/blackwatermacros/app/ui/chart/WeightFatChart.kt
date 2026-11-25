@@ -99,7 +99,8 @@ fun WeightFatChart(
     val cardColor = MaterialTheme.colorScheme.surfaceContainer
     val weighInColor = labelColor.copy(alpha = 0.7f)
     val weightLabel = stringResource(R.string.chart_weigh_ins)
-    val trendLabel = stringResource(R.string.chart_trend)
+    // The same name as the calories chart's: «Tendencia (media 7 días)» (web the same).
+    val trendLabel = stringResource(R.string.chart_trend_line)
     val bodyFatLabel = stringResource(R.string.chart_body_fat)
     val isWeight = series == WeightChartSeries.WEIGHT
     // «Label: value» in the language's own punctuation, for the tooltip.

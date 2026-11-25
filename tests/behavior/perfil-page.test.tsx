@@ -224,7 +224,12 @@ describe("pantalla Perfil", () => {
     await user.click(
       await screen.findByRole("button", { name: new RegExp(`^(${t.expenditureCheck.seeCalculation}|${t.expenditureCheck.why.replace("?", "\\?")})$`) }),
     );
-    expect(await screen.findByRole("dialog")).toHaveTextContent(t.calorias.conditionsFasting);
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent(t.calorias.conditionsFasting);
+    // The activity formula says where its gym minutes come from: 3 × 60 min ÷ 7.
+    expect(dialog).toHaveTextContent(
+      formatTemplate(t.expenditureCheck.gymPerDay, { days: 3, minutes: 60, perDay: formatNumber(180 / 7, 1) }),
+    );
   });
 
   it("con el perfil incompleto pide los datos que faltan", async () => {

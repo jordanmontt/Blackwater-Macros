@@ -144,7 +144,7 @@ async function lookUp(user: ReturnType<typeof userEvent.setup>, code: string) {
   await user.click(screen.getAllByRole("button", { name: t.hoy.addMeal })[0]);
   const sheet = await screen.findByRole("dialog", { name: t.addFood.title });
   await user.click(within(sheet).getByRole("button", { name: new RegExp(`^${t.addFood.barcode}`) }));
-  await user.type(await screen.findByLabelText(t.addFood.manualCode), code);
+  await user.type(await screen.findByLabelText(t.addFood.typeCode), code);
   await user.click(screen.getByRole("button", { name: t.addFood.lookUp }));
 }
 

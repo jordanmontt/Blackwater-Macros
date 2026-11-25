@@ -9,7 +9,6 @@
     <string name="form_help_total_only">Enter only the meal\'s total calories, protein, carbs and fat.</string>
     <string name="form_notes_optional">Notes (optional)</string>
     <string name="form_notes_placeholder">Notes</string>
-    <string name="ingredient_quantity_placeholder">30 g</string>
     <string name="macro_g_protein">g protein</string>
     <string name="total_protein_g">Protein (g)</string>
     <string name="total_carbs_g">Carbs (g)</string>
@@ -18,7 +17,6 @@
     <string name="error_invalid_number">Some numbers are not valid.</string>
     <string name="progress_macros">Macro average</string>
     <string name="progress_split">Calorie split</string>
-    <string name="progress_split_values">Protein %1$s %% · Carbs %2$s %% · Fat %3$s %%</string>
     <string name="progress_per_logged_day">Average per logged day.</string>
     <string name="progress_entries">Weigh-ins</string>
     <string name="progress_no_entries_in_range">No weigh-ins in this period.</string>
@@ -41,7 +39,6 @@
     <string name="food_portion_title">How much?</string>
     <string name="food_incomplete">Some macros are missing in the source: they count as 0.</string>
     <string name="food_credits">Data: Swiss Food Composition Database (FSVO), Ciqual (Anses) and Open Food Facts (ODbL).</string>
-    <string name="food_manual_code">Or type the code</string>
     <string name="food_look_up">Look up</string>
     <string name="food_camera_error">The camera is not available. Type the code on the package.</string>
     <string name="meal_reorder">Reorder meal</string>
@@ -218,7 +215,6 @@
     <string name="photo_max">Up to %1$d photos. They are not kept: they go to your AI provider and are discarded.</string>
     <string name="photo_describe">Describe your meal</string>
     <string name="photo_describe_placeholder">E.g. with a spoon of oil, wholemeal bread…</string>
-    <string name="photo_not_configured">To estimate from photos, set up AI with a key (Google gives one for free).</string>
     <string name="photo_notice">AI estimate (%1$s confidence): check the amounts.</string>
     <string name="photo_notice_plain">AI estimate: check the amounts.</string>
     <string name="ai_error_unreadable">The AI did not return a valid estimate. Try again or write it by hand.</string>

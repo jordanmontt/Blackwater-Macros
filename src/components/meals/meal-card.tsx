@@ -137,18 +137,19 @@ export function MealCard({ meal, onEdit, onSaveAsTemplate, onDelete }: MealCardP
           </CardContent>
         ) : null}
 
+        {/* Label first, as on the day card and in Progreso («Proteína 38 g»). */}
         <CardFooter className="flex-wrap gap-1">
           <Badge variant="secondary" className="tabular-nums text-[11px]">
             {formatNumber(meal.resolvedCalories)} {t.hoy.kcalUnit}
           </Badge>
           <Badge variant="outline" className="tabular-nums text-[11px]">
-            {formatNumber(meal.resolvedProtein)} g · {t.hoy.protein}
+            {t.hoy.protein} {formatNumber(meal.resolvedProtein)} g
           </Badge>
           <Badge variant="outline" className="tabular-nums text-[11px]">
-            {formatNumber(meal.resolvedCarbs)} g · {t.hoy.carbs}
+            {t.hoy.carbs} {formatNumber(meal.resolvedCarbs)} g
           </Badge>
           <Badge variant="outline" className="tabular-nums text-[11px]">
-            {formatNumber(meal.resolvedFat)} g · {t.hoy.fat}
+            {t.hoy.fat} {formatNumber(meal.resolvedFat)} g
           </Badge>
         </CardFooter>
       </Card>

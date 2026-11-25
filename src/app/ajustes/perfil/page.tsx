@@ -268,9 +268,10 @@ export default function PerfilPage() {
             </div>
           </div>
 
+          {/* Two-line labels next to each other: the text sits on the field, and both fields line up. */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="gym-days" className="block min-h-10 leading-tight">
+              <Label htmlFor="gym-days" className="flex min-h-10 items-end leading-tight">
                 {t.calorias.gymDaysLabel}
               </Label>
               <Input
@@ -291,7 +292,7 @@ export default function PerfilPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="gym-minutes" className="block min-h-10 leading-tight">
+              <Label htmlFor="gym-minutes" className="flex min-h-10 items-end leading-tight">
                 {t.calorias.gymSessionLabel}
               </Label>
               <Input

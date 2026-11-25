@@ -76,7 +76,7 @@ export function WeightFatChart({ data, series = "weight" }: { data: WeightFatRow
                 <Line
                   type="monotone"
                   dataKey="weightTrend"
-                  name={t.stats.legendTrend}
+                  name={t.stats.trendLine}
                   stroke={TREND_COLOR}
                   strokeWidth={3}
                   dot={false}
@@ -101,7 +101,7 @@ export function WeightFatChart({ data, series = "weight" }: { data: WeightFatRow
         items={
           isWeight
             ? [
-                { label: t.stats.legendTrend, color: TREND_COLOR, shape: "line" },
+                { label: t.stats.trendLine, color: TREND_COLOR, shape: "line" },
                 { label: t.stats.legendWeight, color: WEIGH_IN_COLOR, shape: "dot" },
               ]
             : [{ label: t.stats.legendBodyFat, color: BODY_FAT_COLOR, shape: "line" }]

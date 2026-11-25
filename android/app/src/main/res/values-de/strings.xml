@@ -8,7 +8,6 @@
     <string name="form_help_total_only">Gib nur die Gesamtwerte für Kalorien, Eiweiß, Kohlenhydrate und Fett der Mahlzeit ein.</string>
     <string name="form_notes_optional">Notizen (optional)</string>
     <string name="form_notes_placeholder">Notizen</string>
-    <string name="ingredient_quantity_placeholder">30 g</string>
     <string name="macro_g_protein">g Eiweiß</string>
     <string name="total_protein_g">Eiweiß (g)</string>
     <string name="total_carbs_g">Kohlenhydrate (g)</string>
@@ -17,7 +16,6 @@
     <string name="error_invalid_number">Einige Zahlen sind ungültig.</string>
     <string name="progress_macros">Makro-Durchschnitt</string>
     <string name="progress_split">Kalorienaufteilung</string>
-    <string name="progress_split_values">Protein %1$s %% · Kohlenhydrate %2$s %% · Fett %3$s %%</string>
     <string name="progress_per_logged_day">Durchschnitt pro erfasstem Tag.</string>
     <string name="progress_entries">Wägungen</string>
     <string name="progress_no_entries_in_range">Keine Wägungen in diesem Zeitraum.</string>
@@ -40,7 +38,6 @@
     <string name="food_portion_title">Wie viel?</string>
     <string name="food_incomplete">In der Quelle fehlen einige Makros: Sie zählen als 0.</string>
     <string name="food_credits">Daten: Schweizer Nährwertdatenbank (BLV), Ciqual (Anses) und Open Food Facts (ODbL).</string>
-    <string name="food_manual_code">Oder Code eingeben</string>
     <string name="food_look_up">Suchen</string>
     <string name="food_camera_error">Die Kamera ist nicht verfügbar. Gib den Code der Verpackung ein.</string>
     <string name="meal_reorder">Mahlzeit verschieben</string>
@@ -217,7 +214,6 @@
     <string name="photo_max">Bis zu %1$d Fotos. Sie werden nicht gespeichert: Sie gehen an deinen KI-Anbieter und werden dann verworfen.</string>
     <string name="photo_describe">Beschreibe deine Mahlzeit</string>
     <string name="photo_describe_placeholder">Z. B. mit einem Löffel Öl, Vollkornbrot…</string>
-    <string name="photo_not_configured">Um mit Fotos zu schätzen, richte die KI mit einem Schlüssel ein (Google gibt ihn kostenlos).</string>
     <string name="photo_notice">KI-Schätzung (Sicherheit: %1$s): prüfe die Mengen.</string>
     <string name="photo_notice_plain">KI-Schätzung: prüfe die Mengen.</string>
     <string name="ai_error_unreadable">Die KI hat keine gültige Schätzung geliefert. Versuche es erneut oder gib sie von Hand ein.</string>
