@@ -1,0 +1,5 @@
+• Synchro : si une liste ne peut pas se synchroniser, les autres le font quand même, et le nuage devient gris si les téléchargements échouent pendant une heure.
+• Coach : « Combien de fois par semaine… » donne maintenant le bon nombre.
+• Pesée : une ligne « à jeun » plus courte avec « Pourquoi se peser à jeun ? » et des champs alignés.
+• Méthodologie : un sommaire compact, groupé par thème.
+• Un long formulaire de repas ne tremble plus quand on le fait glisser.

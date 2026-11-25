@@ -1,0 +1,5 @@
+• Sincronizzazione: se un elenco non si sincronizza, gli altri sì, e la nuvola diventa grigia se i download falliscono per un'ora.
+• Coach: «Quante volte a settimana…» ora dà il numero giusto.
+• Pesata: una riga sul digiuno più breve con «Perché pesarsi a digiuno?» e campi allineati.
+• Metodologia: un indice compatto, raggruppato per argomento.
+• Un modulo del pasto lungo non trema più quando lo trascini.

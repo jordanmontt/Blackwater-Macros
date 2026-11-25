@@ -17,8 +17,8 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         // One step per release; the git tag is v<versionName> (docs/RELEASING.md).
-        versionCode = 18
-        versionName = "2.0.0"
+        versionCode = 19
+        versionName = "2.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

@@ -1,0 +1,5 @@
+• Sync: Kann eine Liste nicht synchronisiert werden, laufen die anderen trotzdem, und die Wolke wird grau, wenn Downloads eine Stunde lang fehlschlagen.
+• Coach: „Wie oft pro Woche…“ liefert jetzt die richtige Zahl.
+• Wiegung: eine kürzere Nüchtern-Zeile mit „Warum nüchtern wiegen?“ und ausgerichtete Felder.
+• Methodik: ein kompaktes Inhaltsverzeichnis, nach Themen gruppiert.
+• Ein langes Mahlzeitenformular wackelt beim Ziehen nicht mehr.

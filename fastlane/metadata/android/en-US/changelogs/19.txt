@@ -1,0 +1,5 @@
+• Sync: if one list can't sync, the others still do, and the cloud turns grey when downloads have failed for an hour.
+• Coach: "How many times a week…" now gets the right number.
+• Weigh-in form: a shorter fasted line with "Why weigh yourself fasted?", aligned fields.
+• Methodology: a compact index, grouped by topic.
+• A long meal form no longer shakes when dragged.

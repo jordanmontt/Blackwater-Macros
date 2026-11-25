@@ -1,0 +1,5 @@
+• Sincronización: si una lista no se puede sincronizar, las demás sí, y la nube se pone gris si las descargas fallan durante una hora.
+• Coach: «¿Cuántas veces por semana…?» ahora da el número correcto.
+• Pesaje: una línea de ayunas más corta con «¿Por qué pesarse en ayunas?» y campos alineados.
+• Metodología: un índice compacto, agrupado por tema.
+• Un formulario de comida largo ya no tiembla al arrastrarlo.
