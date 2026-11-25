@@ -68,6 +68,7 @@
     <string name="sync_problem_unexpected">Synchronisierung fehlgeschlagen. Es wird automatisch erneut versucht.</string>
     <string name="sync_offline">Keine Verbindung. Die Synchronisierung erfolgt automatisch, sobald du wieder online bist.</string>
     <string name="sync_done">Synchronisiert %1$s</string>
+    <string name="sync_download_failing">Änderungen aus dem Web und von anderen Geräten kommen nicht an. Zuletzt synchronisiert %1$s. Es wird automatisch erneut versucht.</string>
     <string name="sync_today_at">heute um %1$s</string>
     <string name="sync_on_date_at">am %1$s um %2$s</string>
     <string name="sync_never">Noch nicht synchronisiert</string>
@@ -161,6 +162,7 @@
     <string name="data_deleted">Daten von diesem Telefon gelöscht.</string>
     <string name="sync_indicator_synced">Alles synchronisiert</string>
     <string name="sync_indicator_problem">Synchronisierung braucht Aufmerksamkeit</string>
+    <string name="sync_indicator_download_failing">Änderungen vom Server kommen nicht an</string>
     <string name="language_system">Telefonsprache</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d Zutat</item>

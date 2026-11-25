@@ -35,6 +35,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import java.time.Duration
+import java.time.Instant
 
 /** What the header cloud icon shows. Hidden entirely without an account. */
 sealed interface SyncIndicatorState {
@@ -45,6 +47,9 @@ sealed interface SyncIndicatorState {
 
     /** Session expired, or a change the server refuses: it won't upload on its own. */
     data object Problem : SyncIndicatorState
+
+    /** Everything uploaded, but the server's changes haven't arrived for over an hour ([downloadsFailing]). */
+    data object DownloadFailing : SyncIndicatorState
 }
 
 class SyncIndicatorViewModel(
@@ -57,8 +62,8 @@ class SyncIndicatorViewModel(
         repository.pendingChanges(),
         sync.running,
         sync.lastProblem,
-        ::syncIndicatorState,
-    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SyncIndicatorState.Hidden)
+    ) { current, pending, syncing, problem -> syncIndicatorState(current, pending, syncing, problem) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SyncIndicatorState.Hidden)
 }
 
 /**
@@ -66,20 +71,39 @@ class SyncIndicatorViewModel(
  * session, or a change the server refuses. Everything else that fails (no or poor
  * connection, a brief server error, a Wi-Fi login page) is retried automatically, so the
  * cloud just counts the changes still waiting. A failed run with nothing pending (e.g.
- * only downloading the web's changes failed) leaves the user's data safe: «Synced».
+ * only downloading the web's changes failed) leaves the user's data safe: «Synced», unless
+ * it has lasted over an hour ([downloadsFailing]): then grey, since the web's changes aren't
+ * arriving.
  */
 internal fun syncIndicatorState(
     account: Account?,
     pendingChanges: Int,
     syncing: Boolean,
     problem: SyncProblem?,
+    now: Instant = Instant.now(),
 ): SyncIndicatorState = when {
     account == null -> SyncIndicatorState.Hidden
     account.sessionExpired -> SyncIndicatorState.Problem
     problem.needsAttention(pendingChanges) -> SyncIndicatorState.Problem
     syncing -> SyncIndicatorState.Syncing
     pendingChanges > 0 -> SyncIndicatorState.Pending(pendingChanges)
+    downloadsFailing(account, problem, now) -> SyncIndicatorState.DownloadFailing
     else -> SyncIndicatorState.Synced
+}
+
+/** How long the server may fail before the phone says so: a brief error is retried on its own. */
+internal val DOWNLOAD_FAILING_AFTER: Duration = Duration.ofHours(1)
+
+/**
+ * The last run failed at the server (not for lack of connection) and nothing has fully synced
+ * for over [DOWNLOAD_FAILING_AFTER]: changes made on the web or another phone aren't arriving.
+ * On 24–25 Nov 2026 production answered 500 for hours while the cloud stayed green. Never
+ * synced (`lastSyncAt` null): Ajustes already says so.
+ */
+internal fun downloadsFailing(account: Account, problem: SyncProblem?, now: Instant): Boolean {
+    if (problem != SyncProblem.SERVER_ERROR && problem != SyncProblem.UNEXPECTED) return false
+    val lastSync = account.lastSyncAt?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return false
+    return Duration.between(lastSync, now) > DOWNLOAD_FAILING_AFTER
 }
 
 /** Same rule in Ajustes → Cuenta: only a refused change, while it is still waiting, is shown in red. */
@@ -99,6 +123,7 @@ fun SyncIndicator(onClick: () -> Unit, viewModel: SyncIndicatorViewModel = viewM
         SyncIndicatorState.Synced -> stringResource(R.string.sync_indicator_synced)
         is SyncIndicatorState.Pending -> pluralStringResource(R.plurals.sync_pending, s.count, s.count)
         SyncIndicatorState.Problem -> stringResource(R.string.sync_indicator_problem)
+        SyncIndicatorState.DownloadFailing -> stringResource(R.string.sync_indicator_download_failing)
         SyncIndicatorState.Hidden -> ""
     }
     IconButton(onClick = onClick) {
@@ -121,6 +146,9 @@ fun SyncIndicator(onClick: () -> Unit, viewModel: SyncIndicatorViewModel = viewM
                 }
                 SyncIndicatorState.Problem ->
                     Icon(Icons.Filled.CloudOff, description, tint = MaterialTheme.colorScheme.error)
+                // Grey, not red: nothing on the phone is at risk, and it retries on its own.
+                SyncIndicatorState.DownloadFailing ->
+                    Icon(Icons.Filled.CloudOff, description, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 SyncIndicatorState.Hidden -> Unit
             }
         }

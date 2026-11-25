@@ -400,6 +400,9 @@ private fun AccountGroup(
             state.offline -> stringResource(R.string.sync_offline) to false
             state.pendingChanges > 0 ->
                 pluralStringResource(R.plurals.sync_pending, state.pendingChanges, state.pendingChanges) to false
+            // Same rule as the grey header cloud: the server has failed for over an hour.
+            account.lastSyncAt != null && downloadsFailing(account, state.problem, Instant.now()) ->
+                stringResource(R.string.sync_download_failing, syncTimePhrase(account.lastSyncAt)) to false
             account.lastSyncAt != null -> stringResource(R.string.sync_done, syncTimePhrase(account.lastSyncAt)) to false
             else -> stringResource(R.string.sync_never) to false
         }
@@ -407,6 +410,7 @@ private fun AccountGroup(
             icon = when {
                 isProblem -> Icons.Filled.CloudOff
                 state.pendingChanges > 0 -> Icons.Filled.CloudUpload
+                downloadsFailing(account, state.problem, Instant.now()) -> Icons.Filled.CloudOff
                 else -> Icons.Filled.CloudDone
             },
             title = stringResource(R.string.account_connected_as, account.username),

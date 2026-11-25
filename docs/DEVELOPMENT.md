@@ -63,7 +63,7 @@ One-time setup on a new clone:
 
 ```bash
 npm install
-cp .env.example .env.local      # paste your Neon DATABASE_URL
+cp .env.example .env.local      # paste your Neon DATABASE_URL (see the comments in it)
 npm run hooks:install           # local reminder when one side of the TS ⇄ Kotlin core changes
 npm run db:push                 # create the tables
 npm run create-user -- me secret
@@ -86,6 +86,7 @@ made on that test server in Ajustes → Open Food Facts.
 | `npm run typecheck` · `npm run lint` · `npm run build` | Type check, ESLint, production build |
 | `npm run core:sync-check` | Fails if a core test changed on one side (TS or Kotlin) only |
 | `npm run db:push` | Push the Drizzle schema to the database |
+| `npm run db:check` | Check the database has what the code uses (also runs before every build) |
 | `npm run create-user -- u p` · `npm run set-admin -- u` | Create / reset a user, make an admin |
 | `npx tsx scripts/demo-backup.ts <dir> [es\|en]` | Demo dataset as the app's export file (`<dir>/backup.json`) |
 | `scripts/screenshots.sh` | Store screenshots on an emulator (docs/RELEASING.md) |
@@ -117,4 +118,6 @@ branch is `dev`, served at https://app.blackwater-macros.jordanmontt.fr/. The ap
 (`website/`) is a separate GitHub Pages site at https://blackwater-macros.jordanmontt.fr/,
 deployed by `.github/workflows/website.yml` on pushes to `main` (TECHNICAL.md §12). Apply the schema to the production database with
 `DATABASE_URL=… npm run db:push` and create the first user with `create-user` (+ `set-admin`).
+A schema change needs `db:push` **before** it is pushed to `dev`: every build checks the
+database first, and on Vercel a missing column fails the deploy (the live version stays).
 Environment variables only take effect after a redeploy.

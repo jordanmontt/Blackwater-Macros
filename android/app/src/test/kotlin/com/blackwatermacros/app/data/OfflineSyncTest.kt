@@ -9,6 +9,7 @@ import com.blackwatermacros.app.core.Goal
 import com.blackwatermacros.app.core.ProfilePeriod
 import com.blackwatermacros.app.core.buildBackup
 import com.blackwatermacros.app.data.local.LocalDatabase
+import com.blackwatermacros.app.data.local.isoUtc
 import com.blackwatermacros.app.data.local.toWire
 import com.blackwatermacros.app.data.sync.SyncEngine
 import com.blackwatermacros.app.data.sync.SyncOutcome
@@ -29,6 +30,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Duration
+import java.time.Instant
 
 /**
  * User-level requirements of the local-first app, exercised end to end:
@@ -36,7 +39,8 @@ import org.robolectric.annotation.Config
  *
  * - Without an account the app works fully and never talks to the network.
  * - With an account, data entered offline is kept and uploaded later, once.
- * - Changes made on the web show up on the phone (including deletions).
+ * - Changes made on the web show up on the phone (including deletions and the order), even
+ *   when the server can't send one of the lists.
  * - Logging in asks about local data; logging out removes it from the phone.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -286,6 +290,95 @@ class OfflineSyncTest {
         backend.meals.clear()
         sync.sync()
         assertThat(repository.mealsForDay("2026-06-15").first()).isEmpty()
+    }
+
+    @Test
+    fun `a new order and macros added on the web reach the phone`() = runBlocking<Unit> {
+        connect()
+        val preDesayuno = repository.saveMeal(null, breakfast().copy(title = "Pre desayuno"))
+        val saltenas = repository.saveMeal(null, saltenas(withMacros = false))
+        sync.sync()
+
+        // On the web: Salteñas dragged to the top, and its two foods' macros filled in.
+        backend.reorderOnWeb(listOf(saltenas, preDesayuno))
+        backend.editOnWeb(saltenas, saltenas(withMacros = true))
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Success)
+
+        val meals = repository.mealsForDay("2026-06-15").first()
+        assertThat(meals.map { it.title }).containsExactly("Salteñas", "Pre desayuno").inOrder()
+        assertThat(meals.first().ingredients.map { it.calories }).containsExactly(421.0, 404.0).inOrder()
+        assertThat(meals.first().resolvedCalories).isEqualTo(825.0)
+    }
+
+    @Test
+    fun `when the weigh-ins can't be downloaded, the web's order and macros still reach the phone`() = runBlocking<Unit> {
+        connect()
+        val preDesayuno = repository.saveMeal(null, breakfast().copy(title = "Pre desayuno"))
+        val saltenas = repository.saveMeal(null, saltenas(withMacros = false))
+        sync.sync()
+        val lastSync = Instant.parse(account.current!!.lastSyncAt)
+
+        // 24 Nov 2026: production lacked a weigh-in column, so /api/weights answered 500.
+        backend.failingDownloads = setOf("weights")
+        backend.weights["w1"] = WeightDTO("w1", "2026-06-15T07:00:00.000Z", 80.0, null, null, "2026-06-15T10:00:00.000Z")
+        backend.reorderOnWeb(listOf(saltenas, preDesayuno))
+        backend.editOnWeb(saltenas, saltenas(withMacros = true))
+
+        // The run still fails (it is retried and shown) but the meals are saved.
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Failed(SyncProblem.SERVER_ERROR))
+        val meals = repository.mealsForDay("2026-06-15").first()
+        assertThat(meals.map { it.title }).containsExactly("Salteñas", "Pre desayuno").inOrder()
+        assertThat(meals.first().resolvedCalories).isEqualTo(825.0)
+        assertThat(repository.weights().first()).isEmpty()
+
+        // Green while it may be a brief error, grey once the server has failed for over an hour.
+        assertThat(account.current!!.lastSyncAt).isEqualTo(isoUtc(lastSync))
+        assertThat(syncIndicatorState(account.current, 0, false, sync.lastProblem.value, lastSync.plus(Duration.ofMinutes(30))))
+            .isEqualTo(SyncIndicatorState.Synced)
+        assertThat(syncIndicatorState(account.current, 0, false, sync.lastProblem.value, lastSync.plus(Duration.ofHours(2))))
+            .isEqualTo(SyncIndicatorState.DownloadFailing)
+
+        // Fixed on the server: the weigh-in arrives and the cloud is green again.
+        backend.failingDownloads = emptySet()
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Success)
+        assertThat(repository.weights().first().map { it.weightKg }).containsExactly(80.0)
+        assertThat(syncIndicatorState(account.current, 0, false, sync.lastProblem.value, Instant.now().plus(Duration.ofHours(2))))
+            .isEqualTo(SyncIndicatorState.Synced)
+    }
+
+    @Test
+    fun `a weigh-in the server can't take yet waits, and meals still go up and come down`() = runBlocking<Unit> {
+        connect()
+        val preDesayuno = repository.saveMeal(null, breakfast().copy(title = "Pre desayuno"))
+        val saltenas = repository.saveMeal(null, saltenas(withMacros = false))
+        sync.sync()
+
+        // The same outage, with a weigh-in logged on the phone: /api/weights fails both ways.
+        backend.failingUploads = setOf("weights")
+        backend.failingDownloads = setOf("weights")
+        repository.saveWeight(null, WeightRequest(measuredAt = "2026-06-15T08:00", weightKg = 80.0))
+        repository.saveMeal(null, breakfast().copy(title = "Cena"))
+        backend.reorderOnWeb(listOf(saltenas, preDesayuno))
+        backend.editOnWeb(saltenas, saltenas(withMacros = true))
+
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Failed(SyncProblem.SERVER_ERROR))
+        // The new meal went up; the web's order and macros came down; the weigh-in waits.
+        assertThat(backend.meals.values.map { it.title }).contains("Cena")
+        val meals = repository.mealsForDay("2026-06-15").first()
+        assertThat(meals.map { it.title }).containsExactly("Salteñas", "Pre desayuno", "Cena").inOrder()
+        assertThat(meals.first().resolvedCalories).isEqualTo(825.0)
+        assertThat(backend.weights).isEmpty()
+        val pending = repository.pendingChanges().first()
+        assertThat(pending).isEqualTo(1)
+        assertThat(syncIndicatorState(account.current, pending, false, sync.lastProblem.value))
+            .isEqualTo(SyncIndicatorState.Pending(1))
+
+        // Fixed on the server: the weigh-in goes up and nothing waits.
+        backend.failingUploads = emptySet()
+        backend.failingDownloads = emptySet()
+        assertThat(sync.sync()).isEqualTo(SyncOutcome.Success)
+        assertThat(backend.weights.values.map { it.weightKg }).containsExactly(80.0)
+        assertThat(repository.pendingChanges().first()).isEqualTo(0)
     }
 
     @Test
@@ -595,6 +688,17 @@ class OfflineSyncTest {
     private suspend fun connect() {
         accounts.connect(accounts.verify("ana", "secreta"), uploadLocalData = true)
     }
+
+    /** Two salteñas logged by weight on the phone; their macros filled in later (on the web). */
+    private fun saltenas(withMacros: Boolean) = MealRequest(
+        logDate = "2026-06-15",
+        title = "Salteñas",
+        entryMode = WireEntryMode.PER_INGREDIENT,
+        ingredients = listOf(
+            WireIngredient("Saltena de carne", "169 g", 421.0, 14.0, 46.0, 20.0),
+            WireIngredient("Salteña de carne", "162 g", 404.0, 13.0, 44.0, 19.0),
+        ).map { if (withMacros) it else WireIngredient(it.name, it.quantity) },
+    )
 
     private fun breakfast() = MealRequest(
         logDate = "2026-06-15",

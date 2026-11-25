@@ -256,6 +256,25 @@ class ValidationTest {
     }
 
     @Test
+    fun `the header cloud turns grey once the server has failed for over an hour`() {
+        val account = com.blackwatermacros.app.data.Account("ana", "t", isAdmin = false, lastSyncAt = "2026-11-24T23:30:00.000Z")
+        val synced = java.time.Instant.parse("2026-11-24T23:30:00.000Z")
+        val later = synced.plus(java.time.Duration.ofMinutes(61))
+        val serverError = com.blackwatermacros.app.data.sync.SyncProblem.SERVER_ERROR
+        assertThat(syncIndicatorState(account, 0, false, serverError, synced.plus(java.time.Duration.ofMinutes(59))))
+            .isEqualTo(SyncIndicatorState.Synced)
+        assertThat(syncIndicatorState(account, 0, false, serverError, later)).isEqualTo(SyncIndicatorState.DownloadFailing)
+        assertThat(syncIndicatorState(account, 0, false, com.blackwatermacros.app.data.sync.SyncProblem.UNEXPECTED, later))
+            .isEqualTo(SyncIndicatorState.DownloadFailing)
+        // Without a connection the server isn't failing (Ajustes says «Sin conexión»).
+        assertThat(syncIndicatorState(account, 0, false, null, later)).isEqualTo(SyncIndicatorState.Synced)
+        // Changes waiting are counted first; a run shows as running; never synced: Ajustes says so.
+        assertThat(syncIndicatorState(account, 2, false, serverError, later)).isEqualTo(SyncIndicatorState.Pending(2))
+        assertThat(syncIndicatorState(account, 0, true, serverError, later)).isEqualTo(SyncIndicatorState.Syncing)
+        assertThat(syncIndicatorState(account.copy(lastSyncAt = null), 0, false, serverError, later)).isEqualTo(SyncIndicatorState.Synced)
+    }
+
+    @Test
     fun `the header cloud is red only when a change won't reach the server on its own`() {
         val account = com.blackwatermacros.app.data.Account("ana", "t", isAdmin = false)
         for (problem in com.blackwatermacros.app.data.sync.SyncProblem.entries) {

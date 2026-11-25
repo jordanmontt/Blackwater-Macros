@@ -69,6 +69,7 @@
     <string name="sync_problem_unexpected">Couldn\'t sync. It will retry automatically.</string>
     <string name="sync_offline">No connection. It will sync automatically when you\'re back online.</string>
     <string name="sync_done">Synced %1$s</string>
+    <string name="sync_download_failing">Changes from the web and other devices aren\'t arriving. Last synced %1$s. It will retry automatically.</string>
     <string name="sync_today_at">today at %1$s</string>
     <string name="sync_on_date_at">on %1$s at %2$s</string>
     <string name="sync_never">Not synced yet</string>
@@ -162,6 +163,7 @@
     <string name="data_deleted">Data deleted from this phone.</string>
     <string name="sync_indicator_synced">All changes synced</string>
     <string name="sync_indicator_problem">Sync needs attention</string>
+    <string name="sync_indicator_download_failing">Changes from the server aren\'t arriving</string>
     <string name="language_system">Phone language</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d ingredient</item>

@@ -2,6 +2,11 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
+/** TLS everywhere except a database on this machine (also used by `scripts/check-db-schema.ts`). */
+export function postgresSsl(connectionString: string): "require" | false {
+  return connectionString.includes("localhost") || connectionString.includes("127.0.0.1") ? false : "require";
+}
+
 function createDb() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
@@ -13,9 +18,7 @@ function createDb() {
   const isProd = process.env.NODE_ENV === "production";
   const client = postgres(connectionString, {
     max: isProd ? 5 : 1,
-    ssl: connectionString.includes("localhost") || connectionString.includes("127.0.0.1")
-      ? false
-      : "require",
+    ssl: postgresSsl(connectionString),
   });
 
   return drizzle(client, { schema });

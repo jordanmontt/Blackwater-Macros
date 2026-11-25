@@ -34,8 +34,21 @@ class FakeServer(
 
     var tokenRevoked = false
 
-    /** The server fails (500) when the phone downloads the lists; uploads still work. */
-    var failDownloads = false
+    /**
+     * Lists whose download fails (500), e.g. `"weights"` as on 24 Nov 2026, when production
+     * lacked a weigh-in column; uploads still work.
+     */
+    var failingDownloads: Set<String> = emptySet()
+
+    /** Lists whose uploads (`PUT` and `DELETE`) fail (500), e.g. `"weights"` during the same outage. */
+    var failingUploads: Set<String> = emptySet()
+
+    /** The server fails (500) when the phone downloads any list; uploads still work. */
+    var failDownloads: Boolean
+        get() = failingDownloads.containsAll(LISTS)
+        set(value) {
+            failingDownloads = if (value) LISTS else emptySet()
+        }
 
     /** The server refuses (400) every meal the phone uploads. */
     var rejectMeals = false
@@ -74,7 +87,10 @@ class FakeServer(
         }
 
         val segments = path.removePrefix("/api/").split('/')
-        if (failDownloads && method == "GET" && segments.size == 1 && segments[0] in setOf("meals", "templates", "weights")) {
+        if (method == "GET" && segments.size == 1 && segments[0] in failingDownloads) {
+            return json(500, """{"error":"Error interno"}""")
+        }
+        if ((method == "PUT" || method == "DELETE") && segments.size == 2 && segments[0] in failingUploads) {
             return json(500, """{"error":"Error interno"}""")
         }
         if (rejectMeals && method == "PUT" && segments[0] == "meals") {
@@ -161,6 +177,20 @@ class FakeServer(
         return meal
     }
 
+    /** A meal edited on the web (`PUT /api/meals/:id` from the meal form): same id and position. */
+    fun editOnWeb(id: String, body: MealRequest): MealDTO {
+        val meal = serverMeal(id, body, sortOrder = meals.getValue(id).sortOrder)
+        meals[id] = meal
+        return meal
+    }
+
+    /** A drag on the web (`PATCH /api/meals/reorder`): positions 0, 1, 2… in this order. */
+    fun reorderOnWeb(orderedIds: List<String>) {
+        orderedIds.forEachIndexed { index, id ->
+            meals[id] = meals.getValue(id).copy(sortOrder = index, updatedAt = stamp())
+        }
+    }
+
     private fun serverMeal(id: String, body: MealRequest, sortOrder: Int) = MealDTO(
         id = id,
         logDate = body.logDate,
@@ -174,8 +204,8 @@ class FakeServer(
         totalFat = body.totalFat,
         resolvedCalories = body.totalCalories ?: body.ingredients.sumOf { it.calories ?: 0.0 },
         resolvedProtein = body.totalProtein ?: body.ingredients.sumOf { it.protein ?: 0.0 },
-        resolvedCarbs = body.totalCarbs ?: 0.0,
-        resolvedFat = body.totalFat ?: 0.0,
+        resolvedCarbs = body.totalCarbs ?: body.ingredients.sumOf { it.carbs ?: 0.0 },
+        resolvedFat = body.totalFat ?: body.ingredients.sumOf { it.fat ?: 0.0 },
         updatedAt = stamp(),
         sortOrder = sortOrder,
     )
@@ -185,4 +215,8 @@ class FakeServer(
 
     private fun json(code: Int, body: String): MockResponse =
         MockResponse().setResponseCode(code).addHeader("Content-Type", "application/json").setBody(body)
+
+    private companion object {
+        val LISTS = setOf("meals", "templates", "weights")
+    }
 }

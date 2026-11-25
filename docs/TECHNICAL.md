@@ -1885,6 +1885,7 @@ server modules (dynamic imports keep ordering safe):
 ```bash
 npm run create-user -- <username> <password>   # idempotent: create / reset password
 npm run set-admin -- <username>                # promote existing account to admin
+npm run db:check                               # does the database have every table, column and enum value the code uses?
 ```
 
 Both scripts hit the repo's env DB (currently the shared Neon production
@@ -1907,7 +1908,7 @@ Three projects, one run (`npm test`):
 
 | Project | Environment | Scope |
 |---|---|---|
-| `unit` | node | Pure-function edge cases (`stats`, `dates`, password vectors, the export file text) |
+| `unit` | node | Pure-function edge cases (`stats`, `dates`, password vectors, the export file text, the database check before a build) |
 | `behavior` | node | Black-box requirements written in Spanish, exercising **services** through injected in-memory fakes — no HTTP, no DB |
 | `behavior-ui` | happy-dom | Renders actual pages and components (`today-page`, `progreso-page`, `ajustes-page`, `perfil-page`, `recommendations-card`, `day-navigator`, …) with mocked `@/lib/api` |
 
@@ -1925,7 +1926,9 @@ Notes:
   ven inmediatamente"), never internals. If you add a feature, add its behavior
   test first.
 
-Verification gate before pushing (web, core contract, Android):
+Verification gate before pushing (web, core contract, Android). `npm run build` first checks
+the database against the code (§12); with `.env.local` that is the shared database, so a
+schema change without `db:push` fails here, before it reaches `dev`:
 
 ```bash
 npx tsc --noEmit && npm run lint && npm test && npm run build
@@ -1993,7 +1996,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 
 | Test | What it proves |
 | ---- | -------------- |
-| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled; an edit during an upload is not lost; profile sync with explicit nulls; the profile history (past days keep their targets) syncs both ways, and a server without it leaves the phone's alone; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); the import replaces the phone's data and sends nothing, is refused with an account, and is uploaded only on a later login with «upload»; an HTML/captive-portal answer fails the sync without losing data; the header cloud stays green when only the download fails, grey (not red) when the server saved a change but the answer was lost or answered «try again later», and red while the server refuses a change |
+| `data/OfflineSyncTest.kt` | Real in-memory Room + real Retrofit + `FakeServer` (MockWebServer behaving like the Next.js routes): local-only mode never touches the network, and no request but the login leaves without an account; offline saves upload once, retries never duplicate; edits, deletes, reorders upload; web changes are pulled (edits, deletions, a new order, macros added to a meal), also when one list can't be downloaded (the others are saved, the cloud turns grey after an hour) or uploaded (its rows wait, the other lists still go up and come down); an edit during an upload is not lost; profile sync with explicit nulls; the profile history (past days keep their targets) syncs both ways, and a server without it leaves the phone's alone; expired session keeps data; login with local data; logout and «delete all data» wipe only the phone; undo of deleted meals, weigh-ins and templates (also after the delete reached the server); the import replaces the phone's data and sends nothing, is refused with an account, and is uploaded only on a later login with «upload»; an HTML/captive-portal answer fails the sync without losing data; the header cloud stays green when only the download fails, grey (not red) when the server saved a change but the answer was lost or answered «try again later», and red while the server refuses a change |
 | `data/MultiAccountTest.kt` | Several accounts on one phone (Android only), with real Room + Retrofit and a two-user `FakeServer`: a single-account install keeps its files; no «Añadir cuenta» without an account; a new account starts empty and downloads only its own data; switching shows each account's meals; no duplicates; wrong password/offline adds nothing; accounts and the active one survive a restart; expired sessions show in the switcher; background sync uploads every account's changes to the right account; logging out of one removes only its data, of the last one goes back to local mode |
 | `ui/AddAccountLoginTest.kt` | The login screen in «Añadir cuenta» mode: connects without the local-data question; wrong password / no network / empty fields read like a normal login |
 | `data/ReleaseRulesTest.kt` | Every `ApiService` response type is a `@Serializable` class of `data`, and `proguard-rules.pro` keeps them all (R8 removed an unread response and broke the profile sync in release builds, §14.7) |
@@ -2018,7 +2021,7 @@ stable, test-pinned math, duplication is cheaper. Revisit if the core grows a lo
 | `data/AppPreferencesTest.kt` | «Ahora no» on the expenditure notices survives a restart |
 | `ui/NewProductFieldsTest.kt` | «Idioma del envase»: a new product starts in the app's language and takes the one the AI read; one Open Food Facts has keeps its own |
 | `ui/NewProductViewModelTest.kt` | «Nuevo producto» (mirrors `add-food-new-product.test.tsx`): a photo alone reads nothing until «Rellenar con la IA»; Save without a label photo asks once and «Guardar sin foto» saves; editing doesn't ask; the AI reads the photo waiting on the phone |
-| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, a past day's targets (its profile and weight), measured expenditure, the profile check and the formula inputs behind its «¿Por qué?», sync indicator states (red only for an expired session or a refused change), numbers edited with a decimal comma, when «Añadir comida» asks before closing, a meal saved as a template (its content, totals only for «Solo total») |
+| `ui/ValidationTest.kt` | Form limits (same as `src/server/validation.ts`), recommendation states, a past day's targets (its profile and weight), measured expenditure, the profile check and the formula inputs behind its «¿Por qué?», sync indicator states (red only for an expired session or a refused change, grey once the server has failed for over an hour), numbers edited with a decimal comma, when «Añadir comida» asks before closing, a meal saved as a template (its content, totals only for «Solo total») |
 | `ui/TranslationsTest.kt` | Every language has every Android-only string and plural with the same placeholders (shared texts: `i18n.test.ts` + the build) |
 | `data/NiceTicksTest.kt` | Chart axis ticks |
 
@@ -2053,7 +2056,8 @@ Web behavior tests describe user requirements; when one exists on both platforms
 - [ ] New server error → a code in `serverErrors` of the five `src/i18n/*.json`, a map line
       `server_error_<code>` in `android/app/strings-from-web.json` and the code in
       `ResponseErrorMapper.CODES` (tests on both sides fail otherwise).
-- [ ] DB schema changed → `db:push`, `tests/helpers/repos.ts`, the Android wire models, Room
+- [ ] DB schema changed → `db:push` **before pushing to `dev`** (Vercel builds production from
+      it; its database check fails the deploy otherwise, §12), `tests/helpers/repos.ts`, the Android wire models, Room
       entities **with a Room migration** (users without an account have no other copy).
 - [ ] New UI text → the five `src/i18n/*.json`; on Android, one line in `strings-from-web.json`
       (or, for an Android-only text, the five `strings.xml`). See §6 «i18n».
@@ -2084,6 +2088,16 @@ setup intentionally shares **one Neon database between local dev and production*
 effect immediately on the live site. To split environments later: create a second
 Neon project, point Vercel's `DATABASE_URL` at it, run `db:push` + `create-user`
 (and `set-admin` for the first admin) against that URL locally.
+
+**The database is checked before every build** (`prebuild` → `scripts/check-db-schema.ts`,
+the comparison in `src/server/db/schema-check.ts`): every table, column and enum value of
+`schema.ts` must exist, and no column the database requires (NOT NULL, no default) may be
+unknown to the code. Vercel sets `VERCEL=1`, and there a mismatch or an unreachable database
+fails the build, so the version already online keeps running and Vercel e-mails the failure.
+Fix: `npm run db:push`, then redeploy. Locally it reads `.env.local`; an unreachable database
+only warns (builds work offline); without `DATABASE_URL` (CI, previews) it is skipped. Why: on
+24 Nov 2026 a new weigh-in column went live without `db:push`; `/api/weights` answered 500 for
+hours, phones stopped downloading (§14.1) and their cloud stayed green.
 
 Gotchas:
 - Vercel injects env vars only at deploy time → adding/changing `DATABASE_URL`
@@ -2158,7 +2172,13 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
 - **Sync = push, then pull.** Push: each pending row → `PUT /api/<kind>/:id`
   (phone-generated UUID, idempotent) or `DELETE` for tombstones (404 = done). Pull:
   full lists replace every non-pending row; rows gone from the server are removed.
-  Last to sync wins per record. A push only clears `pending` if the row was not edited
+  **Each list on its own** (meals, templates, weigh-ins, profile), both ways: a list the
+  server can't take now (`408`/`5xx` on its upload) keeps its rows pending, and one it
+  can't send is skipped; the run still fails (retried, shown), but the other lists go up
+  and come down. On 24 Nov 2026 production lacked a weigh-in column, `/api/weights`
+  answered 500, and with one all-or-nothing run no web change reached the phone (one
+  pending weigh-in would also have stopped the meals' uploads). A `429` still ends the run. `lastSyncAt` moves only when the
+  whole run succeeds. Last to sync wins per record. A push only clears `pending` if the row was not edited
   again meanwhile (`updatedAt` doubles as a strictly increasing local edit stamp).
 - **Login with local data** → dialog: upload it to the account, or discard it.
   Re-login after an expired session keeps everything (another account is refused: a
@@ -2184,7 +2204,11 @@ SyncEngine ⇄ server          scheduled by WorkManager (runs when online, even 
   change won't reach the server on its own:** an expired session, or a pending change the
   server refused (`syncIndicatorState`). Everything retried automatically (no or poor
   signal, timeouts, `408`/`429`/`5xx`, a Wi-Fi login page) shows the grey cloud with its
-  neutral count badge; a failed run with nothing pending stays «synced». With poor signal
+  neutral count badge; a failed run with nothing pending stays «synced», **unless the server
+  has failed for over an hour** (`downloadsFailing`: the last run ended in `SERVER_ERROR` or
+  `UNEXPECTED`, not offline, and `lastSyncAt` is older than `DOWNLOAD_FAILING_AFTER`): then a
+  grey crossed cloud, and Ajustes → Cuenta says the web's changes aren't arriving and when it
+  last synced (`sync_download_failing`). It used to stay green for the whole outage above. With poor signal
   the server may save a change whose answer never arrives: it stays «pending» until the
   next run re-sends it (same id, no duplicate). Hence OkHttp timeouts of 20 s connect /
   30 s read-write (not the 10 s default) and a **linear** WorkManager backoff (30 s, 1 min,

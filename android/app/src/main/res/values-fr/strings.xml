@@ -68,6 +68,7 @@
     <string name="sync_problem_unexpected">Synchronisation impossible. Nouvelle tentative automatique.</string>
     <string name="sync_offline">Pas de connexion. La synchronisation se fera automatiquement au retour du réseau.</string>
     <string name="sync_done">Synchronisé %1$s</string>
+    <string name="sync_download_failing">Les modifications faites sur le web ou d\'autres appareils n\'arrivent pas. Dernière synchronisation %1$s. Nouvelle tentative automatique.</string>
     <string name="sync_today_at">aujourd\'hui à %1$s</string>
     <string name="sync_on_date_at">le %1$s à %2$s</string>
     <string name="sync_never">Pas encore synchronisé</string>
@@ -161,6 +162,7 @@
     <string name="data_deleted">Données supprimées de ce téléphone.</string>
     <string name="sync_indicator_synced">Tout est synchronisé</string>
     <string name="sync_indicator_problem">La synchronisation nécessite votre attention</string>
+    <string name="sync_indicator_download_failing">Les modifications du serveur n\'arrivent pas</string>
     <string name="language_system">Langue du téléphone</string>
     <plurals name="ingredient_count">
         <item quantity="one">%d ingrédient</item>
