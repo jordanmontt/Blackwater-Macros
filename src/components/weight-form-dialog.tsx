@@ -17,20 +17,49 @@ import { t } from "@/i18n";
 interface WeightFormState {
   weight: string;
   bodyFat: string;
-  datetime: string;
+  /** `YYYY-MM-DD`, from `<input type="date">`. */
+  date: string;
+  /** `HH:MM`, from `<input type="time">`. */
+  time: string;
   note: string;
   fasted: boolean;
 }
 
 function formFor(entry: WeightDTO | null, defaultFasted: boolean): WeightFormState {
-  if (!entry) return { weight: "", bodyFat: "", datetime: nowDateTimeLocalValue(), note: "", fasted: defaultFasted };
+  const [date, time] = (entry ? toDateTimeLocalValue(new Date(entry.measuredAt)) : nowDateTimeLocalValue()).split("T");
+  if (!entry) return { weight: "", bodyFat: "", date, time, note: "", fasted: defaultFasted };
   return {
     weight: toDecimalInput(entry.weightKg),
     bodyFat: entry.bodyFatPct !== null ? toDecimalInput(entry.bodyFatPct) : "",
-    datetime: toDateTimeLocalValue(new Date(entry.measuredAt)),
+    date,
+    time,
     note: entry.note ?? "",
     fasted: entry.fasted,
   };
+}
+
+/** A typed decimal («77,4» or «77.4»), or null when it isn't one. */
+function parseDecimal(text: string): number | null {
+  const trimmed = text.trim().replace(",", ".");
+  if (trimmed === "") return null;
+  const value = Number(trimmed);
+  return Number.isFinite(value) ? value : null;
+}
+
+/**
+ * The server's limits (`weightInputSchema`): 20–400 kg, 3–60 % body fat (optional). Checked
+ * here first so the message says the range, next to the fields (Android `validateWeight`).
+ */
+export function validateWeight(
+  weightText: string,
+  bodyFatText: string,
+): { ok: true; weightKg: number; bodyFatPct: number | null } | { ok: false; error: string } {
+  const weightKg = parseDecimal(weightText);
+  if (weightKg === null || weightKg < 20 || weightKg > 400) return { ok: false, error: t.peso.weightRange };
+  if (bodyFatText.trim() === "") return { ok: true, weightKg, bodyFatPct: null };
+  const bodyFatPct = parseDecimal(bodyFatText);
+  if (bodyFatPct === null || bodyFatPct < 3 || bodyFatPct > 60) return { ok: false, error: t.peso.bodyFatRange };
+  return { ok: true, weightKg, bodyFatPct };
 }
 
 /**
@@ -53,24 +82,28 @@ export function WeightFormDialog({
   onSaved: () => void | Promise<unknown>;
 }) {
   const [form, setForm] = useState<WeightFormState>(() => formFor(entry, defaultFasted));
+  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const weightKg = Number(form.weight.trim().replace(",", "."));
-    const measuredAt = parseLocalDateTime(form.datetime);
-    if (!measuredAt || !Number.isFinite(weightKg) || weightKg <= 0) {
-      toast.error(t.peso.weightRequired);
+    const result = validateWeight(form.weight, form.bodyFat);
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
-    const bodyFatStr = form.bodyFat.trim().replace(",", ".");
-    const bodyFatPct = bodyFatStr !== "" && !Number.isNaN(Number(bodyFatStr)) ? Number(bodyFatStr) : null;
+    const measuredAt = parseLocalDateTime(`${form.date}T${form.time}`);
+    if (!measuredAt) {
+      setError(t.serverErrors.invalid_datetime);
+      return;
+    }
+    setError(null);
     setPending(true);
     try {
       const payload = {
         measuredAt: measuredAt.toISOString(),
-        weightKg,
-        bodyFatPct,
+        weightKg: result.weightKg,
+        bodyFatPct: result.bodyFatPct,
         note: form.note.trim() || null,
         fasted: form.fasted,
         timeZone: entry ? entry.timeZone : deviceTimeZone(),
@@ -89,89 +122,104 @@ export function WeightFormDialog({
     }
   }
 
+  // Same fields, order and wording as Android's `WeightFormDialog.kt`: weight and body fat side
+  // by side, then date and time, then «En ayunas» with its switch on the right, then the note.
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>{entry ? t.peso.edit : t.peso.addTitle}</DialogTitle>
+          <DialogTitle>{entry ? t.peso.editTitle : t.peso.addTitle}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-3">
           {/* Mixed times of day tilt the trend the measured expenditure is built on. */}
           {entry ? null : <p className="text-xs text-muted-foreground">{t.peso.timingHint}</p>}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
+          {/* Boxes aligned at the bottom: a label that wraps (large text) must not push its box down. */}
+          <div className="grid grid-cols-2 items-end gap-2">
+            <div className="space-y-1">
               <Label htmlFor="weight-input">{t.peso.weightLabel}</Label>
               <Input
                 id="weight-input"
                 inputMode="decimal"
-                step="any"
                 autoFocus
+                aria-invalid={error === t.peso.weightRange || undefined}
                 value={form.weight}
                 onChange={(event) => setForm({ ...form, weight: normalizeDecimal(event.target.value) })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="weight-datetime">{t.peso.datetimeLabel}</Label>
+            <div className="space-y-1">
+              <Label htmlFor="bodyfat-input">{t.peso.bodyFatLabel}</Label>
               <Input
-                id="weight-datetime"
-                type="datetime-local"
-                value={form.datetime}
-                onChange={(event) => setForm({ ...form, datetime: event.target.value })}
+                id="bodyfat-input"
+                inputMode="decimal"
+                placeholder={t.peso.bodyFatPlaceholder}
+                aria-invalid={error === t.peso.bodyFatRange || undefined}
+                value={form.bodyFat}
+                onChange={(event) => setForm({ ...form, bodyFat: normalizeDecimal(event.target.value) })}
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={() => setForm({ ...form, datetime: nowDateTimeLocalValue() })}
-              >
-                {t.peso.nowButton}
-              </Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 items-end gap-2">
+            <div className="space-y-1">
+              <Label htmlFor="weight-date">{t.peso.dateLabel}</Label>
+              <Input
+                id="weight-date"
+                type="date"
+                required
+                value={form.date}
+                onChange={(event) => setForm({ ...form, date: event.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="weight-time">{t.peso.timeLabel}</Label>
+              <Input
+                id="weight-time"
+                type="time"
+                required
+                value={form.time}
+                onChange={(event) => setForm({ ...form, time: event.target.value })}
+              />
             </div>
           </div>
           {/* Only weigh-ins taken alike are compared: after eating reads 0.5–1 kg higher. One line
-              here; why, and what to do after eating, in /metodologia#fasted (Android the same). */}
-          <div className="rounded-lg border p-3">
-            <label className="flex items-start gap-3">
-              <input
-                id="weight-fasted"
-                type="checkbox"
-                role="switch"
-                {...{ switch: "" }}
-                className="mt-0.5 size-4 accent-primary"
-                checked={form.fasted}
-                onChange={(event) => setForm({ ...form, fasted: event.target.checked })}
-              />
-              <span className="space-y-0.5">
-                <span className="block text-sm font-medium">{t.peso.fastedLabel}</span>
+              here; why, and what to do after eating, in /metodologia#fasted (Android the same). The
+              link sits outside the switch, so the switch keeps its own name. */}
+          <div className="rounded-lg border">
+            <label className="flex cursor-pointer items-center gap-3 px-3 pt-3">
+              <span className="flex-1 space-y-0.5">
+                <span className="block text-sm">{t.peso.fastedLabel}</span>
                 <span className="block text-xs text-muted-foreground">{t.peso.fastedHint}</span>
+              </span>
+              {/* A switch drawn the same in every browser (Android's Material switch): the real
+                  checkbox stays for keyboard and screen readers, the track and thumb follow it. */}
+              <span className="relative inline-flex shrink-0">
+                <input
+                  id="weight-fasted"
+                  type="checkbox"
+                  role="switch"
+                  className="peer absolute inset-0 size-full cursor-pointer opacity-0"
+                  checked={form.fasted}
+                  onChange={(event) => setForm({ ...form, fasted: event.target.checked })}
+                />
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none h-6 w-11 rounded-full border-2 border-muted-foreground/60 bg-muted transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 after:absolute after:top-1 after:left-1 after:size-4 after:rounded-full after:bg-muted-foreground after:transition-transform peer-checked:after:translate-x-5 peer-checked:after:bg-primary-foreground"
+                />
               </span>
             </label>
             <Link
               href="/metodologia#fasted"
-              className="ml-7 inline-flex min-h-9 items-center text-xs font-medium text-primary hover:underline"
+              className="ml-1 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline"
             >
               {t.peso.fastedWhy}
             </Link>
           </div>
           {/* The switch copies the last weigh-in; after noon that habit may not hold. A question, never a block. */}
-          {form.fasted && Number(form.datetime.slice(11, 13)) >= 12 ? (
-            <p className="-mt-2 text-xs text-muted-foreground" role="status">
+          {form.fasted && Number(form.time.slice(0, 2)) >= 12 ? (
+            <p className="text-xs text-muted-foreground" role="status">
               {t.peso.fastedAfterNoon}
             </p>
           ) : null}
-          <div className="space-y-2">
-            <Label htmlFor="bodyfat-input">{t.peso.bodyFatLabel}</Label>
-            <Input
-              id="bodyfat-input"
-              inputMode="decimal"
-              step="any"
-              placeholder={t.peso.bodyFatPlaceholder}
-              value={form.bodyFat}
-              onChange={(event) => setForm({ ...form, bodyFat: normalizeDecimal(event.target.value) })}
-            />
-          </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="weight-note">{t.peso.noteLabel}</Label>
             <Textarea
               id="weight-note"
@@ -180,6 +228,11 @@ export function WeightFormDialog({
               onChange={(event) => setForm({ ...form, note: event.target.value })}
             />
           </div>
+          {error ? (
+            <p className="text-xs text-destructive" role="alert">
+              {error}
+            </p>
+          ) : null}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               {t.peso.cancel}

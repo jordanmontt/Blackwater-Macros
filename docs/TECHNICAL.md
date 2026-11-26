@@ -1317,6 +1317,11 @@ Science, the case that motivated it and every number: [METHODOLOGY.md](./METHODO
   `metodologia?section=adaptive`, `ADAPTIVE_SECTION`).
 - **Coach:** with `dataShare > 0` the target line says the expenditure it is built on and
   the data's share (`coach.ts` / `Coach.kt`).
+- **Weight form:** the web (`weight-form-dialog.tsx`) and Android (`WeightFormDialog.kt`)
+  show the same form: weight and body fat side by side, date and time apart (native pickers),
+  «En ayunas» with its switch on the right, then the note. Both check the server's limits
+  first (20–400 kg, 3–60 % body fat: `peso.weightRange` / `peso.bodyFatRange`, Android
+  `validateWeight`) and say the range inside the form, not in a toast.
 - **Weigh-in timing:** the weight form asks for morning weigh-ins (`peso.timingHint`,
   Android `weight_timing_hint`), as do `expenditureCheck.weighInHint` and
   `metodologia.measuredMorning`. Its «En ayunas» switch has one line (`peso.fastedHint`) and,

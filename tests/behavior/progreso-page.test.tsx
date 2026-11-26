@@ -98,6 +98,7 @@ vi.mock("@/components/weight-fat-chart", async () => {
 });
 
 import { api } from "@/lib/api";
+import { toDecimalInput } from "@/lib/utils";
 import { mealDto, weightDto } from "../helpers/repos";
 import { clearCache, invalidate } from "@/lib/client-cache";
 
@@ -396,11 +397,11 @@ describe("pantalla Progreso", () => {
     render(<ProgresoPage />);
     await user.click(await screen.findByRole("button", { name: t.peso.addTitle }));
     const dialog = await screen.findByRole("dialog");
-    const when = within(dialog).getByLabelText(t.peso.datetimeLabel);
+    const when = within(dialog).getByLabelText(t.peso.timeLabel);
 
-    fireEvent.change(when, { target: { value: `${today}T08:30` } });
+    fireEvent.change(when, { target: { value: "08:30" } });
     expect(within(dialog).queryByText(t.peso.fastedAfterNoon)).toBeNull();
-    fireEvent.change(when, { target: { value: `${today}T20:30` } });
+    fireEvent.change(when, { target: { value: "20:30" } });
     expect(within(dialog).getByText(t.peso.fastedAfterNoon)).toBeInTheDocument();
     await user.click(within(dialog).getByRole("switch"));
     expect(within(dialog).queryByText(t.peso.fastedAfterNoon)).toBeNull();
@@ -434,7 +435,55 @@ describe("pantalla Progreso", () => {
     await user.type(within(dialog).getByLabelText(t.peso.weightLabel), "0");
     await user.click(within(dialog).getByRole("button", { name: t.peso.save }));
 
+    // The message says the server's range, inside the form (as on Android), not in a toast.
+    expect(within(dialog).getByRole("alert")).toHaveTextContent(t.peso.weightRange);
+    expect(within(dialog).getByLabelText(t.peso.weightLabel)).toHaveAttribute("aria-invalid", "true");
     expect(vi.mocked(api.createWeight)).not.toHaveBeenCalled();
+  });
+
+  it("rechaza una grasa corporal fuera de 3–60 % y guarda en cuanto se corrige", async () => {
+    const user = userEvent.setup();
+    render(<ProgresoPage />);
+    await screen.findByText(t.peso.emptyList);
+
+    await user.click(screen.getByRole("button", { name: t.peso.addTitle }));
+    const dialog = await screen.findByRole("dialog");
+    await user.type(within(dialog).getByLabelText(t.peso.weightLabel), "80");
+    const fat = within(dialog).getByLabelText(t.peso.bodyFatLabel);
+    await user.type(fat, "75");
+    await user.click(within(dialog).getByRole("button", { name: t.peso.save }));
+    expect(within(dialog).getByRole("alert")).toHaveTextContent(t.peso.bodyFatRange);
+    expect(vi.mocked(api.createWeight)).not.toHaveBeenCalled();
+
+    await user.clear(fat);
+    await user.type(fat, "18");
+    await user.click(within(dialog).getByRole("button", { name: t.peso.save }));
+    expect(vi.mocked(api.createWeight)).toHaveBeenCalledWith(expect.objectContaining({ weightKg: 80, bodyFatPct: 18 }));
+  });
+
+  // Same form as Android (`WeightFormDialog.kt`): weight and body fat, then date and time apart,
+  // then «En ayunas» and the note, all in that order.
+  it("el formulario tiene los campos de Android, en su orden", async () => {
+    const user = userEvent.setup();
+    render(<ProgresoPage />);
+    await screen.findByText(t.peso.emptyList);
+    await user.click(screen.getByRole("button", { name: t.peso.addTitle }));
+    const dialog = await screen.findByRole("dialog");
+
+    const fields = [
+      within(dialog).getByLabelText(t.peso.weightLabel),
+      within(dialog).getByLabelText(t.peso.bodyFatLabel),
+      within(dialog).getByLabelText(t.peso.dateLabel),
+      within(dialog).getByLabelText(t.peso.timeLabel),
+      within(dialog).getByRole("switch"),
+      within(dialog).getByLabelText(t.peso.noteLabel),
+    ];
+    for (let i = 1; i < fields.length; i++) {
+      expect(fields[i - 1].compareDocumentPosition(fields[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+    expect(within(dialog).getByLabelText(t.peso.dateLabel)).toHaveAttribute("type", "date");
+    expect(within(dialog).getByLabelText(t.peso.timeLabel)).toHaveAttribute("type", "time");
+    expect(within(dialog).getByLabelText(t.peso.bodyFatLabel)).toHaveAttribute("placeholder", t.peso.bodyFatPlaceholder);
   });
 
   it("edita un pesaje existente", async () => {
@@ -443,9 +492,10 @@ describe("pantalla Progreso", () => {
     render(<ProgresoPage />);
 
     await user.click(await screen.findByRole("button", { name: t.peso.edit }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("dialog", { name: t.peso.editTitle });
     const input = within(dialog).getByLabelText(t.peso.weightLabel);
     expect(input).toHaveValue("80");
+    expect(within(dialog).getByLabelText(t.peso.bodyFatLabel)).toHaveValue(toDecimalInput(18.5));
     await user.clear(input);
     await user.type(input, "79,8");
     await user.click(within(dialog).getByRole("button", { name: t.peso.save }));

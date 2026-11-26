@@ -51,7 +51,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 /**
- * Create/edit weight dialog mirroring the web `peso/page.tsx` weight form.
+ * Create/edit weight dialog; the web's `weight-form-dialog.tsx` is the same form.
  * Validates with the server's limits so a saved entry can always be synced.
  */
 @OptIn(ExperimentalMaterial3Api::class)
