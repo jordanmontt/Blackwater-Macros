@@ -10,13 +10,12 @@
 </ul>
 
 <p><b>Obiettivi basati sulla scienza, non su supposizioni</b></p>
-<p>Scienza all’avanguardia, spiegata in parole semplici: i metodi della ricerca attuale sulla nutrizione e dei dietisti sportivi, verificati dopo qualche settimana con il tuo peso reale.</p>
 <ul>
 <li>Il tuo metabolismo basale con l’equazione di Mifflin-St Jeor.</li>
 <li>Il tuo livello di attività calcolato da quello che fai davvero (palestra, camminata) con il metodo fattoriale della FAO/OMS.</li>
 <li>Un intervallo di calorie per il tuo obiettivo (perdere grasso, mantenere, aumentare la massa) che non scende mai sotto il tuo fabbisogno basale.</li>
 <li>Intervalli di proteine dalla ricerca in nutrizione sportiva, calcolati sulla massa magra se registri la tua massa grassa.</li>
-<li>Il tuo dispendio misurato: dopo qualche settimana, l’app confronta quello che hai mangiato con l’andamento del peso, misura quanto consumi davvero con il suo margine di errore e regola l’obiettivo ogni settimana.</li>
+<li>Il tuo dispendio misurato: dopo qualche settimana, l’app confronta quello che hai mangiato con l’andamento del peso (confrontando solo pesate fatte allo stesso modo: a digiuno con a digiuno), misura quanto consumi davvero con il suo margine di errore e regola l’obiettivo ogni settimana.</li>
 <li>Un controllo del tuo profilo: se il dispendio misurato non coincide chiaramente, l’app ti dice perché, con i tuoi numeri.</li>
 </ul>
 <p><b>Completamente trasparente:</b> ogni formula, le sue fonti e i suoi limiti sono spiegati nell’app (Metodologia), così puoi verificare ogni numero da solo.</p>
@@ -28,11 +27,11 @@
 </ul>
 
 <p><b>IA, solo se la vuoi</b></p>
-<p>Stima un pasto da foto o da una descrizione, e fai domande al coach sulla tua dieta («cosa mangio stasera?», «quanto peserò tra 30 giorni?»). Risponde anche a domande su cosa hai mangiato («quanto latte al cioccolato bevo?», «mangio di più nel fine settimana?») con numeri che l’app calcola dal tuo diario, mai l’IA, e mostra come sono stati calcolati. Usa la tua chiave di Google Gemini (gratuita), OpenAI, Anthropic, OpenRouter o di un server compatibile, oppure scarica un modello che funziona interamente sul telefono. La tua chiave resta sul telefono e va direttamente al fornitore.</p>
+<p>Stima un pasto da foto o da una descrizione, e fai domande al coach sulla tua dieta. Risponde anche a domande su cosa hai mangiato («quanto latte al cioccolato bevo?», «mangio di più nel fine settimana?») con numeri che l’app calcola dal tuo diario, mai l’IA, e mostra come sono stati calcolati. Usa la tua chiave di Google Gemini (gratuita), OpenAI, Anthropic, OpenRouter o di un server compatibile, oppure scarica un modello che funziona interamente sul telefono. La tua chiave resta sul telefono e va direttamente al fornitore.</p>
 
 <p><b>Privata per progetto</b></p>
 <ul>
-<li>I tuoi dati restano sul telefono. Senza account non lasciano mai il dispositivo: l’app non contatta mai il nostro server. Si collega solo quando lo chiedi tu: ricerca, codici a barre, prodotti aggiunti o corretti (Open Food Facts), il fornitore di IA scelto (solo ciò che gli invii), e i modelli di IA per il telefono (GitHub, Hugging Face).</li>
+<li>I tuoi dati restano sul telefono. Senza account l’app non contatta mai il nostro server; si collega solo quando lo chiedi tu (ricerca, Open Food Facts, il tuo fornitore di IA, modelli di IA per il telefono).</li>
 <li>Niente pubblicità, niente analisi, niente tracker. Software libero (AGPL-3.0).</li>
 <li>Esporta tutti i tuoi dati in un file leggibile.</li>
 </ul>

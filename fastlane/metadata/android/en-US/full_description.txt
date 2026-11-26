@@ -10,13 +10,12 @@
 </ul>
 
 <p><b>Targets based on science, not guesswork</b></p>
-<p>State-of-the-art science, explained in plain words: the methods of current nutrition research and sports dietitians, checked after a few weeks against your own weight.</p>
 <ul>
 <li>Your basal metabolic rate with the Mifflin-St Jeor equation.</li>
 <li>Your activity level calculated from what you actually do (gym days, session length, daily walking) with the factorial method of the FAO/WHO, instead of a vague “lightly active / very active” guess.</li>
 <li>A calorie range for your goal (lose fat, maintain, build muscle) that never goes below your basal needs.</li>
 <li>Protein ranges from sports-nutrition research, on your lean mass when you log your body fat.</li>
-<li>Your measured expenditure: after a few weeks, the app compares what you ate with how your weight moved, measures what you really burn, with its margin of error, and adjusts your target every week.</li>
+<li>Your measured expenditure: after a few weeks, the app compares what you ate with how your weight moved (comparing only weigh-ins taken the same way: fasted with fasted), measures what you really burn, with its margin of error, and adjusts your target every week.</li>
 <li>A check of your profile: if your measured expenditure clearly disagrees with it, the app tells you why, with your own numbers and the likely causes.</li>
 </ul>
 <p><b>Fully transparent:</b> every formula, its sources and its limits are explained inside the app (Methodology), so you can check every number yourself.</p>
@@ -28,11 +27,11 @@
 </ul>
 
 <p><b>AI, only if you want it</b></p>
-<p>Estimate a meal from photos or a description, and ask the coach questions about your diet (“what should I have for dinner?”, “what will I weigh in 30 days?”). It also answers questions about what you ate (“how much chocolate milk do I drink?”, “do I eat more at the weekend?”) with numbers the app works out from your log, never the AI, and shows how they were worked out. Use your own key from Google Gemini (free), OpenAI, Anthropic, OpenRouter or a compatible server, or download a model that runs entirely on your phone. Your key stays on your phone and goes straight to the provider.</p>
+<p>Estimate a meal from photos or a description, and ask the coach questions about your diet. It also answers questions about what you ate (“how much chocolate milk do I drink?”, “do I eat more at the weekend?”) with numbers the app works out from your log, never the AI, and shows how they were worked out. Use your own key from Google Gemini (free), OpenAI, Anthropic, OpenRouter or a compatible server, or download a model that runs entirely on your phone. Your key stays on your phone and goes straight to the provider.</p>
 
 <p><b>Private by design</b></p>
 <ul>
-<li>Your data stays on your phone. Without logging in, it never leaves the device: the app never contacts our server. It only goes online when you ask: food search, barcodes and the products you add or correct (Open Food Facts), the AI provider you chose (only what you send it), and the list or download of phone AI models (GitHub, Hugging Face).</li>
+<li>Your data stays on your phone. Without logging in, the app never contacts our server; it only goes online when you ask (food search, Open Food Facts, your AI provider, phone AI models).</li>
 <li>No ads, no analytics, no trackers. Free software (AGPL-3.0).</li>
 <li>Export all your data in one readable file.</li>
 </ul>

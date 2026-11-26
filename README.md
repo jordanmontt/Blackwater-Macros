@@ -64,14 +64,15 @@ every number on screen can be checked by hand.
 - **Past days keep their targets.** Changing your activity, goal or weight counts from today:
   each day is judged with the profile and weight it had, because what you burned last week
   depends on what you did last week.
-- **Protein from sports-nutrition research**: 1.4–2.0 g/kg to maintain, 1.6–2.2 to build
-  muscle, more while cutting; calculated on your lean mass when you log your body fat, and on
-  a healthy reference weight when a high BMI is not muscle. Going over the range is not
+- **Protein from sports-nutrition research**: 1.4–2.0 g/kg to maintain (1.6–2.2 if you lift
+  weights), 1.6–2.2 to build muscle, more while cutting; calculated on your lean mass when you
+  log your body fat, and on a healthy reference weight when a high BMI is not muscle. Going over the range is not
   flagged as a problem: in healthy people, more protein is fine.
 - **Your measured expenditure, and a target that follows it.** After about four weeks of
-  logging, the app compares what you ate with how your weight trend moved and shows how much
-  you really burn, with its margin of error, next to the formula's estimate. Every Monday your
-  calorie range is recalculated from both, each counting by how precise it is, and the app
+  logging, the app compares what you ate with how your weight trend moved (comparing only
+  weigh-ins taken the same way: fasted with fasted, after eating with after eating) and shows
+  how much you really burn, with its margin of error, next to the formula's estimate. Every
+  Monday your calorie range is recalculated from both, each counting by how precise it is, and the app
   says how much comes from your data. Formulas are averages; this one is yours.
 - **A check of your profile, only when it matters.** If your measured expenditure is clearly
   outside what your profile predicts (beyond both the formula's normal ±10 % and the

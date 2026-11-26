@@ -10,13 +10,12 @@
 </ul>
 
 <p><b>Ziele auf wissenschaftlicher Grundlage statt Schätzungen</b></p>
-<p>Wissenschaft auf dem neuesten Stand, einfach erklärt: die Methoden der aktuellen Ernährungsforschung und der Sporternährung, nach ein paar Wochen mit deinem eigenen Gewicht überprüft.</p>
 <ul>
 <li>Dein Grundumsatz mit der Mifflin-St-Jeor-Gleichung.</li>
 <li>Dein Aktivitätsniveau berechnet aus dem, was du wirklich tust (Training, Gehen), mit der faktoriellen Methode der FAO/WHO.</li>
 <li>Ein Kalorienbereich für dein Ziel (Fett verlieren, halten, Muskeln aufbauen), der nie unter deinen Grundbedarf fällt.</li>
 <li>Eiweißbereiche aus der Sporternährungsforschung, bezogen auf deine fettfreie Masse, wenn du deinen Körperfettanteil erfasst.</li>
-<li>Dein gemessener Verbrauch: Nach einigen Wochen vergleicht die App, was du gegessen hast, mit dem Verlauf deines Gewichts, misst deinen echten Verbrauch mit Fehlerspanne und passt dein Ziel jede Woche an.</li>
+<li>Dein gemessener Verbrauch: Nach einigen Wochen vergleicht die App, was du gegessen hast, mit dem Verlauf deines Gewichts (nur gleich gemachte Wiegungen, nüchtern mit nüchtern), misst deinen echten Verbrauch mit Fehlerspanne und passt dein Ziel jede Woche an.</li>
 <li>Eine Prüfung deines Profils: Weicht dein gemessener Verbrauch deutlich davon ab, erklärt dir die App warum.</li>
 </ul>
 <p><b>Vollständig transparent:</b> Jede Formel, ihre Quellen und Grenzen werden in der App erklärt (Methodik), so kannst du jede Zahl selbst nachprüfen.</p>
@@ -28,11 +27,11 @@
 </ul>
 
 <p><b>KI, nur wenn du willst</b></p>
-<p>Schätze eine Mahlzeit anhand von Fotos oder einer Beschreibung und stelle dem Coach Fragen („Wie viel wiege ich in 30 Tagen?“). Er beantwortet auch Fragen dazu, was du gegessen hast („Wie viel Schokomilch trinke ich?“, „Esse ich am Wochenende mehr?“), mit Zahlen, die die App aus deinen Einträgen berechnet, nie die KI, und zeigt, wie sie berechnet wurden. Nutze deinen eigenen Schlüssel von Google Gemini (kostenlos), OpenAI, Anthropic, OpenRouter oder einem kompatiblen Server, oder lade ein Modell herunter, das komplett auf deinem Telefon läuft. Dein Schlüssel bleibt auf deinem Telefon und geht direkt an den Anbieter.</p>
+<p>Schätze eine Mahlzeit anhand von Fotos oder einer Beschreibung und stelle dem Coach Fragen. Er beantwortet auch Fragen dazu, was du gegessen hast („Wie viel Schokomilch trinke ich?“, „Esse ich am Wochenende mehr?“), mit Zahlen, die die App aus deinen Einträgen berechnet, nie die KI, und zeigt, wie sie berechnet wurden. Nutze deinen eigenen Schlüssel von Google Gemini (kostenlos), OpenAI, Anthropic, OpenRouter oder einem kompatiblen Server, oder lade ein Modell herunter, das komplett auf deinem Telefon läuft. Dein Schlüssel bleibt auf deinem Telefon und geht direkt an den Anbieter.</p>
 
 <p><b>Privat von Grund auf</b></p>
 <ul>
-<li>Deine Daten bleiben auf deinem Telefon. Ohne Anmeldung verlassen sie nie das Gerät: Die App kontaktiert nie unseren Server. Sie geht nur online, wenn du es willst: Suche, Barcodes, neue oder korrigierte Produkte (Open Food Facts), der gewählte KI-Anbieter (nur was du ihm schickst) und KI-Modelle fürs Telefon (GitHub, Hugging Face).</li>
+<li>Deine Daten bleiben auf deinem Telefon. Ohne Anmeldung kontaktiert die App nie unseren Server; sie geht nur online, wenn du es willst (Suche, Open Food Facts, dein KI-Anbieter, KI-Modelle fürs Telefon).</li>
 <li>Keine Werbung, keine Analyse, keine Tracker. Freie Software (AGPL-3.0).</li>
 <li>Exportiere alle deine Daten in einer lesbaren Datei.</li>
 </ul>

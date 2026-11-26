@@ -10,67 +10,17 @@ You push a git tag, and two things happen on their own:
 The two are signed with different keys, so an app from one can't update an app from the other
 (switching means reinstalling; the website says so). Nothing to upload by hand.
 
-- **`dev`**: everyday work. Every push runs CI and deploys the web.
-- **`main`**: released code only, with the `vX.Y.Z` tags. The apps read the phone-model catalog
-  from here too.
+- **`dev`**: everyday work. Every push runs CI.
+- **`main`**: released code only, with the `vX.Y.Z` tags. Pushing it deploys the web app and
+  the API (Vercel's production branch is `main`) and, when `website/` changed, the website. The
+  apps read the phone-model catalog from here too.
 
 ## Still to do (once)
 
-- [x] **Release key.** On your Mac, outside the repository:
-  ```bash
-  keytool -genkeypair -v -keystore ~/blackwater-release.jks -alias blackwater -keyalg RSA -keysize 4096 -validity 10000
-  ```
-  Choose a strong password and keep it in your password manager. **Back up the `.jks` file
-  in two places** (e.g. an encrypted USB stick and your password manager): if it is lost, no
-  update can ever be installed over the website's APK again.
-- [x] **Its fingerprint in the repository:** `keytool -list -v -keystore ~/blackwater-release.jks
-  -alias blackwater` → copy the `SHA256:` line into `android/gradle.properties` as
-  `releaseCertSha256=` (it is public; it lets the app know it is the website's build, and the
-  workflow refuses an APK signed with another key).
-- [x] **GitHub secrets** (repository → Settings → Secrets and variables → Actions):
-  `RELEASE_KEYSTORE_BASE64` (output of `base64 -i ~/blackwater-release.jks`),
-  `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` (`blackwater`), `RELEASE_KEY_PASSWORD` (the
-  same password unless you chose another).
-- [ ] **Local signing** (optional, not needed: GitHub signs the releases; only to build signed APKs on the Mac): `android/keystore.properties`
-  with `storeFile`, `storePassword`, `keyAlias`, `keyPassword` (gitignored).
-- [x] **Domains** (in this order, so the app never loses its server). The website is
-  `blackwater-macros.jordanmontt.fr`, the web app and the API are
-  `app.blackwater-macros.jordanmontt.fr` (the Android app's server address since 1.0.1):
-  1. **Vercel** → project → Settings → Domains → add `app.blackwater-macros.jordanmontt.fr`, and
-     create the record Vercel shows in the OVH DNS zone of `jordanmontt.fr` (Web Cloud → Domain
-     names → DNS zone: `CNAME`, subdomain `app.blackwater-macros`, target with a final dot). Wait until
-     https://app.blackwater-macros.jordanmontt.fr/ opens the web app.
-  2. **GitHub Pages:** repository → Settings → Pages → Source = **GitHub Actions**, Custom domain
-     = `blackwater-macros.jordanmontt.fr`. (Optional but recommended: verify `jordanmontt.fr` in
-     your GitHub account → Settings → Pages, so nobody else can claim it.)
-  3. **OVH DNS:** change the `blackwater-macros` record to `CNAME jordanmontt.github.io.` (no A
-     records left for it), then remove
-     `blackwater-macros.jordanmontt.fr` from the Vercel project. When the certificate is ready,
-     tick «Enforce HTTPS» in Pages (still to check). Old links to the web app (`/login`, `/progreso`…) are sent to
-     `app.` by `website/404.html`; web users log in once more.
-- [ ] **Phones with the old test builds** (signed with the Mac's debug key): check that sync is
-  green (or export your data in Settings), uninstall, install from the website, log in again.
-  1.0.0 still syncs with the old address (now the website), so its changes wait on the phone
-  and uninstalling would lose them. First install a newer build over it, which keeps
-  everything: on this Mac `cd android && ./gradlew :app:assembleRelease -PreleaseAbi=arm64-v8a`
-  (without `keystore.properties` it is signed with the same debug key), then
-  `adb install -r app/build/outputs/apk/release/app-arm64-v8a-release.apk`. Open each account
-  until it shows synced; then switch to the website APK as above. (Girlfriend's phone: done
-  2026-10-21, the build stays installed for now.)
-
-- [x] **Open Food Facts account for the app.** The account `blackwater-macros-app` exists
-  (2026-11-01), their API usage form is filled in, and its password is in `OFF_APP_PASSWORD`
-  (`src/lib/core/new-product.ts` and
-  `android/core/src/main/kotlin/com/blackwatermacros/app/core/NewProduct.kt`; it is public on
-  purpose, like other open-source apps', and only says «sent by Blackwater Macros»; Open Food
-  Facts can block one install through `app_uuid` without blocking the app). Tried for real on
-  2026-11-03 with the debug app (their test server was down): one product added (7771259757344)
-  and one corrected (7772905004362), both accepted with their photos. It showed that names and
-  photos went under the app's language; fixed in 1.4.0 before release, and both products
-  corrected on the website.
-- [ ] **Vercel** → Settings → Git → Production Branch = `dev` (so pushes to `dev` deploy the web).
-- [ ] **Google and Bing** (so the website shows up in searches). The website already has
-  `robots.txt` and `sitemap.xml`; nothing to change in the repository.
+- [ ] **Google and Bing** (so the website shows up in searches). **Status to check (26 Nov
+  2026):** Bing was done on 2026-11-08 (step 3); whether Google (steps 1–2) was done is not
+  known. The website already has `robots.txt` and `sitemap.xml`; nothing to change in the
+  repository.
   1. **Google:** https://search.google.com/search-console → Add property → **Domain** →
      `jordanmontt.fr` (the whole domain, which covers `blackwater-macros.jordanmontt.fr`: that
      name is a `CNAME` to GitHub Pages, and DNS allows no `TXT` record next to a `CNAME`).
@@ -91,6 +41,56 @@ The two are signed with different keys, so an app from one can't update an app f
      and **URL Submission** → the home page.
   4. A few days later, check **Pages** (Google) and **Site Explorer** (Bing) show the page as
      indexed. Leave the TXT and CNAME records in place: removing them un-verifies the site.
+- [ ] **Once it is on F-Droid:** replace «Coming soon to F-Droid» with the F-Droid badge and
+      link (`https://f-droid.org/packages/com.blackwatermacros.app/`) in the README and in
+      `website/index.html` (the line under the Download button), drop it from the line
+      `website/latest.js` writes there, start the FAQ answer «Should I install from F-Droid…»
+      with «Either one», then push `main` so the website redeploys.
+
+## Done once (for reference)
+
+Kept for the instructions in them (for example how to back up the release key).
+
+- [x] **Release key.** On your Mac, outside the repository:
+  ```bash
+  keytool -genkeypair -v -keystore ~/blackwater-release.jks -alias blackwater -keyalg RSA -keysize 4096 -validity 10000
+  ```
+  Choose a strong password and keep it in your password manager. **Back up the `.jks` file
+  in two places** (e.g. an encrypted USB stick and your password manager): if it is lost, no
+  update can ever be installed over the website's APK again.
+- [x] **Its fingerprint in the repository:** `keytool -list -v -keystore ~/blackwater-release.jks
+  -alias blackwater` → copy the `SHA256:` line into `android/gradle.properties` as
+  `releaseCertSha256=` (it is public; it lets the app know it is the website's build, and the
+  workflow refuses an APK signed with another key).
+- [x] **GitHub secrets** (repository → Settings → Secrets and variables → Actions):
+  `RELEASE_KEYSTORE_BASE64` (output of `base64 -i ~/blackwater-release.jks`),
+  `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` (`blackwater`), `RELEASE_KEY_PASSWORD` (the
+  same password unless you chose another).
+- [x] **Domains** (in this order, so the app never loses its server). The website is
+  `blackwater-macros.jordanmontt.fr`, the web app and the API are
+  `app.blackwater-macros.jordanmontt.fr` (the Android app's server address since 1.0.1):
+  1. **Vercel** → project → Settings → Domains → add `app.blackwater-macros.jordanmontt.fr`, and
+     create the record Vercel shows in the OVH DNS zone of `jordanmontt.fr` (Web Cloud → Domain
+     names → DNS zone: `CNAME`, subdomain `app.blackwater-macros`, target with a final dot). Wait until
+     https://app.blackwater-macros.jordanmontt.fr/ opens the web app.
+  2. **GitHub Pages:** repository → Settings → Pages → Source = **GitHub Actions**, Custom domain
+     = `blackwater-macros.jordanmontt.fr`. (Optional but recommended: verify `jordanmontt.fr` in
+     your GitHub account → Settings → Pages, so nobody else can claim it.)
+  3. **OVH DNS:** change the `blackwater-macros` record to `CNAME jordanmontt.github.io.` (no A
+     records left for it), then remove `blackwater-macros.jordanmontt.fr` from the Vercel
+     project. «Enforce HTTPS» is on in Pages (checked 26 Nov 2026: `http://` redirects to
+     `https://`). Old links to the web app (`/login`, `/progreso`…) are sent to `app.` by
+     `website/404.html`; web users log in once more.
+- [x] **Open Food Facts account for the app.** The account `blackwater-macros-app` exists
+  (2026-11-01), their API usage form is filled in, and its password is in `OFF_APP_PASSWORD`
+  (`src/lib/core/new-product.ts` and
+  `android/core/src/main/kotlin/com/blackwatermacros/app/core/NewProduct.kt`; it is public on
+  purpose, like other open-source apps', and only says «sent by Blackwater Macros»; Open Food
+  Facts can block one install through `app_uuid` without blocking the app). Tried for real on
+  2026-11-03 with the debug app (their test server was down): one product added (7771259757344)
+  and one corrected (7772905004362), both accepted with their photos. It showed that names and
+  photos went under the app's language; fixed in 1.4.0 before release, and both products
+  corrected on the website.
 - [x] **Merge request to F-Droid:** [fdroid/fdroiddata!53565](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53565)
       (from the fork https://gitlab.com/jordanmontt/fdroiddata, branch `com.blackwatermacros.app`;
       text in [fdroid/merge-request.md](./fdroid/merge-request.md)). GitLab emails you when a
@@ -103,11 +103,6 @@ The two are signed with different keys, so an app from one can't update an app f
       it, put the latest tag in its `metadata/com.blackwatermacros.app.yml` (copy
       `docs/fdroid/com.blackwatermacros.app.yml`), wait for the pipeline to be green, then
       reopen !53565 with a short comment.
-- [ ] **Once it is on F-Droid:** replace «Coming soon to F-Droid» with the F-Droid badge and
-      link (`https://f-droid.org/packages/com.blackwatermacros.app/`) in the README and in
-      `website/index.html` (the line under the Download button), drop it from the line
-      `website/latest.js` writes there, start the FAQ answer «Should I install from F-Droid…»
-      with «Either one», then push `main` so the website redeploys.
 
 ## Every release
 

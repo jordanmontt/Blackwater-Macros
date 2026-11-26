@@ -7,10 +7,11 @@ For general usage and setup, read [README.md](../README.md) first.
 > and the design decisions all live here; code comments do not point to other documents.
 > Keep it updated in the same change as the code.
 >
-> **Branches:** work on `dev` (every push deploys the web); `main` holds released code only
-> (F-Droid builds its `vX.Y.Z` tags) — [RELEASING.md](./RELEASING.md). Setup and commands:
-> [DEVELOPMENT.md](./DEVELOPMENT.md). Plan for accounts and end-to-end encryption:
-> [FDROID-PLAN.md](./FDROID-PLAN.md).
+> **Branches:** work on `dev`; `main` holds released code only (pushing it deploys the web;
+> F-Droid builds its `vX.Y.Z` tags) — [RELEASING.md](./RELEASING.md). Setup and commands:
+> [DEVELOPMENT.md](./DEVELOPMENT.md). Plans: F-Droid release, [FDROID-PLAN.md](./FDROID-PLAN.md);
+> premium accounts, [ACCOUNTS-PLAN.md](./ACCOUNTS-PLAN.md); end-to-end encryption,
+> [E2EE-PLAN.md](./E2EE-PLAN.md).
 
 ---
 
@@ -2092,7 +2093,8 @@ target Vercel gives, `blackwater-macros` → `CNAME jordanmontt.github.io.`. The
 The Android app's server address (`API_BASE_URL`) is built into every APK, so it must never
 change again without keeping the old one working.
 
-Vercel deploys the **`dev`** branch (Project → Settings → Git → Production Branch). Current
+Vercel deploys the **`main`** branch (Project → Settings → Git → Production Branch), so the web
+app and the API change with a release, together with the Android app that syncs with them. Current
 setup intentionally shares **one Neon database between local dev and production** — simplest mental model, and `create-user` run locally takes
 effect immediately on the live site. To split environments later: create a second
 Neon project, point Vercel's `DATABASE_URL` at it, run `db:push` + `create-user`

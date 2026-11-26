@@ -17,9 +17,10 @@ generates its shared strings from those files at build time.
 
 ## Branches
 
-- **`dev`**: all work. Every push runs CI and deploys the web (Vercel production branch).
+- **`dev`**: all work. Every push runs CI.
 - **`main`**: released code only (what F-Droid builds, from `vX.Y.Z` tags) and the phone-model
-  catalog the apps read. See [RELEASING.md](./RELEASING.md).
+  catalog the apps read. Pushing it deploys the web app and the API (Vercel's production
+  branch). See [RELEASING.md](./RELEASING.md).
 
 ## Stack
 
@@ -108,7 +109,8 @@ src/
   server/         Repositories, services, auth, database schema
 tests/            unit/ (core, shared spec with Android) and behavior/ (requirements)
 scripts/          Ops scripts, logo, store images, screenshots
-docs/             TECHNICAL, METHODOLOGY, RELEASING, DEVELOPMENT, FDROID-PLAN, fdroid/
+docs/             TECHNICAL, METHODOLOGY, RELEASING, DEVELOPMENT, FDROID-PLAN, ACCOUNTS-PLAN,
+                  E2EE-PLAN, fdroid/, COACH-FOOD-MATCHING (temporary design note)
 ```
 
 ## Deploying the web

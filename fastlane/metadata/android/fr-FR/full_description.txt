@@ -10,13 +10,12 @@
 </ul>
 
 <p><b>Des objectifs fondés sur la science, pas sur des suppositions</b></p>
-<p>Une science de pointe, celle de la nutrition sportive actuelle, expliquée simplement et vérifiée après quelques semaines avec votre propre poids.</p>
 <ul>
 <li>Votre métabolisme de base avec l’équation de Mifflin-St Jeor.</li>
 <li>Votre niveau d’activité calculé d’après ce que vous faites vraiment (salle, marche) avec la méthode factorielle de la FAO/OMS.</li>
 <li>Une plage de calories pour votre objectif (perdre du gras, maintenir, prendre du muscle) qui ne descend jamais sous vos besoins de base.</li>
 <li>Des plages de protéines de la nutrition sportive, sur votre masse maigre si vous notez votre masse grasse.</li>
-<li>Votre dépense mesurée : après quelques semaines, l’app compare ce que vous avez mangé à l’évolution de votre poids, mesure votre dépense réelle avec sa marge d’erreur et ajuste votre objectif chaque semaine.</li>
+<li>Votre dépense mesurée : après quelques semaines, l’app compare ce que vous avez mangé à l’évolution de votre poids (en ne comparant que les pesées prises de la même façon : à jeun avec à jeun), mesure votre dépense réelle avec sa marge d’erreur et ajuste votre objectif chaque semaine.</li>
 <li>Un contrôle de votre profil : si votre dépense mesurée s’en écarte nettement, l’app vous explique pourquoi.</li>
 </ul>
 <p><b>Entièrement transparent :</b> chaque formule, ses sources et ses limites sont expliquées dans l’app (Méthodologie) ; vous pouvez vérifier chaque chiffre.</p>
@@ -28,11 +27,11 @@
 </ul>
 
 <p><b>L’IA, seulement si vous le voulez</b></p>
-<p>Estimez un repas à partir de photos ou d’une description, et posez vos questions au coach (« combien pèserai-je dans 30 jours ? »). Il répond aussi aux questions sur ce que vous avez mangé (« combien de lait chocolaté est-ce que je bois ? », « est-ce que je mange plus le week-end ? ») avec des chiffres que l’application calcule à partir de votre journal, jamais l’IA, et montre comment ils ont été calculés. Utilisez votre propre clé Google Gemini (gratuite), OpenAI, Anthropic, OpenRouter ou d’un serveur compatible, ou un modèle qui tourne entièrement sur votre téléphone. Votre clé reste sur le téléphone et va droit au fournisseur.</p>
+<p>Estimez un repas à partir de photos ou d’une description, et posez vos questions au coach. Il répond aussi aux questions sur ce que vous avez mangé (« combien de lait chocolaté est-ce que je bois ? », « est-ce que je mange plus le week-end ? ») avec des chiffres que l’app calcule à partir de votre journal, jamais l’IA, et montre comment ils ont été calculés. Utilisez votre propre clé Google Gemini (gratuite), OpenAI, Anthropic, OpenRouter ou d’un serveur compatible, ou un modèle qui tourne entièrement sur votre téléphone. Votre clé reste sur le téléphone et va droit au fournisseur.</p>
 
 <p><b>Privé par conception</b></p>
 <ul>
-<li>Vos données restent sur votre téléphone. Sans compte, elles ne quittent jamais l’appareil : l’app ne contacte jamais notre serveur. Elle ne se connecte que quand vous le demandez : recherche, codes-barres, produits ajoutés ou corrigés (Open Food Facts), le fournisseur d’IA choisi (seulement ce que vous lui envoyez), et les modèles d’IA pour le téléphone (GitHub, Hugging Face).</li>
+<li>Vos données restent sur votre téléphone. Sans compte, l’app ne contacte jamais notre serveur ; elle ne se connecte que quand vous le demandez (recherche, Open Food Facts, votre fournisseur d’IA, modèles d’IA pour le téléphone).</li>
 <li>Pas de publicité, pas d’analytique, pas de traqueurs. Logiciel libre (AGPL-3.0).</li>
 <li>Exportez toutes vos données dans un fichier lisible.</li>
 </ul>
