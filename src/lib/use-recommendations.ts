@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { api } from "./api";
 import { useCachedResource } from "./use-cached-resource";
 import { useMeasuredOn } from "./use-measured-expenditure";
-import { toDateKey, todayKey } from "./core/dates";
+import { todayKey, weighInDay } from "./core/dates";
 import { targetsOn, type DatedWeight, type MeasuredOn } from "./core/profile-history";
 import type {
   CalorieProfile,
@@ -26,10 +26,10 @@ const EMPTY_PROFILE: CalorieProfile = {
 
 const NO_HISTORY: ProfilePeriod[] = [];
 
-/** Weigh-ins on their local calendar day, in measuring order (`core/profile-history.ts`). */
+/** Weigh-ins on their day where they were taken (`weighInDay`), in measuring order (`core/profile-history.ts`). */
 export function datedWeights(weights: WeightDTO[]): DatedWeight[] {
   return weights.map((w) => ({
-    date: toDateKey(new Date(w.measuredAt)),
+    date: weighInDay(new Date(w.measuredAt), w.timeZone),
     weightKg: w.weightKg,
     bodyFatPct: w.bodyFatPct,
   }));

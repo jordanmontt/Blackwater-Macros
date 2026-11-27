@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { api, errorText } from "@/lib/api";
-import { deviceTimeZone, nowDateTimeLocalValue, parseLocalDateTime, toDateTimeLocalValue } from "@/lib/core/dates";
+import { deviceTimeZone, nowDateTimeLocalValue, parseZonedDateTime, toZonedDateTimeValue } from "@/lib/core/dates";
 import type { WeightDTO } from "@/lib/core/types";
 import { normalizeDecimal, toDecimalInput } from "@/lib/utils";
 import { t } from "@/i18n";
@@ -25,8 +25,9 @@ interface WeightFormState {
   fasted: boolean;
 }
 
+/** An edit shows the date and time where the weigh-in was taken (its saved zone), as the list does. */
 function formFor(entry: WeightDTO | null, defaultFasted: boolean): WeightFormState {
-  const [date, time] = (entry ? toDateTimeLocalValue(new Date(entry.measuredAt)) : nowDateTimeLocalValue()).split("T");
+  const [date, time] = (entry ? toZonedDateTimeValue(new Date(entry.measuredAt), entry.timeZone) : nowDateTimeLocalValue()).split("T");
   if (!entry) return { weight: "", bodyFat: "", date, time, note: "", fasted: defaultFasted };
   return {
     weight: toDecimalInput(entry.weightKg),
@@ -66,7 +67,8 @@ export function validateWeight(
  * Create or edit a weigh-in. `entry` null = new. The parent re-mounts it per
  * open (`key`) so the fields always start from `entry`. `defaultFasted` is the
  * latest weigh-in's «En ayunas», so it is only touched when the habit changes.
- * A new weigh-in saves the device's time zone; an edit keeps the stored one.
+ * A new weigh-in saves the device's time zone; an edit keeps the stored one, and its date and
+ * time are that zone's (a weigh-in made on waking in France reads 08:00 from Bolivia too).
  */
 export function WeightFormDialog({
   open,
@@ -92,7 +94,8 @@ export function WeightFormDialog({
       setError(result.error);
       return;
     }
-    const measuredAt = parseLocalDateTime(`${form.date}T${form.time}`);
+    // Read back in the zone the fields were shown in: the weigh-in's own, the device's for a new one.
+    const measuredAt = parseZonedDateTime(`${form.date}T${form.time}`, entry ? entry.timeZone : null);
     if (!measuredAt) {
       setError(t.serverErrors.invalid_datetime);
       return;

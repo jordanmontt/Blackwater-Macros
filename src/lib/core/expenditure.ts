@@ -1,4 +1,4 @@
-import { addDaysToKey, daysBetweenKeys, toDateKey, weekStartOf } from "./dates";
+import { addDaysToKey, daysBetweenKeys, weekStartOf, weighInDay } from "./dates";
 import type { DataPoint } from "./stats";
 import type {
   CalorieRecommendation,
@@ -68,10 +68,10 @@ export interface WeighIn extends DataPoint {
   timeZone?: string | null;
 }
 
-/** Stored weigh-ins as the trend takes them, each on its local calendar day (Android `weighInsOf`). */
+/** Stored weigh-ins as the trend takes them, each on its day where it was taken (`weighInDay`; Android `weighInsOf`). */
 export function weighInsOf(weights: Pick<WeightDTO, "measuredAt" | "weightKg" | "fasted" | "timeZone">[]): WeighIn[] {
   return weights.map((w) => ({
-    date: toDateKey(new Date(w.measuredAt)),
+    date: weighInDay(new Date(w.measuredAt), w.timeZone),
     value: w.weightKg,
     time: w.measuredAt,
     fasted: w.fasted,

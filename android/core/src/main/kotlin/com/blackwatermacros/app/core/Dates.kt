@@ -1,5 +1,6 @@
 package com.blackwatermacros.app.core
 
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -68,3 +69,31 @@ fun toDateTimeLocalValue(date: LocalDateTime): String =
     date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"))
 
 fun nowDateTimeLocalValue(): String = toDateTimeLocalValue(LocalDateTime.now())
+
+/**
+ * The zone a weigh-in is read in: its saved [timeZone], so a weigh-in made on waking in
+ * France still reads 08:00 after a move to Bolivia. No zone (older weigh-ins), or one
+ * `java.time` doesn't know → the device's.
+ */
+fun weighInZone(timeZone: String?): ZoneId =
+    timeZone?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: ZoneId.systemDefault()
+
+/** The wall clock ("YYYY-MM-DDTHH:mm") of [instant] in its saved [timeZone] (web `toZonedDateTimeValue`). */
+fun toZonedDateTimeValue(instant: Instant, timeZone: String?): String =
+    toDateTimeLocalValue(instant.atZone(weighInZone(timeZone)).toLocalDateTime())
+
+/**
+ * The calendar day of a weigh-in where it was taken (its saved zone, else the phone's): the day
+ * it is listed under and the one statistics, the measured expenditure and the coach count it on
+ * (web `weighInDay`).
+ */
+fun weighInDay(instant: Instant, timeZone: String?): String =
+    toDateKey(instant.atZone(weighInZone(timeZone)).toLocalDate())
+
+/**
+ * The moment a wall clock ("YYYY-MM-DDTHH:mm") in [timeZone] stands for (web `parseZonedDateTime`):
+ * an hour that happens twice (summer time ends) is the first one; one that doesn't exist moves
+ * later by the gap, as `atZone` does.
+ */
+fun parseZonedDateTime(value: String, timeZone: String?): Instant? =
+    parseLocalDateTime(value)?.atZone(weighInZone(timeZone))?.toInstant()

@@ -201,6 +201,18 @@ class StatsBuilderTest {
     }
 
     @Test
+    fun buildStatsFromData_eachWeighInCountsOnItsDayWhereItWasTaken() {
+        // 7 days from 2026-08-17. 02:00 UTC is still the day before in La Paz; 23:30 UTC is the next day in Paris.
+        val rows = listOf(
+            StatsWeight(Instant.parse("2026-08-17T02:00:00Z"), 80.0, null, timeZone = "America/La_Paz"), // 16 Aug there: out
+            StatsWeight(Instant.parse("2026-08-20T02:00:00Z"), 79.8, null, timeZone = "America/La_Paz"),
+            StatsWeight(Instant.parse("2026-08-21T23:30:00Z"), 79.6, null, timeZone = "Europe/Paris"),
+        )
+        val summary = buildStatsFromData(emptyList(), rows, StatsRange.RANGE_7D, TODAY)
+        assertThat(summary.weights.map { it.date }).containsExactly("2026-08-19", "2026-08-22").inOrder()
+    }
+
+    @Test
     fun buildStatsFromData_returnsNullsWhenNoMealsOrWeightsInRange() {
         val summary = buildStatsFromData(emptyList(), emptyList(), StatsRange.RANGE_7D, TODAY)
         assertThat(summary.caloriesAvg).isNull()

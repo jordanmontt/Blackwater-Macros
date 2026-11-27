@@ -4,6 +4,7 @@ import android.text.format.DateFormat
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import com.blackwatermacros.app.core.formatDecimal
+import com.blackwatermacros.app.core.weighInZone
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -61,8 +62,13 @@ fun formatDateWithYear(key: String): String = pattern("dMMMy").format(LocalDate.
 fun formatDateTimeShort(epochMillis: Long): String =
     pattern("dMMMjm").format(Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()))
 
-/** Local wall-clock time of an ISO instant in the language's usual hour cycle: "14:05" / "2:05 PM". */
-fun formatTime(iso: String): String = pattern("jm").format(Instant.parse(iso).atZone(ZoneId.systemDefault()))
+/**
+ * Wall-clock time of an ISO instant in the language's usual hour cycle: "14:05" / "2:05 PM", in
+ * [timeZone] (a weigh-in's saved zone, so it reads at the hour it was taken there; web
+ * `formatTime`). No zone, or an unknown one → the phone's.
+ */
+fun formatTime(iso: String, timeZone: String? = null): String =
+    pattern("jm").format(Instant.parse(iso).atZone(weighInZone(timeZone)))
 
 /**
  * The app's single number format, the same in every language and on the web

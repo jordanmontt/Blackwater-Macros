@@ -1,7 +1,7 @@
 import { api } from "@/lib/api";
 import { calculateCalorieRecommendation, doesStrengthTraining } from "@/lib/core/calories";
 import { buildCoachContext, COACH_WEIGHT_DAYS, type CoachInput, type CoachWeight } from "@/lib/core/coach";
-import { addDaysToKey, toDateKey, todayKey, weekStartOf } from "@/lib/core/dates";
+import { addDaysToKey, todayKey, weekStartOf, weighInDay } from "@/lib/core/dates";
 import { EXPENDITURE_WINDOW_DAYS, estimateExpenditure, weighInsOf } from "@/lib/core/expenditure";
 import type { FoodLog } from "@/lib/core/food-questions";
 import { calculateProteinRecommendation } from "@/lib/core/protein";
@@ -11,7 +11,7 @@ import type { WeightDTO } from "@/lib/core/types";
 function coachWeights(weightDtos: WeightDTO[]): CoachWeight[] {
   return weightDtos
     .map((w) => ({
-      date: toDateKey(new Date(w.measuredAt)),
+      date: weighInDay(new Date(w.measuredAt), w.timeZone),
       weightKg: w.weightKg,
       bodyFatPct: w.bodyFatPct,
       fasted: w.fasted,

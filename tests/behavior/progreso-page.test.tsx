@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProgresoPage from "@/app/progreso/page";
 import { addDaysToKey, todayKey } from "@/lib/core/dates";
-import { formatNumber, formatTime } from "@/i18n/format";
+import { formatDateKeyLong, formatNumber, formatTime } from "@/i18n/format";
 import { buildStatsFromData } from "@/lib/core/stats-builder";
 import type { CalorieProfile, MealDTO, ProfilePeriod, StatsRange, WeightDTO } from "@/lib/core/types";
 import { calculateCalorieRecommendation } from "@/lib/core/calories";
@@ -422,6 +422,30 @@ describe("pantalla Progreso", () => {
     expect(vi.mocked(api.updateWeight)).toHaveBeenCalledWith(
       "w-1",
       expect.objectContaining({ fasted: false, timeZone: "Europe/Zurich" }),
+    );
+  });
+
+  it("un pesaje se ve a la hora y el día del lugar donde se tomó, también al editarlo", async () => {
+    const user = userEvent.setup();
+    // 08:00 on Kiritimati (UTC+14, no summer time) is the evening before almost anywhere else:
+    // read in the device's zone it would show another hour and, here, another day.
+    const measuredAt = new Date(`${daysAgo(1)}T08:00:00+14:00`).toISOString();
+    weights = [weightDto({ id: "w-1", measuredAt, weightKg: 80, timeZone: "Pacific/Kiritimati" })];
+    render(<ProgresoPage />);
+
+    const eight = formatTime(new Date(2026, 0, 1, 8, 0));
+    expect(await screen.findByText(eight)).toBeInTheDocument();
+    expect(screen.getByText(formatDateKeyLong(daysAgo(1)))).toBeInTheDocument();
+
+    // The form shows the same date and time, and saving it untouched keeps the same moment.
+    await user.click(screen.getByRole("button", { name: t.peso.edit }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByLabelText(t.peso.dateLabel)).toHaveValue(daysAgo(1));
+    expect(within(dialog).getByLabelText(t.peso.timeLabel)).toHaveValue("08:00");
+    await user.click(within(dialog).getByRole("button", { name: t.peso.save }));
+    expect(vi.mocked(api.updateWeight)).toHaveBeenCalledWith(
+      "w-1",
+      expect.objectContaining({ measuredAt, timeZone: "Pacific/Kiritimati" }),
     );
   });
 

@@ -1,7 +1,6 @@
 package com.blackwatermacros.app.core
 
 import java.time.Instant
-import java.time.ZoneId
 
 /**
  * Mirrors `src/lib/core/stats-builder.ts`. Builds the whole stats page from meals
@@ -66,15 +65,10 @@ fun buildStatsFromData(
     val fatPoints = nutritionSeries.filter { it.fat > 0 }
 
     // --- Weight ---
-    val fromTime = if (fromKey != null) {
-        // Cutoff parsed at UTC midnight to mirror `new Date(fromKey + "T00:00:00Z")`.
-        Instant.parse("${fromKey}T00:00:00Z").toEpochMilli()
-    } else {
-        0L
-    }
-    val inRange = weights.filter { it.measuredAt.toEpochMilli() >= fromTime }
+    // Each weigh-in on its day where it was taken (`weighInDay`), not the phone's.
+    val inRange = weights.filter { fromKey == null || weighInDay(it.measuredAt, it.timeZone) >= fromKey }
     val weightPoints: List<DataPoint> = inRange.map { row ->
-        DataPoint(date = localDateOf(row.measuredAt), value = row.weightKg)
+        DataPoint(date = weighInDay(row.measuredAt, row.timeZone), value = row.weightKg)
     }
 
     // The trend and the change use only the weigh-ins taken the usual way: one after
@@ -96,7 +90,7 @@ fun buildStatsFromData(
     // --- Body fat % series (only entries with valid body fat data) ---
     val bodyFatRows = inRange.filter { it.bodyFatPct != null && it.bodyFatPct!! > 0 && it.bodyFatPct!! < 100 }
     val bodyFatPoints: List<DataPoint> = bodyFatRows.map { row ->
-        DataPoint(date = localDateOf(row.measuredAt), value = row.bodyFatPct!!)
+        DataPoint(date = weighInDay(row.measuredAt, row.timeZone), value = row.bodyFatPct!!)
     }
     // The same rule as the weight, among the readings with body fat: a scale's reading
     // moves with water and food even more than the weight does.
@@ -122,7 +116,7 @@ fun buildStatsFromData(
     val ratePerWeekKg = slopeWithinGroups(
         groupWeighIns(
             inRange.map { row ->
-                WeighIn(localDateOf(row.measuredAt), row.weightKg, row.measuredAt.toString(), row.fasted, row.timeZone)
+                WeighIn(weighInDay(row.measuredAt, row.timeZone), row.weightKg, row.measuredAt.toString(), row.fasted, row.timeZone)
             },
         ),
     )?.let { it * 7 }
@@ -177,10 +171,6 @@ private fun <T> maxBy(items: List<T>, selector: (T) -> Double): T? {
     }
     return best
 }
-
-/** The local calendar day (in the system default zone) of an instant. */
-private fun localDateOf(instant: Instant): String =
-    toDateKey(instant.atZone(ZoneId.systemDefault()).toLocalDate())
 
 /**
  * How most weigh-ins of the range were taken: fasted (true) or not. A tie counts

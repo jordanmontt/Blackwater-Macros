@@ -65,6 +65,18 @@ class ProgressLogicTest {
     }
 
     @Test
+    fun `a weigh-in is listed under the day where it was taken, whatever the phone's zone`() {
+        // 23:30 in La Paz is already the next day in UTC and in Europe; the day before
+        // there; with no zone, the phone's day (web `toZonedDateTimeValue`).
+        val lateInLaPaz = WeightDTO("w-lp", "2026-02-27T03:30:00Z", 80.0, null, null, "", timeZone = "America/La_Paz")
+        val earlyInParis = WeightDTO("w-p", "2026-02-27T23:30:00Z", 80.2, null, null, "", timeZone = "Europe/Paris")
+        val progress = buildProgress(StatsRangeOption.R30D, emptyList(), listOf(lateInLaPaz, earlyInParis), profile, today)
+        assertThat(progress.groupedWeights.map { it.first to it.second.map(WeightDTO::id) })
+            .containsExactly("2026-02-28" to listOf("w-p"), "2026-02-26" to listOf("w-lp"))
+            .inOrder()
+    }
+
+    @Test
     fun `a weigh-in taken otherwise than most is a ring and stays out of the trend`() {
         fun at(daysAgo: Int, hour: Int, kg: Double, fasted: Boolean = true) =
             WeightDTO("w$daysAgo-$hour", "${addDaysToKey(today, -daysAgo)}T$hour:00:00Z", kg, null, null, "", fasted = fasted)

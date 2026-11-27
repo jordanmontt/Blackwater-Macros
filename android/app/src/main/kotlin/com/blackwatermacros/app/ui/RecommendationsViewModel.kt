@@ -22,6 +22,7 @@ import com.blackwatermacros.app.core.MeasuredOn
 import com.blackwatermacros.app.core.weekStartOf
 import com.blackwatermacros.app.core.weeklyExpenditure
 import com.blackwatermacros.app.core.todayKey
+import com.blackwatermacros.app.core.weighInDay
 import com.blackwatermacros.app.data.AppPreferences
 import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.MealDTO
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
-import java.time.ZoneId
 
 /** Immutable recommendation results for a single day's intake. */
 sealed interface RecommendationsUiState {
@@ -127,9 +127,9 @@ internal fun recommend(
     )
 }
 
-/** Weigh-ins on their local calendar day, in measuring order. */
+/** Weigh-ins on their day where they were taken (`weighInDay`), in measuring order. */
 internal fun datedWeights(weights: List<WeightDTO>): List<DatedWeight> =
-    weights.mapNotNull { w -> localDateKey(w.measuredAt)?.let { DatedWeight(it, w.weightKg, w.bodyFatPct) } }
+    weights.mapNotNull { w -> localDateKey(w.measuredAt, w.timeZone)?.let { DatedWeight(it, w.weightKg, w.bodyFatPct) } }
 
 /**
  * Weigh-ins as the weight trend takes them: local day, kg and the conditions they were
@@ -137,9 +137,9 @@ internal fun datedWeights(weights: List<WeightDTO>): List<DatedWeight> =
  */
 internal fun weighInsOf(weights: List<WeightDTO>): List<WeighIn> =
     weights.mapNotNull { w ->
-        localDateKey(w.measuredAt)?.let { WeighIn(it, w.weightKg, w.measuredAt, w.fasted, w.timeZone) }
+        localDateKey(w.measuredAt, w.timeZone)?.let { WeighIn(it, w.weightKg, w.measuredAt, w.fasted, w.timeZone) }
     }
 
-/** The local calendar day of an ISO instant ("2026-03-01T07:30:00Z" → "2026-03-01"). */
-internal fun localDateKey(instant: String): String? =
-    runCatching { Instant.parse(instant).atZone(ZoneId.systemDefault()).toLocalDate().toString() }.getOrNull()
+/** The day of a weigh-in's ISO instant where it was taken, its saved [timeZone] (`weighInDay`); null if unreadable. */
+internal fun localDateKey(instant: String, timeZone: String?): String? =
+    runCatching { weighInDay(Instant.parse(instant), timeZone) }.getOrNull()

@@ -5,10 +5,13 @@ import {
   isValidDateKey,
   nowDateTimeLocalValue,
   parseLocalDateTime,
+  parseZonedDateTime,
   toDateKey,
   toDateTimeLocalValue,
   todayKey,
+  toZonedDateTimeValue,
   weekStartOf,
+  weighInDay,
 } from "@/lib/core/dates";
 
 describe("claves de fecha (YYYY-MM-DD en hora local)", () => {
@@ -72,5 +75,49 @@ describe("selector de fecha y hora (datetime-local)", () => {
     const original = new Date(2026, 6, 16, 8, 45);
     const roundTrip = parseLocalDateTime(toDateTimeLocalValue(original));
     expect(roundTrip?.getTime()).toBe(original.getTime());
+  });
+});
+
+describe("hora de un pesaje en su zona horaria guardada", () => {
+  it("un pesaje se lee a la hora del lugar donde se tomó, no a la del dispositivo", () => {
+    const wakingInFrance = new Date("2026-08-25T07:03:00Z");
+    expect(toZonedDateTimeValue(wakingInFrance, "Europe/Paris")).toBe("2026-08-25T09:03");
+    expect(toZonedDateTimeValue(wakingInFrance, "America/La_Paz")).toBe("2026-08-25T03:03");
+    // The day is that place's day too.
+    expect(toZonedDateTimeValue(new Date("2026-11-27T03:30:00Z"), "America/La_Paz")).toBe("2026-11-26T23:30");
+  });
+
+  it("la hora del formulario vuelve al mismo instante en esa zona", () => {
+    expect(parseZonedDateTime("2026-08-25T09:03", "Europe/Paris")?.toISOString()).toBe("2026-08-25T07:03:00.000Z");
+    expect(parseZonedDateTime("2026-11-26T23:30", "America/La_Paz")?.toISOString()).toBe("2026-11-27T03:30:00.000Z");
+    const instant = new Date("2026-03-01T06:45:00Z");
+    expect(parseZonedDateTime(toZonedDateTimeValue(instant, "Asia/Kolkata"), "Asia/Kolkata")?.getTime()).toBe(instant.getTime());
+  });
+
+  it("cambio de hora como Android (java.time): la hora repetida es la primera, la que no existe se corre", () => {
+    // 25 Oct 2026, Paris: 03:00 → 02:00, so 02:30 happens twice (CEST, then CET).
+    expect(parseZonedDateTime("2026-10-25T02:30", "Europe/Paris")?.toISOString()).toBe("2026-10-25T00:30:00.000Z");
+    // 29 Mar 2026, Paris: 02:00 → 03:00, so 02:30 doesn't exist: it becomes 03:30 CEST.
+    expect(parseZonedDateTime("2026-03-29T02:30", "Europe/Paris")?.toISOString()).toBe("2026-03-29T01:30:00.000Z");
+  });
+
+  it("sin zona (pesajes antiguos) o con una desconocida, la del dispositivo", () => {
+    const original = new Date(2026, 6, 16, 8, 45);
+    for (const zone of [null, "Marte/Olimpo"]) {
+      expect(toZonedDateTimeValue(original, zone)).toBe(toDateTimeLocalValue(original));
+      expect(parseZonedDateTime("2026-07-16T08:45", zone)?.getTime()).toBe(original.getTime());
+    }
+  });
+
+  it("el día de un pesaje es el de su zona; sin zona, el del dispositivo", () => {
+    expect(weighInDay(new Date("2026-11-27T03:30:00Z"), "America/La_Paz")).toBe("2026-11-26");
+    expect(weighInDay(new Date("2026-11-26T23:30:00Z"), "Europe/Paris")).toBe("2026-11-27");
+    const local = new Date(2026, 6, 16, 0, 30);
+    expect(weighInDay(local, null)).toBe("2026-07-16");
+  });
+
+  it("rechaza valores malformados o imposibles", () => {
+    expect(parseZonedDateTime("ayer por la mañana", "Europe/Paris")).toBeNull();
+    expect(parseZonedDateTime("2026-02-30T08:00", "Europe/Paris")).toBeNull();
   });
 });

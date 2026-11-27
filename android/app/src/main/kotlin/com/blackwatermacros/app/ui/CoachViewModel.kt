@@ -425,7 +425,7 @@ class CoachViewModel(
 
     /** The weigh-ins as the coach reads them, oldest first. */
     private fun coachWeights(weightDtos: List<WeightDTO>): List<CoachWeight> =
-        weightDtos.mapNotNull { w -> localDateKey(w.measuredAt)?.let { CoachWeight(it, w.weightKg, w.bodyFatPct, w.fasted, w.measuredAt, w.timeZone) } }
+        weightDtos.mapNotNull { w -> localDateKey(w.measuredAt, w.timeZone)?.let { CoachWeight(it, w.weightKg, w.bodyFatPct, w.fasted, w.measuredAt, w.timeZone) } }
             .sortedBy { it.date }
 
     private suspend fun coachSystemPrompt(): String {

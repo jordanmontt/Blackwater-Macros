@@ -551,7 +551,7 @@ private fun WeighInRow(entry: WeightDTO, onEdit: (WeightDTO) -> Unit, onDelete: 
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             // The time first: one day can hold a fasted and a not-fasted weigh-in (web the same).
             Text(
-                formatTime(entry.measuredAt) + "  ",
+                formatTime(entry.measuredAt, entry.timeZone) + "  ",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

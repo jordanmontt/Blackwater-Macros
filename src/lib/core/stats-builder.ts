@@ -1,4 +1,4 @@
-import { addDaysToKey, toDateKey } from "./dates";
+import { addDaysToKey, weighInDay } from "./dates";
 import { groupWeighIns, slopeWithinGroups } from "./expenditure";
 import {
   buildDailyNutritionSeries,
@@ -77,10 +77,10 @@ export function buildStatsFromData(
   const fatPoints = nutritionSeries.filter((point) => point.fat > 0);
 
   // --- Weight ---
-  const fromTime = fromKey ? new Date(`${fromKey}T00:00:00Z`).getTime() : 0;
-  const inRange = weights.filter((row) => row.measuredAt.getTime() >= fromTime);
+  // Each weigh-in on its day where it was taken (`weighInDay`), not the computing clock's.
+  const inRange = weights.filter((row) => fromKey === null || weighInDay(row.measuredAt, row.timeZone) >= fromKey);
   const weightPoints: DataPoint[] = inRange.map((row) => ({
-    date: toDateKey(row.measuredAt),
+    date: weighInDay(row.measuredAt, row.timeZone),
     value: row.weightKg,
   }));
 
@@ -103,7 +103,7 @@ export function buildStatsFromData(
     (row) => row.bodyFatPct !== null && row.bodyFatPct > 0 && row.bodyFatPct < 100,
   );
   const bodyFatPoints: DataPoint[] = bodyFatRows.map((row) => ({
-    date: toDateKey(row.measuredAt),
+    date: weighInDay(row.measuredAt, row.timeZone),
     value: row.bodyFatPct!,
   }));
   // The same rule as the weight, among the readings with body fat: a scale's reading
@@ -128,7 +128,7 @@ export function buildStatsFromData(
   const slope = slopeWithinGroups(
     groupWeighIns(
       inRange.map((row) => ({
-        date: toDateKey(row.measuredAt),
+        date: weighInDay(row.measuredAt, row.timeZone),
         value: row.weightKg,
         time: row.measuredAt.toISOString(),
         fasted: row.fasted,

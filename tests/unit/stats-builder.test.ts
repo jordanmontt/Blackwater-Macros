@@ -188,6 +188,21 @@ describe("buildStatsFromData", () => {
     expect(summary.weight.changeBodyFatPct).toBe(-0.4);
   });
 
+  it("cada pesaje cuenta en su día donde se tomó (su zona guardada), no en el del reloj que calcula", () => {
+    // 7 days from 2026-08-17. 02:00 UTC is still the day before in La Paz; 23:30 UTC is the next day in Paris.
+    const summary = buildStatsFromData(
+      [],
+      weights([
+        { iso: "2026-08-17T02:00:00Z", kg: 80, timeZone: "America/La_Paz" }, // 16 Aug there: out of the range
+        { iso: "2026-08-20T02:00:00Z", kg: 79.8, timeZone: "America/La_Paz" },
+        { iso: "2026-08-21T23:30:00Z", kg: 79.6, timeZone: "Europe/Paris" },
+      ]),
+      "7d",
+      TODAY,
+    );
+    expect(summary.weights.map((point) => point.date)).toEqual(["2026-08-19", "2026-08-22"]);
+  });
+
   it("devuelve nulos cuando no hay comidas ni pesos en el rango", () => {
     const summary = buildStatsFromData([], [], "7d", TODAY);
     expect(summary.caloriesAvg).toBeNull();

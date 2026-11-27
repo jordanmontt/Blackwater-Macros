@@ -68,3 +68,81 @@ export function toDateTimeLocalValue(date: Date): string {
 export function nowDateTimeLocalValue(): string {
   return toDateTimeLocalValue(new Date());
 }
+
+const zonedParts = new Map<string, Intl.DateTimeFormat>();
+
+/** The formatter that reads a moment's wall clock in `timeZone`, or null if the runtime doesn't know the zone. */
+function wallClockFormatter(timeZone: string): Intl.DateTimeFormat | null {
+  let found = zonedParts.get(timeZone);
+  if (!found) {
+    try {
+      found = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        hourCycle: "h23",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+    } catch {
+      return null;
+    }
+    zonedParts.set(timeZone, found);
+  }
+  return found;
+}
+
+/** `timeMs`'s wall clock in the zone, read as if it were UTC: the zone's offset is that minus `timeMs`. */
+function wallClockAsUtc(format: Intl.DateTimeFormat, timeMs: number): number {
+  const part: Record<string, number> = {};
+  for (const { type, value } of format.formatToParts(new Date(timeMs))) part[type] = Number(value);
+  return Date.UTC(part.year, part.month - 1, part.day, part.hour, part.minute, part.second);
+}
+
+/**
+ * The wall clock («YYYY-MM-DDTHH:mm») of a weigh-in where it was taken: `instant` in its
+ * saved `timeZone`, so a weigh-in made on waking in France still reads 08:00 after a move
+ * to Bolivia. No zone (older weigh-ins), or one the runtime doesn't know → the device's.
+ */
+export function toZonedDateTimeValue(instant: Date, timeZone: string | null): string {
+  const format = timeZone ? wallClockFormatter(timeZone) : null;
+  if (!format) return toDateTimeLocalValue(instant);
+  return new Date(wallClockAsUtc(format, instant.getTime())).toISOString().slice(0, 16);
+}
+
+/**
+ * The calendar day of a weigh-in where it was taken (its saved zone, else the device's):
+ * the day it is listed under and the one the statistics, the measured expenditure and the
+ * coach count it on, whichever clock computes them (the server's is UTC).
+ */
+export function weighInDay(instant: Date, timeZone: string | null | undefined): string {
+  return toZonedDateTimeValue(instant, timeZone ?? null).slice(0, 10);
+}
+
+/**
+ * The moment a wall clock («YYYY-MM-DDTHH:mm») in `timeZone` stands for: what the weigh-in
+ * form saves when it shows the weigh-in's own zone. No zone, or an unknown one → the
+ * device's (`parseLocalDateTime`). As `java.time`'s `atZone` (Android): an hour that
+ * happens twice (summer time ends) is the first one; one that doesn't exist (it starts)
+ * moves later by the gap.
+ */
+export function parseZonedDateTime(value: string, timeZone: string | null): Date | null {
+  const format = timeZone ? wallClockFormatter(timeZone) : null;
+  if (!format) return parseLocalDateTime(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value);
+  if (!match) return null;
+  const [year, month, day, hour, minute] = match.slice(1).map(Number);
+  const wall = Date.UTC(year, month - 1, day, hour, minute);
+  if (Number.isNaN(wall) || new Date(wall).toISOString().slice(0, 16) !== value.slice(0, 16)) return null;
+  // The offsets a day before and after (at most one change in between): the first one
+  // that gives back this wall clock wins; none does in a gap, where the earlier one applies.
+  const offsetAt = (timeMs: number) => wallClockAsUtc(format, timeMs) - timeMs;
+  const before = offsetAt(wall - 86_400_000);
+  const after = offsetAt(wall + 86_400_000);
+  for (const offset of [before, after]) {
+    if (offsetAt(wall - offset) === offset) return new Date(wall - offset);
+  }
+  return new Date(wall - before);
+}

@@ -42,11 +42,11 @@ import androidx.compose.ui.unit.dp
 import com.blackwatermacros.app.R
 import com.blackwatermacros.app.data.WeightDTO
 import com.blackwatermacros.app.core.deviceTimeZone
+import com.blackwatermacros.app.core.weighInZone
 import com.blackwatermacros.app.data.WeightRequest
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -66,9 +66,12 @@ fun WeightFormDialog(
     onOpenWhyFasted: () -> Unit = {},
 ) {
     var weightText by remember(weight?.id) { mutableStateOf(weight?.weightKg?.let(::toDecimalInput).orEmpty()) }
+    // An edit shows the date and time where the weigh-in was taken (its saved zone), as the list
+    // does; a new one, the phone's (web `parseZonedDateTime`).
+    val zone = weighInZone(weight?.timeZone)
     var measuredAt by remember(weight?.id) {
         mutableStateOf(
-            weight?.let { Instant.parse(it.measuredAt).atZone(ZoneId.systemDefault()).toLocalDateTime() }
+            weight?.let { Instant.parse(it.measuredAt).atZone(zone).toLocalDateTime() }
                 ?: LocalDateTime.now().withSecond(0).withNano(0),
         )
     }
@@ -193,7 +196,7 @@ fun WeightFormDialog(
                         is WeightValidation.Invalid -> errorRes = result.messageRes
                         is WeightValidation.Valid -> onSubmit(
                             WeightRequest(
-                                measuredAt = measuredAt.atZone(ZoneId.systemDefault()).toInstant().toString(),
+                                measuredAt = measuredAt.atZone(zone).toInstant().toString(),
                                 weightKg = result.weightKg,
                                 bodyFatPct = result.bodyFatPct,
                                 note = noteText.trim().ifEmpty { null },

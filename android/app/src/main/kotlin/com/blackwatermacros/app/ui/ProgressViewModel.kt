@@ -20,6 +20,7 @@ import com.blackwatermacros.app.core.addDaysToKey
 import com.blackwatermacros.app.core.buildStatsFromData
 import com.blackwatermacros.app.core.macroAverages
 import com.blackwatermacros.app.core.todayKey
+import com.blackwatermacros.app.core.weighInDay
 import com.blackwatermacros.app.data.AppRepository
 import com.blackwatermacros.app.data.MealDTO
 import com.blackwatermacros.app.data.WeightDTO
@@ -34,7 +35,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
-import java.time.ZoneId
 
 enum class StatsRangeOption(val range: StatsRange, val days: Int?, @StringRes val labelRes: Int) {
     R7D(StatsRange.RANGE_7D, 7, R.string.range_7d),
@@ -147,8 +147,8 @@ internal fun buildProgress(
     val calorieBands = loggedDays.map { day -> ready?.targets?.on(day)?.calorie?.let { it.targetMin to it.targetMax } }
 
     val grouped = weights
-        .filter { fromKey == null || it.measuredAt.localDay() >= fromKey }
-        .groupBy { it.measuredAt.localDay() }
+        .filter { fromKey == null || it.localDay() >= fromKey }
+        .groupBy { it.localDay() }
         .toSortedMap(compareByDescending { it })
         .map { (day, entries) -> day to entries.asReversed() }
 
@@ -194,5 +194,8 @@ private fun weightRows(summary: StatsSummary): List<WeightFatRow> {
     }
 }
 
-/** Calendar day of a UTC instant in the phone's timezone (a 00:30 weigh-in belongs to that local day). */
-private fun String.localDay(): String = Instant.parse(this).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+/**
+ * The calendar day where the weigh-in was taken: its saved zone, else the phone's (a 00:30
+ * weigh-in belongs to that local day). The same as the time on its row and in the form.
+ */
+private fun WeightDTO.localDay(): String = weighInDay(Instant.parse(measuredAt), timeZone)

@@ -32,7 +32,7 @@ import { api, ApiError, errorText, UNDO_TOAST_MS } from "@/lib/api";
 import { useCachedResource } from "@/lib/use-cached-resource";
 import { useMeasuredExpenditure } from "@/lib/use-measured-expenditure";
 import { datedWeights, useRecommendations } from "@/lib/use-recommendations";
-import { addDaysToKey, todayKey } from "@/lib/core/dates";
+import { addDaysToKey, todayKey, weighInDay } from "@/lib/core/dates";
 import { round1 } from "@/lib/core/nutrition";
 import { checkFatShare, macroAverages } from "@/lib/core/progress";
 import { averageTargets, targetsOn, type TargetRange } from "@/lib/core/profile-history";
@@ -587,7 +587,8 @@ function WeightEntries({
     const from = days === null ? null : addDaysToKey(today, -(days - 1));
     const byDay = new Map<string, WeightDTO[]>();
     for (const entry of weights ?? []) {
-      const day = entry.measuredAt.slice(0, 10);
+      // The day where it was taken (its saved zone), as the form and the chart show it.
+      const day = weighInDay(new Date(entry.measuredAt), entry.timeZone);
       if (from !== null && day < from) continue;
       byDay.set(day, [...(byDay.get(day) ?? []), entry]);
     }
@@ -611,7 +612,7 @@ function WeightEntries({
                 <div className="shrink-0">
                   <p className="font-medium tabular-nums">
                     <span className="mr-1.5 text-xs font-normal text-muted-foreground">
-                      {formatTime(new Date(entry.measuredAt))}
+                      {formatTime(new Date(entry.measuredAt), entry.timeZone)}
                     </span>
                     {formatNumber(entry.weightKg, 1)} kg
                     {entry.bodyFatPct !== null && (
